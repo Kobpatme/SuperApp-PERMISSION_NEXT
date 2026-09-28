@@ -4,7 +4,7 @@ import "@/app/coral-stay-theme.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Permission Next — Coral Stay Workspace",
+  title: "Permission Next — Operations Workspace",
   description: "Unified workspace for MAXIWA KPI, building expenses and building guarantee refunds",
 };
 

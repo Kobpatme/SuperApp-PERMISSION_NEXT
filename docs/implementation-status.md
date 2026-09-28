@@ -1,6 +1,10 @@
 # Implementation status
 
-Last updated: 2026-09-04
+Current rebuild audit: 2026-09-28 — see [verified gaps and phase status](repository-audit/professional-rebuild.md).
+
+The sections below are the **historical September 4 foundation checkpoint**, not current feature-completion claims. Current identity is local sessions (ADR-0003); Buildings/Guarantees now have native operational interfaces. Rebuild acceptance remains open in the linked audit.
+
+Historical checkpoint date: 2026-09-04
 
 ## Phase 0 — Discovery & Audit
 

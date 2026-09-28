@@ -1,4 +1,6 @@
-# Target architecture overview
+# Current architecture overview
+
+Status: Current, verified against repository commit `6ccef5b` on 2026-09-28. Source and deterministic checks take precedence; rebuild acceptance criteria describe planned work, not completed features.
 
 ## Decision
 
@@ -13,7 +15,7 @@ PERMISSION_NEXT will be a TypeScript strict Next.js modular monolith backed by P
 5. Idempotent workers evaluate KPI/notification/automation rules and record execution results.
 6. Browser components receive only authorized fields and use optimistic feedback only where reconciliation is safe.
 
-PostgreSQL is the source of truth. Supabase Auth and private Storage may be used behind explicit adapters. NAS remains a temporary attachment provider until the file migration decision is approved. The application remains Docker-compatible so infrastructure can move internally.
+PostgreSQL is the source of truth. Current identity uses Argon2id passwords and opaque database-backed sessions (`src/lib/auth.ts`, migration 0011). Private local/NAS storage is the current provider. Microsoft 365 is an optional readiness integration. Supabase and Vercel are not required; a future provider change requires an explicit ADR. The application remains Docker-compatible for organization infrastructure.
 
 ## Dependency direction
 
@@ -26,7 +28,7 @@ PostgreSQL is the source of truth. Supabase Auth and private Storage may be used
 
 ## Current shell disposition
 
-The existing Next.js shell is a useful prototype and target host, but its iframe routes are explicitly temporary. They bypass legacy login UI while legacy scripts retain direct database access, so they cannot satisfy the project definition of done. Migration will use a strangler approach: replace one workflow slice at a time with native routes and server services, reconcile, then remove the corresponding frame.
+All primary module routes render native Next.js components. Legacy compatibility routes return 404 in production and are deprecated migration references. Buildings and Guarantees have operational UI; Work still uses a generic foundation. Native routing does not imply completed domain migration or production approval.
 
 ## Non-functional baseline
 

@@ -1,5 +1,7 @@
 # Implementation checklist
 
+> Historical foundation checklist. Current acceptance is tracked in [the fresh audit](repository-audit/professional-rebuild.md). Checked foundation items do not imply production verification. Current identity is local sessions; hosted-auth references are superseded by ADR-0003.
+
 ## Phase 0 — Discovery & Audit
 
 - [x] Read master specification and repository instructions

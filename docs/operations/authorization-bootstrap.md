@@ -1,5 +1,7 @@
 # Authorization bootstrap
 
+> **Historical hosted-auth procedure; do not execute against the current runtime.** Current setup uses `npm run db:migrate` then `npm run auth:bootstrap` as documented in README and `on-premise-deployment.md`. Subsequent account management is through `/admin`. The SQL below is retained only as migration history. See ADR-0003.
+
 The normalized RBAC migration intentionally does not translate legacy `user_roles` automatically. A module-scoped legacy role cannot be safely converted to a cross-module role without an approved mapping.
 
 ## First administrator
