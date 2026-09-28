@@ -20,8 +20,8 @@ All five gates passed: lint, typecheck, 20 test files / 60 tests, one document m
 
 ## Phase status
 
-0. Source of truth: in progress.
-1. Design tokens/shared patterns: planned.
+0. Source of truth: repository checkpoint complete (`ba06d0b`); historical documentation explicitly superseded. All five gates passed.
+1. Design tokens/shared patterns: token ownership and shared primitives implemented; active themes retired, shell styles moved, domain structure preserved. All five gates passed (60 unit tests). Visual/domain selector migration remains open.
 2. Shell/navigation/search/notifications: planned.
 3. Dashboard internal queries: planned.
 4. Work/KPI native views: planned.

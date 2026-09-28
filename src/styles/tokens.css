@@ -1,0 +1,63 @@
+/* Sole workspace token source. Compatibility aliases keep existing domains stable. */
+:root {
+  color-scheme: light;
+  --color-bg: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #eef2f7;
+  --color-border: #d7dee8;
+  --color-border-strong: #8897ab;
+  --color-text: #182334;
+  --color-text-muted: #536278;
+  --color-text-subtle: #627188;
+  --color-brand: #244fb8;
+  --color-brand-hover: #193d92;
+  --color-brand-soft: #e9efff;
+  --color-on-brand: #ffffff;
+  --color-success: #167143;
+  --color-success-soft: #e4f4ea;
+  --color-warning: #865100;
+  --color-warning-soft: #fff2d6;
+  --color-danger: #b42332;
+  --color-danger-soft: #ffeaed;
+  --color-info: #245db1;
+  --color-info-soft: #e8f0ff;
+  --radius-xs: 3px; --radius-sm: 5px; --radius-md: 8px; --radius-lg: 12px;
+  --shadow-xs: 0 1px 2px rgb(18 32 52 / 5%);
+  --shadow-sm: 0 3px 12px rgb(18 32 52 / 9%);
+  --shadow-md: 0 12px 32px rgb(18 32 52 / 18%);
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-7: 28px; --space-8: 32px; --space-9: 36px; --space-10: 40px;
+  /* Deliberate local system fonts: no network fetch or implied bundled fonts. */
+  --font-ui: "Segoe UI", "Leelawadee UI", Tahoma, sans-serif;
+  --font-mono: Consolas, "Courier New", monospace;
+  --app-bg: var(--color-bg); --app-surface: var(--color-surface);
+  --app-surface-soft: var(--color-surface-subtle); --app-line: var(--color-border);
+  --app-text: var(--color-text); --app-muted: var(--color-text-muted);
+  --app-brand: var(--color-brand); --app-brand-hover: var(--color-brand-hover); --app-brand-soft: var(--color-brand-soft);
+  --app-success: var(--color-success); --app-warning: var(--color-warning); --app-warning-soft: var(--color-warning-soft); --app-danger: var(--color-danger);
+  --app-radius-sm: var(--radius-sm); --app-radius: var(--radius-md); --app-radius-lg: var(--radius-lg);
+  --app-shadow-sm: var(--shadow-xs); --app-shadow: var(--shadow-sm);
+  --ink: var(--color-text); --muted: var(--color-text-muted); --line: var(--color-border);
+  --canvas: var(--color-bg); --surface: var(--color-surface);
+  --violet: var(--color-brand); --violet-soft: var(--color-brand-soft);
+  --teal: var(--color-success); --teal-soft: var(--color-success-soft);
+  --amber: var(--color-warning); --amber-soft: var(--color-warning-soft); --rose: var(--color-danger);
+  --shadow: var(--shadow-sm);
+  --space-xs: 6px; --space-sm: 10px; --space-md: 16px; --space-lg: 24px; --space-xl: 36px;
+  --z-sticky: 100; --z-dropdown: 220; --z-module: 90; --z-skip: 1000;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #111925; --color-surface: #1b2636; --color-surface-subtle: #243246;
+  --color-border: #3a4a61; --color-border-strong: #8294ad;
+  --color-text: #eff3f9; --color-text-muted: #b9c6d8; --color-text-subtle: #a2b3c9;
+  --color-brand: #9bbcff; --color-brand-hover: #bad0ff; --color-brand-soft: #253d64;
+  --color-on-brand: #12213c;
+  --color-success: #83d9a6; --color-success-soft: #1c3f30;
+  --color-warning: #f4c36b; --color-warning-soft: #46381f;
+  --color-danger: #ffa1ac; --color-danger-soft: #4b2834;
+  --color-info: #9bbcff; --color-info-soft: #253d64;
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 15%);
+  --shadow-sm: 0 3px 12px rgb(0 0 0 / 22%);
+  --shadow-md: 0 12px 32px rgb(0 0 0 / 35%);
+}
