@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+.env
+.env.local
+.env.*.local
+.npm-cache/
+.data/
+_discovery_sources/
+.jev/logs/
+*.log
+*.tsbuildinfo
+*-check.png
+
+# Legacy workflow references are kept under _discovery_sources/.
