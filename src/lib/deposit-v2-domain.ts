@@ -64,6 +64,12 @@ export const workflowLabels: Record<string, string> = {
   off_service_pending: "รอ Off Service", done: "เสร็จแล้ว", cancel: "ยกเลิก",
 };
 
+export const installationTeamPendingWorkflowKeys = ["tl_wait", "tl_process", "off_service_pending"] as const;
+
+export function isInstallationTeamPending(item: DepositItem) {
+  return installationTeamPendingWorkflowKeys.includes(getWorkflowStatusKey(item) as (typeof installationTeamPendingWorkflowKeys)[number]);
+}
+
 export function getRemovalDepositMetrics(items: DepositItem[]) {
   const metrics = { totalAmount: 0, totalCount: 0, refundedAmount: 0, refundedCount: 0,
     outstandingAmount: 0, outstandingCount: 0, onServiceAmount: 0, onServiceCount: 0,

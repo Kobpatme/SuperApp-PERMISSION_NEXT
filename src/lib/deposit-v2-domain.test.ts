@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { depositPreviewItems } from "@/lib/deposit-v2-preview";
 import { getActionNotifications, getInstallationDepositMetrics, getListPageKpiMetrics, getOperationalAnalytics,
-  getRemovalDepositMetrics, getSidebarFinancialMetrics, getSmartWorkQueue, getWorkflowStatusKey, isOnServiceItem, parseDateValue } from "@/lib/deposit-v2-domain";
+  getRemovalDepositMetrics, getSidebarFinancialMetrics, getSmartWorkQueue, getWorkflowStatusKey, isInstallationTeamPending, isOnServiceItem, parseDateValue } from "@/lib/deposit-v2-domain";
 import { depositItemInputSchema, validateDepositTransition } from "@/lib/deposit-v2-workflow";
 
 describe("V2 building deposit rules", () => {
@@ -26,6 +26,12 @@ describe("V2 building deposit rules", () => {
     expect(queue.find((entry) => entry.item.id === "example-off-service")?.missingDocuments).toContain("หลักฐาน Off Service");
     expect(getActionNotifications(depositPreviewItems, now).length).toBeGreaterThan(0);
     expect(getOperationalAnalytics(depositPreviewItems, now).overdueCount).toBeGreaterThan(0);
+  });
+  it("limits the installation team view to work that still needs team action", () => {
+    expect(depositPreviewItems.filter(isInstallationTeamPending).map((item) => item.id)).toEqual([
+      "example-tl-wait", "example-tl-process", "example-off-service",
+    ]);
+    expect(isInstallationTeamPending(depositPreviewItems.find((item) => item.id === "example-ret")!)).toBe(false);
   });
   it("handles Buddhist calendar dates", () => {
     expect(parseDateValue("09/09/2569 09:00:00")?.getFullYear()).toBe(2026);

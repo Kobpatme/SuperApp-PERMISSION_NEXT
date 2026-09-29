@@ -21,8 +21,8 @@ function formatDate(value: unknown) {
   return date ? date.toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
 }
 
-export function DepositWorkspace({ items, preview, state, truncated, generatedAt, canCreate, canPreview }: {
-  items: DepositItem[]; preview: boolean; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string; canCreate: boolean; canPreview: boolean;
+export function DepositWorkspace({ items, preview, state, truncated, generatedAt, canCreate, installationTeamView = false, canPreview }: {
+  items: DepositItem[]; preview: boolean; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string; canCreate: boolean; installationTeamView?: boolean; canPreview: boolean;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -93,22 +93,23 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  const tabs: Array<[WorkspaceView, string, number?]> = [
-    ["queue", "งานที่ต้องทำ", queue.length], ["list", "รายการทั้งหมด", items.length],
-    ["on_service", "มีประกันรื้อถอน (On Service)", items.filter((item) => getWorkflowStatusKey(item) === "on_service").length],
-    ["done", "งานสำเร็จ", items.filter((item) => getWorkflowStatusKey(item) === "done").length],
-  ];
+  const tabs: Array<[WorkspaceView, string, number?]> = installationTeamView
+    ? [["queue", "งานที่ทีมติดตั้งต้องดำเนินการ", queue.length], ["list", "งานค้างทั้งหมด", items.length]]
+    : [["queue", "งานที่ต้องทำ", queue.length], ["list", "รายการทั้งหมด", items.length],
+      ["on_service", "มีประกันรื้อถอน (On Service)", items.filter((item) => getWorkflowStatusKey(item) === "on_service").length],
+      ["done", "งานสำเร็จ", items.filter((item) => getWorkflowStatusKey(item) === "done").length]];
 
   return <div className="deposit-workspace legacy-deposit-workspace">
-    <header className="deposit-head legacy-deposit-head"><div><p className="eyebrow">เงินประกันอาคาร / งานดำเนินการ</p><h1>รายการขอคืนเงินประกันอาคาร</h1><p className="sub">ข้อมูลทั้งหมด · {exportYear || "ทุกปี"} · อัปเดตล่าสุด {lastUpdated ? lastUpdated.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }) : "—"}</p></div>
+    <header className="deposit-head legacy-deposit-head"><div><p className="eyebrow">{installationTeamView ? "เงินประกันอาคาร / งานทีมติดตั้ง" : "เงินประกันอาคาร / งานดำเนินการ"}</p><h1>{installationTeamView ? "งานที่ทีมติดตั้งต้องดำเนินการ" : "รายการขอคืนเงินประกันอาคาร"}</h1><p className="sub">{installationTeamView ? "แสดงเฉพาะงานค้างในขั้นตอนของทีมติดตั้ง" : `ข้อมูลทั้งหมด · ${exportYear || "ทุกปี"}`} · อัปเดตล่าสุด {lastUpdated ? lastUpdated.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }) : "—"}</p></div>
       <div className="legacy-head-actions"><button type="button" className={`executive-nav-button${view === "analytics" ? " active" : ""}`} aria-pressed={view === "analytics"} onClick={() => setWorkspaceView("analytics")}>วิเคราะห์ข้อมูล</button>
         <select aria-label="เดือนสำหรับส่งออก" value={exportMonth} onChange={(event) => setExportMonth(event.target.value)}><option value="">ทุกเดือน</option>{["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."].map((month, index) => <option value={index} key={month}>{month}</option>)}</select>
         <select aria-label="ปีสำหรับส่งออก" value={exportYear} onChange={(event) => setExportYear(event.target.value)}><option value="">ทุกปี</option>{years.map((year) => <option value={year} key={year}>{year}</option>)}</select>
         <button type="button" className="deposit-export" onClick={exportCsv} disabled={!filtered.length}>⇩ Export CSV</button>
-        {createUnavailableReason ? <button className="primary" type="button" disabled title={createUnavailableReason}>＋ เพิ่มรายการใหม่</button> : <Link className="primary" href="/guarantees/new">＋ เพิ่มรายการใหม่</Link>}
+        {!installationTeamView && (createUnavailableReason ? <button className="primary" type="button" disabled title={createUnavailableReason}>＋ เพิ่มรายการใหม่</button> : <Link className="primary" href="/guarantees/new">＋ เพิ่มรายการใหม่</Link>)}
       </div></header>
-    {preview && <div className="deposit-banner">ข้อมูลตัวอย่างจาก workflow V2 · ไม่มีการบันทึก <Link href="/guarantees">กลับข้อมูลจริง</Link></div>}
-    {!preview && state !== "ready" && <div className="deposit-banner">{state === "not_configured" ? "ยังไม่ได้ตั้งค่าฐานข้อมูลกลาง" : "โหลดข้อมูลเงินประกันไม่สำเร็จ"} {canPreview && <Link href="/guarantees?preview=1">ดูข้อมูลตัวอย่าง</Link>}</div>}
+    {installationTeamView && <div className="deposit-banner">มุมมองนี้แสดงเฉพาะงานสถานะ “รอทีมติดตั้งรับงาน”, “ทีมติดตั้งดำเนินการ” และ “รอดำเนินการ Off Service”</div>}
+    {preview && <div className="deposit-banner">ข้อมูลตัวอย่างจาก workflow V2 · ไม่มีการบันทึก <Link href={installationTeamView ? "/guarantees?view=installation-team" : "/guarantees"}>กลับข้อมูลจริง</Link></div>}
+    {!preview && state !== "ready" && <div className="deposit-banner">{state === "not_configured" ? "ยังไม่ได้ตั้งค่าฐานข้อมูลกลาง" : "โหลดข้อมูลเงินประกันไม่สำเร็จ"} {canPreview && <Link href={`/guarantees?preview=1${installationTeamView ? "&view=installation-team" : ""}`}>ดูข้อมูลตัวอย่าง</Link>}</div>}
     {truncated && <div className="deposit-banner">แสดง 500 รายการที่อัปเดตล่าสุดเท่านั้น</div>}
     {copyMessage && <div className="deposit-toast" role="status">{copyMessage}</div>}
 

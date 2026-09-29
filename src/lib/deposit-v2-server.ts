@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, gt, inArray, isNull, lte, or, type SQL } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNull, lte, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import { dataScopeGrants, guaranteeWorkEvents, guaranteeWorkItems, profiles, roles, userRoleAssignments } from "@/db/schema";
 import { getAccessContext, type AccessContext } from "@/lib/access";
@@ -41,7 +41,7 @@ function toRecord(row: typeof guaranteeWorkItems.$inferSelect): DepositRecord {
     createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() } as DepositRecord;
 }
 
-export async function listDepositWorkItems(limit = 500, requestedTeamId?: string): Promise<{ items: DepositRecord[]; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string }> {
+export async function listDepositWorkItems(limit = 500, requestedTeamId?: string, installationTeamOnly = false): Promise<{ items: DepositRecord[]; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string }> {
   const generatedAt = new Date().toISOString();
   const access = await getAccessContext("guarantees");
   if (!access.allowed) return { items: [], state: "unavailable", truncated: false, generatedAt };
@@ -52,8 +52,13 @@ export async function listDepositWorkItems(limit = 500, requestedTeamId?: string
     (grant.scope === "ALL" || (grant.scope === "TEAM" && access.subject?.teamIds.includes(requestedTeamId)) ||
       (grant.scope === "SELECTED_TEAMS" && grant.selectedTeamId === requestedTeamId)));
   if (!canViewRequestedTeam) return { items: [], state: "ready", truncated: false, generatedAt };
-  const scope = baseScope && requestedTeamId ? and(baseScope, eq(guaranteeWorkItems.teamId, requestedTeamId)) : baseScope;
-  if (!scope) return { items: [], state: "ready", truncated: false, generatedAt };
+  if (!baseScope) return { items: [], state: "ready", truncated: false, generatedAt };
+  const installationTeamScope = or(
+    eq(guaranteeWorkItems.status, "tl"),
+    and(eq(guaranteeWorkItems.status, "On Process"), sql`lower(coalesce(${guaranteeWorkItems.data}->>'complete_tl', '')) = 'on process'`),
+    and(eq(guaranteeWorkItems.status, "done"), sql`lower(coalesce(${guaranteeWorkItems.data}->>'off_service_status', '')) = 'pending'`),
+  );
+  const scope = and(baseScope, requestedTeamId ? eq(guaranteeWorkItems.teamId, requestedTeamId) : undefined, installationTeamOnly ? installationTeamScope : undefined);
   try {
     const rows = await getDb().select().from(guaranteeWorkItems).where(scope).orderBy(desc(guaranteeWorkItems.updatedAt)).limit(limit + 1);
     return { items: rows.slice(0, limit).filter((row) => isAuthorized(access.subject, "guarantee.case.read", { ownerId: row.ownerId, teamId: row.teamId }) || canWorkAsAssignedTl(access, row)).map(toRecord), state: "ready", truncated: rows.length > limit, generatedAt };
