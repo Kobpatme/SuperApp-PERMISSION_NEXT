@@ -1,10 +1,11 @@
 import "server-only";
-import { and, count, desc, eq, ilike, inArray, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import { buildingConditionFees, buildingConditionVersions, buildings } from "@/db/schema";
 import { getAccessContext, type AccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { getBuildingBoqProfile, normalizePermissionBuilding, type LegacyBuilding } from "@/lib/permission-building-domain";
+import type { BuildingQuery } from "@/lib/building-query";
 
 export type PermissionBuildingRow = {
   id: string; code: string; nameTh: string; nameEn: string | null; ownerTeamId: string | null;
@@ -31,10 +32,10 @@ function readScope(access: AccessContext): SQL | undefined {
   return teams.size ? inArray(buildings.ownerTeamId, [...teams]) : undefined;
 }
 
-export async function listPermissionBuildings(query = "", page = 1, limit = 100): Promise<{
+export async function listPermissionBuildings(input: BuildingQuery): Promise<{
   items: PermissionBuildingRow[]; state: "ready" | "not_configured" | "unavailable"; total: number; page: number; pageSize: number;
 }> {
-  const safePage = Number.isSafeInteger(page) && page > 0 ? page : 1;
+  const { query, page: safePage, limit } = input;
   const empty = (state: "ready" | "not_configured" | "unavailable") => ({ items: [], state, total: 0, page: safePage, pageSize: limit });
   const access = await getAccessContext("buildings");
   if (!access.allowed) return empty("unavailable");
@@ -43,7 +44,12 @@ export async function listPermissionBuildings(query = "", page = 1, limit = 100)
   if (!scope) return empty("ready");
   try {
     const search = query.trim().slice(0, 120).replace(/[\\%_]/g, "\\$&");
-    const predicate = search ? and(scope, ilike(buildings.searchText, `%${search}%`)) : scope;
+    const jsonKeys = { status: "status", group: "group", type: "type", installType: "install_type", surveyType: "survey_type", area: "area" } as const;
+    const filters = Object.entries(jsonKeys).flatMap(([key, jsonKey]) => {
+      const value = input[key as keyof typeof jsonKeys];
+      return value ? [sql`exists (select 1 from ${buildingConditionVersions} bcv where bcv.building_id = ${buildings.id} and bcv.version = (select max(latest.version) from ${buildingConditionVersions} latest where latest.building_id = ${buildings.id}) and bcv.conditions ->> ${jsonKey} = ${value})`] : [];
+    });
+    const predicate = and(scope, ...(search ? [ilike(buildings.searchText, `%${search}%`)] : []), ...filters);
     const db = getDb();
     const [tally] = await db.select({ value: count() }).from(buildings).where(predicate);
     const total = tally?.value ?? 0;

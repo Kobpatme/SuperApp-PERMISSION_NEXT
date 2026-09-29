@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { PermissionBuildingRow } from "@/lib/permission-building-server";
 import { BuildingMap } from "./building-map";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 
 type FilterKey = "status" | "group" | "type" | "installType" | "surveyType" | "area";
 type Filters = Record<FilterKey, string>;
@@ -25,9 +27,10 @@ function optionsFor(buildings: PermissionBuildingRow[], key: FilterKey) {
   return [...new Set(buildings.map((item) => item[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b, "th"));
 }
 
-export function BuildingsWorkspace({ buildings, total }: { buildings: PermissionBuildingRow[]; total: number }) {
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
+export function BuildingsWorkspace({ buildings, total, initialQuery = "", initialFilters = emptyFilters }: { buildings: PermissionBuildingRow[]; total: number; initialQuery?: string; initialFilters?: Filters }) {
+  const router = useRouter(), pathname = usePathname();
+  const [query, setQuery] = useState(initialQuery);
+  const [filters, setFilters] = useState<Filters>({ ...emptyFilters, ...initialFilters });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const [suggestionIndex, setSuggestionIndex] = useState(-1);
@@ -54,6 +57,16 @@ export function BuildingsWorkspace({ buildings, total }: { buildings: Permission
   const horizontalMeters = selected && /^\d+(?:\.\d+)?$/.test(selected.maxHorizontal) ? `${selected.maxHorizontal} เมตร` : "";
   const invalidDuration = Boolean(selected?.duration && !durationDays);
   const invalidHorizontal = Boolean(selected?.maxHorizontal && !horizontalMeters);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams();
+      if (query.trim()) params.set("q", query.trim());
+      (Object.keys(filters) as FilterKey[]).forEach(key => { if (filters[key]) params.set(key, filters[key]); });
+      router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [filters, pathname, query, router]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -169,7 +182,7 @@ export function BuildingsWorkspace({ buildings, total }: { buildings: Permission
     </div>
 
     <dialog ref={dialogRef} className="permission-drawer" aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onClose={() => setSelectedId(null)}>
-      {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2>{selected.nameTh}</h2><p>{selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"}</p><div className="permission-list-tags"><em>{selected.group || "ไม่ระบุกลุ่ม"}</em>{selected.surveyType && <em>{selected.surveyType}</em>}{selected.type && <em>{selected.type}</em>}{selected.installType && <em>{selected.installType}</em>}</div></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
+      {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2>{selected.nameTh}</h2><p>{selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"}</p><div className="permission-list-tags"><em>{selected.group || "ไม่ระบุกลุ่ม"}</em>{selected.surveyType && <em>{selected.surveyType}</em>}{selected.type && <em>{selected.type}</em>}{selected.installType && <em>{selected.installType}</em>}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>เปิด Building 360</Link></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
         <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><strong className={statusClass(selected.status)}>{selected.status || "—"}</strong></div><div><span>พื้นที่ / จังหวัด</span><strong>{[selected.area, selected.province].filter(Boolean).join(" · ") || "—"}</strong></div><div><span>ข้อมูลล่าสุด</span><strong>{selected.updateDate || "ไม่ระบุวันที่"}</strong></div></div>
         {(!selected.wmPoint || selected.feeReviewRequired || invalidDuration || invalidHorizontal) && <div className="permission-drawer-alert" role="status"><strong>ข้อมูลที่ควรตรวจสอบ</strong>{!selected.wmPoint && <span>ยังไม่มีข้อมูลจุดเชื่อมต่อ WM</span>}{invalidDuration && <span>ระยะดำเนินการไม่ใช่จำนวนวัน</span>}{invalidHorizontal && <span>ระยะสายแนวนอนไม่ใช่จำนวนเมตร</span>}{selected.feeReviewRequired && <span>ค่าใช้จ่ายจาก CSV รอตรวจสอบ</span>}</div>}
         <div className="permission-drawer-tabs" role="tablist" aria-label="รายละเอียดอาคาร">
