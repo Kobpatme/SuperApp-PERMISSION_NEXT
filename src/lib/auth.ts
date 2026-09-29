@@ -34,7 +34,7 @@ export async function createSession(userId: string, metadata?: { ipAddress?: str
     await tx.insert(authSessions).values({ userId, tokenHash: hashToken(token), expiresAt,
       ipAddress: metadata?.ipAddress?.slice(0, 80), userAgent: metadata?.userAgent?.slice(0, 500) });
   });
-  (await cookies()).set(sessionCookieName, token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", expires: expiresAt });
+  (await cookies()).set(sessionCookieName, token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", priority: "high", path: "/", expires: expiresAt });
 }
 
 export async function destroySession() {

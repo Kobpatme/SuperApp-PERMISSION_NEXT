@@ -1,6 +1,7 @@
 import { isAuthorized } from "@/lib/authorization";
 import { getAccessContext } from "@/lib/access";
 import { writeAuditLog } from "@/lib/audit-log";
+import { validateNasBridgePath } from "@/lib/nas-bridge-path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ type RouteContext = { params: Promise<{ path: string[] }> };
 function bridgeUrl(path: string[], requestUrl: string) {
   const base = (process.env.PERMISSION_NAS_BRIDGE_URL || "http://127.0.0.1:8766").replace(/\/$/, "");
   const incoming = new URL(requestUrl);
-  return `${base}/api/nas/${path.map(encodeURIComponent).join("/")}${incoming.search}`;
+  return `${base}/api/nas/${validateNasBridgePath(path)}${incoming.search}`;
 }
 
 async function proxy(request: Request, context: RouteContext) {
@@ -23,6 +24,8 @@ async function proxy(request: Request, context: RouteContext) {
   if (!access.allowed || !canReadDocuments) return Response.json({ error: "คุณไม่มีสิทธิ์ใช้งานเอกสารอาคาร" }, { status: 403 });
 
   const { path } = await context.params;
+  try { validateNasBridgePath(path); }
+  catch { return Response.json({ error: "Invalid document path" }, { status: 400 }); }
   const isUpload = path.join("/") === "building-documents/upload";
   const canUpload = access.permissions.includes("*") || isAuthorized(access.subject, "building.attachment.upload");
   if (isUpload && (request.method !== "POST" || !canUpload)) {

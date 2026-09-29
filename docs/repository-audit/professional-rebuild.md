@@ -29,9 +29,13 @@ All five gates passed: lint, typecheck, 20 test files / 60 tests, one document m
 6. Guarantees queue/detail: operational queue is now the default, analytics is secondary, and the financial view model is deterministic and regression-tested. Server-side register pagination/filtering, browser validation and production financial reconciliation remain open.
 7. Admin access console: capability-gated sections, custom role creation/clone, manifest-constrained permission matrix, effective access preview, all four data scopes, position/team editing, audit history, session revoke and password reset implemented. Production concurrency and organization-policy review remain open.
 7.5. Extensible registry: static versioned manifest/capability contract and disabled Module 4 proof implemented early as a shell dependency. Database lifecycle/pilot controls and capability sync remain planned.
-8. Legacy/CSS/accessibility: planned.
-9. Performance/security/production QA: planned. Deployed infrastructure, approved business mappings and production reconciliation need separate evidence.
+8. Legacy/CSS/accessibility: unreferenced iframe components/theme bridge and dead demo CSS retired; remote logo dependency removed; keyboard/map/admin semantics improved. Login route passed desktop/tablet/mobile visual and keyboard smoke checks. Authenticated browser acceptance remains open.
+9. Performance/security/production QA: bounded server reads and section-gated Admin queries verified in source; full deterministic gates pass per checkpoint. Representative production query plans, concurrency/load, deployed security controls, approved business mappings and reconciliation need separate evidence.
 
 ## JEV
 
 Native health/network passed. Project uses web-fullstack, metadata-only, source bodies disabled. Phase 0 route recommended documentation. Evidence check advised gathering evidence; direct auth migration/native route/production legacy guard inspection confirmed the limited documentation conclusion. JEV does not establish readiness.
+
+## Final repository verification
+
+On 2026-09-29 the final repository state passed ESLint, TypeScript, 27 Vitest files / 80 tests, the document mapping test and the Next.js 16.3.4 production build. Login visual/keyboard smoke passed desktop, tablet and mobile viewports with no browser console errors. JEV final evidence/continue review requested external evidence and escalation, consistent with the documented need for authenticated staging, production-like data, infrastructure controls and business-owner approval. No deployment or production mutation was attempted.

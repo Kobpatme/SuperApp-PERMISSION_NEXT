@@ -34,11 +34,11 @@ body {
 .top-brand-mark {
   width: 42px;
   height: 42px;
-  border: 0 !important;
-  border-radius: 12px !important;
-  background: var(--color-brand) !important;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-brand);
   color: var(--color-on-brand);
-  box-shadow: 0 5px 14px transparent !important;
+  box-shadow: 0 5px 14px transparent;
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 800;
@@ -262,7 +262,6 @@ body {
 .detail-panel { border-color: var(--app-line); }
 .detail-panel::backdrop,
 .permission-drawer::backdrop { background: rgba(34, 34, 34, .58); }
-.module-frame-status-mark { border-radius: 12px; background: var(--color-brand); box-shadow: 0 8px 22px transparent; }
 .permission-search { height: 48px; border: 1px solid var(--app-line); border-radius: var(--radius-md); background: var(--app-surface); box-shadow: var(--shadow-xs); }
 .permission-search:focus-within { border-color: var(--app-text); outline: 1px solid var(--app-text); }
 .permission-filter-toggle,
@@ -287,7 +286,7 @@ body {
 .auth-intro { background: var(--color-brand); color: var(--color-on-brand); }
 .auth-intro::before { border-color: rgba(255, 255, 255, .24); box-shadow: 0 0 0 50px rgba(255,255,255,.04), 0 0 0 100px rgba(255,255,255,.025); }
 .auth-brand .brand-mark,
-.auth-mobile-brand .brand-mark { border: 1px solid rgba(255,255,255,.65) !important; border-radius: 12px; background: #ffffff !important; box-shadow: var(--shadow-xs); }
+.auth-mobile-brand .brand-mark { border: 1px solid rgba(255,255,255,.65); border-radius: 12px; background: #ffffff; box-shadow: var(--shadow-xs); }
 .auth-brand strong { font-family: var(--font-ui); }
 .auth-brand small,
 .auth-kicker,

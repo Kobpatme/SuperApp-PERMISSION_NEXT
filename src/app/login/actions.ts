@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { verify } from "@node-rs/argon2";
@@ -26,8 +26,8 @@ export async function loginAction(_state: LoginState, form: FormData): Promise<L
     if (account.lockedUntil && account.lockedUntil > new Date()) return { error: "บัญชีถูกล็อกชั่วคราว กรุณาลองอีกครั้งภายหลัง" };
     const valid = await verify(account.passwordHash, password);
     if (!valid) {
-      const failures = account.failedAttempts + 1;
-      await getDb().update(localCredentials).set({ failedAttempts: failures, lockedUntil: failures >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null, updatedAt: new Date() })
+      await getDb().update(localCredentials).set({ failedAttempts: sql`${localCredentials.failedAttempts} + 1`,
+        lockedUntil: sql`case when ${localCredentials.failedAttempts} + 1 >= 5 then now() + interval '15 minutes' else ${localCredentials.lockedUntil} end`, updatedAt: new Date() })
         .where(eq(localCredentials.userId, account.id));
       return { error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" };
     }
