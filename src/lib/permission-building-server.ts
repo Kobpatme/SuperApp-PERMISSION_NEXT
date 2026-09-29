@@ -14,9 +14,20 @@ export type PermissionBuildingRow = {
   enclosure: string; maxHorizontal: string; address: string; remark: string; contact: string;
   phone: string; mobile: string; email: string; lat: number | null; lng: number | null;
   conditionVersion: number | null; boq: ReturnType<typeof getBuildingBoqProfile> | null; feeReviewRequired: boolean;
+  feeReviewValues: Array<{ sourceField: string; label: string; rawValue: string }>;
 };
 
 const stringValue = (value: unknown) => String(value ?? "").trim();
+const feeReviewLabels: Record<string, string> = {
+  damage_deposit: "เงินประกันติดตั้ง",
+  contract_deposit: "ค่ามัดจำสัญญา",
+  insurance_fee: "ค่าประกัน",
+  main_fee: "ค่าธรรมเนียม",
+  annual_fee: "ค่าบริการรายปี",
+  coordination_fee: "ค่าธรรมเนียมประสานงาน",
+  shaft_fee_per_floor: "ค่า Shaft ต่อชั้น",
+  horizontal_fee: "ค่าวางสายทั้งเส้น",
+};
 function coordinate(value: unknown, minimum: number, maximum: number): number | null {
   if (value == null || value === "") return null;
   const number = Number(value);
@@ -79,7 +90,15 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
       const condition = latest.get(row.id);
       const legacy = (condition?.conditions ?? {}) as LegacyBuilding;
       const normalized = normalizePermissionBuilding({ ...legacy, id: row.code, name_th: row.nameTh, name_eng: row.nameEn ?? "" });
-      const feeReviewRequired = Boolean((legacy._migration as { fee_review_required?: boolean } | undefined)?.fee_review_required);
+      const migration = legacy._migration && typeof legacy._migration === "object" ? legacy._migration as Record<string, unknown> : {};
+      const feeReviewRequired = Boolean(migration.fee_review_required);
+      const reviewFields = Array.isArray(migration.fee_review_fields) ? migration.fee_review_fields.map(String) : [];
+      const reviewValues = migration.fee_review_values && typeof migration.fee_review_values === "object" ? migration.fee_review_values as Record<string, unknown> : {};
+      const feeReviewValues = reviewFields.map((sourceField) => ({
+        sourceField,
+        label: feeReviewLabels[sourceField] ?? sourceField,
+        rawValue: stringValue(reviewValues[sourceField] ?? legacy[sourceField]),
+      })).filter((item) => item.rawValue);
       const normalizedFees = condition ? (feesByVersion.get(condition.id) ?? []).map((fee) => ({
         key: fee.sourceKey, source_field: fee.sourceKey, label: fee.label, category: fee.category,
         cost_type: fee.costType, calculation_type: fee.calculationType, amount: fee.amount,
@@ -96,7 +115,7 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
         lat: coordinate(normalized.lat, -90, 90), lng: coordinate(normalized.lng, -180, 180),
         conditionVersion: condition?.version ?? null,
         boq: condition && !feeReviewRequired ? getBuildingBoqProfile({ ...normalized, boq_profile: { fees: normalizedFees } }) : null,
-        feeReviewRequired } satisfies PermissionBuildingRow;
+        feeReviewRequired, feeReviewValues } satisfies PermissionBuildingRow;
     });
     const first = rows[0], last = rows.at(-1);
     const previousCursor = first && (Boolean(input.after) || (Boolean(input.before) && hasMore)) ? encodeBuildingCursor({ nameTh: first.nameTh, id: first.id }) : null;

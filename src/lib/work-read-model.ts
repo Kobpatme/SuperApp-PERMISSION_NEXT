@@ -6,6 +6,7 @@ import type { AccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import type { DashboardItem, DashboardSource } from "@/lib/dashboard";
 import { presentWorkStatus } from "@/lib/work-presentation";
+import { calculateWeightedWorkReport } from "@/lib/work-report";
 
 function scopedCondition(access: AccessContext, permission: string, owner: typeof tasks.ownerId, team: typeof tasks.teamId): SQL | undefined {
   const grants = access.subject?.grants.filter(grant => grant.permission === permission) ?? [];
@@ -21,6 +22,7 @@ function scopedCondition(access: AccessContext, permission: string, owner: typeo
 
 export async function getWorkReadModel(access: AccessContext) {
   const empty = { generatedAt: new Date().toISOString(), items: [] as DashboardItem[], activities: [] as Array<{ id: string; eventType: string; occurredAt: string; entityId: string }>,
+    weightedReport: calculateWeightedWorkReport([]),
     scores: [] as Array<{ id: string; metric: string; unit: string; score: string; factCount: number; calculatedAt: string }>,
     facts: [] as Array<{ id: string; metric: string; value: string; status: string; occurredAt: string; calculationVersion: number; activityEventId: string; ruleVersionId: string }>,
     source: { moduleId: "work", status: "ready", itemCount: 0, message: "ไม่มีรายการในขอบเขตสิทธิ์" } satisfies DashboardSource };
@@ -29,7 +31,7 @@ export async function getWorkReadModel(access: AccessContext) {
   if (!scope) return empty;
   try {
     const rows = await getDb().select({ id: tasks.id, title: tasks.title, description: tasks.description, status: tasks.status,
-      priority: tasks.priority, dueAt: tasks.dueAt, updatedAt: tasks.updatedAt, ownerId: tasks.ownerId, teamId: tasks.teamId,
+      priority: tasks.priority, dueAt: tasks.dueAt, completedAt: tasks.completedAt, updatedAt: tasks.updatedAt, ownerId: tasks.ownerId, teamId: tasks.teamId,
       ownerName: profiles.displayName, buildingName: buildings.nameTh })
       .from(tasks).leftJoin(profiles, eq(profiles.id, tasks.ownerId)).leftJoin(buildings, eq(buildings.id, tasks.buildingId))
       .where(scope).orderBy(desc(tasks.updatedAt), desc(tasks.id)).limit(250);
@@ -57,6 +59,7 @@ export async function getWorkReadModel(access: AccessContext) {
       .orderBy(desc(kpiFacts.occurredAt), desc(kpiFacts.id)).limit(50) : [];
     return { generatedAt: empty.generatedAt, items, activities: allowedActivities, scores: scoreRows.map(row => ({ ...row, calculatedAt: row.calculatedAt.toISOString() })),
       facts: factRows.map(row => ({ ...row, occurredAt: row.occurredAt.toISOString() })),
+      weightedReport: calculateWeightedWorkReport(visible.map(row => ({ status: row.status, deadline: row.dueAt, completedAt: row.completedAt }))),
       source: { moduleId: "work", status: "ready", itemCount: items.length, message: items.length ? "ข้อมูลภายในพร้อมใช้งาน" : "ไม่มีรายการในขอบเขตสิทธิ์" } satisfies DashboardSource };
   } catch (error) {
     console.error("Unable to load native work read model", error);

@@ -1,6 +1,6 @@
 # Professional rebuild: fresh repository audit
 
-Date: 2026-09-28. Baseline: main, `6ccef5b40fc5a9c006d02e58860897142d50ce52`; initially clean working tree. Branch: `codex/professional-workspace`.
+Date: 2026-09-29. Current target checkout: branch `codex/professional-workspace` at `4080160`; the earlier `6ccef5b40fc5a9c006d02e58860897142d50ce52` snapshot is historical and stale for this checkout. The untracked fresh parity audit is preserved as user work.
 Master: [supplied specification](../../PERMISSION_NEXT_PROFESSIONAL_REBUILD.md), confirmed instead of unavailable V2.
 
 | Classification | Evidence and disposition |
@@ -12,7 +12,7 @@ Master: [supplied specification](../../PERMISSION_NEXT_PROFESSIONAL_REBUILD.md),
 | Dangerous (resolved in repository) | Client filtering after 2,000-row Buildings fetch; layered theme ownership; role-name assumptions; last-admin check outside mutation transaction. Each item now has a bounded server-side or transactional replacement. |
 | Can Retire after verification | Unimported BounceBox theme and frame components; retain source fixtures for document/migration tests. |
 
-Local `_discovery_sources/maxiwa`, `Permission_Next`, `maxiwa_KPI` exist as ignored workflow references. Do not copy legacy architecture or mutate source repositories.
+Authoritative behavioral sources are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99` and `Kobpatme/maxiwa_KPI@4f5fa99`. Any local `_discovery_sources` or `D:\WebApp` checkout is a comparison artifact only. Do not copy legacy architecture or mutate source repositories.
 
 ## Baseline validation
 

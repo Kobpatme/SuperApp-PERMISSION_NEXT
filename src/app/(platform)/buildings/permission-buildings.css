@@ -87,6 +87,9 @@ html:has(.permission-workspace){overflow-x:clip}
   .permission-map-canvas .leaflet-top.leaflet-left{top:0;left:0}
 }
 
+.permission-fee-review>div>div{align-items:flex-start}
+.permission-fee-review strong{max-width:58%;overflow-wrap:anywhere;white-space:normal;text-align:right;color:#9a6500}
+
 /* Compact information hierarchy: one page identity, one result total, and a
    separate map-coverage summary instead of repeating the same count. */
 .permission-toolbar{min-height:76px;gap:14px;padding:12px 20px}

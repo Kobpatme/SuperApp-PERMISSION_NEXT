@@ -18,6 +18,7 @@ describe("Permission_Next CSV staging mapper", () => {
     expect(item.feeReviewFields).toEqual(["damage_deposit"]);
     expect(item.conditions.main_fee).toBeUndefined();
     expect(item.conditions._migration.fee_review_required).toBe(true);
+    expect(item.conditions._migration.fee_review_values).toEqual({ damage_deposit: "เขต" });
     expect(item.fees).toEqual([]);
   });
 });

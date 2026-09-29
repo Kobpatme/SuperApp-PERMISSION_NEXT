@@ -30,7 +30,14 @@ function optionsFor(buildings: PermissionBuildingRow[], key: FilterKey) {
 export function BuildingsWorkspace({ buildings, total, initialQuery = "", initialFilters = emptyFilters }: { buildings: PermissionBuildingRow[]; total: number; initialQuery?: string; initialFilters?: Filters }) {
   const router = useRouter(), pathname = usePathname();
   const [query, setQuery] = useState(initialQuery);
-  const [filters, setFilters] = useState<Filters>({ ...emptyFilters, ...initialFilters });
+  const [filters, setFilters] = useState<Filters>({
+    status: initialFilters.status ?? "",
+    group: initialFilters.group ?? "",
+    type: initialFilters.type ?? "",
+    installType: initialFilters.installType ?? "",
+    surveyType: initialFilters.surveyType ?? "",
+    area: initialFilters.area ?? "",
+  });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const [suggestionIndex, setSuggestionIndex] = useState(-1);
@@ -201,7 +208,7 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
             {splitValues(selected.email, /[,;]/).map((value) => <div key={value}><span>{value}</span><a href={`mailto:${value}`}>ส่งอีเมล</a></div>)}
             {!selected.contact && !selected.phone && !selected.mobile && !selected.email && <p className="permission-empty-inline">ยังไม่มีข้อมูลผู้ติดต่อ</p>}
           </div></>}
-          {tab === "fee" && <><h3>ค่าใช้จ่ายของอาคาร</h3>{selected.feeReviewRequired ? <p className="permission-data-warning">ไม่แสดงยอดของอาคารนี้ เพราะช่องจำนวนเงินใน CSV มีข้อมูลที่ต้องตรวจสอบกับต้นทาง</p> : selected.boq?.fees.some((fee) => fee.calculation_type === "revenue_share" ? fee.rate : fee.amount) ? <>
+          {tab === "fee" && <><h3>ค่าใช้จ่ายของอาคาร</h3>{selected.feeReviewRequired ? <><p className="permission-data-warning">รายการด้านล่างเป็นค่าดิบจากต้นทางที่ยังตรวจสอบรูปแบบไม่ผ่าน จึงยังไม่นำไปคำนวณรวมเป็นยอด</p><section className="permission-fee-group permission-fee-review"><h4>รายการรอตรวจสอบ<span>{selected.feeReviewValues.length} รายการ</span></h4><div>{selected.feeReviewValues.map((fee) => <div key={fee.sourceField}><span>{fee.label}<small>ค่าจากต้นทาง</small></span><strong>{fee.rawValue}</strong></div>)}</div></section></> : selected.boq?.fees.some((fee) => fee.calculation_type === "revenue_share" ? fee.rate : fee.amount) ? <>
             {feeGroups.map((group) => { const fees = selected.boq?.fees.filter((fee) => feeInGroup(fee, group.type) && (fee.calculation_type === "revenue_share" ? fee.rate : fee.amount)) ?? []; return fees.length ? <section key={group.type} className="permission-fee-group"><h4>{group.title}<span>{fees.length} รายการ</span></h4><div>{fees.map((fee) => <div key={fee.key}><span>{fee.label}<small>{fee.calculation_type === "revenue_share" ? `ส่วนแบ่งรายได้${fee.revenue_period === "annual" ? "รายปี" : "รายเดือน"}` : fee.unit !== "ครั้ง" ? `อัตราต่อ${fee.unit}` : fee.cost_type}</small></span><strong>{fee.calculation_type === "revenue_share" ? `${number(fee.rate ?? 0)}%` : `${number(fee.amount ?? 0)} บาท`}</strong></div>)}</div></section> : null; })}
             <p className="permission-fee-note">ยอดมีรอบการชำระและหน่วยต่างกัน จึงไม่รวมเป็นยอดเดียว</p>
           </> : <p className="permission-empty-inline">ยังไม่มีข้อมูลค่าใช้จ่าย</p>}</>}

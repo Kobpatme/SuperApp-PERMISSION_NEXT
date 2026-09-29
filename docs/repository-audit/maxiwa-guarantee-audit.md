@@ -1,5 +1,7 @@
 # Repository audit: Building Guarantee Refund (`maxiwa`)
 
+> Historical audit snapshot. The authoritative fresh baseline is `Kobpatme/maxiwa@94742a4b8cb10a4f39b87b257e9ca548ef7ef1e6` (2026-09-15), documented in `docs/modules/guarantees/source-parity.md`. Do not use the older snapshot below to conclude that a current feature is absent.
+
 ## Evidence snapshot
 
 - Source: `Kobpatme/maxiwa`, branch `main`, inspected at `471f2b6` (2026-07-08).

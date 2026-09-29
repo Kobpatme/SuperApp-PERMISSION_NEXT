@@ -22,7 +22,9 @@ export default async function BuildingsPage({ searchParams }: { searchParams: Pr
     <BuildingsWorkspace key={buildingQueryParams(query).toString()} buildings={data.items} total={data.total} initialQuery={query.query} initialFilters={query} />
     <nav className="permission-pagination" aria-label="หน้าผลลัพธ์">
       {data.previousCursor ? <Link href={`/buildings?${buildingQueryParams(query, { page: Math.max(1, data.page - 1), before: data.previousCursor, after: "" })}`}>หน้าก่อนหน้า</Link> : <span/>}
-      <span>หน้า {data.page.toLocaleString("th-TH")} · แสดงสูงสุด {data.pageSize.toLocaleString("th-TH")} จาก {data.total.toLocaleString("th-TH")} อาคาร</span>
+      <span>{data.items.length === data.total && !data.previousCursor && !data.nextCursor
+        ? `แสดง ${data.total.toLocaleString("th-TH")} จาก ${data.total.toLocaleString("th-TH")} อาคาร`
+        : `หน้า ${data.page.toLocaleString("th-TH")} · แสดงสูงสุด ${data.pageSize.toLocaleString("th-TH")} จาก ${data.total.toLocaleString("th-TH")} อาคาร`}</span>
       {data.nextCursor ? <Link href={`/buildings?${buildingQueryParams(query, { page: data.page + 1, after: data.nextCursor, before: "" })}`}>หน้าถัดไป</Link> : <span/>}
     </nav>
   </>;
