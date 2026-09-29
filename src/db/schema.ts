@@ -25,6 +25,12 @@ export const authSessions = pgTable("auth_sessions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [uniqueIndex("auth_sessions_token_hash_idx").on(t.tokenHash), index("auth_sessions_user_idx").on(t.userId, t.expiresAt)]);
 
+export const authRateLimits = pgTable("auth_rate_limits", {
+  id: uuid("id").defaultRandom().primaryKey(), subjectType: text("subject_type").notNull(), subjectKey: text("subject_key").notNull(),
+  windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull(), attempts: integer("attempts").notNull().default(0),
+  blockedUntil: timestamp("blocked_until", { withTimezone: true }), updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [uniqueIndex("auth_rate_limits_subject_idx").on(t.subjectType, t.subjectKey), check("auth_rate_limits_type_check", sql`${t.subjectType} in ('email', 'ip')`), check("auth_rate_limits_attempts_check", sql`${t.attempts} >= 0`)]);
+
 export const positions = pgTable("positions", {
   id: uuid("id").defaultRandom().primaryKey(), code: text("code").notNull(), name: text("name").notNull(),
   roleId: uuid("role_id").notNull(), scopeType: text("scope_type").notNull().default("OWN"), isActive: boolean("is_active").notNull().default(true), ...timestamps,
@@ -131,6 +137,15 @@ export const auditLogs = pgTable("audit_logs", {
   before: jsonb("before").$type<Record<string, unknown> | null>(), after: jsonb("after").$type<Record<string, unknown> | null>(),
   metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [index("audit_logs_entity_idx").on(t.entityType, t.entityId, t.createdAt)]);
+
+export const pendingAuditLogs = pgTable("pending_audit_logs", {
+  id: uuid("id").defaultRandom().primaryKey(), actorId: uuid("actor_id"), moduleId: text("module_id").notNull(), action: text("action").notNull(),
+  entityType: text("entity_type").notNull(), entityId: text("entity_id"), requestId: text("request_id").notNull(),
+  before: jsonb("before").$type<Record<string, unknown> | null>(), after: jsonb("after").$type<Record<string, unknown> | null>(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}), lastError: text("last_error").notNull(),
+  attemptCount: integer("attempt_count").notNull().default(0), availableAt: timestamp("available_at", { withTimezone: true }).defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [index("pending_audit_logs_pending_idx").on(t.resolvedAt, t.availableAt), index("pending_audit_logs_request_idx").on(t.requestId)]);
 
 export const activityEvents = pgTable("activity_events", {
   id: uuid("id").defaultRandom().primaryKey(), eventType: text("event_type").notNull(), eventVersion: integer("event_version").notNull(), actorId: uuid("actor_id"), ownerId: uuid("owner_id"),

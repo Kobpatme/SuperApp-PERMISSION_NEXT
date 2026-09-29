@@ -8,9 +8,8 @@ import { WorkspaceSearch } from "@/components/workspace-search";
 import type { ModuleId } from "@/lib/module-registry";
 import { WorkspaceIcon } from "@/components/workspace-icon";
 import Link from "next/link";
-import type { InstallationTeamContext } from "@/lib/installation-team-context";
 
-export function AppShell({ children, displayName = "ผู้ใช้งาน", allowedModuleIds, canAdmin = false, installationTeams, notificationCenter, scopeLabel }: { children: React.ReactNode; displayName?: string; allowedModuleIds: ModuleId[]; canAdmin?: boolean; installationTeams: InstallationTeamContext; notificationCenter?: React.ReactNode; scopeLabel?: string }) {
+export function AppShell({ children, displayName = "ผู้ใช้งาน", allowedModuleIds, canAdmin = false, notificationCenter, scopeLabel }: { children: React.ReactNode; displayName?: string; allowedModuleIds: ModuleId[]; canAdmin?: boolean; notificationCenter?: React.ReactNode; scopeLabel?: string }) {
   const [collapsed, setCollapsed] = useState(false);
   const mobileDialog = useRef<HTMLDialogElement>(null);
 
@@ -49,13 +48,13 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
           <WorkspaceIcon name="chevron" size={20}/>
         </button>
       </div>
-      <ModuleNav allowedModuleIds={allowedModuleIds} collapsed={collapsed} canAdmin={canAdmin} installationTeams={installationTeams} />
+      <ModuleNav allowedModuleIds={allowedModuleIds} collapsed={collapsed} canAdmin={canAdmin} />
       {!collapsed && scopeLabel && <p className="sidebar-scope">ขอบเขตสิทธิ์ที่ได้รับ<br/>{scopeLabel}</p>}
     </aside>
     <dialog className="workspace-mobile-dialog" id="mobile-workspace-menu" ref={mobileDialog} aria-label="เมนูพื้นที่ทำงาน" onClick={(event) => { if (event.target === mobileDialog.current) mobileDialog.current?.close(); }}>
       <div className="mobile-sidebar-content">
         <div className="mobile-sidebar-heading"><strong>พื้นที่ทำงาน</strong><button className="round-btn" type="button" aria-label="ปิดเมนูพื้นที่ทำงาน" onClick={() => mobileDialog.current?.close()}><WorkspaceIcon name="close" size={20}/></button></div>
-        <ModuleNav allowedModuleIds={allowedModuleIds} canAdmin={canAdmin} installationTeams={installationTeams} onNavigate={() => mobileDialog.current?.close()} />
+        <ModuleNav allowedModuleIds={allowedModuleIds} canAdmin={canAdmin} onNavigate={() => mobileDialog.current?.close()} />
       </div>
     </dialog>
     <main className="main" id="workspace-content" tabIndex={-1}>{children}</main>

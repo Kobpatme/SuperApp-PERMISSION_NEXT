@@ -9,6 +9,7 @@ import { adminCapabilityCatalog, parseAssignmentScope, parseCatalogCapabilities 
 import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { runMaterialChange } from "@/lib/material-change";
+import { validatePassword } from "@/lib/password-policy";
 
 export type AdminActionState = { ok: boolean; message: string };
 const denied = { ok: false, message: "ไม่มีสิทธิ์จัดการผู้ใช้" };
@@ -16,12 +17,16 @@ const passwordOptions = { memoryCost: 19456, timeCost: 2, parallelism: 1, output
 
 async function requireAdmin(permission = "core.user.manage") {
   const access = await getIdentityAccessContext();
-  if (!isAuthorized(access.subject, permission)) return null;
+  if (access.passwordChangeRequired || !isAuthorized(access.subject, permission)) return null;
   return access;
 }
 
 function validPassword(value: string) {
-  return value.length >= 12 && /[a-zA-Z]/.test(value) && /\d/.test(value) && /[^a-zA-Z0-9]/.test(value);
+  return validatePassword(value).ok;
+}
+
+function normalizeRoleCode(value: string) {
+  return value.trim().toLocaleLowerCase("en-US").replace(/[^a-z0-9_-]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
 }
 
 export async function createUserAction(_state: AdminActionState, form: FormData): Promise<AdminActionState> {
@@ -137,7 +142,7 @@ export async function updateTeamAction(_state: AdminActionState, form: FormData)
 export async function createRoleAction(_state: AdminActionState, form: FormData): Promise<AdminActionState> {
   const access = await requireAdmin("core.role.manage");
   if (!access) return { ok: false, message: "ไม่มีสิทธิ์จัดการบทบาท" };
-  const code = String(form.get("code") || "").trim().toLocaleLowerCase("en-US").replace(/[^a-z0-9_-]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+  const code = normalizeRoleCode(String(form.get("code") || ""));
   const name = String(form.get("name") || "").trim();
   const description = String(form.get("description") || "").trim();
   const sourceRoleId = String(form.get("sourceRoleId") || "");
@@ -166,9 +171,10 @@ export async function updateRolePermissionsAction(_state: AdminActionState, form
   const access = await requireAdmin("core.role.manage");
   if (!access) return { ok: false, message: "ไม่มีสิทธิ์จัดการบทบาท" };
   const roleId = String(form.get("roleId") || "");
+  const code = normalizeRoleCode(String(form.get("code") || ""));
   const name = String(form.get("name") || "").trim();
   const description = String(form.get("description") || "").trim();
-  if (!/^[0-9a-f-]{36}$/i.test(roleId) || name.length < 2 || name.length > 120) return { ok: false, message: "ข้อมูลบทบาทไม่ครบ" };
+  if (!/^[0-9a-f-]{36}$/i.test(roleId) || code.length < 2 || code.length > 64 || name.length < 2 || name.length > 120) return { ok: false, message: "ข้อมูลบทบาทไม่ครบ" };
   let capabilityCodes: string[];
   try { capabilityCodes = parseCatalogCapabilities(form.getAll("permissionCode")); }
   catch { return { ok: false, message: "พบ capability ที่ไม่ได้ประกาศใน module manifest" }; }
@@ -178,13 +184,13 @@ export async function updateRolePermissionsAction(_state: AdminActionState, form
   const existing = await getDb().select({ code: rolePermissions.permissionCode }).from(rolePermissions).where(eq(rolePermissions.roleId, roleId));
   const affected = await getDb().select({ userId: userRoleAssignments.userId }).from(userRoleAssignments).where(and(eq(userRoleAssignments.roleId, roleId), isNull(userRoleAssignments.validUntil)));
   try {
-    await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "role.permissions.update", entityType: "role", entityId: roleId, requestId: crypto.randomUUID(), before: { name: role.name, description: role.description, capabilityCodes: existing.map((item) => item.code) }, after: { name, description, capabilityCodes }, metadata: { affectedUsers: affected.length, sessionsRevoked: true } } }, async (tx) => {
+    await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "role.permissions.update", entityType: "role", entityId: roleId, requestId: crypto.randomUUID(), before: { code: role.code, name: role.name, description: role.description, capabilityCodes: existing.map((item) => item.code) }, after: { code, name, description, capabilityCodes }, metadata: { affectedUsers: affected.length, sessionsRevoked: true } } }, async (tx) => {
       const catalogRows = adminCapabilityCatalog.filter((item) => capabilityCodes.includes(item.code)).map((item) => {
         const [, resource, action] = item.code.split(".");
         return { code: item.code, moduleId: item.moduleId, resource, action, description: item.labelTh };
       });
       if (catalogRows.length) await tx.insert(permissions).values(catalogRows).onConflictDoNothing();
-      await tx.update(roles).set({ name, description: description || null, updatedAt: new Date() }).where(eq(roles.id, roleId));
+      await tx.update(roles).set({ code, name, description: description || null, updatedAt: new Date() }).where(eq(roles.id, roleId));
       await tx.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
       if (capabilityCodes.length) await tx.insert(rolePermissions).values(capabilityCodes.map((permissionCode) => ({ roleId, permissionCode })));
       const affectedUserIds = [...new Set(affected.map((item) => item.userId))];
@@ -195,6 +201,32 @@ export async function updateRolePermissionsAction(_state: AdminActionState, form
   } catch (error) {
     console.error("Unable to update role permissions", error);
     return { ok: false, message: "บันทึกบทบาทไม่สำเร็จ" };
+  }
+}
+
+export async function deleteRoleAction(_state: AdminActionState, form: FormData): Promise<AdminActionState> {
+  const access = await requireAdmin("core.role.manage");
+  if (!access) return { ok: false, message: "ไม่มีสิทธิ์จัดการบทบาท" };
+  const roleId = String(form.get("roleId") || "");
+  if (!/^[0-9a-f-]{36}$/i.test(roleId)) return { ok: false, message: "ไม่พบบทบาทที่ต้องการลบ" };
+  const [role] = await getDb().select({ id: roles.id, code: roles.code, name: roles.name, description: roles.description, isSystem: roles.isSystem })
+    .from(roles).where(eq(roles.id, roleId)).limit(1);
+  if (!role) return { ok: false, message: "ไม่พบบทบาท" };
+  if (role.isSystem) return { ok: false, message: "บทบาทระบบลบไม่ได้" };
+  const [positionReference, assignmentReference] = await Promise.all([
+    getDb().select({ id: positions.id, code: positions.code }).from(positions).where(eq(positions.roleId, roleId)).limit(1),
+    getDb().select({ id: userRoleAssignments.id }).from(userRoleAssignments).where(eq(userRoleAssignments.roleId, roleId)).limit(1),
+  ]);
+  if (positionReference.length || assignmentReference.length) return { ok: false, message: "ลบบทบาทไม่ได้ กรุณาเปลี่ยนตำแหน่งหรือยกเลิกการมอบหมายที่ใช้งานบทบาทนี้ก่อน" };
+  try {
+    await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "role.delete", entityType: "role", entityId: roleId, requestId: crypto.randomUUID(), before: role, metadata: { permissionsCascadeDeleted: true } } }, async (tx) => {
+      await tx.delete(roles).where(eq(roles.id, roleId));
+    });
+    revalidatePath("/admin");
+    return { ok: true, message: `ลบบทบาท ${role.name} แล้ว` };
+  } catch (error) {
+    console.error("Unable to delete role", error);
+    return { ok: false, message: "ลบบทบาทไม่สำเร็จ บทบาทอาจถูกใช้งานอยู่" };
   }
 }
 

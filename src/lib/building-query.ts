@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 export const buildingFilterKeys = ["status", "group", "type", "installType", "surveyType", "area"] as const;
+export const defaultBuildingPageSize = 2_000;
 export const buildingQuerySchema = z.object({
   query: z.string().trim().max(120).default(""),
   page: z.coerce.number().int().positive().max(100_000).default(1),
-  limit: z.coerce.number().int().min(20).max(2_000).default(1_000),
+  limit: z.coerce.number().int().min(20).max(defaultBuildingPageSize).default(defaultBuildingPageSize),
   after: z.string().regex(/^(?:[A-Za-z0-9_-]+)?$/).max(500).default(""),
   before: z.string().regex(/^(?:[A-Za-z0-9_-]+)?$/).max(500).default(""),
   status: z.string().trim().max(120).default(""), group: z.string().trim().max(120).default(""),

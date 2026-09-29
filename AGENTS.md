@@ -1,5 +1,7 @@
 # Project Instructions
 
+Read `CODEX-MASTER-PLAN-V2.md` before any task.
+
 ## Design Context
 
 ### Users

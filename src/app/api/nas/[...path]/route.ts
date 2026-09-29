@@ -1,7 +1,8 @@
 import { isAuthorized } from "@/lib/authorization";
 import { getAccessContext } from "@/lib/access";
-import { writeAuditLog } from "@/lib/audit-log";
+import { queuePendingAuditLog, writeAuditLog, type AuditEvent } from "@/lib/audit-log";
 import { validateNasBridgePath } from "@/lib/nas-bridge-path";
+import { requireApiIdentity } from "@/lib/request-context";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,8 @@ function bridgeUrl(path: string[], requestUrl: string) {
 }
 
 async function proxy(request: Request, context: RouteContext) {
+  const identity = await requireApiIdentity();
+  if (!identity.ok) return identity.response;
   if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) {
     const origin = request.headers.get("origin");
     if (!origin || origin !== new URL(request.url).origin) return Response.json({ error: "Invalid request origin" }, { status: 403 });
@@ -60,17 +63,32 @@ async function proxy(request: Request, context: RouteContext) {
     responseHeaders.delete("connection");
     responseHeaders.delete("keep-alive");
 
+    const auditEvents: AuditEvent[] = [];
     if (isUpload && upstream.ok) {
-      await writeAuditLog({
+      auditEvents.push({
         actorId: access.userId,
         moduleId: "buildings",
         action: "document.upload",
         entityType: "building_document",
+        requestId: request.headers.get("x-request-id") || crypto.randomUUID(),
         metadata: { fileName: new URL(request.url).searchParams.get("fileName") || "" },
       });
     }
     if (path[0] === "download" && upstream.ok) {
-      await writeAuditLog({ actorId: access.userId, moduleId: "buildings", action: "document.download", entityType: "building_document" });
+      auditEvents.push({ actorId: access.userId, moduleId: "buildings", action: "document.download", entityType: "building_document", requestId: request.headers.get("x-request-id") || crypto.randomUUID() });
+    }
+    for (const event of auditEvents) {
+      try {
+        await writeAuditLog(event);
+      } catch (error) {
+        try {
+          await queuePendingAuditLog(event, error);
+          responseHeaders.set("x-audit-status", "pending");
+          console.error("NAS audit queued for retry", error);
+        } catch (queueError) {
+          console.error("NAS audit could not be persisted", { error, queueError });
+        }
+      }
     }
 
     return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });

@@ -6,6 +6,9 @@ const serverEnvSchema = z.object({
   GUARANTEE_STORAGE_DIR: z.string().optional().or(z.literal("")),
   PERMISSION_NAS_BRIDGE_URL: z.string().url().optional().or(z.literal("")),
   PERMISSION_NAS_BRIDGE_SECRET: z.string().min(32).optional().or(z.literal("")),
+  TRUSTED_PROXY_COUNT: z.coerce.number().int().min(0).default(0),
+  AUTH_IDLE_TIMEOUT_MINUTES: z.coerce.number().int().min(5).max(720).default(30),
+  AUTH_ABSOLUTE_TIMEOUT_HOURS: z.coerce.number().int().min(1).max(72).default(12),
 });
 
 export function requireDatabaseUrl() {
@@ -21,6 +24,9 @@ export function getServerEnv() {
     GUARANTEE_STORAGE_DIR: process.env.GUARANTEE_STORAGE_DIR,
     PERMISSION_NAS_BRIDGE_URL: process.env.PERMISSION_NAS_BRIDGE_URL,
     PERMISSION_NAS_BRIDGE_SECRET: process.env.PERMISSION_NAS_BRIDGE_SECRET,
+    TRUSTED_PROXY_COUNT: process.env.TRUSTED_PROXY_COUNT,
+    AUTH_IDLE_TIMEOUT_MINUTES: process.env.AUTH_IDLE_TIMEOUT_MINUTES,
+    AUTH_ABSOLUTE_TIMEOUT_HOURS: process.env.AUTH_ABSOLUTE_TIMEOUT_HOURS,
   });
   if (!result.success) throw new Error(`Invalid server environment: ${result.error.issues.map((issue) => issue.path.join(".")).join(", ")}`);
   return result.data;

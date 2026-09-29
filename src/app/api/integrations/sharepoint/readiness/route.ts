@@ -3,10 +3,13 @@ import { isAuthorized } from "@/lib/authorization";
 import { getMicrosoft365ConfigStatus } from "@/lib/microsoft365/config";
 import { MicrosoftGraphError } from "@/lib/microsoft365/graph";
 import { checkSharePointReadiness } from "@/lib/microsoft365/sharepoint";
+import { requireApiIdentity } from "@/lib/request-context";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const identity = await requireApiIdentity();
+  if (!identity.ok) return identity.response;
   const access = await getAccessContext("buildings");
   if (!access.allowed || !isAuthorized(access.subject, "core.role.manage")) {
     return Response.json({ ok: false, error: "Forbidden" }, { status: 403 });

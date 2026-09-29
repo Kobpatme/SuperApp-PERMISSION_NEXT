@@ -8,12 +8,15 @@ import { isAuthorized } from "@/lib/authorization";
 import { canWorkAsAssignedTl, getDepositWorkItem } from "@/lib/deposit-v2-server";
 import { detectEvidenceType, isEvidenceKind, isStoredEvidencePath } from "@/lib/guarantee-evidence";
 import { readGuaranteeEvidence, removeGuaranteeEvidence, writeGuaranteeEvidence } from "@/lib/guarantee-storage";
+import { requireApiIdentity } from "@/lib/request-context";
 
 type RouteContext = { params: Promise<{ id: string; kind: string }> };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const error = (message: string, status: number) => NextResponse.json({ error: message }, { status });
 
 export async function GET(_request: Request, context: RouteContext) {
+  const identity = await requireApiIdentity();
+  if (!identity.ok) return identity.response;
   const { id, kind } = await context.params;
   if (!uuid.test(id) || !isEvidenceKind(kind)) return error("Invalid document", 400);
   const item = await getDepositWorkItem(id);
@@ -32,6 +35,8 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const identity = await requireApiIdentity();
+  if (!identity.ok) return identity.response;
   const origin = request.headers.get("origin");
   if (!origin || origin !== new URL(request.url).origin) return error("Invalid request origin", 403);
   const { id, kind } = await context.params;

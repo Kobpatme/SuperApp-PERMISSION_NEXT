@@ -114,7 +114,7 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
         phone: stringValue(normalized.phone), mobile: stringValue(normalized.mobile), email: stringValue(normalized.email),
         lat: coordinate(normalized.lat, -90, 90), lng: coordinate(normalized.lng, -180, 180),
         conditionVersion: condition?.version ?? null,
-        boq: condition && !feeReviewRequired ? getBuildingBoqProfile({ ...normalized, boq_profile: { fees: normalizedFees } }) : null,
+        boq: condition ? getBuildingBoqProfile({ ...normalized, boq_profile: { fees: normalizedFees } }) : null,
         feeReviewRequired, feeReviewValues } satisfies PermissionBuildingRow;
     });
     const first = rows[0], last = rows.at(-1);

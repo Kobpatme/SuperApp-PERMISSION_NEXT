@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
 import { getCurrentUser } from "@/lib/auth";
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   if (await getCurrentUser()) redirect("/");
+  const { next } = await searchParams;
 
   return <main className="auth-page">
     <section className="auth-shell">
@@ -26,7 +27,7 @@ export default async function LoginPage() {
           <span className="eyebrow">เข้าสู่พื้นที่ทำงาน</span>
           <h2>ยินดีต้อนรับกลับมา</h2>
           <p>ใช้บัญชีกลางขององค์กรเพื่อดำเนินการต่อ</p>
-          <LoginForm />
+          <LoginForm next={next} />
           <div className="auth-security-note">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
             <span>ระบบบัญชีภายในองค์กร · รหัสผ่าน Argon2id · สิทธิ์แบบ RBAC</span>

@@ -4,8 +4,9 @@ Fresh baseline date: 2026-09-29. Source SHAs are immutable evidence inputs:
 
 - Work/KPI: `Kobpatme/maxiwa_KPI@4f5fa99b05f8dbfea9304d47560aec3d48746908`
 - Buildings: `Kobpatme/Permission_Next@afaee997afecf0f42e059b7100fa90ed0d188784`
-- Guarantees: `Kobpatme/maxiwa@94742a4b8cb10a4f39b87b257e9ca548ef7ef1e6`
-- Target audit snapshot: current target branch `codex/professional-workspace@4080160`; the older audit reference `6ccef5b` is stale for this checkout.
+- Guarantees approved baseline: `Kobpatme/maxiwa@94742a4` (unresolved in local checkout; see `modules/guarantees/source-ux-baseline.md`)
+- Guarantees provisional source evidence: `Kobpatme/maxiwa@471f2b6a20361f9114372c2493400c62d3ccf19c`
+- Target audit snapshot: current target branch `codex/professional-workspace@3d8d281`; the older audit references `4080160` and `6ccef5b` are stale for this checkout.
 
 ## Classification policy
 

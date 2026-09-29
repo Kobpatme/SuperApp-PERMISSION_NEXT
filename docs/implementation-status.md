@@ -2,9 +2,34 @@
 
 ## Fresh source-parity recovery — 2026-09-29
 
-The current target checkout is `codex/professional-workspace@4080160`. The previous audit snapshot `6ccef5b` is stale for this checkout. Approved behavioral sources are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99`, and `Kobpatme/maxiwa_KPI@4f5fa99`; local folders and legacy compatibility routes are comparison artifacts, not source-of-truth authorities.
+The current target checkout is `codex/professional-workspace@3d8d281`. The previous audit snapshots `4080160` and `6ccef5b` are stale for this checkout. Approved behavioral sources are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99`, and `Kobpatme/maxiwa_KPI@4f5fa99`; local folders and legacy compatibility routes are comparison artifacts, not source-of-truth authorities. The approved Guarantees SHA is not present in the local source object database; provisional source evidence is recorded separately and must be reconciled before declaring Guarantees parity.
 
-Fresh matrices and acceptance gates are maintained in [Work](modules/work/source-parity.md), [Buildings](modules/buildings/source-parity.md), [Guarantees](modules/guarantees/source-parity.md), and [parity gates](modules/parity-gates.md). SP-0 documentation is complete. SP-1 Work/KPI recovery is now the active implementation phase; no module is declared migrated yet.
+Fresh matrices and acceptance gates are maintained in [Work](modules/work/source-parity.md), [Buildings](modules/buildings/source-parity.md), [Guarantees](modules/guarantees/source-parity.md), and [parity gates](modules/parity-gates.md). UX baselines are maintained beside each matrix. SP-0 documentation is substantially complete, with the Guarantees baseline limitation open. Security hardening is the active implementation checkpoint; no module is declared migrated yet.
+
+### Fresh deterministic baseline
+
+- `npm run lint`: pass
+- `npm run typecheck`: pass
+- `npm test`: 27 files / 87 tests passed
+- `npm run test:documents`: pass (1 test)
+- `npm run build`: pass (Next.js 16.3.4)
+- `npm audit --omit=dev`: 0 vulnerabilities
+- Target commit used for this baseline: `3d8d281`
+- JEV health: local and network checks passed; the subsequent `jev_continue` request was unavailable because the TypeSafe hostname could not be resolved at that moment. Deterministic evidence remains authoritative.
+
+### Phase 1 security hardening checkpoint — 2026-09-29
+
+Implemented in the local target checkout:
+
+- Login uses one generic failure message, performs dummy Argon2 verification for unknown/invalid input, records success/failure/lock audit events, resets expired account locks and supports an internal Postgres-backed email/IP failure window.
+- Session validation enforces absolute and idle expiry using `auth_sessions.last_seen_at`; password policy is shared by change-password, admin password operations and bootstrap validation.
+- Proxy redirects preserve only safe internal `next` paths; unauthenticated `/api/*` requests return JSON 401, and password-change-required API calls return JSON 403.
+- Dashboard, workspace search, NAS, SharePoint readiness and guarantee document routes now perform an explicit API identity check before domain authorization.
+- New migrations `0015_auth_rate_limits.sql` and `0016_pending_audit_logs.sql` were applied successfully to the local PostgreSQL development database.
+- NAS upload/download audit failures now reach explicit error handling, are queued in `pending_audit_logs` for retry, and mark the successful upstream response with `x-audit-status: pending`; the retry worker is still a later operations task.
+- Building list defaults to the full current operational set (up to 2,000 rows), and the fee drawer keeps validated fee rows visible while separating only unverified raw source values.
+
+Evidence for this checkpoint: `npm run lint`, `npm run typecheck`, `npm test` (32 files / 101 tests), `npm run test:documents`, `npm run build`, `npm audit --omit=dev`, and the local migration command all pass. Remaining Phase 1 gaps are integration tests against database-backed route/session behavior, a durable pending-audit retry worker, CSP nonce evaluation, and full trusted-proxy deployment evidence. This checkpoint does not declare the phase complete or the system production-ready.
 
 SP-1 checkpoint: source-compatible Work domain helpers now cover status vocabulary mapping, Bangkok working-day/active-holiday deadlines, hold extension history, grouped jobs and exact-decimal weighted SLA/completion reporting. The permission-scoped read model exposes weighted report values. Native `/work/new` personal-task creation writes task state, audit, activity and outbox atomically; native route surfaces exist for mine/team/assignment/people/tracker/reports/KPI. Remaining SP-1 gates include source-compatible task fields, assignment center, task detail/note actions, holiday/KPI admin UI, populated historical data and live database/RLS/UAT evidence.
 

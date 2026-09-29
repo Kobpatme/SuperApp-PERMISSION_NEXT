@@ -15,6 +15,7 @@ export type AccessContext = {
   permissions: string[];
   subject?: AuthorizationSubject;
   allowed: boolean;
+  passwordChangeRequired: boolean;
   isDevelopmentSession: boolean;
 };
 
@@ -57,18 +58,18 @@ async function loadSubject(userId: string) {
 
 export const getIdentityAccessContext = cache(async function getIdentityAccessContext() {
   const user = await getCurrentUser();
-  if (!user) return { userId: "", email: "", displayName: "", permissions: [] as string[], subject: undefined, role: undefined, isDevelopmentSession: false };
+  if (!user) return { userId: "", email: "", displayName: "", permissions: [] as string[], subject: undefined, role: undefined, passwordChangeRequired: false, isDevelopmentSession: false };
   const authorization = await loadSubject(user.id);
   const email = user.email || "";
   return { userId: user.id, email, displayName: String(user.user_metadata?.display_name || email.split("@")[0] || "ผู้ใช้งาน"),
     role: authorization?.role, permissions: authorization ? [...new Set(authorization.subject.grants.map((grant) => grant.permission))] : [],
-    subject: authorization?.subject, isDevelopmentSession: false };
+    subject: authorization?.subject, passwordChangeRequired: Boolean(user.mustChangePassword), isDevelopmentSession: false };
 });
 
 export const getAccessContext = cache(async function getAccessContext(moduleId: ModuleId): Promise<AccessContext> {
   const identity = await getIdentityAccessContext();
   const manifest = getModule(moduleId);
-  if (!identity.userId) return { ...identity, allowed: false };
+  if (!identity.userId || identity.passwordChangeRequired) return { ...identity, allowed: false };
   return {
     ...identity,
     // Module visibility requires the action grant; row queries still enforce its data scope.

@@ -3,9 +3,10 @@
 import { useActionState } from "react";
 import { loginAction } from "@/app/login/actions";
 
-export function LoginForm() {
+export function LoginForm({ next = "" }: { next?: string }) {
   const [state, action, pending] = useActionState(loginAction, {});
   return <form className="auth-form" action={action}>
+    {next && <input type="hidden" name="next" value={next} />}
     {state.error && <div className="auth-error" role="alert">{state.error}</div>}
     <label>อีเมล<input name="email" type="email" autoComplete="email" placeholder="name@company.com" required autoFocus /></label>
     <label>รหัสผ่าน<input name="password" type="password" autoComplete="current-password" placeholder="กรอกรหัสผ่าน" minLength={8} required /></label>

@@ -37,7 +37,10 @@ async function readHidden(label) {
 }
 
 const suppliedPassword = await readHidden("Temporary password (leave blank to generate): ");
-if (suppliedPassword && suppliedPassword.length < 8) throw new Error("Temporary password must be at least 8 characters");
+const commonPasswords = new Set(["password", "password123", "1234567890", "qwerty123", "welcome123", "admin123"]);
+if (suppliedPassword && (suppliedPassword.length < 12 || suppliedPassword.length > 256 || !/[a-zA-Z]/.test(suppliedPassword) || !/\d/.test(suppliedPassword) || !/[^a-zA-Z0-9]/.test(suppliedPassword) || commonPasswords.has(suppliedPassword.toLocaleLowerCase("en-US")))) {
+  throw new Error("Temporary password must be at least 12 characters and include letters, numbers and a symbol");
+}
 const password = suppliedPassword || `${randomBytes(18).toString("base64url")}!9a`;
 const passwordHash = await hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1, outputLen: 32 });
 const sql = postgres(process.env.DATABASE_URL, { max: 1, prepare: false });
