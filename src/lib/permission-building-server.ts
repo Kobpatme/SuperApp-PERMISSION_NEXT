@@ -1,11 +1,11 @@
 import "server-only";
-import { and, count, desc, eq, ilike, inArray, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, ilike, inArray, lt, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/db";
 import { buildingConditionFees, buildingConditionVersions, buildings } from "@/db/schema";
 import { getAccessContext, type AccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { getBuildingBoqProfile, normalizePermissionBuilding, type LegacyBuilding } from "@/lib/permission-building-domain";
-import type { BuildingQuery } from "@/lib/building-query";
+import { decodeBuildingCursor, encodeBuildingCursor, type BuildingQuery } from "@/lib/building-query";
 
 export type PermissionBuildingRow = {
   id: string; code: string; nameTh: string; nameEn: string | null; ownerTeamId: string | null;
@@ -34,9 +34,10 @@ function readScope(access: AccessContext): SQL | undefined {
 
 export async function listPermissionBuildings(input: BuildingQuery): Promise<{
   items: PermissionBuildingRow[]; state: "ready" | "not_configured" | "unavailable"; total: number; page: number; pageSize: number;
+  previousCursor: string | null; nextCursor: string | null;
 }> {
   const { query, page: safePage, limit } = input;
-  const empty = (state: "ready" | "not_configured" | "unavailable") => ({ items: [], state, total: 0, page: safePage, pageSize: limit });
+  const empty = (state: "ready" | "not_configured" | "unavailable") => ({ items: [], state, total: 0, page: safePage, pageSize: limit, previousCursor: null, nextCursor: null });
   const access = await getAccessContext("buildings");
   if (!access.allowed) return empty("unavailable");
   if (!process.env.DATABASE_URL) return empty("not_configured");
@@ -49,12 +50,21 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
       const value = input[key as keyof typeof jsonKeys];
       return value ? [sql`exists (select 1 from ${buildingConditionVersions} bcv where bcv.building_id = ${buildings.id} and bcv.version = (select max(latest.version) from ${buildingConditionVersions} latest where latest.building_id = ${buildings.id}) and bcv.conditions ->> ${jsonKey} = ${value})`] : [];
     });
+    const after = decodeBuildingCursor(input.after);
+    const before = decodeBuildingCursor(input.before);
+    if ((input.after && !after) || (input.before && !before)) return empty("ready");
+    const cursorPredicate = after ? or(gt(buildings.nameTh, after.nameTh), and(eq(buildings.nameTh, after.nameTh), gt(buildings.id, after.id)))
+      : before ? or(lt(buildings.nameTh, before.nameTh), and(eq(buildings.nameTh, before.nameTh), lt(buildings.id, before.id))) : undefined;
     const predicate = and(scope, ...(search ? [ilike(buildings.searchText, `%${search}%`)] : []), ...filters);
     const db = getDb();
     const [tally] = await db.select({ value: count() }).from(buildings).where(predicate);
     const total = tally?.value ?? 0;
-    const currentPage = Math.min(safePage, Math.max(1, Math.ceil(total / limit)));
-    const rows = await db.select().from(buildings).where(predicate).orderBy(buildings.nameTh, buildings.id).limit(limit).offset((currentPage - 1) * limit);
+    const currentPage = input.after || input.before ? Math.min(safePage, Math.max(1, Math.ceil(total / limit))) : 1;
+    const rowsInQueryOrder = await db.select().from(buildings).where(and(predicate, cursorPredicate))
+      .orderBy(before ? desc(buildings.nameTh) : asc(buildings.nameTh), before ? desc(buildings.id) : asc(buildings.id)).limit(limit + 1);
+    const hasMore = rowsInQueryOrder.length > limit;
+    const boundedRows = rowsInQueryOrder.slice(0, limit);
+    const rows = before ? boundedRows.reverse() : boundedRows;
     const visible = rows.filter((row) => isAuthorized(access.subject, "building.record.read", { teamId: row.ownerTeamId }));
     const versions = visible.length ? await db.select().from(buildingConditionVersions)
       .where(inArray(buildingConditionVersions.buildingId, visible.map((row) => row.id)))
@@ -88,7 +98,10 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
         boq: condition && !feeReviewRequired ? getBuildingBoqProfile({ ...normalized, boq_profile: { fees: normalizedFees } }) : null,
         feeReviewRequired } satisfies PermissionBuildingRow;
     });
-    return { items, state: "ready", total, page: currentPage, pageSize: limit };
+    const first = rows[0], last = rows.at(-1);
+    const previousCursor = first && (Boolean(input.after) || (Boolean(input.before) && hasMore)) ? encodeBuildingCursor({ nameTh: first.nameTh, id: first.id }) : null;
+    const nextCursor = last && (Boolean(input.before) || hasMore) ? encodeBuildingCursor({ nameTh: last.nameTh, id: last.id }) : null;
+    return { items, state: "ready", total, page: currentPage, pageSize: limit, previousCursor, nextCursor };
   } catch (error) {
     console.error("Unable to load central building records", error);
     return empty("unavailable");

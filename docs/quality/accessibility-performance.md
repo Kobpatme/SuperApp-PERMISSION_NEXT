@@ -15,11 +15,11 @@ Manual browser acceptance on 2026-09-29 covered the unauthenticated login route 
 
 ## Performance
 
-- Buildings performs scoped server search/filter/page reads and sends at most 100 records to the map workspace by default.
+- Buildings performs scoped server search/filter reads with stable `(name_th, id)` keyset cursors and sends at most 100 records to the map workspace by default.
 - Building 360 loads authorized related sections on the server and does not ship the full Buildings dataset.
 - Work and dashboard providers query internal bounded read models. Notifications and audit history are bounded.
 - Module registry metadata drives navigation and prevents disabled modules from invoking search/dashboard providers.
 - Dead iframe bridge components, message listeners and their CSS were retired. Legacy migration routes remain development/reference paths and production guards remain authoritative.
 - Old unconsumed KPI/calendar/guarantee demo CSS and the remote logo hotlink were removed. Remaining `!important` declarations are limited to reduced-motion overrides and Leaflet popup sizing.
 
-Production performance still needs representative query plans, database cardinality, network/storage latency and concurrency load. Buildings keyset cursor and viewport projection remain planned for the next data-volume threshold.
+Production performance still needs representative query plans, database cardinality, network/storage latency and concurrency load. A dedicated Buildings viewport projection remains conditional on those measurements.
