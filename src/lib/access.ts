@@ -3,14 +3,9 @@ import { getDb } from "@/db";
 import { dataScopeGrants, profiles, rolePermissions, roles as rolesTable, userRoleAssignments, userTeams } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { dataScopeTypes, type AuthorizationSubject, type DataScopeType, type Role } from "@/lib/authorization";
-import type { ModuleId } from "@/lib/module-registry";
+import { getModule, type ModuleId } from "@/lib/module-registry";
+import { isModuleEnabled } from "@/lib/module-contract";
 import { cache } from "react";
-
-const moduleReadPermissions: Record<ModuleId, string> = {
-  work: "work.task.read",
-  buildings: "building.record.read",
-  guarantees: "guarantee.case.read",
-};
 
 export type AccessContext = {
   userId: string;
@@ -72,11 +67,11 @@ export const getIdentityAccessContext = cache(async function getIdentityAccessCo
 
 export const getAccessContext = cache(async function getAccessContext(moduleId: ModuleId): Promise<AccessContext> {
   const identity = await getIdentityAccessContext();
+  const manifest = getModule(moduleId);
   if (!identity.userId) return { ...identity, allowed: false };
   return {
     ...identity,
     // Module visibility requires the action grant; row queries still enforce its data scope.
-    allowed: Boolean(identity.subject?.grants.some((grant) => grant.permission === moduleReadPermissions[moduleId]
-      || (moduleId === "guarantees" && grant.permission === "guarantee.tl.work"))),
+    allowed: Boolean(manifest && isModuleEnabled(manifest) && identity.subject?.grants.some((grant) => manifest.entryPermissions.includes(grant.permission))),
   };
 });

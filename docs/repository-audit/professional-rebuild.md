@@ -22,13 +22,13 @@ All five gates passed: lint, typecheck, 20 test files / 60 tests, one document m
 
 0. Source of truth: repository checkpoint complete (`ba06d0b`); historical documentation explicitly superseded. All five gates passed.
 1. Design tokens/shared patterns: token ownership and shared primitives implemented; active themes retired, shell styles moved, domain structure preserved. All five gates passed (60 unit tests). Visual/domain selector migration remains open.
-2. Shell/navigation/search/notifications: planned.
+2. Shell/navigation/search/notifications: grouped manifest navigation, visible data-scope summary and recipient-only notification inbox implemented. Five gates pass (22 test files / 64 tests). Visual/browser acceptance remains open.
 3. Dashboard internal queries: planned.
 4. Work/KPI native views: planned.
 5. Buildings server queries/360: planned.
 6. Guarantees queue/detail: planned.
 7. Admin access console: planned.
-7.5. Extensible registry: planned; contract may precede dependent consumers.
+7.5. Extensible registry: static versioned manifest/capability contract and disabled Module 4 proof implemented early as a shell dependency. Database lifecycle/pilot controls and capability sync remain planned.
 8. Legacy/CSS/accessibility: planned.
 9. Performance/security/production QA: planned. Deployed infrastructure, approved business mappings and production reconciliation need separate evidence.
 

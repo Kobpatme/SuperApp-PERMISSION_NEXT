@@ -6,7 +6,7 @@ import { getWorkspaceData } from "@/lib/workspace-server";
 import { formatWorkspaceDate } from "@/lib/workspace-view";
 import { PageHeader } from "@/components/ui/page-header";
 
-const moduleCopy = {
+const moduleCopy: Record<string, { title: string; description: string }> = {
   work: { title: "งานและกิจกรรม", description: "ติดตามงานของคุณ ตรวจสอบกำหนด และประสานงานกับทีม" },
   buildings: { title: "อาคารและค่าใช้จ่าย", description: "ค้นหาอาคารและติดตามรายการเกี่ยวกับค่าใช้จ่าย เงื่อนไขราคา และเอกสาร" },
   guarantees: { title: "ติดตามเงินประกัน", description: "ติดตามเอกสาร ผู้รับผิดชอบ และขั้นตอนการขอคืนเงินประกันอาคาร" },
@@ -15,7 +15,7 @@ const moduleCopy = {
 export async function NativeModuleFoundation({ moduleId, previewRequested = false }: { moduleId: ModuleId; previewRequested?: boolean }) {
   const data = await getWorkspaceData(previewRequested);
   if (!data.accessByModule[moduleId].allowed) return <AccessDenied moduleName={getModule(moduleId)!.name}/>;
-  const copy = moduleCopy[moduleId];
+  const copy = moduleCopy[moduleId] ?? { title: getModule(moduleId)!.name, description: getModule(moduleId)!.description };
   const snapshot = { ...data.snapshot, items: data.snapshot.items.filter((item) => item.moduleId === moduleId), sources: data.snapshot.sources.filter((source) => source.moduleId === moduleId) };
   const ready = snapshot.sources.some((source) => source.status === "ready");
   return <div className="native-module">

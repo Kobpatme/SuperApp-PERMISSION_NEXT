@@ -1,10 +1,16 @@
-export const modules = [
+import { defineModuleRegistry, capabilityCatalog } from "@/lib/module-contract";
+import { buildingCapabilities, coreCapabilities, guaranteeCapabilities, workCapabilities } from "@/lib/capabilities";
+
+export const modules = defineModuleRegistry([
   {
     id: "work",
+    version: "1.0.0", owner: "Operations", icon: "work", group: "work", order: 10,
+    lifecycle: "active", enabledByDefault: true, capabilities: workCapabilities,
+    entryPermissions: ["work.task.read"], dashboardProvider: "work", searchProvider: "work",
     number: 1,
     href: "/work",
     name: "งานและ KPI",
-    shortLabel: "MOD 1",
+    shortLabel: "งาน",
     description: "จัดการงาน ติดตามผล และตรวจสอบความคืบหน้าของทีม",
     purpose: "งานและผลการดำเนินงาน",
     repository: "Kobpatme/maxiwa_KPI",
@@ -13,10 +19,13 @@ export const modules = [
   },
   {
     id: "buildings",
+    version: "1.0.0", owner: "Operations", icon: "buildings", group: "operations", order: 20,
+    lifecycle: "active", enabledByDefault: true, capabilities: buildingCapabilities,
+    entryPermissions: ["building.record.read"], dashboardProvider: "buildings", searchProvider: "buildings",
     number: 2,
     href: "/buildings",
     name: "อาคารและค่าใช้จ่าย",
-    shortLabel: "MOD 2",
+    shortLabel: "อาคาร",
     description: "ค้นหาข้อมูลอาคาร ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน",
     purpose: "อาคารและเอกสาร",
     repository: "Kobpatme/Permission_Next",
@@ -25,17 +34,22 @@ export const modules = [
   },
   {
     id: "guarantees",
+    version: "1.0.0", owner: "Operations", icon: "guarantees", group: "operations", order: 30,
+    lifecycle: "active", enabledByDefault: true, capabilities: guaranteeCapabilities,
+    entryPermissions: ["guarantee.case.read", "guarantee.tl.work"], dashboardProvider: "guarantees", searchProvider: "guarantees",
     number: 3,
     href: "/guarantees",
     name: "เงินประกัน",
-    shortLabel: "MOD 3",
+    shortLabel: "เงินประกัน",
     description: "ติดตามเอกสาร ขั้นตอน และสถานะการขอคืนเงินประกัน",
     purpose: "เงินประกันและการติดตาม",
     repository: "Kobpatme/maxiwa",
     accent: "amber",
     searchTerms: ["คืนเงิน", "ประกัน", "อาคาร", "ติดตาม", "เอกสาร"],
   },
-] as const;
+]);
+
+export const capabilities = [...coreCapabilities.map(capability => ({ ...capability, moduleId: "core", moduleName: "ระบบกลาง" })), ...capabilityCatalog(modules)];
 
 export const overviewDestination = {
   id: "overview",
@@ -50,6 +64,10 @@ export type ModuleId = (typeof modules)[number]["id"];
 
 export function getModule(id: string) {
   return modules.find((module) => module.id === id);
+}
+
+export function getModuleIcon(id: string) {
+  return getModule(id)?.icon ?? "work";
 }
 
 export function isModuleId(value: string): value is ModuleId {

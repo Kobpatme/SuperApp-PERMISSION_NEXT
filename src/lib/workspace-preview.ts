@@ -4,7 +4,7 @@ import { modules, type ModuleId } from "@/lib/module-registry";
 /** Fictional examples. Only the server's development session may opt into this snapshot. */
 export function buildPreviewSnapshot(allowed: ModuleId[], userId: string, reference = new Date().toISOString()): DashboardSnapshot {
   const buildings = ["อาคารตัวอย่าง อรุณ", "อาคารตัวอย่าง สวนเหนือ", "อาคารตัวอย่าง ริมธาร", "อาคารตัวอย่าง เมโทร", "อาคารตัวอย่าง พาร์ค", "อาคารตัวอย่าง ศูนย์กลาง"];
-  const descriptions = {
+  const descriptions: Record<string, string[]> = {
     work: ["ตรวจสอบเอกสารก่อนส่งอนุมัติ", "ติดตามความคืบหน้ากับทีมอาคาร", "สรุปผลการดำเนินงานประจำสัปดาห์", "นัดหมายเข้าตรวจพื้นที่"],
     buildings: ["ทบทวนเงื่อนไขค่าใช้จ่าย", "ตรวจสอบรายละเอียดใบเสนอราคา", "ติดตามเอกสารประกอบอาคาร", "ยืนยันข้อมูลติดต่ออาคาร"],
     guarantees: ["ติดตามคำขอคืนเงินประกัน", "ตรวจความครบถ้วนของเอกสาร", "ติดตามผลการพิจารณา", "ตรวจสอบหลักฐานการคืนเงิน"],
@@ -18,7 +18,7 @@ export function buildPreviewSnapshot(allowed: ModuleId[], userId: string, refere
       id: `example-${code}`, code, moduleId,
       kind: moduleId === "work" ? "task" : moduleId === "buildings" ? "building" : "guarantee",
       priority: index % 7 === 0 ? "urgent" : index % 3 === 0 ? "attention" : "normal",
-      title: descriptions[moduleId][index % 4], buildingName: buildings[index % buildings.length],
+      title: (descriptions[moduleId] ?? [moduleId])[index % (descriptions[moduleId]?.length ?? 1)], buildingName: buildings[index % buildings.length],
       description: "ข้อมูลสมมติสำหรับทดลองหน้าจอและขั้นตอนการใช้งาน ไม่มีผลต่อข้อมูลจริง",
       href: modules.find((module) => module.id === moduleId)!.href,
       dueAt: index % 9 === 8 ? undefined : due.toISOString(),

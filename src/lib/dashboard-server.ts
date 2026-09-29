@@ -3,7 +3,8 @@ import "server-only";
 import { cache } from "react";
 import { dashboardSourcePayloadSchema, orderDashboardItems, type DashboardItem, type DashboardSnapshot, type DashboardSource } from "@/lib/dashboard";
 import type { AccessContext } from "@/lib/access";
-import type { ModuleId } from "@/lib/module-registry";
+import { modules, type ModuleId } from "@/lib/module-registry";
+import { isModuleEnabled } from "@/lib/module-contract";
 
 const sourceConfig: Record<ModuleId, { env: string; defaultHref: string; label: string }> = {
   work: { env: "DASHBOARD_WORK_SOURCE_URL", defaultHref: "/work", label: "MAXIWA KPI" },
@@ -24,6 +25,7 @@ function configuredUrl(moduleId: ModuleId) {
 
 async function loadSource(moduleId: ModuleId, access: AccessContext): Promise<{ source: DashboardSource; items: DashboardItem[] }> {
   const config = sourceConfig[moduleId];
+  if (!config) return { source: { moduleId, status: "not_configured", itemCount: 0, message: "ยังไม่มีแหล่งข้อมูลสำหรับโมดูลนี้" }, items: [] };
   if (!access.allowed) return { source: { moduleId, status: "not_configured", itemCount: 0, message: "บัญชีนี้ไม่มีสิทธิ์เข้าถึง" }, items: [] };
   const url = configuredUrl(moduleId);
   if (!url) return { source: { moduleId, status: "not_configured", itemCount: 0, message: "รอเชื่อม API สรุปจากระบบต้นทาง" }, items: [] };
@@ -53,7 +55,7 @@ async function loadSource(moduleId: ModuleId, access: AccessContext): Promise<{ 
 }
 
 export const buildDashboardSnapshot = cache(async function buildDashboardSnapshot(accessByModule: Record<ModuleId, AccessContext>): Promise<DashboardSnapshot> {
-  const moduleIds = Object.keys(sourceConfig) as ModuleId[];
+  const moduleIds = modules.filter(module => isModuleEnabled(module) && accessByModule[module.id]?.allowed).map(module => module.id);
   const results = await Promise.all(moduleIds.map((moduleId) => loadSource(moduleId, accessByModule[moduleId])));
   return {
     generatedAt: new Date().toISOString(),

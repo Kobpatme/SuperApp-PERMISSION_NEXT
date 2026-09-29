@@ -1,0 +1,12 @@
+.sidebar-group-label { padding:12px 12px 2px; color:var(--color-text-muted); font-size:11px; font-weight:600; }
+.sidebar-scope { margin-top:auto; padding:16px 12px; color:var(--color-text-muted); font-size:12px; border-top:1px solid var(--color-border); }
+.notification-count { position:absolute; right:-5px; top:-5px; background:var(--color-danger); color:var(--color-surface); border-radius:12px; padding:2px 5px; font-size:10px; }
+.notification-dialog { width:min(520px,calc(100vw - 24px)); max-height:85dvh; padding:20px; border:1px solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); color:var(--color-text); box-shadow:var(--shadow-md); }
+.notification-dialog::backdrop { background:rgb(0 0 0 / 40%); }
+.notification-dialog header { justify-content:space-between; }
+.notification-dialog h2 { font-size:20px; }
+.notification-list { padding:0; list-style:none; }
+.notification-list li { border-bottom:1px solid var(--color-border); padding:14px 0; }
+.notification-list h3 { margin:8px 0; font-size:14px; }
+.notification-list a { text-decoration:underline; text-underline-offset:3px; }
+.notification-list time { color:var(--color-text-muted); font-size:12px; }
