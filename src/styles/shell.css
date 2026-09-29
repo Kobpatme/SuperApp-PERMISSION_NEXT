@@ -1,11 +1,11 @@
 /* Shared workspace navigation. Desktop uses a persistent rail; small screens
    use the same destinations in a native modal dialog. */
 .workspace-shell {
-  --workspace-sidebar-width: 256px;
+  --workspace-sidebar-width: 240px;
 }
 
 .workspace-shell.sidebar-collapsed {
-  --workspace-sidebar-width: 76px;
+  --workspace-sidebar-width: 68px;
 }
 
 .workspace-shell .shell-header {
@@ -17,14 +17,14 @@
 .workspace-shell .shell-header .topbar {
   display: flex;
   flex-wrap: nowrap;
-  min-height: 80px;
+  min-height: 64px;
   margin: 0;
   padding: 0 clamp(18px, 3vw, 44px);
 }
 
 .workspace-sidebar {
   position: fixed;
-  inset: 80px auto 0 0;
+  inset: 64px auto 0 0;
   z-index: 95;
   display: flex;
   flex-direction: column;
@@ -261,14 +261,6 @@
   margin-inline: 0;
 }
 
-.workspace-shell .module-frame-page {
-  top: 80px;
-  right: 0;
-  bottom: 0;
-  left: var(--workspace-sidebar-width);
-  transition: left 160ms ease;
-}
-
 .sidebar-mobile-toggle,
 .workspace-mobile-dialog {
   display: none;
@@ -308,11 +300,6 @@
   .workspace-shell > .main {
     margin-left: 0;
     padding: 24px clamp(14px, 4vw, 32px) 40px;
-  }
-
-  .workspace-shell .module-frame-page {
-    top: 72px;
-    left: 0;
   }
 
   .workspace-mobile-dialog[open] {
@@ -400,8 +387,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .workspace-sidebar,
-  .workspace-shell > .main,
-  .workspace-shell .module-frame-page {
+  .workspace-shell > .main {
     transition: none;
   }
 }

@@ -1,6 +1,6 @@
 # Building deposit V2 integration
 
-Source reviewed: `D:\WebApp\ระบบขอคืนเงินประกัน_V2` (the supplied path with `\_V2` is not present locally).
+Authoritative source: `Kobpatme/maxiwa@94742a4b8cb10a4f39b87b257e9ca548ef7ef1e6`. The local checkout `D:\WebApp\ระบบขอคืนเงินประกัน_V2` is only a comparison artifact and may contain uncommitted presentation work; this document must not treat it as source of truth.
 
 The Next.js module at `/guarantees` now uses a TypeScript port of the source's `domain-logic.js` for installation/removal deposit metrics, On Service and Off Service states, outstanding amounts, missing evidence, consistency checks, prioritized work queue, notifications and operational analytics. The six-step status flow is validated server-side for native writes. Search, status filtering and CSV export work on the visible list.
 

@@ -42,7 +42,12 @@ export function mapStagedBuilding(row) {
     try { conditions[field] = JSON.parse(raw[field]); }
     catch { throw new Error(`Invalid ${field} JSON for source ID ${raw.id}`); }
   }
-  conditions._migration = { source: "permission_next_csv", fee_review_required: feeReviewFields.length > 0, fee_review_fields: feeReviewFields };
+  conditions._migration = {
+    source: "permission_next_csv",
+    fee_review_required: feeReviewFields.length > 0,
+    fee_review_fields: feeReviewFields,
+    fee_review_values: Object.fromEntries(feeReviewFields.map((field) => [field, raw[field]])),
+  };
   const fees = feeReviewFields.length ? [] : feeDefinitions.flatMap(([sourceKey, label, category, costType, payable, unit]) =>
     raw[sourceKey] ? [{ sourceKey, label, category, costType, payable, unit, calculationType: "fixed", amount: raw[sourceKey].replaceAll(",", ""), rate: null, revenuePeriod: null, note: null }] : []);
   if (!feeReviewFields.length && conditions.other_fees) {

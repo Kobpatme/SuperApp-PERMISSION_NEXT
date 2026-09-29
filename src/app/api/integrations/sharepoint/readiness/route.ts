@@ -1,4 +1,5 @@
 import { getAccessContext } from "@/lib/access";
+import { isAuthorized } from "@/lib/authorization";
 import { getMicrosoft365ConfigStatus } from "@/lib/microsoft365/config";
 import { MicrosoftGraphError } from "@/lib/microsoft365/graph";
 import { checkSharePointReadiness } from "@/lib/microsoft365/sharepoint";
@@ -7,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const access = await getAccessContext("buildings");
-  if (!access.allowed || access.role !== "admin") {
+  if (!access.allowed || !isAuthorized(access.subject, "core.role.manage")) {
     return Response.json({ ok: false, error: "Forbidden" }, { status: 403 });
   }
 
@@ -23,11 +24,11 @@ export async function GET() {
     });
   } catch (error) {
     const status = error instanceof MicrosoftGraphError ? error.status : 502;
+    console.error("SharePoint readiness check failed", error);
     return Response.json({
       ok: false,
       stage: status === 401 ? "authentication" : status === 403 ? "authorization" : "resource",
-      error: error instanceof Error ? error.message : "SharePoint readiness check failed",
+      error: "SharePoint readiness check failed",
     }, { status: status >= 400 && status < 600 ? status : 502 });
   }
 }
-

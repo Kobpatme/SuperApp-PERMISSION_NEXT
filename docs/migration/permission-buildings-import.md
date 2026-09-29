@@ -1,6 +1,6 @@
 # Permission_Next buildings → SuperApp
 
-The source project is `D:\WebApp\Permission_Next` (not `D:\WebApp\Permission\_Next`). Its `app.js` contains no building records; the records live in Firestore collection `buildings` in the named `permission-building` database. The formula registry is a separate Firestore configuration document. Neither was available locally for this migration.
+The authoritative source project is `Kobpatme/Permission_Next@afaee997afecf0f42e059b7100fa90ed0d188784`. The local checkout `D:\WebApp\Permission_Next` is only a comparison artifact. Its `app.js` contains no building records; the records live in Firestore collection `buildings` in the named `permission-building` database. The formula registry is a separate Firestore configuration document. Neither was available locally for this migration.
 
 Export only actual building documents from the Firestore `buildings` collection as a JSON array, retaining each document ID as `_docId`. Exclude configuration and authentication documents (for example `permission_next_auth` and its backup). Keep the export outside the repository because it contains operational information. Review duplicate IDs and missing Thai names before import.
 

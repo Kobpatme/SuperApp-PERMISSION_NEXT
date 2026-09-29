@@ -20,7 +20,7 @@ export function DashboardOverview({ displayName, userId, allowedModuleIds, devel
     </header>
     {allowedModuleIds.length ? <WorkspaceQueue snapshot={snapshot} userId={userId} preview={preview} showMetrics/> : <div className="queue-empty"><WorkspaceIcon name="guarantees" size={32}/><h2>ยังไม่มีพื้นที่ทำงานที่เข้าถึงได้</h2><p>กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์ตามหน้าที่ของคุณ</p></div>}
     <section className="module-directory" aria-label="เปิดพื้นที่ทำงาน">{modules.filter((module) => allowedModuleIds.includes(module.id)).map((module) => <Link href={`${module.href}${preview ? "?preview=1" : ""}`} key={module.id}>
-      <span className="module-mark"><WorkspaceIcon name={module.id} size={23}/></span><span><strong>{module.name}</strong><small>{module.purpose}</small></span><WorkspaceIcon name="arrow" size={18}/>
+      <span className="module-mark"><WorkspaceIcon name={module.icon} size={23}/></span><span><strong>{module.name}</strong><small>{module.purpose}</small></span><WorkspaceIcon name="arrow" size={18}/>
     </Link>)}</section>
     {allowedModuleIds.length > 0 && <SourceDetails snapshot={snapshot} preview={preview}/>}
   </div>;

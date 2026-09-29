@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { PermissionBuildingRow } from "@/lib/permission-building-server";
 import { BuildingMap } from "./building-map";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 
 type FilterKey = "status" | "group" | "type" | "installType" | "surveyType" | "area";
 type Filters = Record<FilterKey, string>;
@@ -25,9 +27,17 @@ function optionsFor(buildings: PermissionBuildingRow[], key: FilterKey) {
   return [...new Set(buildings.map((item) => item[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b, "th"));
 }
 
-export function BuildingsWorkspace({ buildings, total }: { buildings: PermissionBuildingRow[]; total: number }) {
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
+export function BuildingsWorkspace({ buildings, total, initialQuery = "", initialFilters = emptyFilters }: { buildings: PermissionBuildingRow[]; total: number; initialQuery?: string; initialFilters?: Filters }) {
+  const router = useRouter(), pathname = usePathname();
+  const [query, setQuery] = useState(initialQuery);
+  const [filters, setFilters] = useState<Filters>({
+    status: initialFilters.status ?? "",
+    group: initialFilters.group ?? "",
+    type: initialFilters.type ?? "",
+    installType: initialFilters.installType ?? "",
+    surveyType: initialFilters.surveyType ?? "",
+    area: initialFilters.area ?? "",
+  });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const [suggestionIndex, setSuggestionIndex] = useState(-1);
@@ -54,6 +64,16 @@ export function BuildingsWorkspace({ buildings, total }: { buildings: Permission
   const horizontalMeters = selected && /^\d+(?:\.\d+)?$/.test(selected.maxHorizontal) ? `${selected.maxHorizontal} เมตร` : "";
   const invalidDuration = Boolean(selected?.duration && !durationDays);
   const invalidHorizontal = Boolean(selected?.maxHorizontal && !horizontalMeters);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams();
+      if (query.trim()) params.set("q", query.trim());
+      (Object.keys(filters) as FilterKey[]).forEach(key => { if (filters[key]) params.set(key, filters[key]); });
+      router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [filters, pathname, query, router]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -169,7 +189,7 @@ export function BuildingsWorkspace({ buildings, total }: { buildings: Permission
     </div>
 
     <dialog ref={dialogRef} className="permission-drawer" aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onClose={() => setSelectedId(null)}>
-      {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2>{selected.nameTh}</h2><p>{selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"}</p><div className="permission-list-tags"><em>{selected.group || "ไม่ระบุกลุ่ม"}</em>{selected.surveyType && <em>{selected.surveyType}</em>}{selected.type && <em>{selected.type}</em>}{selected.installType && <em>{selected.installType}</em>}</div></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
+      {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2>{selected.nameTh}</h2><p>{selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"}</p><div className="permission-list-tags"><em>{selected.group || "ไม่ระบุกลุ่ม"}</em>{selected.surveyType && <em>{selected.surveyType}</em>}{selected.type && <em>{selected.type}</em>}{selected.installType && <em>{selected.installType}</em>}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>เปิด Building 360</Link></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
         <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><strong className={statusClass(selected.status)}>{selected.status || "—"}</strong></div><div><span>พื้นที่ / จังหวัด</span><strong>{[selected.area, selected.province].filter(Boolean).join(" · ") || "—"}</strong></div><div><span>ข้อมูลล่าสุด</span><strong>{selected.updateDate || "ไม่ระบุวันที่"}</strong></div></div>
         {(!selected.wmPoint || selected.feeReviewRequired || invalidDuration || invalidHorizontal) && <div className="permission-drawer-alert" role="status"><strong>ข้อมูลที่ควรตรวจสอบ</strong>{!selected.wmPoint && <span>ยังไม่มีข้อมูลจุดเชื่อมต่อ WM</span>}{invalidDuration && <span>ระยะดำเนินการไม่ใช่จำนวนวัน</span>}{invalidHorizontal && <span>ระยะสายแนวนอนไม่ใช่จำนวนเมตร</span>}{selected.feeReviewRequired && <span>ค่าใช้จ่ายจาก CSV รอตรวจสอบ</span>}</div>}
         <div className="permission-drawer-tabs" role="tablist" aria-label="รายละเอียดอาคาร">
@@ -188,7 +208,7 @@ export function BuildingsWorkspace({ buildings, total }: { buildings: Permission
             {splitValues(selected.email, /[,;]/).map((value) => <div key={value}><span>{value}</span><a href={`mailto:${value}`}>ส่งอีเมล</a></div>)}
             {!selected.contact && !selected.phone && !selected.mobile && !selected.email && <p className="permission-empty-inline">ยังไม่มีข้อมูลผู้ติดต่อ</p>}
           </div></>}
-          {tab === "fee" && <><h3>ค่าใช้จ่ายของอาคาร</h3>{selected.feeReviewRequired ? <p className="permission-data-warning">ไม่แสดงยอดของอาคารนี้ เพราะช่องจำนวนเงินใน CSV มีข้อมูลที่ต้องตรวจสอบกับต้นทาง</p> : selected.boq?.fees.some((fee) => fee.calculation_type === "revenue_share" ? fee.rate : fee.amount) ? <>
+          {tab === "fee" && <><h3>ค่าใช้จ่ายของอาคาร</h3>{selected.feeReviewRequired ? <><p className="permission-data-warning">รายการด้านล่างเป็นค่าดิบจากต้นทางที่ยังตรวจสอบรูปแบบไม่ผ่าน จึงยังไม่นำไปคำนวณรวมเป็นยอด</p><section className="permission-fee-group permission-fee-review"><h4>รายการรอตรวจสอบ<span>{selected.feeReviewValues.length} รายการ</span></h4><div>{selected.feeReviewValues.map((fee) => <div key={fee.sourceField}><span>{fee.label}<small>ค่าจากต้นทาง</small></span><strong>{fee.rawValue}</strong></div>)}</div></section></> : selected.boq?.fees.some((fee) => fee.calculation_type === "revenue_share" ? fee.rate : fee.amount) ? <>
             {feeGroups.map((group) => { const fees = selected.boq?.fees.filter((fee) => feeInGroup(fee, group.type) && (fee.calculation_type === "revenue_share" ? fee.rate : fee.amount)) ?? []; return fees.length ? <section key={group.type} className="permission-fee-group"><h4>{group.title}<span>{fees.length} รายการ</span></h4><div>{fees.map((fee) => <div key={fee.key}><span>{fee.label}<small>{fee.calculation_type === "revenue_share" ? `ส่วนแบ่งรายได้${fee.revenue_period === "annual" ? "รายปี" : "รายเดือน"}` : fee.unit !== "ครั้ง" ? `อัตราต่อ${fee.unit}` : fee.cost_type}</small></span><strong>{fee.calculation_type === "revenue_share" ? `${number(fee.rate ?? 0)}%` : `${number(fee.amount ?? 0)} บาท`}</strong></div>)}</div></section> : null; })}
             <p className="permission-fee-note">ยอดมีรอบการชำระและหน่วยต่างกัน จึงไม่รวมเป็นยอดเดียว</p>
           </> : <p className="permission-empty-inline">ยังไม่มีข้อมูลค่าใช้จ่าย</p>}</>}

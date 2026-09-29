@@ -1,4 +1,6 @@
-# Permission Next Workspace — Coral Stay Design System
+# Historical design system — superseded
+
+> Deprecated. Use [Enterprise workspace design system](docs/product/design-system.md). The following is a retained historical reference, not the active product direction.
 
 ## Product character
 

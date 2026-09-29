@@ -1,5 +1,7 @@
 # Permission-Next Architecture Baseline
 
+> **Deprecated historical baseline (2026-09-28).** Use [current architecture](docs/architecture/overview.md) and [ADR-0003](docs/adr/0003-current-runtime-and-rebuild.md). Hosted authentication, Supabase/Vercel and iframe integration below are historical proposals, not current runtime requirements.
+
 เอกสารนี้เป็นข้อสรุปทางเทคนิคเพิ่มเติมจาก `CODEX_IMPLEMENTATION_PLAN_PERMISSION_NEXT.md` และใช้เป็น baseline สำหรับการพัฒนาระบบจริง ส่วน `index.html` และ Mod แบบ iframe ในปัจจุบันเป็นเพียง UI/UX prototype สำหรับยืนยันหน้าตาและ workflow เดิมก่อน migration
 
 ## Technology decisions

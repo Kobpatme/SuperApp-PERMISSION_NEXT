@@ -32,6 +32,8 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function POST(request: Request, context: RouteContext) {
+  const origin = request.headers.get("origin");
+  if (!origin || origin !== new URL(request.url).origin) return error("Invalid request origin", 403);
   const { id, kind } = await context.params;
   if (!uuid.test(id) || !isEvidenceKind(kind)) return error("Invalid document", 400);
   if (!process.env.DATABASE_URL) return error("Database unavailable", 503);

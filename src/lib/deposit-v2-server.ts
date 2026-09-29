@@ -41,24 +41,25 @@ function toRecord(row: typeof guaranteeWorkItems.$inferSelect): DepositRecord {
     createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() } as DepositRecord;
 }
 
-export async function listDepositWorkItems(limit = 500, requestedTeamId?: string): Promise<{ items: DepositRecord[]; state: "ready" | "not_configured" | "unavailable"; truncated: boolean }> {
+export async function listDepositWorkItems(limit = 500, requestedTeamId?: string): Promise<{ items: DepositRecord[]; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string }> {
+  const generatedAt = new Date().toISOString();
   const access = await getAccessContext("guarantees");
-  if (!access.allowed) return { items: [], state: "unavailable", truncated: false };
-  if (!process.env.DATABASE_URL) return { items: [], state: "not_configured", truncated: false };
+  if (!access.allowed) return { items: [], state: "unavailable", truncated: false, generatedAt };
+  if (!process.env.DATABASE_URL) return { items: [], state: "not_configured", truncated: false, generatedAt };
   const baseScope = scopeCondition(access);
-  if (requestedTeamId && !/^[0-9a-f-]{36}$/i.test(requestedTeamId)) return { items: [], state: "ready", truncated: false };
+  if (requestedTeamId && !/^[0-9a-f-]{36}$/i.test(requestedTeamId)) return { items: [], state: "ready", truncated: false, generatedAt };
   const canViewRequestedTeam = !requestedTeamId || access.subject?.grants.some((grant) => grant.permission === "guarantee.case.read" &&
     (grant.scope === "ALL" || (grant.scope === "TEAM" && access.subject?.teamIds.includes(requestedTeamId)) ||
       (grant.scope === "SELECTED_TEAMS" && grant.selectedTeamId === requestedTeamId)));
-  if (!canViewRequestedTeam) return { items: [], state: "ready", truncated: false };
+  if (!canViewRequestedTeam) return { items: [], state: "ready", truncated: false, generatedAt };
   const scope = baseScope && requestedTeamId ? and(baseScope, eq(guaranteeWorkItems.teamId, requestedTeamId)) : baseScope;
-  if (!scope) return { items: [], state: "ready", truncated: false };
+  if (!scope) return { items: [], state: "ready", truncated: false, generatedAt };
   try {
     const rows = await getDb().select().from(guaranteeWorkItems).where(scope).orderBy(desc(guaranteeWorkItems.updatedAt)).limit(limit + 1);
-    return { items: rows.slice(0, limit).filter((row) => isAuthorized(access.subject, "guarantee.case.read", { ownerId: row.ownerId, teamId: row.teamId }) || canWorkAsAssignedTl(access, row)).map(toRecord), state: "ready", truncated: rows.length > limit };
+    return { items: rows.slice(0, limit).filter((row) => isAuthorized(access.subject, "guarantee.case.read", { ownerId: row.ownerId, teamId: row.teamId }) || canWorkAsAssignedTl(access, row)).map(toRecord), state: "ready", truncated: rows.length > limit, generatedAt };
   } catch (error) {
     console.error("Unable to load guarantee work items", error);
-    return { items: [], state: "unavailable", truncated: false };
+    return { items: [], state: "unavailable", truncated: false, generatedAt };
   }
 }
 

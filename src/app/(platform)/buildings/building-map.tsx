@@ -149,7 +149,7 @@ export function BuildingMap({ buildings, selectedId, onOpenDetails }: { building
   }
 
   return <div className="permission-map-shell">
-    <div ref={elementRef} className="permission-map-canvas" role="application" aria-label="แผนที่ตำแหน่งอาคาร" />
+    <div ref={elementRef} className="permission-map-canvas" role="region" aria-label="แผนที่ตำแหน่งอาคาร ใช้รายการค้นหาและตัวกรองเพื่อเปิดรายละเอียดด้วยแป้นพิมพ์" />
     <div className="permission-map-tools">
       <div className="permission-map-controls" aria-label="รูปแบบแผนที่">{([ ["osm", "แผนที่"], ["satellite", "ดาวเทียม"], ["hybrid", "ผสม"] ] as const).map(([key, label]) => <button key={key} type="button" className={mode === key ? "active" : ""} aria-pressed={mode === key} onClick={() => setMode(key)}>{label}</button>)}</div>
       <button type="button" className="permission-map-fit" onClick={fitVisible}>ดูหมุดทั้งหมด</button>

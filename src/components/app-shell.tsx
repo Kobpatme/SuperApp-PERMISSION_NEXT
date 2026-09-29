@@ -10,7 +10,7 @@ import { WorkspaceIcon } from "@/components/workspace-icon";
 import Link from "next/link";
 import type { InstallationTeamContext } from "@/lib/installation-team-context";
 
-export function AppShell({ children, displayName = "ผู้ใช้งาน", allowedModuleIds, canAdmin = false, installationTeams }: { children: React.ReactNode; displayName?: string; allowedModuleIds: ModuleId[]; canAdmin?: boolean; installationTeams: InstallationTeamContext }) {
+export function AppShell({ children, displayName = "ผู้ใช้งาน", allowedModuleIds, canAdmin = false, installationTeams, notificationCenter, scopeLabel }: { children: React.ReactNode; displayName?: string; allowedModuleIds: ModuleId[]; canAdmin?: boolean; installationTeams: InstallationTeamContext; notificationCenter?: React.ReactNode; scopeLabel?: string }) {
   const [collapsed, setCollapsed] = useState(false);
   const mobileDialog = useRef<HTMLDialogElement>(null);
 
@@ -37,6 +37,7 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
         <Link className="top-brand" href="/" aria-label="Permission Next — ภาพรวม"><span className="top-brand-mark" aria-hidden="true">PN</span><span className="top-brand-copy"><strong>Permission Next</strong><small>พื้นที่ทำงานของทีม</small></span></Link>
         <WorkspaceSearch allowedModuleIds={allowedModuleIds} />
         <div className="top-actions">
+          {notificationCenter}
           <WorkspaceThemeToggle />
           <AccountControl displayName={displayName} />
         </div>
@@ -49,6 +50,7 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
         </button>
       </div>
       <ModuleNav allowedModuleIds={allowedModuleIds} collapsed={collapsed} canAdmin={canAdmin} installationTeams={installationTeams} />
+      {!collapsed && scopeLabel && <p className="sidebar-scope">ขอบเขตสิทธิ์ที่ได้รับ<br/>{scopeLabel}</p>}
     </aside>
     <dialog className="workspace-mobile-dialog" id="mobile-workspace-menu" ref={mobileDialog} aria-label="เมนูพื้นที่ทำงาน" onClick={(event) => { if (event.target === mobileDialog.current) mobileDialog.current?.close(); }}>
       <div className="mobile-sidebar-content">

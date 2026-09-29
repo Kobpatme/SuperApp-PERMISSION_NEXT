@@ -1,5 +1,7 @@
 # Current data map
 
+> Source-of-truth note (2026-09-29): the behavioral baselines are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99`, and `Kobpatme/maxiwa_KPI@4f5fa99`. The local paths and the legacy data stores below describe migration evidence only. PostgreSQL and SuperApp server services remain the target persistence/authorization authority.
+
 ## MAXIWA KPI / Supabase
 
 - `users`: employee identifier variants, name, team, role, avatar, permissions JSON, optional active-session fields.
@@ -30,7 +32,7 @@
 
 - `profiles`, `user_roles`, `audit_logs` only.
 - Supabase Auth is the proposed identity source.
-- Module routes currently serve the three legacy apps inside same-origin frames; business data remains in their original stores.
+- Native module routes and server read models are present in the current target checkout. Work/KPI still has a generic foundation rather than complete source parity; see the fresh matrices in `docs/modules/*/source-parity.md`. Legacy routes are migration references only.
 
 ## Cross-system relationship gaps
 

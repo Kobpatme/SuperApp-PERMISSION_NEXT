@@ -30,9 +30,9 @@ export function SourceDetails({ snapshot, preview }: { snapshot: DashboardSnapsh
   return <details className="source-details">
     <summary><WorkspaceIcon name="info" size={17}/><span>{preview ? "แหล่งข้อมูล: ตัวอย่างการใช้งาน" : `สถานะข้อมูล · เชื่อมต่อ ${ready} จาก ${snapshot.sources.length} ระบบ`}</span><span className="source-details-hint">ดูรายละเอียด</span></summary>
     <div className="source-readiness-list">{snapshot.sources.map((source) => <div className="source-readiness-row" key={source.moduleId}>
-      <WorkspaceIcon name={source.moduleId}/><span><strong>{getModule(source.moduleId)?.name}</strong><small>{preview ? "ข้อมูลสมมติ ไม่มีผลต่อข้อมูลจริง" : source.status === "ready" ? "เชื่อมต่อแล้ว" : source.status === "unavailable" ? "เชื่อมต่อไม่สำเร็จ ลองอัปเดตข้อมูลอีกครั้ง" : "อยู่ระหว่างเตรียมข้อมูล กรุณาติดต่อผู้ดูแลระบบ"}</small></span>
+      <WorkspaceIcon name={getModule(source.moduleId)!.icon}/><span><strong>{getModule(source.moduleId)?.name}</strong><small>{preview ? "ข้อมูลสมมติ ไม่มีผลต่อข้อมูลจริง" : source.message}</small></span>
       <Link href={`${getModule(source.moduleId)!.href}${params.get("preview") === "1" ? "?preview=1" : ""}`}>เปิดรายการ<WorkspaceIcon name="arrow" size={16}/></Link>
     </div>)}</div>
-    <p>แสดงรายการติดตามจากระบบที่เชื่อมต่อแล้วตามสิทธิ์ของคุณ ข้อมูลสรุปอาจไม่ครอบคลุมทะเบียนทั้งหมด</p>
+    <p>แสดงรายการปฏิบัติการจาก read model ภายในตามสิทธิ์ของคุณ ข้อมูลสรุปไม่ใช่ทะเบียนทั้งหมด</p>
   </details>;
 }

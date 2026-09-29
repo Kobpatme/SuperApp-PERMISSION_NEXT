@@ -1,6 +1,6 @@
-import { NativeModuleFoundation } from "@/components/native-module-foundation";
+import { WorkRoutePage } from "@/components/work-route-page";
 
 export default async function ModulePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const params = await searchParams;
-  return <NativeModuleFoundation moduleId="work" previewRequested={params.preview === "1"}/>;
+  return <WorkRoutePage view={typeof params.view === "string" ? params.view : "mine"}/>;
 }
