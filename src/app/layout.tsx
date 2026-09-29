@@ -4,6 +4,7 @@ import "@/styles/shell.css";
 import "@/styles/components.css";
 import "@/styles/ui.css";
 import "@/styles/notifications.css";
+import "@/styles/work.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
