@@ -8,6 +8,7 @@ import {
   getSmartWorkQueue, getWorkflowStatusKey, parseDateValue, parseMoney, sortCompletedLast,
   workflowLabels, type DepositItem,
 } from "@/lib/deposit-v2-domain";
+import { buildGuaranteeExecutiveView } from "@/lib/guarantee-view-model";
 
 const money = (value: number) => `฿${value.toLocaleString("th-TH", { maximumFractionDigits: 2 })}`;
 const pageSize = 20;
@@ -20,15 +21,15 @@ function formatDate(value: unknown) {
   return date ? date.toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
 }
 
-export function DepositWorkspace({ items, preview, state, truncated, canCreate, canPreview }: {
-  items: DepositItem[]; preview: boolean; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; canCreate: boolean; canPreview: boolean;
+export function DepositWorkspace({ items, preview, state, truncated, generatedAt, canCreate, canPreview }: {
+  items: DepositItem[]; preview: boolean; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string; canCreate: boolean; canPreview: boolean;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("");
   const [areaFilter, setAreaFilter] = useState("");
-  const [view, setView] = useState<WorkspaceView>("list");
+  const [view, setView] = useState<WorkspaceView>("queue");
   const [page, setPage] = useState(1);
   const [sortNo, setSortNo] = useState<"default" | "asc" | "desc">("default");
   const [exportMonth, setExportMonth] = useState("");
@@ -71,32 +72,7 @@ export function DepositWorkspace({ items, preview, state, truncated, canCreate, 
   const queue = useMemo(() => getSmartWorkQueue(items), [items]);
   const notifications = useMemo(() => getActionNotifications(items), [items]);
   const analytics = useMemo(() => getOperationalAnalytics(items), [items]);
-  const executive = useMemo(() => {
-    const done = items.filter((item) => normalized(item.status) === "done");
-    const active = items.filter((item) => !["done", "cancel"].includes(normalized(item.status)));
-    const totalInstall = items.reduce((sum, item) => sum + parseMoney(item.deposit), 0);
-    const installRefunded = done.reduce((sum, item) => sum + parseMoney(item.deposit), 0);
-    const totalDemo = items.reduce((sum, item) => sum + parseMoney(item.demolish), 0);
-    const demoRefunded = done.reduce((sum, item) => sum + parseMoney(item.demolish), 0);
-    const installPendingItems = items.filter((item) => parseMoney(item.deposit) > 0 && normalized(item.status) !== "done");
-    const pendingMap = new Map<string, { key: string; label: string; count: number; amount: number }>();
-    for (const item of installPendingItems) {
-      const key = getWorkflowStatusKey(item), row = pendingMap.get(key) || { key, label: workflowLabels[key] || key, count: 0, amount: 0 };
-      row.count++; row.amount += parseMoney(item.deposit); pendingMap.set(key, row);
-    }
-    const now = new Date();
-    const months = Array.from({ length: 12 }, (_, index) => { const date = new Date(now.getFullYear(), now.getMonth() - 11 + index, 1); return { year: date.getFullYear(), month: date.getMonth(), label: date.toLocaleDateString("th-TH", { month: "short", year: "2-digit" }), fee: 0, deposit: 0 }; });
-    for (const item of items) { const date = parseDateValue(item.dateReq); const month = date && months.find((entry) => entry.year === date.getFullYear() && entry.month === date.getMonth()); if (month) { month.fee += parseMoney(item.fee) + parseMoney(item.other); month.deposit += parseMoney(item.deposit) + parseMoney(item.demolish); } }
-    const areaMap = new Map<string, number>();
-    for (const item of active) if (item.area) areaMap.set(item.area, (areaMap.get(item.area) || 0) + parseMoney(item.deposit));
-    const topOutstanding = active.map((item) => ({ item, amount: parseMoney(item.deposit) + parseMoney(item.demolish) })).sort((a, b) => b.amount - a.amount).slice(0, 5);
-    const totalInsurance = totalInstall + totalDemo, refunded = installRefunded + demoRefunded;
-    return { totalInstall, installRefunded, installPending: totalInstall - installRefunded, installPendingCount: installPendingItems.length,
-      totalDemo, demoRefunded, demoPending: totalDemo - demoRefunded, demoPendingCount: items.filter((item) => parseMoney(item.demolish) > 0 && normalized(item.demoReturn) !== "yes").length,
-      totalInsurance, successPct: totalInsurance ? refunded / totalInsurance * 100 : 0,
-      pendingByStatus: [...pendingMap.values()].sort((a, b) => b.amount - a.amount), months,
-      areas: [...areaMap].map(([label, amount]) => ({ label, amount })).sort((a, b) => b.amount - a.amount), topOutstanding };
-  }, [items]);
+  const executive = useMemo(() => buildGuaranteeExecutiveView(items, generatedAt), [items, generatedAt]);
   const processCount = filtered.filter((item) => getWorkflowStatusKey(item) === "refund_process").length;
   const lastUpdated = useMemo(() => items.map((item) => parseDateValue(item.updatedAt)).filter((date): date is Date => Boolean(date)).sort((a, b) => b.getTime() - a.getTime())[0], [items]);
   const createUnavailableReason = preview ? "ข้อมูลตัวอย่างสร้างรายการจริงไม่ได้" : state === "not_configured" ? "ต้องเชื่อมฐานข้อมูลกลางก่อนสร้างรายการ" : state === "unavailable" ? "ฐานข้อมูลไม่พร้อม กรุณาลองใหม่" : canPreview ? "บัญชี Developer เป็นโหมดอ่านอย่างเดียว" : !canCreate ? "บัญชีนี้ไม่มีสิทธิ์สร้างรายการ" : "";
@@ -118,13 +94,14 @@ export function DepositWorkspace({ items, preview, state, truncated, canCreate, 
   }
 
   const tabs: Array<[WorkspaceView, string, number?]> = [
-    ["list", "เงินประกันอาคาร", items.length], ["on_service", "มีประกันรื้อถอน (On Service)", items.filter((item) => getWorkflowStatusKey(item) === "on_service").length],
-    ["done", "งานสำเร็จ", items.filter((item) => getWorkflowStatusKey(item) === "done").length], ["queue", "งานที่ต้องติดตาม", queue.length],
+    ["queue", "งานที่ต้องทำ", queue.length], ["list", "รายการทั้งหมด", items.length],
+    ["on_service", "มีประกันรื้อถอน (On Service)", items.filter((item) => getWorkflowStatusKey(item) === "on_service").length],
+    ["done", "งานสำเร็จ", items.filter((item) => getWorkflowStatusKey(item) === "done").length],
   ];
 
   return <div className="deposit-workspace legacy-deposit-workspace">
-    <header className="deposit-head legacy-deposit-head"><div><p className="eyebrow">เงินประกันอาคาร / Deposit Manager</p><h1>รายการขอคืนเงินประกันอาคาร</h1><p className="sub">ข้อมูลทั้งหมด · {exportYear || "ทุกปี"} · อัปเดตล่าสุด {lastUpdated ? lastUpdated.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }) : "—"}</p></div>
-      <div className="legacy-head-actions"><button type="button" className={`executive-nav-button${view === "analytics" ? " active" : ""}`} aria-pressed={view === "analytics"} onClick={() => setWorkspaceView("analytics")}>Executive Dashboard</button>
+    <header className="deposit-head legacy-deposit-head"><div><p className="eyebrow">เงินประกันอาคาร / งานดำเนินการ</p><h1>รายการขอคืนเงินประกันอาคาร</h1><p className="sub">ข้อมูลทั้งหมด · {exportYear || "ทุกปี"} · อัปเดตล่าสุด {lastUpdated ? lastUpdated.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }) : "—"}</p></div>
+      <div className="legacy-head-actions"><button type="button" className={`executive-nav-button${view === "analytics" ? " active" : ""}`} aria-pressed={view === "analytics"} onClick={() => setWorkspaceView("analytics")}>วิเคราะห์ข้อมูล</button>
         <select aria-label="เดือนสำหรับส่งออก" value={exportMonth} onChange={(event) => setExportMonth(event.target.value)}><option value="">ทุกเดือน</option>{["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."].map((month, index) => <option value={index} key={month}>{month}</option>)}</select>
         <select aria-label="ปีสำหรับส่งออก" value={exportYear} onChange={(event) => setExportYear(event.target.value)}><option value="">ทุกปี</option>{years.map((year) => <option value={year} key={year}>{year}</option>)}</select>
         <button type="button" className="deposit-export" onClick={exportCsv} disabled={!filtered.length}>⇩ Export CSV</button>

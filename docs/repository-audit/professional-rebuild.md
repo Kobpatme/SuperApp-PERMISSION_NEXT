@@ -26,7 +26,7 @@ All five gates passed: lint, typecheck, 20 test files / 60 tests, one document m
 3. Dashboard internal queries: native scoped Work/Guarantee providers implemented; Buildings reports ready with no action items. External HTTP adapters removed from the primary dashboard path. Browser validation remains open.
 4. Work/KPI native views: My/Team/Due views, activity, KPI snapshots/fact provenance and status reports implemented. Approved real KPI rule catalog and historical production population remain blocked externally.
 5. Buildings server queries/360: bounded 100-row server search/filter/page with URL state and canonical-ID Building 360 implemented. Composite cursor, viewport projection, query-plan and browser performance validation remain open.
-6. Guarantees queue/detail: planned.
+6. Guarantees queue/detail: operational queue is now the default, analytics is secondary, and the financial view model is deterministic and regression-tested. Server-side register pagination/filtering, browser validation and production financial reconciliation remain open.
 7. Admin access console: planned.
 7.5. Extensible registry: static versioned manifest/capability contract and disabled Module 4 proof implemented early as a shell dependency. Database lifecycle/pilot controls and capability sync remain planned.
 8. Legacy/CSS/accessibility: planned.
