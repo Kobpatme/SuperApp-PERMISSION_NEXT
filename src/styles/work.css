@@ -1,5 +1,10 @@
 .work-timeline { display:grid; gap:0; padding:0; list-style:none; }
-.work-timeline li { display:grid; grid-template-columns:160px minmax(180px,1fr) minmax(180px,1fr); gap:16px; padding:12px; border-bottom:1px solid var(--color-border); }
+.work-timeline li { display:grid; grid-template-columns:minmax(120px,160px) minmax(0,1fr) minmax(0,1fr); min-width:0; gap:16px; padding:12px; border-bottom:1px solid var(--color-border); }
+.work-timeline li > .truncated-text-wrap,
+.work-kpi-scores article > .truncated-text-wrap,
+.work-report-grid article > .truncated-text-wrap { min-width:0; }
+.work-kpi-scores .truncated-text-wrap { color:var(--color-text-muted); }
+.work-report-grid .truncated-text-wrap { font-weight:700; }
 .work-timeline time,.work-timeline span { color:var(--color-text-muted); }
 .work-kpi-grid { display:grid; grid-template-columns:minmax(240px,.7fr) minmax(0,1.3fr); gap:16px; }
 .work-kpi-scores,.work-report-grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }

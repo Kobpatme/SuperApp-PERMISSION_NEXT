@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getModuleIcon, modules, overviewDestination, type ModuleId } from "@/lib/module-registry";
 import { WorkspaceIcon } from "@/components/workspace-icon";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 type SearchResult = { id: string; title: string; description: string; href: string; moduleId?: ModuleId };
 type SearchResponse = { results: SearchResult[]; ready: boolean; partial: boolean };
@@ -75,7 +76,7 @@ export function WorkspaceSearch({ allowedModuleIds }: { allowedModuleIds: Module
       <p className="workspace-search-heading">{needle ? "ผลการค้นหาตามสิทธิ์ของคุณ" : "ไปยังพื้นที่ทำงาน"}</p>
       <div id={listboxId} role="listbox" aria-label="ผลการค้นหา" className="workspace-search-results">
         {results.map((result, index) => <div key={result.id} id={`${listboxId}-${index}`} role="option" aria-selected={active === index} className={`workspace-search-result ${active === index ? "active" : ""}`} onMouseEnter={() => setActiveIndex(index)} onMouseDown={(event) => event.preventDefault()} onClick={() => goTo(result.href)}>
-          <WorkspaceIcon name={result.moduleId ? getModuleIcon(result.moduleId) : "arrow"}/><span><strong>{result.title}</strong><small>{result.description}</small></span><WorkspaceIcon name="arrow" size={16}/>
+           <WorkspaceIcon name={result.moduleId ? getModuleIcon(result.moduleId) : "arrow"}/><span className="workspace-search-result-copy"><TruncatedText text={result.title} lines={1}/><TruncatedText text={result.description} lines={1}/></span><WorkspaceIcon name="arrow" size={16}/>
         </div>)}
       </div>
       <div className="search-feedback" role="status">

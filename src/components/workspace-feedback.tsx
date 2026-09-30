@@ -6,6 +6,7 @@ import { useTransition } from "react";
 import type { DashboardSnapshot } from "@/lib/dashboard";
 import { getModule } from "@/lib/module-registry";
 import { WorkspaceIcon } from "@/components/workspace-icon";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 export function PreviewNotice({ preview, developmentMode }: { preview: boolean; developmentMode: boolean }) {
   const pathname = usePathname();
@@ -30,7 +31,7 @@ export function SourceDetails({ snapshot, preview }: { snapshot: DashboardSnapsh
   return <details className="source-details">
     <summary><WorkspaceIcon name="info" size={17}/><span>{preview ? "แหล่งข้อมูล: ตัวอย่างการใช้งาน" : `สถานะข้อมูล · เชื่อมต่อ ${ready} จาก ${snapshot.sources.length} ระบบ`}</span><span className="source-details-hint">ดูรายละเอียด</span></summary>
     <div className="source-readiness-list">{snapshot.sources.map((source) => <div className="source-readiness-row" key={source.moduleId}>
-      <WorkspaceIcon name={getModule(source.moduleId)!.icon}/><span><strong>{getModule(source.moduleId)?.name}</strong><small>{preview ? "ข้อมูลสมมติ ไม่มีผลต่อข้อมูลจริง" : source.message}</small></span>
+       <WorkspaceIcon name={getModule(source.moduleId)!.icon}/><span className="source-readiness-copy"><TruncatedText text={getModule(source.moduleId)?.name || ""} lines={1}/><TruncatedText text={preview ? "ข้อมูลสมมติ ไม่มีผลต่อข้อมูลจริง" : source.message} lines={2}/></span>
       <Link href={`${getModule(source.moduleId)!.href}${params.get("preview") === "1" ? "?preview=1" : ""}`}>เปิดรายการ<WorkspaceIcon name="arrow" size={16}/></Link>
     </div>)}</div>
     <p>แสดงรายการปฏิบัติการจาก read model ภายในตามสิทธิ์ของคุณ ข้อมูลสรุปไม่ใช่ทะเบียนทั้งหมด</p>

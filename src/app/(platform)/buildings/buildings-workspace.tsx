@@ -5,6 +5,7 @@ import type { PermissionBuildingRow } from "@/lib/permission-building-server";
 import { BuildingMap } from "./building-map";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 type FilterKey = "status" | "group" | "type" | "installType" | "surveyType" | "area";
 type Filters = Record<FilterKey, string>;
@@ -148,7 +149,7 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
         {focused && normalizedQuery && <div className="permission-autocomplete" role="listbox" aria-label="ผลการค้นหาอาคาร">
           {suggestions.length ? suggestions.map((item, index) => <button type="button" role="option" aria-selected={suggestionIndex === index} key={item.id}
             onMouseDown={(event) => event.preventDefault()} onClick={() => { setQuery(item.nameTh); openBuilding(item); }}>
-            <i className={`permission-status-dot ${statusClass(item.status)}`} /><span><strong>{item.nameTh}</strong><small>{[item.nameEn, item.area, item.status].filter(Boolean).join(" · ")}</small></span>
+             <i className={`permission-status-dot ${statusClass(item.status)}`} /><span className="permission-autocomplete-copy"><TruncatedText text={item.nameTh} lines={1}/><TruncatedText text={[item.nameEn, item.area, item.status].filter(Boolean).join(" · ")} lines={1}/></span>
           </button>) : <p>ไม่พบอาคารที่ตรงกับคำค้นหา</p>}
         </div>}
       </div>
@@ -178,7 +179,7 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
       <button type="button" className="permission-reset" onClick={reset} disabled={!query && activeFilterCount === 0}>รีเซ็ต</button>
     </div>}
     {selectedDetailFilters.length > 0 && <div className="permission-filter-chips" aria-label="ตัวกรองที่เลือก">
-      {selectedDetailFilters.map((key) => <button type="button" key={key} onClick={() => setFilter(key, "")}>{fieldLabels[key]}: <strong>{filters[key]}</strong> ×</button>)}
+       {selectedDetailFilters.map((key) => <button type="button" key={key} onClick={() => setFilter(key, "")}>{fieldLabels[key]}: <TruncatedText text={filters[key]} lines={1}/> ×</button>)}
     </div>}
 
     <div className="permission-main">
@@ -189,8 +190,8 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
     </div>
 
     <dialog ref={dialogRef} className="permission-drawer" aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onClose={() => setSelectedId(null)}>
-      {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2>{selected.nameTh}</h2><p>{selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"}</p><div className="permission-list-tags"><em>{selected.group || "ไม่ระบุกลุ่ม"}</em>{selected.surveyType && <em>{selected.surveyType}</em>}{selected.type && <em>{selected.type}</em>}{selected.installType && <em>{selected.installType}</em>}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>เปิด Building 360</Link></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
-        <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><strong className={statusClass(selected.status)}>{selected.status || "—"}</strong></div><div><span>พื้นที่ / จังหวัด</span><strong>{[selected.area, selected.province].filter(Boolean).join(" · ") || "—"}</strong></div><div><span>ข้อมูลล่าสุด</span><strong>{selected.updateDate || "ไม่ระบุวันที่"}</strong></div></div>
+       {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2><TruncatedText text={selected.nameTh} lines={2}/></h2><TruncatedText className="permission-drawer-name-en" text={selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"} lines={2}/><div className="permission-list-tags">{[selected.group, selected.surveyType, selected.type, selected.installType].filter(Boolean).map((tag) => <em key={tag}><TruncatedText text={tag as string} lines={1}/></em>)}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>เปิด Building 360</Link></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
+         <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><strong className={statusClass(selected.status)}><TruncatedText text={selected.status || "—"} lines={1}/></strong></div><div><span>พื้นที่ / จังหวัด</span><TruncatedText text={[selected.area, selected.province].filter(Boolean).join(" · ") || "—"} lines={2}/></div><div><span>ข้อมูลล่าสุด</span><TruncatedText text={selected.updateDate || "ไม่ระบุวันที่"} lines={1}/></div></div>
         {(!selected.wmPoint || selected.feeReviewRequired || invalidDuration || invalidHorizontal) && <div className="permission-drawer-alert" role="status"><strong>ข้อมูลที่ควรตรวจสอบ</strong>{!selected.wmPoint && <span>ยังไม่มีข้อมูลจุดเชื่อมต่อ WM</span>}{invalidDuration && <span>ระยะดำเนินการไม่ใช่จำนวนวัน</span>}{invalidHorizontal && <span>ระยะสายแนวนอนไม่ใช่จำนวนเมตร</span>}{selected.feeReviewRequired && <span>ค่าใช้จ่ายจาก CSV รอตรวจสอบ</span>}</div>}
         <div className="permission-drawer-tabs" role="tablist" aria-label="รายละเอียดอาคาร">
           {([ ["general", "ภาพรวม"], ["contact", "ผู้ติดต่อ"], ["fee", "ค่าใช้จ่าย"], ["documents", "เอกสาร"] ] as const).map(([key, label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} onClick={() => selectTab(key)}>{label}{key === "documents" && documentState?.key === selected.id && documentState.status === "ready" ? ` (${documentState.files.length})` : ""}</button>)}
@@ -200,24 +201,24 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
             <Info label="ทำเล / โซน" value={selected.location}/><Info label="ระยะดำเนินการ Permission" value={durationDays}/>
             <Info label="จุดเชื่อมต่อ (WM)" value={selected.wmPoint}/><Info label="ตู้เชื่อมต่อ" value={selected.enclosure}/>
             <Info label="ระยะสายแนวนอนสูงสุด" value={horizontalMeters}/><Info label="ที่อยู่" value={selected.address}/>
-          </dl>{selected.remark && <details className="permission-remark"><summary>หมายเหตุจากข้อมูลเดิม</summary><p>{selected.remark}</p></details>}
+           </dl>{selected.remark && <details className="permission-remark"><summary>หมายเหตุจากข้อมูลเดิม</summary><TruncatedText text={selected.remark} lines={3}/></details>}
           {!selected.location && !durationDays && !selected.wmPoint && !selected.enclosure && !horizontalMeters && !selected.address && !selected.remark && <p className="permission-empty-inline">ยังไม่มีข้อมูลการติดตั้งเพิ่มเติม</p>}</>}
           {tab === "contact" && <><h3>ผู้ติดต่อ</h3><div className="permission-contact">
-            {splitValues(selected.contact, /[,/]/).length > 0 && <div className="permission-contact-name"><span>ชื่อผู้ติดต่อ</span><strong>{splitValues(selected.contact, /[,/]/).join(" / ")}</strong></div>}
-            {[...splitValues(selected.phone, /[,/]/), ...splitValues(selected.mobile, /[,/]/)].map((value, index) => <div key={`${value}-${index}`}><span>{value}</span><a href={`tel:${value.replace(/[^+\d]/g, "")}`}>โทร</a></div>)}
-            {splitValues(selected.email, /[,;]/).map((value) => <div key={value}><span>{value}</span><a href={`mailto:${value}`}>ส่งอีเมล</a></div>)}
+             {splitValues(selected.contact, /[,/]/).length > 0 && <div className="permission-contact-name"><span>ชื่อผู้ติดต่อ</span><TruncatedText text={splitValues(selected.contact, /[,/]/).join(" / ")} lines={2}/></div>}
+             {[...splitValues(selected.phone, /[,/]/), ...splitValues(selected.mobile, /[,/]/)].map((value, index) => <div key={`${value}-${index}`}><TruncatedText text={value} lines={1}/><a href={`tel:${value.replace(/[^+\d]/g, "")}`}>โทร</a></div>)}
+             {splitValues(selected.email, /[,;]/).map((value) => <div key={value}><TruncatedText className="text-safe" text={value} lines={2}/><a href={`mailto:${value}`}>ส่งอีเมล</a></div>)}
             {!selected.contact && !selected.phone && !selected.mobile && !selected.email && <p className="permission-empty-inline">ยังไม่มีข้อมูลผู้ติดต่อ</p>}
           </div></>}
           {tab === "fee" && <><h3>ค่าใช้จ่ายของอาคาร</h3>{selected.feeReviewRequired && <p className="permission-data-warning">มีค่าดิบจากต้นทางบางรายการที่ยังตรวจสอบรูปแบบไม่ผ่าน จึงแสดงแยกไว้ด้านล่าง และไม่นำรายการเหล่านั้นไปคำนวณรวมเป็นยอด</p>}
             {selected.boq?.fees.some((fee) => fee.calculation_type === "revenue_share" ? fee.rate : fee.amount) ? <>
-              {feeGroups.map((group) => { const fees = selected.boq?.fees.filter((fee) => feeInGroup(fee, group.type) && (fee.calculation_type === "revenue_share" ? fee.rate : fee.amount)) ?? []; return fees.length ? <section key={group.type} className="permission-fee-group"><h4>{group.title}<span>{fees.length} รายการ</span></h4><div>{fees.map((fee) => <div key={fee.key}><span>{fee.label}<small>{fee.calculation_type === "revenue_share" ? `ส่วนแบ่งรายได้${fee.revenue_period === "annual" ? "รายปี" : "รายเดือน"}` : fee.unit !== "ครั้ง" ? `อัตราต่อ${fee.unit}` : fee.cost_type}</small></span><strong>{fee.calculation_type === "revenue_share" ? `${number(fee.rate ?? 0)}%` : `${number(fee.amount ?? 0)} บาท`}</strong></div>)}</div></section> : null; })}
+               {feeGroups.map((group) => { const fees = selected.boq?.fees.filter((fee) => feeInGroup(fee, group.type) && (fee.calculation_type === "revenue_share" ? fee.rate : fee.amount)) ?? []; return fees.length ? <section key={group.type} className="permission-fee-group"><h4><TruncatedText text={group.title} lines={1}/><span>{fees.length} รายการ</span></h4><div>{fees.map((fee) => <div key={fee.key}><span><TruncatedText text={fee.label} lines={2}/><small>{fee.calculation_type === "revenue_share" ? `ส่วนแบ่งรายได้${fee.revenue_period === "annual" ? "รายปี" : "รายเดือน"}` : fee.unit !== "ครั้ง" ? `อัตราต่อ${fee.unit}` : fee.cost_type}</small></span><strong><TruncatedText text={fee.calculation_type === "revenue_share" ? `${number(fee.rate ?? 0)}%` : `${number(fee.amount ?? 0)} บาท`} lines={1}/></strong></div>)}</div></section> : null; })}
               <p className="permission-fee-note">ยอดมีรอบการชำระและหน่วยต่างกัน จึงไม่รวมเป็นยอดเดียว</p>
             </> : !selected.feeReviewRequired && <p className="permission-empty-inline">ยังไม่มีข้อมูลค่าใช้จ่าย</p>}
-            {selected.feeReviewRequired && selected.feeReviewValues.length > 0 && <section className="permission-fee-group permission-fee-review"><h4>รายการรอตรวจสอบ<span>{selected.feeReviewValues.length} รายการ</span></h4><div>{selected.feeReviewValues.map((fee) => <div key={fee.sourceField}><span>{fee.label}<small>ค่าจากต้นทาง</small></span><strong>{fee.rawValue}</strong></div>)}</div></section>}
+             {selected.feeReviewRequired && selected.feeReviewValues.length > 0 && <section className="permission-fee-group permission-fee-review"><h4>รายการรอตรวจสอบ<span>{selected.feeReviewValues.length} รายการ</span></h4><div>{selected.feeReviewValues.map((fee) => <div key={fee.sourceField}><span><TruncatedText text={fee.label} lines={2}/><small>ค่าจากต้นทาง</small></span><TruncatedText className="text-safe" text={fee.rawValue} lines={2}/></div>)}</div></section>}
           </>}
           {tab === "documents" && <><div className="permission-doc-heading"><h3>เอกสารอาคารจาก NAS</h3><button type="button" onClick={retryDocuments} disabled={documentState?.status === "loading"}>ค้นหาใหม่</button></div>
             {documentState?.key !== selected.id || documentState.status !== "ready" ? <div className={`permission-doc-state ${documentState?.status === "error" ? "error" : ""}`} role="status"><strong>{documentState?.key === selected.id ? documentState.message : "กำลังค้นหาเอกสาร…"}</strong>{documentState?.status === "error" && <button type="button" onClick={retryDocuments}>ลองอีกครั้ง</button>}</div> :
-              (["dwg", "pdf", "image"] as const).map((category) => { const files = documentState.files.filter((file) => file.category === category); return files.length ? <section key={category} className="permission-doc-group"><h4>{categoryLabels[category]} <span>{files.length}</span></h4>{files.map((file, index) => <div key={`${file.name}-${index}`} className="permission-doc-row"><span className="permission-doc-ext">{file.extension.toUpperCase()}</span><div><strong>{file.name}</strong><small>{formatBytes(file.size)} · {formatDate(file.modifiedAt)}</small></div><a href={file.href} download={file.name}>ดาวน์โหลด</a></div>)}</section> : null; })}
+               (["dwg", "pdf", "image"] as const).map((category) => { const files = documentState.files.filter((file) => file.category === category); return files.length ? <section key={category} className="permission-doc-group"><h4>{categoryLabels[category]} <span>{files.length}</span></h4>{files.map((file, index) => <div key={`${file.name}-${index}`} className="permission-doc-row"><span className="permission-doc-ext">{file.extension.toUpperCase()}</span><div><TruncatedText className="text-safe" text={file.name} lines={2}/><small>{formatBytes(file.size)} · {formatDate(file.modifiedAt)}</small></div><a href={file.href} download={file.name}>ดาวน์โหลด</a></div>)}</section> : null; })}
           </>}
         </div>
         <div className="permission-drawer-actions"><span>ข้อมูลจาก PostgreSQL กลาง · อ่านอย่างเดียว</span><div>{mapUrl && <a href={mapUrl} target="_blank" rel="noopener noreferrer">เปิดในแผนที่</a>}<button type="button" onClick={() => dialogRef.current?.close()}>ปิด</button></div></div>
@@ -226,7 +227,7 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
   </section>;
 }
 
-function Info({ label, value }: { label: string; value: string }) { return value ? <div><dt>{label}</dt><dd>{value}</dd></div> : null; }
+function Info({ label, value }: { label: string; value: string }) { return value ? <div><dt>{label}</dt><dd><TruncatedText text={value} lines={3}/></dd></div> : null; }
 function splitValues(value: string, separator: RegExp) { return value.split(separator).map((item) => item.trim()).filter(Boolean); }
 function feeInGroup(fee: NonNullable<PermissionBuildingRow["boq"]>["fees"][number], group: string) {
   if (group === "OPEX_ANNUAL") return fee.cost_type === "OPEX" && (fee.source_field === "annual_fee" || fee.revenue_period === "annual");

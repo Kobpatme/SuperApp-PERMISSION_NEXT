@@ -184,3 +184,31 @@ html:has(.permission-workspace){overflow-x:clip}
   .permission-quick-status{grid-column:1 / -1;grid-row:3;max-width:none;width:100%}
   .permission-quick-status button{min-height:34px}
 }
+.permission-autocomplete-copy,
+.permission-drawer-head>div:first-child,
+.permission-drawer-summary>div,
+.permission-contact>div,
+.permission-fee-group>div>div,
+.permission-doc-row>div { min-width:0; }
+.permission-autocomplete-copy { flex:1; }
+.permission-autocomplete-copy>.truncated-text-wrap:first-child { color:var(--pw-text); font-size:13px; font-weight:700; }
+.permission-autocomplete-copy>.truncated-text-wrap:last-child { color:var(--pw-muted); font-size:11px; }
+.permission-drawer-head h2 .truncated-text-wrap { font:inherit; }
+.permission-drawer-name-en { color:var(--pw-muted); font-size:13px; line-height:1.35; }
+.permission-list-tags em { min-width:0; max-width:100%; }
+.permission-list-tags em>.truncated-text-wrap { min-width:0; }
+.permission-drawer-summary strong>.truncated-text-wrap,
+.permission-drawer-summary>div>.truncated-text-wrap { min-width:0; }
+.permission-drawer-summary>div>.truncated-text-wrap { color:var(--pw-text); font-size:13px; line-height:1.5; }
+.permission-contact>div>.truncated-text-wrap,
+.permission-contact-name>.truncated-text-wrap { min-width:0; flex:1; }
+.permission-fee-group h4>.truncated-text-wrap { min-width:0; flex:1; }
+.permission-fee-group>div>div>span { min-width:0; flex:1; }
+.permission-fee-group>div>div>span>.truncated-text-wrap,
+.permission-fee-group>div>div>strong>.truncated-text-wrap { min-width:0; }
+.permission-fee-group>div>div>strong { min-width:0; max-width:48%; text-align:right; }
+.permission-fee-review>div>div>.truncated-text-wrap { min-width:0; max-width:48%; text-align:right; }
+.permission-doc-row>div>.truncated-text-wrap { min-width:0; }
+.permission-remark>.truncated-text-wrap { margin:0; padding:0 13px 13px; color:var(--pw-muted); font-size:12px; line-height:1.65; }
+.permission-drawer-actions>span { min-width:0; overflow-wrap:anywhere; }
+.permission-filter-chips button>.truncated-text-wrap { display:inline-block; max-width:180px; vertical-align:middle; }

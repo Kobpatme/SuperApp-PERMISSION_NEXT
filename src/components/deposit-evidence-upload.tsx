@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { EvidenceKind } from "@/lib/guarantee-evidence";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 const labels: Record<EvidenceKind, string> = {
   pdf_payment: "หลักฐานการจ่าย", pdf_layout: "แบบ Drawing", pdf_additional: "หลักฐานเพิ่มเติม", pdf_tl_work: "หลักฐานงานทีมติดตั้ง", pdf_tl_extra: "เอกสารทีมติดตั้งเพิ่มเติม",
@@ -28,7 +29,7 @@ export function DepositEvidenceUpload({ id, version, kind, exists, canUpload = t
     } catch (error) { setMessage(error instanceof Error ? error.message : "อัปโหลดไม่สำเร็จ"); }
     finally { setPending(false); }
   }
-  return <div className="deposit-evidence"><div><strong>{labels[kind]}</strong><small>{exists ? "มีไฟล์แล้ว" : "ยังไม่มีไฟล์"}</small></div>
+  return <div className="deposit-evidence"><div><TruncatedText text={labels[kind]} lines={2}/><small>{exists ? "มีไฟล์แล้ว" : "ยังไม่มีไฟล์"}</small></div>
     {exists && <a href={`/api/guarantees/${id}/documents/${kind}`} target="_blank" rel="noreferrer">เปิดไฟล์</a>}
     {canUpload && <><input type="file" accept="application/pdf,image/jpeg,image/png" aria-label={`เลือก${labels[kind]}`} onChange={(event) => setFile(event.target.files?.[0] || null)}/>
       <button type="button" disabled={!file || pending} onClick={upload}>{pending ? "กำลังอัปโหลด…" : "อัปโหลด"}</button></>}

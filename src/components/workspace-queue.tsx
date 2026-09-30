@@ -8,6 +8,8 @@ import { getModule, type ModuleId } from "@/lib/module-registry";
 import { filterQueue, formatWorkspaceDate, isDueToday, kindLabels, priorityLabels, readViewSettings, recordKey, type QueueView, type ViewSettings } from "@/lib/workspace-view";
 import { WorkspaceIcon } from "@/components/workspace-icon";
 import { RefreshButton } from "@/components/workspace-feedback";
+import { TruncatedText } from "@/components/ui/truncated-text";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 
 const viewLabels: Record<QueueView, string> = { all: "ทั้งหมด", urgent: "เร่งด่วน", today: "ครบกำหนดวันนี้", mine: "งานของฉัน" };
 
@@ -26,18 +28,18 @@ function DetailPanel({ item, preview, onClose }: { item: DashboardItem; preview:
     <div className="detail-inner">
       <div className="detail-top"><span><WorkspaceIcon name={getModule(item.moduleId)!.icon}/>{moduleInfo.name}</span><button type="button" className="round-btn" aria-label="ปิดรายละเอียด" onClick={onClose} autoFocus><WorkspaceIcon name="close"/></button></div>
       <p className="eyebrow">{item.code || item.id}</p>
-      <h2 id="detail-title">{item.moduleId === "buildings" && item.buildingName ? item.buildingName : item.title}</h2>
+       <h2 id="detail-title"><TruncatedText text={item.moduleId === "buildings" && item.buildingName ? item.buildingName : item.title} lines={2}/></h2>
       <div className="detail-badges"><span className={`status-badge ${item.priority}`}>{priorityLabels[item.priority]}</span><span className="status-badge neutral">{item.statusLabel}</span></div>
       {preview && <p className="preview-caption">ข้อมูลตัวอย่าง · ไม่มีผลต่อข้อมูลจริง</p>}
       <dl className="detail-fields">
-        <div><dt>อาคาร</dt><dd>{item.buildingName || "ยังไม่ระบุ"}</dd></div>
-        <div><dt>ผู้รับผิดชอบ</dt><dd>{item.ownerName || "ยังไม่ระบุ"}</dd></div>
+         <div><dt>อาคาร</dt><dd><TruncatedText text={item.buildingName || "ยังไม่ระบุ"} lines={2}/></dd></div>
+         <div><dt>ผู้รับผิดชอบ</dt><dd><TruncatedText text={item.ownerName || "ยังไม่ระบุ"} lines={2}/></dd></div>
         <div><dt>กำหนดดำเนินการ</dt><dd>{formatWorkspaceDate(item.dueAt, true)}</dd></div>
         <div><dt>ประเภท</dt><dd>{kindLabels[item.kind]}</dd></div>
         {item.updatedAt && <div><dt>แก้ไขล่าสุด</dt><dd>{formatWorkspaceDate(item.updatedAt, true)}</dd></div>}
       </dl>
-      <section className="detail-section"><h3>รายละเอียด</h3><p>{item.description || "ยังไม่มีรายละเอียดเพิ่มเติมจากระบบต้นทาง"}</p></section>
-      <section className="next-step"><WorkspaceIcon name="arrow"/><div><h3>ขั้นตอนถัดไป</h3><p>{item.nextAction || "ตรวจสอบข้อมูลกับผู้รับผิดชอบก่อนดำเนินการต่อ"}</p></div></section>
+       <section className="detail-section"><h3>รายละเอียด</h3><TruncatedText text={item.description || "ยังไม่มีรายละเอียดเพิ่มเติมจากระบบต้นทาง"} lines={3}/></section>
+       <section className="next-step"><WorkspaceIcon name="arrow"/><div><h3>ขั้นตอนถัดไป</h3><TruncatedText text={item.nextAction || "ตรวจสอบข้อมูลกับผู้รับผิดชอบก่อนดำเนินการต่อ"} lines={3}/></div></section>
       <div className="detail-actions">
         {!preview && item.href !== moduleInfo.href && <Link className="primary" href={item.href} onClick={onClose}>เปิดรายการต้นทาง<WorkspaceIcon name="arrow" size={17}/></Link>}
         <button className="secondary-action" type="button" onClick={async () => { try { await navigator.clipboard.writeText(item.code || item.id); setMessage("คัดลอกรหัสรายการแล้ว"); } catch { setMessage("คัดลอกไม่สำเร็จ กรุณาเลือกรหัสแล้วคัดลอกด้วยตนเอง"); } }}><WorkspaceIcon name="copy" size={17}/>คัดลอกรหัส</button>
@@ -69,7 +71,7 @@ function SavedViews({ storageKey, settings, apply }: { storageKey: string; setti
     <summary className="secondary-action"><WorkspaceIcon name="save" size={17}/>มุมมองที่บันทึกไว้<WorkspaceIcon name="chevron" size={16}/></summary>
     <div className="saved-views-popover">
       <strong>มุมมองของฉัน</strong><p>เก็บตัวกรองและการเรียงลำดับในเบราว์เซอร์นี้</p>
-      {views.length ? <ul>{views.map((view) => <li key={view.id}><button type="button" className="saved-view-link" onClick={() => { apply(view.settings); if (ref.current) ref.current.open = false; }}>{view.name}</button><button type="button" className="round-btn" aria-label={`ลบมุมมอง ${view.name}`} onClick={() => save(views.filter((item) => item.id !== view.id), "ลบมุมมองแล้ว")}><WorkspaceIcon name="close" size={16}/></button></li>)}</ul> : <p className="muted">ยังไม่มีมุมมองที่บันทึกไว้</p>}
+       {views.length ? <ul>{views.map((view) => <li key={view.id}><button type="button" className="saved-view-link" onClick={() => { apply(view.settings); if (ref.current) ref.current.open = false; }}><TruncatedText text={view.name} lines={1}/></button><button type="button" className="round-btn" aria-label={`ลบมุมมอง ${view.name}`} onClick={() => save(views.filter((item) => item.id !== view.id), "ลบมุมมองแล้ว")}><WorkspaceIcon name="close" size={16}/></button></li>)}</ul> : <p className="muted">ยังไม่มีมุมมองที่บันทึกไว้</p>}
       <form onSubmit={(event) => { event.preventDefault(); if (!name.trim() || views.length >= 8) return; if (save([...views, { id: crypto.randomUUID(), name: name.trim(), settings }], "บันทึกมุมมองแล้ว")) setName(""); }}>
         <label htmlFor="saved-view-name">ชื่อมุมมอง</label><input id="saved-view-name" value={name} onChange={(event) => setName(event.target.value)} maxLength={60} placeholder="เช่น งานเร่งด่วนของฉัน" required/>
         <button className="primary" type="submit" disabled={views.length >= 8}>บันทึกมุมมองปัจจุบัน</button>{views.length >= 8 && <p>บันทึกได้สูงสุด 8 มุมมอง</p>}
@@ -128,7 +130,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
 
   return <>
     {showMetrics && <section className="attention-strip" aria-label="เลือกกลุ่มงานที่ต้องติดตาม">{(Object.keys(viewLabels) as QueueView[]).map((view) => <button type="button" key={view} className={`attention-item ${settings.view === view ? "active" : ""} ${view}`} aria-pressed={settings.view === view} onClick={() => changeSettings({ view })}>
-      <span>{view === "all" ? "รายการที่ต้องติดตาม" : viewLabels[view]}</span><strong>{hasData ? counts[view].toLocaleString("th-TH") : "—"}</strong><small>{hasData ? partial ? "รายการ · ข้อมูลบางส่วน" : "รายการ" : "รอข้อมูล"}<WorkspaceIcon name="arrow" size={16}/></small>
+      <span>{view === "all" ? "รายการที่ต้องติดตาม" : viewLabels[view]}</span><strong>{hasData ? <AnimatedNumber value={counts[view]}/> : "—"}</strong><small>{hasData ? partial ? "รายการ · ข้อมูลบางส่วน" : "รายการ" : "รอข้อมูล"}<WorkspaceIcon name="arrow" size={16}/></small>
     </button>)}</section>}
     <section className="queue-section" aria-labelledby="queue-heading">
       <div className="section-heading-row"><div><h2 id="queue-heading">รายการที่ต้องติดตาม</h2><p>{moduleId ? "ค้นหาและเปิดรายละเอียด โดยเก็บมุมมองการทำงานไว้" : "เลือกงานที่ต้องทำต่อจากทุกระบบในที่เดียว"}</p></div><span className="queue-total">{hasData ? `${items.length.toLocaleString("th-TH")} รายการ${preview ? "ตัวอย่าง" : ""}` : "รอเชื่อมข้อมูล"}</span></div>
@@ -154,10 +156,10 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
         </tr></thead><tbody>
           {visible.map((item) => <tr key={recordKey(item)} className={selectedKeys.has(recordKey(item)) ? "selected" : ""}>
             <td className="selection-cell"><input type="checkbox" aria-label={`เลือก ${item.code || item.title}`} checked={selectedKeys.has(recordKey(item))} onChange={() => toggleItem(item)}/></td>
-            <td className="record-cell"><button className="record-title" type="button" onClick={() => update({ record: item.id, module: item.moduleId }, true)}>{moduleId === "buildings" && item.buildingName ? item.buildingName : item.title}<WorkspaceIcon name="arrow" size={16}/></button><div className="record-subtitle"><span className="record-code">{item.code || kindLabels[item.kind]}</span><span>{moduleId === "buildings" ? item.title : item.buildingName || getModule(item.moduleId)?.name}</span>{!moduleId && <span className="record-source">{getModule(item.moduleId)?.name}</span>}</div></td>
-            <td className="owner-cell"><span className="owner-dot" aria-hidden="true">{(item.ownerName || "—").slice(0, 1)}</span>{item.ownerName || "ยังไม่ระบุ"}</td>
+             <td className="record-cell"><button className="record-title" type="button" onClick={() => update({ record: item.id, module: item.moduleId }, true)}><TruncatedText text={moduleId === "buildings" && item.buildingName ? item.buildingName : item.title} lines={1}/><WorkspaceIcon name="arrow" size={16}/></button><div className="record-subtitle"><span className="record-code">{item.code || kindLabels[item.kind]}</span><TruncatedText text={moduleId === "buildings" ? item.title : item.buildingName || getModule(item.moduleId)?.name || ""} lines={1}/>{!moduleId && <TruncatedText className="record-source" text={getModule(item.moduleId)?.name || ""} lines={1}/>}</div></td>
+             <td className="owner-cell"><span className="owner-dot" aria-hidden="true">{(item.ownerName || "—").slice(0, 1)}</span><TruncatedText text={item.ownerName || "ยังไม่ระบุ"} lines={1}/></td>
             <td><span className="due-date">{formatWorkspaceDate(item.dueAt)}</span><span className={`priority-label ${item.priority}`}>{priorityLabels[item.priority]}</span></td>
-            <td><span className="status-badge neutral">{item.statusLabel}</span></td>
+             <td><span className="status-badge neutral"><TruncatedText text={item.statusLabel} lines={1}/></span></td>
           </tr>)}
           {!visible.length && <tr><td colSpan={5}><div className="queue-empty"><span className="empty-icon"><WorkspaceIcon name={hasData ? "search" : unavailable ? "refresh" : (getModule(moduleId ?? "")?.icon ?? "work")} size={28}/></span><h3>{hasData ? items.length ? "ไม่พบรายการที่ตรงกับตัวกรอง" : "ไม่มีรายการที่ต้องติดตาม" : unavailable ? "เชื่อมต่อข้อมูลไม่สำเร็จ" : "อยู่ระหว่างเตรียมข้อมูล"}</h3><p>{hasData ? items.length ? "ลองเปลี่ยนคำค้นหรือเลือกมุมมองทั้งหมด" : "ยังไม่มีรายการติดตามส่งมาจากระบบต้นทาง" : unavailable ? "ข้อมูลอาจไม่พร้อมใช้งานชั่วคราว ลองอัปเดตอีกครั้ง" : "รายการจะแสดงที่นี่เมื่อเชื่อมต่อระบบต้นทางแล้ว หากต้องใช้งาน กรุณาติดต่อผู้ดูแลระบบ"}</p>{hasData && items.length > 0 ? <button className="secondary-action" type="button" onClick={() => changeSettings({ query: "", status: "", view: "all" })}>แสดงรายการทั้งหมด</button> : unavailable ? <RefreshButton/> : null}</div></td></tr>}
         </tbody></table>
