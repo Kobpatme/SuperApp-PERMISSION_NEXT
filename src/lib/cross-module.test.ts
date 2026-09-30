@@ -15,6 +15,6 @@ describe("cross-module experience", () => {
     expect(view.sections.guarantees.map((row) => row.id)).toEqual(["g1"]);
   });
   it("shows commands only when their action permission exists", () => {
-    expect(availableCommands(subject, [{ id: "new-task", label: "สร้างงาน", href: "/work/new", permission: "work.task.create" }, { id: "admin", label: "ผู้ดูแล", href: "/admin", permission: "core.role.manage" }]).map((item) => item.id)).toEqual(["new-task"]);
+    expect(availableCommands(subject, [{ id: "new-task", label: "เพิ่มงาน", href: "/work/new", permission: "work.task.create" }, { id: "admin", label: "ผู้ดูแล", href: "/admin", permission: "core.role.manage" }]).map((item) => item.id)).toEqual(["new-task"]);
   });
 });

@@ -178,6 +178,8 @@ export const tasks = pgTable("tasks", {
   id: uuid("id").defaultRandom().primaryKey(), projectId: uuid("project_id").references(() => projects.id, { onDelete: "set null" }), buildingId: uuid("building_id").references(() => buildings.id, { onDelete: "set null" }),
   ownerId: uuid("owner_id").notNull().references(() => profiles.id, { onDelete: "restrict" }), teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }),
   title: text("title").notNull(), description: text("description"), status: text("status").notNull().default("queued"), priority: text("priority").notNull().default("normal"),
+  jobCode: text("job_code"), mainKpi: text("main_kpi"), subKpi: text("sub_kpi"), note: text("note"),
+  kpiWeight: numeric("kpi_weight", { precision: 18, scale: 6 }),
   dueAt: timestamp("due_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), version: integer("version").notNull().default(1), ...timestamps,
 }, (t) => [index("tasks_my_work_idx").on(t.ownerId, t.status, t.dueAt), index("tasks_team_idx").on(t.teamId, t.status, t.dueAt), check("tasks_status_check", sql`${t.status} in ('queued', 'in_progress', 'blocked', 'completed', 'cancelled')`), check("tasks_priority_check", sql`${t.priority} in ('low', 'normal', 'high', 'urgent')`), check("tasks_version_check", sql`${t.version} > 0`)]);
 

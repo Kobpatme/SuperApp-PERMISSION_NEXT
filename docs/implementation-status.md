@@ -1,21 +1,36 @@
 # Implementation status
 
-## Fresh source-parity recovery — 2026-09-29
+## Fresh source-parity recovery — 2026-09-30
 
-The current target checkout is `codex/professional-workspace@3d8d281`. The previous audit snapshots `4080160` and `6ccef5b` are stale for this checkout. Approved behavioral sources are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99`, and `Kobpatme/maxiwa_KPI@4f5fa99`; local folders and legacy compatibility routes are comparison artifacts, not source-of-truth authorities. The approved Guarantees SHA is not present in the local source object database; provisional source evidence is recorded separately and must be reconciled before declaring Guarantees parity.
+The current target checkout is `codex/professional-workspace@e9841bb`. The previous audit snapshots `4080160`, `6ccef5b` and `3d8d281` are stale for this checkout. Approved behavioral sources are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99`, and `Kobpatme/maxiwa_KPI@4f5fa99`; local folders and legacy compatibility routes are comparison artifacts, not source-of-truth authorities. The approved Guarantees SHA is not present in the local source object database; provisional source evidence is recorded separately and must be reconciled before declaring Guarantees parity.
 
 Fresh matrices and acceptance gates are maintained in [Work](modules/work/source-parity.md), [Buildings](modules/buildings/source-parity.md), [Guarantees](modules/guarantees/source-parity.md), and [parity gates](modules/parity-gates.md). UX baselines are maintained beside each matrix. SP-0 documentation is substantially complete, with the Guarantees baseline limitation open. Security hardening is the active implementation checkpoint; no module is declared migrated yet.
 
-### Fresh deterministic baseline
+### Fresh deterministic baseline after Work recovery slice
 
 - `npm run lint`: pass
 - `npm run typecheck`: pass
-- `npm test`: 27 files / 87 tests passed
+- `npm test`: 35 files / 108 tests passed
 - `npm run test:documents`: pass (1 test)
 - `npm run build`: pass (Next.js 16.3.4)
 - `npm audit --omit=dev`: 0 vulnerabilities
-- Target commit used for this baseline: `3d8d281`
-- JEV health: local and network checks passed; the subsequent `jev_continue` request was unavailable because the TypeSafe hostname could not be resolved at that moment. Deterministic evidence remains authoritative.
+- Target commit used for this baseline: `e9841bb`
+- Authenticated visual QA remains blocked by the absence of an organization-approved test credential; the public login screen was checked in the local browser and the dev server was stopped after inspection.
+- JEV health/routing/evidence/prioritization/risk checks were advisory only; deterministic checks remain authoritative.
+
+### P0 Work & KPI recovery checkpoint — 2026-09-30
+
+Implemented as a native, permission-scoped slice:
+
+- Explicit screens for dashboard, My Tasks, Team Command, Assignment Center, People, Job Tracker, KPI, reports, activity and due work. Unknown `view` values now return `notFound()` instead of silently falling back to My Work.
+- Source-compatible task fields for job code, Main KPI, Sub KPI, note and optional KPI weight, with additive local migration `0017_work_source_parity.sql`. The migration was not run against production.
+- Server-side read model with owner/team row filtering, humanized status/activity labels, grouped jobs, assignment options, KPI cards and weighted report values.
+- Assignment action for up to 20 jobs with Zod validation, duplicate protection, team/assignee re-check, atomic task/event/audit/outbox write and revalidation.
+- Task status and note actions preserve authorization, optimistic version checks and human-facing mutation errors.
+- Role-aware Work navigation is derived from server-loaded grants; protected screens still repeat server permission checks.
+- Work-specific readable table/overflow/empty/unavailable/error states and a neutral green operational token direction were added without changing the source-of-truth calculation layer.
+
+Known limitations remain explicit: holiday/KPI administration is not yet a native UI, historical source data has not been imported, assignment audit is currently batch-level, and authenticated browser/UAT/RLS evidence is still required before claiming parity or production readiness. See [the recovery audit](audits/PROFESSIONAL-UX-RECOVERY-AUDIT.md) and [the result record](audits/PROFESSIONAL-UX-RECOVERY-RESULT.md).
 
 ### Phase 1 security hardening checkpoint — 2026-09-29
 

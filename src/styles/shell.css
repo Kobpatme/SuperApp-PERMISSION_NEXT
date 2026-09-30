@@ -91,8 +91,8 @@
 }
 
 .sidebar-link:hover {
-  border-color: color-mix(in srgb, var(--bounce-teal) 50%, transparent);
-  background: var(--bounce-teal-soft);
+  border-color: color-mix(in srgb, var(--color-brand) 35%, transparent);
+  background: var(--color-brand-soft);
   color: var(--app-text);
 }
 
@@ -155,8 +155,8 @@
 }
 
 .sidebar-collapse-button:hover {
-  border-color: var(--bounce-teal);
-  background: var(--bounce-teal-soft);
+  border-color: var(--color-brand);
+  background: var(--color-brand-soft);
   color: var(--app-text);
 }
 

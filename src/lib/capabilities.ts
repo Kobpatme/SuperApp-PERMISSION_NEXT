@@ -6,7 +6,7 @@ function capability(code: string, labelTh: string, risk: ModuleCapability["risk"
 }
 export const workCapabilities = [
   capability("work.task.read", "ดูงาน"), capability("work.task.manage", "จัดการงาน", "sensitive"),
-  capability("work.task.create", "สร้างงาน"), capability("work.task.update", "แก้ไขงาน"),
+  capability("work.task.create", "เพิ่มงาน"), capability("work.task.update", "แก้ไขงาน"),
   capability("work.manual_entry.create", "บันทึกงานนอกระบบ"), capability("work.report.read", "ดูรายงานงาน"),
   capability("kpi.score.read", "ดูคะแนนและที่มาของ KPI"), capability("kpi.team.read", "ดู KPI ทีม"),
   capability("kpi.rule.manage", "จัดการกฎ KPI", "administrative"),

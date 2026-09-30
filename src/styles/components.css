@@ -79,6 +79,16 @@ body {
 }
 .sidebar-collapse-button:hover,
 .round-btn:hover { border-color: var(--app-text); background: var(--app-surface-soft); color: var(--app-text); }
+.sidebar-link-row { display:flex; align-items:stretch; gap:4px; min-width:0; }
+.sidebar-link-row > .sidebar-link { flex:1 1 auto; min-width:0; }
+.sidebar-section-toggle {
+  display:grid; flex:0 0 40px; place-items:center; min-height:40px; padding:0;
+  border:1px solid transparent; border-radius:var(--radius-md); background:transparent; color:var(--app-muted);
+  cursor:pointer; transition:background var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out);
+}
+.sidebar-section-toggle:hover { border-color:var(--app-line); background:var(--app-surface-soft); color:var(--app-text); }
+.sidebar-section-toggle svg { transition:transform var(--motion-fast) var(--ease-out); }
+.sidebar-section-toggle.is-expanded svg { transform:rotate(180deg); }
 .workspace-shell > .main { padding: 32px clamp(24px, 4vw, 48px) 48px; }
 .workspace-search { width: min(520px, 42vw); }
 .workspace-search .search input,
