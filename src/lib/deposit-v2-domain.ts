@@ -17,6 +17,12 @@ export type DepositItem = {
   log?: Array<{ time?: string; createdAt?: string; timestamp?: string }>;
 };
 
+/** Personal dashboard selector for rows that have already passed server-side authorization. */
+export function selectPersonalDepositItems<T extends DepositItem & { ownerId?: string; tlAssigneeId?: string | null }>(items: T[], userId: string): T[] {
+  if (!userId) return [];
+  return items.filter((item) => item.ownerId === userId || item.tlAssigneeId === userId);
+}
+
 export const normalize = (value: unknown) => String(value ?? "").trim().toLowerCase();
 export function parseMoney(value: unknown) {
   if (typeof value === "number") return Number.isFinite(value) && value > 0 ? value : 0;

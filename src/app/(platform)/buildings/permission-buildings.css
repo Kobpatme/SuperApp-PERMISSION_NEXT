@@ -22,8 +22,14 @@ html:has(.permission-workspace){overflow-x:clip}
 .permission-remark{margin-top:18px;border:1px solid var(--pw-line);border-radius:8px;background:var(--pw-soft)}.permission-remark summary{padding:11px 13px;color:var(--pw-text);font-size:12px;font-weight:700;cursor:pointer}.permission-remark p{margin:0;padding:0 13px 13px;overflow-wrap:anywhere;color:var(--pw-muted);font-size:12px;line-height:1.65}
 @media(max-width:650px){.permission-drawer-head{padding:18px}.permission-drawer-head h2{font-size:20px}.permission-drawer-summary{grid-template-columns:1fr 1fr;padding:13px 18px}.permission-drawer-alert{padding:11px 18px}.permission-drawer-content{padding:18px}.permission-drawer-actions{padding:12px 18px}.permission-drawer-actions span{display:none}.permission-info-grid div{grid-template-columns:minmax(115px,42%) 1fr;gap:10px}.permission-map-canvas .leaflet-popup-content{width:245px!important}}
 
-/* Map-only workspace: building selection stays in search suggestions and marker popups. */
-.permission-main{display:block;position:relative;min-height:0}
+/* Keep the map and result list visible together so selection stays in context. */
+.permission-main{position:relative;min-height:0}
+.permission-copy-status{position:absolute;z-index:1300;right:18px;bottom:18px;max-width:min(420px,calc(100% - 36px));padding:11px 14px;border:1px solid var(--pw-line);border-radius:8px;background:var(--pw-surface);color:var(--pw-text);box-shadow:0 4px 16px #0002;font-size:13px}
+.permission-contact-actions{display:flex;flex:0 0 auto;gap:6px}
+.permission-contact-actions button,.permission-coordinate button{min-height:40px;padding:7px 10px;border:1px solid var(--pw-line);border-radius:6px;background:var(--pw-surface);color:var(--app-brand);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.permission-coordinate{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 2px;border-bottom:1px solid var(--pw-line)}
+.permission-coordinate>span{color:var(--pw-muted);font-size:12px}
+.permission-coordinate code{font-size:13px}
 .permission-map-area{width:100%;height:100%}
 .permission-map-empty{position:absolute;z-index:520;top:50%;left:50%;display:grid;justify-items:center;gap:9px;width:min(320px,calc(100% - 36px));padding:22px;transform:translate(-50%,-50%);border:1px solid #d9e0e9;border-radius:10px;background:#fff;color:#344054;text-align:center;box-shadow:0 12px 30px #11182730}
 .permission-map-empty strong{font-size:15px}.permission-map-empty span{font-size:12px}.permission-map-empty button{min-height:38px;margin-top:4px;padding:7px 12px;border:0;border-radius:7px;background:#5d50c8;color:#fff;font:inherit;font-size:12px;cursor:pointer}
@@ -212,3 +218,4 @@ html:has(.permission-workspace){overflow-x:clip}
 .permission-remark>.truncated-text-wrap { margin:0; padding:0 13px 13px; color:var(--pw-muted); font-size:12px; line-height:1.65; }
 .permission-drawer-actions>span { min-width:0; overflow-wrap:anywhere; }
 .permission-filter-chips button>.truncated-text-wrap { display:inline-block; max-width:180px; vertical-align:middle; }
+@media(max-width:650px){.permission-copy-status{right:12px;bottom:12px}.permission-contact-actions button{min-height:44px}}

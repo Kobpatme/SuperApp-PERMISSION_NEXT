@@ -55,7 +55,8 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
   const scope = readScope(access);
   if (!scope) return empty("ready");
   try {
-    const search = query.trim().slice(0, 120).replace(/[\\%_]/g, "\\$&");
+    const searchTokens = query.normalize("NFC").trim().slice(0, 120).toLocaleLowerCase("th-TH").split(/\s+/).filter(Boolean)
+      .map((token) => token.replace(/[\\%_]/g, "\\$&"));
     const jsonKeys = { status: "status", group: "group", type: "type", installType: "install_type", surveyType: "survey_type", area: "area" } as const;
     const filters = Object.entries(jsonKeys).flatMap(([key, jsonKey]) => {
       const value = input[key as keyof typeof jsonKeys];
@@ -66,7 +67,7 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
     if ((input.after && !after) || (input.before && !before)) return empty("ready");
     const cursorPredicate = after ? or(gt(buildings.nameTh, after.nameTh), and(eq(buildings.nameTh, after.nameTh), gt(buildings.id, after.id)))
       : before ? or(lt(buildings.nameTh, before.nameTh), and(eq(buildings.nameTh, before.nameTh), lt(buildings.id, before.id))) : undefined;
-    const predicate = and(scope, ...(search ? [ilike(buildings.searchText, `%${search}%`)] : []), ...filters);
+    const predicate = and(scope, ...searchTokens.map((token) => ilike(buildings.searchText, `%${token}%`)), ...filters);
     const db = getDb();
     const [tally] = await db.select({ value: count() }).from(buildings).where(predicate);
     const total = tally?.value ?? 0;

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { depositPreviewItems } from "@/lib/deposit-v2-preview";
 import { getActionNotifications, getInstallationDepositMetrics, getListPageKpiMetrics, getOperationalAnalytics,
-  getRemovalDepositMetrics, getSidebarFinancialMetrics, getSmartWorkQueue, getWorkflowStatusKey, isInstallationTeamPending, isOnServiceItem, parseDateValue } from "@/lib/deposit-v2-domain";
+  getRemovalDepositMetrics, getSidebarFinancialMetrics, getSmartWorkQueue, getWorkflowStatusKey, isInstallationTeamPending, isOnServiceItem, parseDateValue,
+  selectPersonalDepositItems } from "@/lib/deposit-v2-domain";
 import { depositItemInputSchema, validateDepositTransition } from "@/lib/deposit-v2-workflow";
 
 describe("V2 building deposit rules", () => {
@@ -35,6 +36,15 @@ describe("V2 building deposit rules", () => {
   });
   it("handles Buddhist calendar dates", () => {
     expect(parseDateValue("09/09/2569 09:00:00")?.getFullYear()).toBe(2026);
+  });
+  it("limits the personal dashboard to owned or assigned rows", () => {
+    const rows = [
+      { id: "owned", ownerId: "user-1", tlAssigneeId: null },
+      { id: "assigned", ownerId: "user-2", tlAssigneeId: "user-1" },
+      { id: "other", ownerId: "user-2", tlAssigneeId: "user-3" },
+    ];
+    expect(selectPersonalDepositItems(rows, "user-1").map((item) => item.id)).toEqual(["owned", "assigned"]);
+    expect(selectPersonalDepositItems(rows, "")).toEqual([]);
   });
 });
 

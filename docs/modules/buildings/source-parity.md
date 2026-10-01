@@ -4,7 +4,7 @@ Status: SP-0 fresh baseline, 2026-09-29. Authoritative source is `Kobpatme/Permi
 
 | Source feature | Source screen | Source role/use case | Source file/function | SuperApp target | Current status | Decision | Test evidence | Notes |
 |---|---|---|---|---|---|---|---|---|
-| Map-first building search | Buildings | Permission, sale, admin | `app.js`; map/filter rendering | `/buildings` | Native bounded map/list exists | KEEP | `building-query.test.ts` | Preserve map-first mental model |
+| Map-first building search | Buildings | Permission, sale, admin | `app.js`; map/filter rendering | `/buildings` | Map + synchronized result list rendered; result set remains bounded by server query | ADAPT | `building-query.test.ts`; lint/typecheck/build | Preserve map-first mental model and synchronized selection; confirm large-catalog autocomplete against production-scale fixtures |
 | Building detail drawer | Buildings | All permitted users | `app.js`; drawer actions | `/buildings/[id]` | Building 360 read view exists | ADAPT | Building query tests | Add complete operational actions |
 | Add/edit building | Building editor | Permission/admin | `app.js`; editor submit handlers | Building service/actions | Read-focused target | PORT | Gate B-01 | Server validation and audit required |
 | Duplicate detection | Building editor | Permission/admin | `app.js`; normalized name/coordinate checks | Building domain service | Partial/needs source reconciliation | PORT | Gate B-02 | Normalize Thai/English names and exact coordinates |

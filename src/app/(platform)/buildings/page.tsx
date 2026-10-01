@@ -19,7 +19,7 @@ export default async function BuildingsPage({ searchParams }: { searchParams: Pr
     <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="/vendor/leaflet-markercluster/MarkerCluster.css" />
     <link rel="stylesheet" href="/vendor/leaflet-markercluster/MarkerCluster.Default.css" />
-    <BuildingsWorkspace key={buildingQueryParams(query).toString()} buildings={data.items} total={data.total} initialQuery={query.query} initialFilters={query} />
+    <BuildingsWorkspace buildings={data.items} total={data.total} initialQuery={query.query} initialFilters={query} />
     <nav className="permission-pagination" aria-label="หน้าผลลัพธ์">
       {data.previousCursor ? <Link href={`/buildings?${buildingQueryParams(query, { page: Math.max(1, data.page - 1), before: data.previousCursor, after: "" })}`}>หน้าก่อนหน้า</Link> : <span/>}
       <span>{data.items.length === data.total && !data.previousCursor && !data.nextCursor

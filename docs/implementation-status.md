@@ -1,5 +1,27 @@
 # Implementation status
 
+## Guarantee + Buildings parity recovery — 2026-10-01
+
+Target baseline: `codex/professional-workspace@ec778a41b63e0b55d811671d1d492d2df05044bd`. Baseline was run before module edits: lint and typecheck passed; Vitest 35 files / 108 tests passed; document test 1/1 passed; Next.js 16.3.4 production build passed. `npm audit --omit=dev` reports one critical advisory affecting the existing `next` dependency and says no fix is available for the locked version; framework dependency changes were outside this safe parity slice.
+
+Implemented a first native slice after the required audits:
+
+- Buildings now renders its result list beside the map. Selecting a result opens the existing detail drawer and updates the selected marker; marker selection continues to open the same building detail. The list and map use the same server-filtered result set.
+- Building contacts now support phone/email copy and the overview supports coordinate copy, with live success/error feedback.
+- Guarantees now opens on a personal operations dashboard, with owner/assigned work, deadline/missing-document/TL/refund/On Service summaries, outstanding balance, actionable notices and recent completion/update rows. The filter uses only rows already scoped by the server query. The TL workspace shortcut is rendered only when server-derived grants allow the view.
+- On Service is now a separate follow-up view showing removal deposit exposure, Off Service pending count, building, owner, activity age, next step and a link to each case.
+- Added a unit test for owned/assigned personal-dashboard filtering.
+- Expanded fee tests to verify monthly and annual revenue-share periods and that percentages stay outside currency totals.
+- Created `docs/audits/GUARANTEE-PARITY-AUDIT.md` and `docs/audits/BUILDINGS-COST-PARITY-AUDIT.md` before implementation and recorded provisional/approved source evidence there.
+
+Post-change verification: lint pass; typecheck pass; Vitest 35 files / 109 tests pass; document test 1/1 pass; production build pass; `git diff --check` pass. `npm audit --omit=dev` remains at one critical Next.js advisory. No authenticated screenshot/UAT was performed. No production database, NAS, SharePoint or source production service was accessed.
+
+JEV: `jev_health` succeeded with network connectivity; route selected Buildings at very low confidence and evidence check advised gathering more evidence, so source inspection and deterministic tools controlled decisions. Prioritization ranked source evidence freeze, map/list parity, quotation, personal dashboard and TL/On Service follow-up. A risk call for a contemplated financial formula port hit a human-approval hard gate and did not run; no formula or pricing policy changed. `jev_continue` advised gathering more evidence. JEV remained advisory throughout.
+
+Source freeze: Permission_Next matches approved `afaee997afecf0f42e059b7100fa90ed0d188784`; maxiwa_KPI matches approved `4f5fa99b05f8dbfea9304d47560aec3d48746908`; Guarantees source `maxiwa@94742a4` remains unavailable in the local object database and its provisional checkout at `471f2b6a20361f9114372c2493400c62d3ccf19c` is not claimed equivalent. Guarantees audit status remains PARTIAL.
+
+Remaining major work: complete native quotation route/calculation/revision/export; permissioned building and dynamic cost editors; guarantee date-filtered completed view, richer TL mobile/evidence handoff, executive drill-down and complete local role navigation; reconcile approved Guarantees source; verify with browser/UAT, accessibility, integration and performance evidence. This slice does not claim either module migrated or production-ready.
+
 ## Fresh source-parity recovery — 2026-09-30
 
 The current target checkout is `codex/professional-workspace@e9841bb`. The previous audit snapshots `4080160`, `6ccef5b` and `3d8d281` are stale for this checkout. Approved behavioral sources are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99`, and `Kobpatme/maxiwa_KPI@4f5fa99`; local folders and legacy compatibility routes are comparison artifacts, not source-of-truth authorities. The approved Guarantees SHA is not present in the local source object database; provisional source evidence is recorded separately and must be reconciled before declaring Guarantees parity.

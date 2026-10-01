@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { PermissionBuildingRow } from "@/lib/permission-building-server";
 import { BuildingMap } from "./building-map";
 import { usePathname, useRouter } from "next/navigation";
@@ -28,9 +28,14 @@ function optionsFor(buildings: PermissionBuildingRow[], key: FilterKey) {
   return [...new Set(buildings.map((item) => item[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b, "th"));
 }
 
+function matchesBuildingQuery(text: string, query: string) {
+  return query.split(/\s+/).filter(Boolean).every((token) => text.includes(token));
+}
+
 export function BuildingsWorkspace({ buildings, total, initialQuery = "", initialFilters = emptyFilters }: { buildings: PermissionBuildingRow[]; total: number; initialQuery?: string; initialFilters?: Filters }) {
   const router = useRouter(), pathname = usePathname();
   const [query, setQuery] = useState(initialQuery);
+  const [previousInitialQuery, setPreviousInitialQuery] = useState(initialQuery);
   const [filters, setFilters] = useState<Filters>({
     status: initialFilters.status ?? "",
     group: initialFilters.group ?? "",
@@ -39,6 +44,17 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
     surveyType: initialFilters.surveyType ?? "",
     area: initialFilters.area ?? "",
   });
+  const initialFilterSignature = [initialFilters.status, initialFilters.group, initialFilters.type, initialFilters.installType, initialFilters.surveyType, initialFilters.area].join("\u0000");
+  const [previousInitialFilterSignature, setPreviousInitialFilterSignature] = useState(initialFilterSignature);
+  if (initialQuery !== previousInitialQuery) {
+    setPreviousInitialQuery(initialQuery);
+    if (query !== initialQuery) setQuery(initialQuery);
+  }
+  if (initialFilterSignature !== previousInitialFilterSignature) {
+    setPreviousInitialFilterSignature(initialFilterSignature);
+    setFilters({ status: initialFilters.status ?? "", group: initialFilters.group ?? "", type: initialFilters.type ?? "",
+      installType: initialFilters.installType ?? "", surveyType: initialFilters.surveyType ?? "", area: initialFilters.area ?? "" });
+  }
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const [suggestionIndex, setSuggestionIndex] = useState(-1);
@@ -46,17 +62,23 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
   const [tab, setTab] = useState<"general" | "contact" | "fee" | "documents">("general");
   const [documentState, setDocumentState] = useState<DocumentState | null>(null);
   const [documentReload, setDocumentReload] = useState(0);
+  const [copyMessage, setCopyMessage] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const selected = buildings.find((item) => item.id === selectedId) ?? null;
-  const normalizedQuery = query.trim().normalize("NFC").toLocaleLowerCase("th-TH");
+  const deferredQuery = useDeferredValue(query);
+  const normalizedQuery = deferredQuery.trim().normalize("NFC").toLocaleLowerCase("th-TH");
   const withoutStatus = useMemo(() => buildings.filter((item) => {
-    const text = [item.nameTh, item.nameEn, item.location, item.code].join(" ").normalize("NFC").toLocaleLowerCase("th-TH");
-    return (!normalizedQuery || text.includes(normalizedQuery)) &&
+    const text = [item.nameTh, item.nameEn, item.location, item.code]
+      .filter(Boolean).join(" ").normalize("NFC").toLocaleLowerCase("th-TH");
+    return matchesBuildingQuery(text, normalizedQuery) &&
       (Object.keys(filters) as FilterKey[]).every((key) => key === "status" || !filters[key] || item[key] === filters[key]);
   }), [buildings, filters, normalizedQuery]);
   const visible = useMemo(() => withoutStatus.filter((item) => !filters.status || item.status === filters.status), [withoutStatus, filters.status]);
-  const suggestions = normalizedQuery ? buildings.filter((item) => `${item.nameTh} ${item.nameEn ?? ""}`.normalize("NFC").toLocaleLowerCase("th-TH").includes(normalizedQuery)).slice(0, 10) : [];
+  const suggestions = normalizedQuery ? buildings.filter((item) => {
+    const text = [item.nameTh, item.nameEn, item.code, item.location].filter(Boolean).join(" ").normalize("NFC").toLocaleLowerCase("th-TH");
+    return matchesBuildingQuery(text, normalizedQuery);
+  }).slice(0, 10) : [];
   const activeFilterCount = (Object.keys(filters) as FilterKey[]).filter((key) => filters[key]).length;
   const selectedDetailFilters = (Object.keys(filters) as FilterKey[]).filter((key) => key !== "status" && filters[key]);
   const mappedCount = visible.filter((item) => item.lat !== null && item.lng !== null).length;
@@ -72,7 +94,7 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
       if (query.trim()) params.set("q", query.trim());
       (Object.keys(filters) as FilterKey[]).forEach(key => { if (filters[key]) params.set(key, filters[key]); });
       router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
-    }, 350);
+    }, 300);
     return () => window.clearTimeout(timer);
   }, [filters, pathname, query, router]);
 
@@ -128,6 +150,15 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
     if (selected) setDocumentState({ key: selected.id, status: "loading", files: [], message: "กำลังค้นหาเอกสารใน NAS…" });
     setDocumentReload((current) => current + 1);
   }
+  async function copyValue(label: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyMessage(`คัดลอก${label}แล้ว`);
+    } catch {
+      setCopyMessage(`คัดลอก${label}ไม่ได้ กรุณาตรวจสิทธิ์การใช้คลิปบอร์ด`);
+    }
+    window.setTimeout(() => setCopyMessage(""), 2500);
+  }
   function searchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown" && suggestions.length) { event.preventDefault(); setSuggestionIndex((current) => Math.min(current + 1, suggestions.length - 1)); }
     if (event.key === "ArrowUp" && suggestions.length) { event.preventDefault(); setSuggestionIndex((current) => Math.max(current - 1, 0)); }
@@ -181,12 +212,24 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
     {selectedDetailFilters.length > 0 && <div className="permission-filter-chips" aria-label="ตัวกรองที่เลือก">
        {selectedDetailFilters.map((key) => <button type="button" key={key} onClick={() => setFilter(key, "")}>{fieldLabels[key]}: <TruncatedText text={filters[key]} lines={1}/> ×</button>)}
     </div>}
+    {copyMessage && <div className="permission-copy-status" role="status">{copyMessage}</div>}
 
     <div className="permission-main">
       <div className="permission-map-area">
         <BuildingMap buildings={visible} selectedId={selectedId} onOpenDetails={(id) => { const item = buildings.find((entry) => entry.id === id); if (item) openBuilding(item); }} />
         {visible.length === 0 && <div className="permission-map-empty" role="status"><strong>ไม่พบอาคารที่ตรงกับเงื่อนไข</strong><span>ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง</span><button type="button" onClick={reset}>ล้างการค้นหาและตัวกรอง</button></div>}
       </div>
+      <aside className="permission-list" aria-label="รายการอาคารที่ค้นพบ">
+        <header className="permission-list-head"><div><small>ผลการค้นหา</small><h2>รายการอาคาร</h2></div><span>{number(visible.length)} รายการ</span></header>
+        <div className="permission-list-scroll" role="listbox" aria-label="เลือกอาคารเพื่อดูรายละเอียด">
+          {visible.length ? visible.map((item) => <button type="button" role="option" aria-selected={selectedId === item.id} key={item.id}
+            className={`permission-list-item${selectedId === item.id ? " selected" : ""}`} onClick={() => openBuilding(item)}>
+            <strong><TruncatedText text={item.nameTh || item.code} lines={2}/></strong>
+            <small><TruncatedText text={[item.nameEn, item.area, item.province].filter(Boolean).join(" · ") || "ไม่มีข้อมูลพื้นที่"} lines={1}/></small>
+            <span className="permission-list-tags"><em className={statusClass(item.status)}>{statusLabel(item.status)}</em>{item.group && <em>{item.group}</em>}</span>
+          </button>) : <div className="permission-empty"><strong>ไม่พบอาคาร</strong><span>ลองแก้คำค้นหาหรือตัวกรองเพื่อดูรายการ</span><button type="button" onClick={reset}>ล้างตัวกรอง</button></div>}
+        </div>
+      </aside>
     </div>
 
     <dialog ref={dialogRef} className="permission-drawer" aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onClose={() => setSelectedId(null)}>
@@ -199,14 +242,14 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
         <div className="permission-drawer-content" role="tabpanel">
           {tab === "general" && <><h3>ข้อมูลการติดตั้ง</h3><dl className="permission-info-grid">
             <Info label="ทำเล / โซน" value={selected.location}/><Info label="ระยะดำเนินการ Permission" value={durationDays}/>
-            <Info label="จุดเชื่อมต่อ (WM)" value={selected.wmPoint}/><Info label="ตู้เชื่อมต่อ" value={selected.enclosure}/>
+           <Info label="จุดเชื่อมต่อ (WM)" value={selected.wmPoint}/><Info label="ตู้เชื่อมต่อ" value={selected.enclosure}/>
             <Info label="ระยะสายแนวนอนสูงสุด" value={horizontalMeters}/><Info label="ที่อยู่" value={selected.address}/>
-           </dl>{selected.remark && <details className="permission-remark"><summary>หมายเหตุจากข้อมูลเดิม</summary><TruncatedText text={selected.remark} lines={3}/></details>}
+           </dl>{selected.lat !== null && selected.lng !== null && <div className="permission-coordinate"><span>พิกัด</span><code>{selected.lat}, {selected.lng}</code><button type="button" onClick={() => void copyValue("พิกัด", `${selected.lat}, ${selected.lng}`)}>คัดลอกพิกัด</button></div>}{selected.remark && <details className="permission-remark"><summary>หมายเหตุจากข้อมูลเดิม</summary><TruncatedText text={selected.remark} lines={3}/></details>}
           {!selected.location && !durationDays && !selected.wmPoint && !selected.enclosure && !horizontalMeters && !selected.address && !selected.remark && <p className="permission-empty-inline">ยังไม่มีข้อมูลการติดตั้งเพิ่มเติม</p>}</>}
           {tab === "contact" && <><h3>ผู้ติดต่อ</h3><div className="permission-contact">
              {splitValues(selected.contact, /[,/]/).length > 0 && <div className="permission-contact-name"><span>ชื่อผู้ติดต่อ</span><TruncatedText text={splitValues(selected.contact, /[,/]/).join(" / ")} lines={2}/></div>}
-             {[...splitValues(selected.phone, /[,/]/), ...splitValues(selected.mobile, /[,/]/)].map((value, index) => <div key={`${value}-${index}`}><TruncatedText text={value} lines={1}/><a href={`tel:${value.replace(/[^+\d]/g, "")}`}>โทร</a></div>)}
-             {splitValues(selected.email, /[,;]/).map((value) => <div key={value}><TruncatedText className="text-safe" text={value} lines={2}/><a href={`mailto:${value}`}>ส่งอีเมล</a></div>)}
+             {[...splitValues(selected.phone, /[,/]/), ...splitValues(selected.mobile, /[,/]/)].map((value, index) => <div key={`${value}-${index}`}><TruncatedText text={value} lines={1}/><span className="permission-contact-actions"><a href={`tel:${value.replace(/[^+\d]/g, "")}`}>โทร</a><button type="button" onClick={() => void copyValue("หมายเลขโทรศัพท์", value)}>คัดลอก</button></span></div>)}
+             {splitValues(selected.email, /[,;]/).map((value) => <div key={value}><TruncatedText className="text-safe" text={value} lines={2}/><span className="permission-contact-actions"><a href={`mailto:${value}`}>ส่งอีเมล</a><button type="button" onClick={() => void copyValue("อีเมล", value)}>คัดลอก</button></span></div>)}
             {!selected.contact && !selected.phone && !selected.mobile && !selected.email && <p className="permission-empty-inline">ยังไม่มีข้อมูลผู้ติดต่อ</p>}
           </div></>}
           {tab === "fee" && <><h3>ค่าใช้จ่ายของอาคาร</h3>{selected.feeReviewRequired && <p className="permission-data-warning">มีค่าดิบจากต้นทางบางรายการที่ยังตรวจสอบรูปแบบไม่ผ่าน จึงแสดงแยกไว้ด้านล่าง และไม่นำรายการเหล่านั้นไปคำนวณรวมเป็นยอด</p>}

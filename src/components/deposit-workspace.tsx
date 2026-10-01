@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { useRouter } from "next/navigation";
 import {
   getActionNotifications, getListPageKpiMetrics, getOperationalAnalytics, getSidebarFinancialMetrics,
-  getSmartWorkQueue, getWorkflowStatusKey, parseDateValue, parseMoney, sortCompletedLast,
+  daysBetween, getLastActivityDate, getMissingDocumentLabels, getRemovalDepositMetrics, getSmartWorkQueue, getWorkflowStatusKey, parseDateValue, parseMoney, selectPersonalDepositItems, sortCompletedLast,
   workflowLabels, type DepositItem,
 } from "@/lib/deposit-v2-domain";
 import { buildGuaranteeExecutiveView } from "@/lib/guarantee-view-model";
@@ -15,7 +15,7 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 const money = (value: number) => `฿${value.toLocaleString("th-TH", { maximumFractionDigits: 2 })}`;
 const pageSize = 20;
 const statusOptions = ["new", "fin", "att", "tl_wait", "tl_process", "ret", "clo", "refund_process", "on_service", "off_service_pending", "done", "cancel"];
-type WorkspaceView = "list" | "on_service" | "done" | "queue" | "analytics";
+type WorkspaceView = "dashboard" | "list" | "on_service" | "done" | "queue" | "analytics";
 const itemTotal = (item: DepositItem) => parseMoney(item.deposit) + parseMoney(item.demolish) + parseMoney(item.fee) + parseMoney(item.other);
 const normalized = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("th-TH");
 function formatDate(value: unknown) {
@@ -23,15 +23,16 @@ function formatDate(value: unknown) {
   return date ? date.toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
 }
 
-export function DepositWorkspace({ items, preview, state, truncated, generatedAt, canCreate, installationTeamView = false, canPreview }: {
+export function DepositWorkspace({ items, preview, state, truncated, generatedAt, canCreate, installationTeamView = false, canPreview, personalUserId = "", canViewTlWorkspace = false }: {
   items: DepositItem[]; preview: boolean; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string; canCreate: boolean; installationTeamView?: boolean; canPreview: boolean;
+  personalUserId?: string; canViewTlWorkspace?: boolean;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [ownerFilter, setOwnerFilter] = useState("");
   const [areaFilter, setAreaFilter] = useState("");
-  const [view, setView] = useState<WorkspaceView>("queue");
+  const [view, setView] = useState<WorkspaceView>(installationTeamView ? "queue" : "dashboard");
   const [page, setPage] = useState(1);
   const [sortNo, setSortNo] = useState<"default" | "asc" | "desc">("default");
   const [exportMonth, setExportMonth] = useState("");
@@ -51,7 +52,7 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   const areas = useMemo(() => [...new Set(items.map((item) => item.area?.trim()).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "th")), [items]);
   const years = useMemo(() => [...new Set(items.map((item) => parseDateValue(item.dateReq)?.getFullYear()).filter((year): year is number => Boolean(year)))].sort((a, b) => b - a), [items]);
   const baseItems = useMemo(() => {
-    if (view === "on_service") return items.filter((item) => getWorkflowStatusKey(item) === "on_service");
+    if (view === "on_service") return items.filter((item) => ["on_service", "off_service_pending"].includes(getWorkflowStatusKey(item)));
     if (view === "done") return items.filter((item) => getWorkflowStatusKey(item) === "done");
     return items;
   }, [items, view]);
@@ -75,6 +76,18 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   const notifications = useMemo(() => getActionNotifications(items), [items]);
   const analytics = useMemo(() => getOperationalAnalytics(items), [items]);
   const executive = useMemo(() => buildGuaranteeExecutiveView(items, generatedAt), [items, generatedAt]);
+  const personalItems = useMemo(() => selectPersonalDepositItems(items as Array<DepositItem & { ownerId?: string; tlAssigneeId?: string | null }>, personalUserId), [items, personalUserId]);
+  const personalQueue = useMemo(() => getSmartWorkQueue(personalItems, new Date(generatedAt)), [personalItems, generatedAt]);
+  const personalFinance = useMemo(() => getSidebarFinancialMetrics(personalItems), [personalItems]);
+  const personalNotifications = useMemo(() => getActionNotifications(personalItems, new Date(generatedAt)), [personalItems, generatedAt]);
+  const personalDueSoon = personalQueue.filter((entry) => entry.overdueDays > 0 || entry.dueInDays !== null && entry.dueInDays <= 3);
+  const personalMissingDocuments = personalItems.filter((item) => getMissingDocumentLabels(item, getWorkflowStatusKey(item)).length > 0);
+  const personalAwaitingTl = personalItems.filter((item) => ["tl_wait", "tl_process"].includes(getWorkflowStatusKey(item)));
+  const personalRefundPending = personalItems.filter((item) => getWorkflowStatusKey(item) === "refund_process");
+  const personalOnService = personalItems.filter((item) => getWorkflowStatusKey(item) === "on_service");
+  const personalCompleted = personalItems.filter((item) => getWorkflowStatusKey(item) === "done")
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))).slice(0, 5);
+  const personalRecentActivity = [...personalItems].sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))).slice(0, 5);
   const processCount = filtered.filter((item) => getWorkflowStatusKey(item) === "refund_process").length;
   const lastUpdated = useMemo(() => items.map((item) => parseDateValue(item.updatedAt)).filter((date): date is Date => Boolean(date)).sort((a, b) => b.getTime() - a.getTime())[0], [items]);
   const createUnavailableReason = preview ? "ข้อมูลตัวอย่างสร้างรายการจริงไม่ได้" : state === "not_configured" ? "ต้องเชื่อมฐานข้อมูลกลางก่อนสร้างรายการ" : state === "unavailable" ? "ฐานข้อมูลไม่พร้อม กรุณาลองใหม่" : canPreview ? "บัญชี Developer เป็นโหมดอ่านอย่างเดียว" : !canCreate ? "บัญชีนี้ไม่มีสิทธิ์สร้างรายการ" : "";
@@ -97,8 +110,8 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
 
   const tabs: Array<[WorkspaceView, string, number?]> = installationTeamView
     ? [["queue", "งานที่ทีมติดตั้งต้องดำเนินการ", queue.length], ["list", "งานค้างทั้งหมด", items.length]]
-    : [["queue", "งานที่ต้องทำ", queue.length], ["list", "รายการทั้งหมด", items.length],
-      ["on_service", "มีประกันรื้อถอน (On Service)", items.filter((item) => getWorkflowStatusKey(item) === "on_service").length],
+    : [["dashboard", "ภาพรวมของฉัน"], ["queue", "งานที่ต้องติดตาม", queue.length], ["list", "รายการเงินประกัน", items.length],
+      ["on_service", "มีประกันรื้อถอน (On Service)", items.filter((item) => ["on_service", "off_service_pending"].includes(getWorkflowStatusKey(item))).length],
       ["done", "งานสำเร็จ", items.filter((item) => getWorkflowStatusKey(item) === "done").length]];
 
   return <div className="deposit-workspace legacy-deposit-workspace">
@@ -117,7 +130,7 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
 
     <nav className="legacy-module-nav" aria-label="มุมมองเงินประกัน">{tabs.map(([key, label, count]) => <button key={key} type="button" className={view === key ? "active" : ""} onClick={() => setWorkspaceView(key)}>{label}{typeof count === "number" && <span>{count}</span>}</button>)}</nav>
 
-    {view !== "queue" && view !== "analytics" && <>
+    {(["list", "done"] as WorkspaceView[]).includes(view) && <>
       <section className="legacy-kpis" aria-label="สรุปเงินประกัน">
         <div className="tone-blue"><span>รายการทั้งหมด</span><strong><AnimatedNumber value={filtered.length}/></strong><small>ตามตัวกรองปัจจุบัน</small></div>
         <div className="tone-orange"><span>อยู่ระหว่างขอคืนเงิน</span><strong><AnimatedNumber value={processCount}/></strong><small>รายการที่กำลังดำเนินการ</small></div>
@@ -141,6 +154,45 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
       </section>
     </>}
 
+    {view === "on_service" && <section className="deposit-on-service" aria-label="ติดตามเงินประกันรื้อถอน On Service">
+      <header><div><h2>ติดตามเงินประกันรื้อถอน On Service</h2><p>แยกรายการที่ยังมีเงินประกันรื้อถอนคงค้างและขั้นตอน Off Service</p></div><button type="button" onClick={() => setWorkspaceView("list")}>ดูรายการเงินประกันทั้งหมด</button></header>
+      <div className="deposit-on-service-metrics"><article><span>On Service</span><strong>{getRemovalDepositMetrics(items).onServiceCount.toLocaleString("th-TH")}</strong><small>รายการที่ยังอยู่ระหว่างให้บริการ</small></article><article><span>เงินรื้อถอนคงค้าง</span><strong>{money(getRemovalDepositMetrics(items).onServiceAmount)}</strong><small>ยอดของรายการ On Service</small></article><article><span>รอ Off Service</span><strong>{getRemovalDepositMetrics(items).offServicePendingCount.toLocaleString("th-TH")}</strong><small>{money(getRemovalDepositMetrics(items).offServicePendingAmount)} ที่ต้องติดตาม</small></article></div>
+      <div className="deposit-on-service-list"><div className="deposit-on-service-list-head"><strong>รายการที่ตรงกับตัวกรอง</strong><span>{filtered.length.toLocaleString("th-TH")} รายการ</span></div>
+        {filtered.map((item) => { const status = getWorkflowStatusKey(item); const age = daysBetween(getLastActivityDate(item) || item.dateReq || item.createdAt, new Date(generatedAt)); return <article key={item.id}>
+          <div><strong>{item.place || "ไม่ระบุอาคาร"}</strong><small>{item.customer || "ไม่ระบุลูกค้า"} · {workflowLabels[status]}</small></div>
+          <div><span>เจ้าของงาน</span><strong>{item.owner || "ไม่ระบุ"}</strong></div>
+          <div><span>เงินประกันรื้อถอน</span><strong className="deposit-money">{money(parseMoney(item.demolish))}</strong></div>
+          <div><span>ความเคลื่อนไหว</span><strong>{age === null ? "ไม่ระบุอายุ" : `${age} วัน`}</strong></div>
+          <div><span>ขั้นตอนถัดไป</span><strong>{status === "off_service_pending" ? "ดำเนินการ Off Service" : "ติดตามกำหนด Off Service"}</strong></div>
+          <Link href={`/guarantees/${item.id}`}>เปิดรายการ →</Link>
+        </article>; })}
+        {!filtered.length && <p className="deposit-empty">ไม่พบรายการ On Service ตามคำค้นหาและตัวกรอง</p>}
+      </div>
+    </section>}
+    {view === "dashboard" && <section className="deposit-personal-dashboard" aria-label="ภาพรวมงานเงินประกันของฉัน">
+      <header><div><h2>วันนี้ฉันต้องทำอะไร?</h2><p>แสดงเฉพาะรายการที่เป็นเจ้าของหรือมอบหมายให้บัญชีนี้ ตามขอบเขตที่ระบบอนุญาต</p></div>{canViewTlWorkspace && <Link href="/guarantees?view=installation-team">งานทีมติดตั้ง</Link>}</header>
+      {!personalUserId && <div className="deposit-banner">ไม่พบข้อมูลผู้ใช้สำหรับสร้างภาพรวมส่วนบุคคล</div>}
+      <div className="deposit-personal-metrics">
+        <article><span>งานของฉัน</span><strong>{personalItems.length.toLocaleString("th-TH")}</strong><small>รายการที่รับผิดชอบหรือมอบหมายให้ฉัน</small></article>
+        <article><span>งานที่ควรเร่ง</span><strong>{personalDueSoon.length.toLocaleString("th-TH")}</strong><small>เกินกำหนดหรือครบกำหนดภายใน 3 วัน</small></article>
+        <article><span>รอเอกสาร</span><strong>{personalMissingDocuments.length.toLocaleString("th-TH")}</strong><small>ต้องเติมหลักฐานตามขั้นตอน</small></article>
+        <article><span>รอทีมติดตั้ง / TL</span><strong>{personalAwaitingTl.length.toLocaleString("th-TH")}</strong><small>สถานะรับงานหรือกำลังดำเนินการ</small></article>
+        <article><span>กำลังคืนเงิน</span><strong>{personalRefundPending.length.toLocaleString("th-TH")}</strong><small>อยู่ในขั้นตอนดำเนินการคืนเงิน</small></article>
+        <article><span>On Service</span><strong>{personalOnService.length.toLocaleString("th-TH")}</strong><small>มีเงินประกันรื้อถอนคงค้าง</small></article>
+        <article className="financial"><span>ยอดประกันคงค้าง</span><strong>{money(personalFinance.totalOutstandingAmount)}</strong><small>ตามรายการในขอบเขตของฉัน</small></article>
+      </div>
+      <div className="deposit-personal-columns">
+        <section className="deposit-personal-list"><h3>รายการที่ต้องติดตาม</h3>{personalQueue.slice(0, 8).map((entry) => <Link key={entry.item.id} href={`/guarantees/${entry.item.id}`}>
+          <span className={`deposit-priority priority-${entry.priority}`}>{entry.priority === "high" ? "เร่งด่วน" : entry.priority === "medium" ? "ติดตาม" : "ทั่วไป"}</span>
+          <span><strong>{entry.item.place || "ไม่ระบุอาคาร"}</strong><small>{workflowLabels[entry.workflowKey]} · {entry.reasons.join(" · ")}</small><small>ผู้รับผิดชอบ {entry.item.owner || "ไม่ระบุ"}</small></span>
+          <b className="deposit-money">{money(entry.outstandingAmount)}</b>
+        </Link>)}{!personalQueue.length && <p className="deposit-empty">ไม่มีรายการเร่งด่วนในรายการที่มอบหมายให้คุณ</p>}</section>
+        <section className="deposit-personal-list"><h3>แจ้งเตือนที่ทำต่อได้</h3>{personalNotifications.slice(0, 6).map((notice) => <Link key={notice.id} href={`/guarantees/${notice.taskId}`}><strong>{notice.title}</strong><small>{notice.detail}</small></Link>)}{!personalNotifications.length && <p className="deposit-empty">ไม่มีการแจ้งเตือนที่ต้องดำเนินการ</p>}
+          <h3>งานเสร็จล่าสุด</h3>{personalCompleted.map((item) => <Link key={item.id} href={`/guarantees/${item.id}`}><strong>{item.place || "ไม่ระบุอาคาร"}</strong><small>เสร็จสิ้น · {formatDate(item.updatedAt)}</small></Link>)}{!personalCompleted.length && <p className="deposit-empty">ยังไม่มีรายการที่เสร็จสิ้น</p>}
+          <h3>ความเคลื่อนไหวล่าสุด</h3>{personalRecentActivity.map((item) => <Link key={`activity-${item.id}`} href={`/guarantees/${item.id}`}><strong>{item.place || "ไม่ระบุอาคาร"}</strong><small>{workflowLabels[getWorkflowStatusKey(item)]} · อัปเดต {formatDate(item.updatedAt)}</small></Link>)}{!personalRecentActivity.length && <p className="deposit-empty">ยังไม่มีความเคลื่อนไหว</p>}
+        </section>
+      </div>
+    </section>}
     {view === "queue" && <div className="deposit-queue">{queue.map((entry) => <article key={entry.item.id || entry.item.id_firestore} className="deposit-queue-row"><span className={`deposit-priority priority-${entry.priority}`}>{entry.priority === "high" ? "เร่งด่วน" : entry.priority === "medium" ? "ติดตาม" : "ทั่วไป"}</span><div><TruncatedText text={entry.item.place || "ไม่ระบุอาคาร"} lines={2}/><TruncatedText text={`${workflowLabels[entry.workflowKey]} · ${entry.reasons.join(" · ")}`} lines={2}/></div><b className="deposit-money">{money(entry.outstandingAmount)}</b><Link href={`/guarantees/${entry.item.id}`}>เปิด →</Link></article>)}{!queue.length && <div className="deposit-empty">ไม่มีรายการที่ต้องติดตาม</div>}</div>}
     {view === "analytics" && <div className="executive-dashboard">
       <section className="executive-hero"><div><span>Total Project Valuation</span><strong><AnimatedNumber value={executive.totalInsurance} format={money}/></strong></div><div className="executive-rate"><strong><AnimatedNumber value={executive.successPct} format={(value) => `${value.toFixed(2)}%`}/></strong><span>Refund Success Rate</span></div></section>
