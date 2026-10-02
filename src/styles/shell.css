@@ -306,8 +306,8 @@
 
 @media (max-width: 650px) {
   .workspace-shell .shell-header .topbar {
-    gap: 8px;
-    padding-inline: 14px;
+    gap: 4px;
+    padding-inline: 8px;
   }
 
   .workspace-shell .top-brand {
@@ -327,7 +327,11 @@
   .workspace-shell .top-actions {
     flex: 0 0 auto;
     margin-left: 0;
+    gap: 4px;
   }
+
+  .workspace-shell .account-control { display: block; width: 44px; }
+  .workspace-shell .account-trigger { width: 44px; padding: 4px; }
 
   .workspace-shell .account-trigger .avatar-name {
     display: none;

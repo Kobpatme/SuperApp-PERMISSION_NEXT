@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "ผู้ดูแลระบบ" };
 import { and, asc, count, desc, eq, gt, isNull, lte, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
@@ -7,6 +9,7 @@ import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { adminCapabilityCatalog } from "@/lib/admin-access-contract";
 import "./admin.css";
+import { getWorkspaceData } from "@/lib/workspace-server";
 
 export default async function AdminPage() {
   const access = await getIdentityAccessContext();
@@ -36,7 +39,8 @@ export default async function AdminPage() {
     permissionsGranted.audit ? getDb().select({ id: auditLogs.id, actorId: auditLogs.actorId, moduleId: auditLogs.moduleId, action: auditLogs.action,
       entityType: auditLogs.entityType, entityId: auditLogs.entityId, createdAt: auditLogs.createdAt }).from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(100) : Promise.resolve([]),
   ]);
-  return <AdminWorkspace users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
+  const diagnostics = permissionsGranted.audit ? (await getWorkspaceData()).snapshot.sources : [];
+  return <><AdminWorkspace users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
     userScopes={userScopeRows} sessions={sessionRows} auditRows={auditRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))}
-    capabilities={adminCapabilityCatalog} permissionsGranted={permissionsGranted}/>;
+    capabilities={adminCapabilityCatalog} permissionsGranted={permissionsGranted}/>{permissionsGranted.audit && <details className="admin-panel"><summary>สถานะการเชื่อมต่อข้อมูลสำหรับผู้ดูแล</summary><ul>{diagnostics.map(source => <li key={source.moduleId}><code>{source.moduleId}</code> · {source.status === "ready" ? "พร้อมใช้งาน" : "ยังไม่พร้อมใช้งาน"}</li>)}</ul></details>}</>;
 }

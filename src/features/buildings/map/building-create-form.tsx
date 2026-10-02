@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { BuildingLocationPicker, type BuildingLocationCandidate } from "./location-picker";
+import { copy } from "@/lib/copy";
 
 type Team = { id: string; name: string };
 export function BuildingCreateForm({ apiKey, teams, canCreateWithoutTeam }: { apiKey: string; teams: Team[]; canCreateWithoutTeam: boolean }) {
@@ -28,7 +29,7 @@ export function BuildingCreateForm({ apiKey, teams, canCreateWithoutTeam }: { ap
       const result = await response.json() as { id: string };
       router.push(`/buildings/${result.id}`);
       router.refresh();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "สร้างข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง"); }
+    } catch { setMessage(copy.feedback.createUnavailable); }
     finally { setBusy(false); }
   }
 

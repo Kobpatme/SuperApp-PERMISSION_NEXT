@@ -49,7 +49,7 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
         </button>
       </div>
       <ModuleNav allowedModuleIds={allowedModuleIds} collapsed={collapsed} canAdmin={canAdmin} workNavigation={workNavigation} />
-      {!collapsed && scopeLabel && <p className="sidebar-scope">ขอบเขตสิทธิ์ที่ได้รับ<br/>{scopeLabel}</p>}
+      {!collapsed && scopeLabel && <p className="sidebar-scope">คุณเห็นข้อมูลของ:<br/>{scopeLabel}</p>}
     </aside>
     <dialog className="workspace-mobile-dialog" id="mobile-workspace-menu" ref={mobileDialog} aria-label="เมนูพื้นที่ทำงาน" onClick={(event) => { if (event.target === mobileDialog.current) mobileDialog.current?.close(); }}>
       <div className="mobile-sidebar-content">

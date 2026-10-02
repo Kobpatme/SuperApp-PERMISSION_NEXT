@@ -70,7 +70,7 @@ export function DepositEditor({ item, assignees = [], events = [] }: { item?: De
         {targets.map((target) => <button type="submit" name="to" value={target} disabled={transitionPending} key={target}>{target === "Cancel" ? "ยกเลิกรายการ" : `ไปขั้นตอน ${workflowLabels[target] || target}`}</button>)}
         {!targets.length && <p>รายการนี้สิ้นสุดแล้ว</p>}{transitionState.message && <p role="status">{transitionState.message}</p>}</form></section>
       <section className="deposit-panel deposit-history"><h2>ประวัติการทำงาน</h2>{events.map((event) => <TruncatedText key={event.id} text={`${new Date(event.occurredAt).toLocaleString("th-TH")} · ${event.action === "transition" ? `${event.fromStatus} → ${event.toStatus}` : event.action}${event.reason ? ` · ${event.reason}` : ""}`} lines={3}/>) }{!events.length && <p>ยังไม่มีประวัติ</p>}</section>
-      <p className="sub">การเปลี่ยนสถานะถูกตรวจสิทธิ์ บันทึกประวัติ และตรวจเลขเวอร์ชันที่เซิร์ฟเวอร์</p></aside>}
+      <p className="sub">บันทึกการเปลี่ยนแปลงและประวัติให้คุณทุกครั้ง</p></aside>}
     </div>
   </div>;
 }

@@ -1,4 +1,5 @@
 "use client";
+import { copy } from "@/lib/copy";
 
 import { useActionState } from "react";
 import { createPersonalTaskAction, type WorkActionState } from "@/app/(platform)/work/actions";
@@ -17,6 +18,6 @@ export function WorkCreateForm() {
       <label className="work-form-span-2">หมายเหตุ<textarea name="note" rows={4} maxLength={4000} placeholder="ข้อมูลเพิ่มเติมที่ช่วยให้ทำงานต่อได้ทันที" /></label>
     </div>
     {state.message && <p role="status" className={state.ok ? "work-action-success" : "work-action-error"}>{state.message}</p>}
-    <div className="work-form-actions"><button className="primary" disabled={pending}>{pending ? "กำลังเพิ่มงาน…" : "เพิ่มงาน"}</button><p>งานจะเริ่มต้นที่สถานะกำลังดำเนินการ และบันทึก audit/activity ให้โดยอัตโนมัติ</p></div>
+    <div className="work-form-actions"><button className="primary" disabled={pending}>{pending ? "กำลังเพิ่มงาน…" : "เพิ่มงาน"}</button><p>{copy.feedback.workCreated}</p></div>
   </form>;
 }

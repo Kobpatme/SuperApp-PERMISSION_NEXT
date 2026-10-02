@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "อาคารและค่าใช้จ่าย" };
+
+import { copy } from "@/lib/copy";
 import { AccessDenied } from "@/components/access-denied";
 import { getAccessContext } from "@/lib/access";
 import { listPermissionBuildings } from "@/lib/permission-building-server";
@@ -15,7 +19,7 @@ export default async function BuildingsPage({ searchParams }: { searchParams: Pr
   const query = parseBuildingQuery(await searchParams);
   const data = await listPermissionBuildings(query);
   if (data.state !== "ready") return <main className="permission-buildings-state" role="status">
-    {data.state === "not_configured" ? "ยังไม่ได้เชื่อมฐานข้อมูลกลาง" : "โหลดข้อมูลอาคารไม่สำเร็จ กรุณาลองอีกครั้ง"}
+    {data.state === "not_configured" ? copy.feedback.unavailable : "โหลดข้อมูลอาคารไม่สำเร็จ กรุณาลองอีกครั้ง"}
   </main>;
   return <>
     <BuildingsWorkspace buildings={data.items} total={data.total} canCreate={canCreate} mapApiKey={process.env.LONGDO_MAP_API_KEY ?? ""} initialQuery={query.query} initialFilters={query} />

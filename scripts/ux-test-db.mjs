@@ -38,10 +38,18 @@ if (process.argv[2]==='init') {
         const [a]=existing ? [] : await tx`insert into user_role_assignments(user_id,role_id) values(${id},${r.id}) returning id`;
         if (a) await tx`insert into data_scope_grants(assignment_id,scope_type) values(${a.id},'ALL')`;
       }
-    }); console.log('Synthetic UX users seeded');
+      const buildingId='00000000-0000-4000-8000-000000000201';
+      const name='อาคารศูนย์ปฏิบัติการและประสานงานโครงสร้างพื้นฐานดิจิทัลส่วนกลางกรุงเทพมหานครและปริมณฑลยาวพิเศษสำหรับทีมบริการและบริหารงานอาคารพร้อมระบบติดตามเอกสารและการดำเนินงานประจำวัน';
+      await tx`insert into buildings(id,code,name_th,search_text) values(${buildingId},'UX-FIXTURE-001',${name},${name}) on conflict(id) do nothing`;
+      await tx`insert into tasks(id,owner_id,title,description,building_id,job_code,status) values('00000000-0000-4000-8000-000000000301','00000000-0000-4000-8000-000000000101',${name},${name},${buildingId},'UX-FIXTURE-001','queued') on conflict(id) do nothing`;
+      await tx`insert into guarantee_work_items(id,owner_id,place,data) values('00000000-0000-4000-8000-000000000401','00000000-0000-4000-8000-000000000101',${name},${tx.json({ place: name, deposit: 1250000, demolish: 2500000, email: 'long.synthetic.contact.for.overflow.testing@example.test' })}::jsonb) on conflict(id) do update set data=excluded.data`;
+    }); console.log('Synthetic UX users and long-text fixtures seeded');
   } finally { await sql.end(); }
 } else if (process.argv[2]==='server') {
   process.env.LONGDO_MAP_API_KEY=''; process.env.PERMISSION_NAS_BRIDGE_URL=''; process.env.PERMISSION_NAS_BRIDGE_SECRET='';
   const { nextStart }=await import('next/dist/cli/next-start.js');
   await nextStart({port:3100},process.cwd());
 } else throw new Error('Use init, seed or server');
+
+
+

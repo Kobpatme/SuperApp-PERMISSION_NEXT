@@ -1,3 +1,5 @@
+
+import { copy } from "@/lib/copy";
 import "server-only";
 
 import { and, desc, eq, inArray, isNull, or, type SQL } from "drizzle-orm";
@@ -106,7 +108,7 @@ function buildEmptyModel(message: string, status: DashboardSource["status"] = "r
 }
 
 export async function getWorkReadModel(access: AccessContext): Promise<WorkReadModel> {
-  if (!process.env.DATABASE_URL) return buildEmptyModel("ยังไม่ได้เชื่อมต่อฐานข้อมูลงาน", "not_configured");
+  if (!process.env.DATABASE_URL) return buildEmptyModel(copy.feedback.unavailable, "not_configured");
   const scope = scopedCondition(access, "work.task.read", tasks.ownerId, tasks.teamId);
   if (!scope) return buildEmptyModel("ยังไม่มีรายการงานในขอบเขตสิทธิ์ของคุณ");
 

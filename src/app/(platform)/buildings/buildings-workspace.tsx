@@ -1,5 +1,7 @@
 "use client";
 
+import { copy } from "@/lib/copy";
+
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { PermissionBuildingRow } from "@/lib/permission-building-server";
 import { BuildingMap } from "./building-map";
@@ -112,8 +114,8 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
     const timer = window.setTimeout(() => { timedOut = true; controller.abort(); }, 60000);
     const params = new URLSearchParams({ nameTh: building.nameTh, nameEng: building.nameEn || "", area: building.area });
     fetch(`/api/nas/building-documents?${params}`, { signal: controller.signal, cache: "no-store" }).then(async (response) => {
-      if (response.status === 404) { setDocumentState({ key: building.id, status: "empty", files: [], message: "ไม่พบโฟลเดอร์เอกสารของอาคารนี้ใน NAS" }); return; }
-      if (!response.ok) throw new Error(response.status === 403 ? "บัญชีนี้ไม่มีสิทธิ์ดูเอกสาร" : "ยังเชื่อมคลังเอกสาร NAS ไม่ได้");
+      if (response.status === 404) { setDocumentState({ key: building.id, status: "empty", files: [], message: copy.feedback.documentsEmpty }); return; }
+      if (!response.ok) throw new Error(response.status === 403 ? "บัญชีนี้ไม่มีสิทธิ์ดูเอกสาร" : copy.feedback.documentsUnavailable);
       const raw: unknown = await response.json();
       const source = raw && typeof raw === "object" && "files" in raw && Array.isArray(raw.files) ? raw.files : [];
       const files: DocumentFile[] = source.flatMap((entry: unknown) => {
@@ -126,7 +128,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
           size: Number(file.size) || 0, modifiedAt: String(file.modified_at || ""), href }];
       });
       setDocumentState({ key: building.id, status: files.length ? "ready" : "empty", files, message: files.length ? "" : "พบโฟลเดอร์แล้ว แต่ยังไม่มีเอกสารที่ระบบรองรับ" });
-    }).catch((error: unknown) => { if (timedOut || !controller.signal.aborted) setDocumentState({ key: building.id, status: "error", files: [], message: timedOut ? "ค้นหาเอกสารนานเกิน 60 วินาที" : error instanceof Error ? error.message : "ค้นหาเอกสารไม่สำเร็จ" });
+    }).catch(() => { if (timedOut || !controller.signal.aborted) setDocumentState({ key: building.id, status: "error", files: [], message: timedOut ? copy.feedback.documentTimeout : copy.feedback.documentsUnavailable });
     }).finally(() => window.clearTimeout(timer));
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [selected, tab, documentReload]);
@@ -143,11 +145,11 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
 
   function openBuilding(item: PermissionBuildingRow) { setSelectedId(item.id); setTab("general"); setDocumentState(null); setFocused(false); }
   function selectTab(next: typeof tab) {
-    if (next === "documents" && selected) setDocumentState({ key: selected.id, status: "loading", files: [], message: "กำลังค้นหาเอกสารใน NAS…" });
+    if (next === "documents" && selected) setDocumentState({ key: selected.id, status: "loading", files: [], message: copy.feedback.documentLoading });
     setTab(next);
   }
   function retryDocuments() {
-    if (selected) setDocumentState({ key: selected.id, status: "loading", files: [], message: "กำลังค้นหาเอกสารใน NAS…" });
+    if (selected) setDocumentState({ key: selected.id, status: "loading", files: [], message: copy.feedback.documentLoading });
     setDocumentReload((current) => current + 1);
   }
   async function copyValue(label: string, value: string) {
@@ -162,7 +164,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
   function searchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown" && suggestions.length) { event.preventDefault(); setSuggestionIndex((current) => Math.min(current + 1, suggestions.length - 1)); }
     if (event.key === "ArrowUp" && suggestions.length) { event.preventDefault(); setSuggestionIndex((current) => Math.max(current - 1, 0)); }
-    if (event.key === "Enter" && suggestionIndex >= 0 && suggestions[suggestionIndex]) { event.preventDefault(); const item = suggestions[suggestionIndex]; setQuery(item.nameTh); openBuilding(item); }
+    if (event.key === "Enter" && suggestionIndex >= 0 && suggestions[suggestionIndex]) { event.preventDefault(); const item = suggestions[suggestionIndex]; openBuilding(item); }
     if (event.key === "Escape") { setFocused(false); setSuggestionIndex(-1); searchRef.current?.blur(); }
   }
   function setFilter(key: FilterKey, value: string) { setFilters((current) => ({ ...current, [key]: value })); }
@@ -174,12 +176,12 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
       <div className="permission-search-actions">
       <div className="permission-search" role="search">
         <span aria-hidden="true">⌕</span>
-        <input ref={searchRef} value={query} onChange={(event) => { setQuery(event.target.value); setSuggestionIndex(-1); }} onFocus={() => setFocused(true)} onKeyDown={searchKeyDown}
+        <input ref={searchRef} value={query} onChange={(event) => { setQuery(event.target.value.slice(0, 120)); setSuggestionIndex(-1); }} onFocus={() => setFocused(true)} onKeyDown={searchKeyDown}
           onBlur={() => window.setTimeout(() => setFocused(false), 130)} placeholder="ค้นหาอาคาร... ภาษาไทย หรือ English" aria-label="ค้นหาอาคาร" autoComplete="off" />
         {query && <button type="button" className="permission-search-clear" onClick={() => { setQuery(""); searchRef.current?.focus(); }} aria-label="ล้างการค้นหา">×</button>}
         {focused && normalizedQuery && <div className="permission-autocomplete" role="listbox" aria-label="ผลการค้นหาอาคาร">
           {suggestions.length ? suggestions.map((item, index) => <button type="button" role="option" aria-selected={suggestionIndex === index} key={item.id}
-            onMouseDown={(event) => event.preventDefault()} onClick={() => { setQuery(item.nameTh); openBuilding(item); }}>
+            onMouseDown={(event) => event.preventDefault()} onClick={() => { openBuilding(item); }}>
              <i className={`permission-status-dot ${statusClass(item.status)}`} /><span className="permission-autocomplete-copy"><TruncatedText text={item.nameTh} lines={1}/><TruncatedText text={[item.nameEn, item.area, item.status].filter(Boolean).join(" · ")} lines={1}/></span>
           </button>) : <p>ไม่พบอาคารที่ตรงกับคำค้นหา</p>}
         </div>}
@@ -250,7 +252,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
             </> : !selected.feeReviewRequired && <p className="permission-empty-inline">ยังไม่มีข้อมูลค่าใช้จ่าย</p>}
              {selected.feeReviewRequired && selected.feeReviewValues.length > 0 && <section className="permission-fee-group permission-fee-review"><h4>รายการรอตรวจสอบ<span>{selected.feeReviewValues.length} รายการ</span></h4><div>{selected.feeReviewValues.map((fee) => <div key={fee.sourceField}><span><TruncatedText text={fee.label} lines={2}/><small>ค่าจากต้นทาง</small></span><TruncatedText className="text-safe" text={fee.rawValue} lines={2}/></div>)}</div></section>}
           </>}
-          {tab === "documents" && <><div className="permission-doc-heading"><h3>เอกสารอาคารจาก NAS</h3><button type="button" onClick={retryDocuments} disabled={documentState?.status === "loading"}>ค้นหาใหม่</button></div>
+          {tab === "documents" && <><div className="permission-doc-heading"><h3>{copy.feedback.documentTitle}</h3><button type="button" onClick={retryDocuments} disabled={documentState?.status === "loading"}>ค้นหาใหม่</button></div>
             {documentState?.key !== selected.id || documentState.status !== "ready" ? <div className={`permission-doc-state ${documentState?.status === "error" ? "error" : ""}`} role="status"><strong>{documentState?.key === selected.id ? documentState.message : "กำลังค้นหาเอกสาร…"}</strong>{documentState?.status === "error" && <button type="button" onClick={retryDocuments}>ลองอีกครั้ง</button>}</div> :
                (["dwg", "pdf", "image"] as const).map((category) => { const files = documentState.files.filter((file) => file.category === category); return files.length ? <section key={category} className="permission-doc-group"><h4>{categoryLabels[category]} <span>{files.length}</span></h4>{files.map((file, index) => <div key={`${file.name}-${index}`} className="permission-doc-row"><span className="permission-doc-ext">{file.extension.toUpperCase()}</span><div><TruncatedText className="text-safe" text={file.name} lines={2}/><small>{formatBytes(file.size)} · {formatDate(file.modifiedAt)}</small></div><a href={file.href} download={file.name}>ดาวน์โหลด</a></div>)}</section> : null; })}
           </>}
@@ -270,3 +272,4 @@ function feeInGroup(fee: NonNullable<PermissionBuildingRow["boq"]>["fees"][numbe
 }
 function statusLabel(status: string) { return status === "Permission Confirmed" ? "ยืนยันแล้ว" : status === "MOU" ? "MOU" : status === "Check Permission" ? "รอตรวจสอบ" : "ปิดถาวร"; }
 function statusClass(status: string) { return status === "Permission Confirmed" ? "status-confirmed" : status === "MOU" ? "status-mou" : status === "อาคารปิดถาวร" ? "status-closed" : "status-check"; }
+

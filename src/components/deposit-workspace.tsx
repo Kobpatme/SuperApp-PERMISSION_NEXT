@@ -1,5 +1,7 @@
 "use client";
 
+import { copy } from "@/lib/copy";
+
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -90,7 +92,7 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   const personalRecentActivity = [...personalItems].sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))).slice(0, 5);
   const processCount = filtered.filter((item) => getWorkflowStatusKey(item) === "refund_process").length;
   const lastUpdated = useMemo(() => items.map((item) => parseDateValue(item.updatedAt)).filter((date): date is Date => Boolean(date)).sort((a, b) => b.getTime() - a.getTime())[0], [items]);
-  const createUnavailableReason = preview ? "ข้อมูลตัวอย่างสร้างรายการจริงไม่ได้" : state === "not_configured" ? "ต้องเชื่อมฐานข้อมูลกลางก่อนสร้างรายการ" : state === "unavailable" ? "ฐานข้อมูลไม่พร้อม กรุณาลองใหม่" : canPreview ? "บัญชี Developer เป็นโหมดอ่านอย่างเดียว" : !canCreate ? "บัญชีนี้ไม่มีสิทธิ์สร้างรายการ" : "";
+  const createUnavailableReason = preview ? "ข้อมูลตัวอย่างสร้างรายการจริงไม่ได้" : state === "not_configured" ? copy.feedback.unavailable : state === "unavailable" ? copy.feedback.unavailable : canPreview ? copy.feedback.readOnly : !canCreate ? "บัญชีนี้ไม่มีสิทธิ์สร้างรายการ" : "";
 
   function setWorkspaceView(next: WorkspaceView) { setView(next); setStatusFilter(""); setQuery(""); setOwnerFilter(""); setAreaFilter(""); setPage(1); }
   async function copyCid(cid: string) {
@@ -126,7 +128,7 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
       </div></header>
     {installationTeamView && <div className="deposit-banner">มุมมองนี้แสดงเฉพาะงานสถานะ “รอทีมติดตั้งรับงาน”, “ทีมติดตั้งดำเนินการ” และ “รอดำเนินการ Off Service”</div>}
     {preview && <div className="deposit-banner">ข้อมูลตัวอย่างจาก workflow V2 · ไม่มีการบันทึก <Link href={installationTeamView ? "/guarantees?view=installation-team" : "/guarantees"}>กลับข้อมูลจริง</Link></div>}
-    {!preview && state !== "ready" && <div className="deposit-banner">{state === "not_configured" ? "ยังไม่ได้ตั้งค่าฐานข้อมูลกลาง" : "โหลดข้อมูลเงินประกันไม่สำเร็จ"} {canPreview && <Link href={`/guarantees?preview=1${installationTeamView ? "&view=installation-team" : ""}`}>ดูข้อมูลตัวอย่าง</Link>}</div>}
+    {!preview && state !== "ready" && <div className="deposit-banner">{state === "not_configured" ? copy.feedback.unavailable : "โหลดข้อมูลเงินประกันไม่สำเร็จ"} {canPreview && <Link href={`/guarantees?preview=1${installationTeamView ? "&view=installation-team" : ""}`}>ดูข้อมูลตัวอย่าง</Link>}</div>}
     {truncated && <div className="deposit-banner">แสดง 500 รายการที่อัปเดตล่าสุดเท่านั้น</div>}
     {copyMessage && <div className="deposit-toast" role="status">{copyMessage}</div>}
 

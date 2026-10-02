@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "แผนที่อาคาร" };
+
+import { copy } from "@/lib/copy";
 import { AccessDenied } from "@/components/access-denied";
 import { getAccessContext } from "@/lib/access";
 import { parseBuildingQuery } from "@/lib/building-query";
@@ -28,7 +32,7 @@ export default async function BuildingMapPage({ searchParams }: { searchParams: 
     nextCursor = result.nextCursor;
   }
   const truncated = Boolean(nextCursor);
-  if (state !== "ready") return <main className="building-map-state" role="status">{state === "not_configured" ? "ยังไม่ได้เชื่อมฐานข้อมูลกลาง" : "โหลดข้อมูลแผนที่อาคารไม่สำเร็จ กรุณาลองอีกครั้ง"}</main>;
+  if (state !== "ready") return <main className="building-map-state" role="status">{state === "not_configured" ? copy.feedback.unavailable : "โหลดข้อมูลแผนที่อาคารไม่สำเร็จ กรุณาลองอีกครั้ง"}</main>;
   const [focusData] = await Promise.all([selectedBuildingId
     ? listPermissionBuildings(parseBuildingQuery({ buildingId: selectedBuildingId, limit: "20" })) : Promise.resolve(null)]);
   const allItems = focusData?.items.length ? [...focusData.items, ...items.filter((item) => !focusData.items.some((focus) => focus.id === item.id))] : items;

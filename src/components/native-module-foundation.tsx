@@ -5,6 +5,8 @@ import { getModule, type ModuleId } from "@/lib/module-registry";
 import { getWorkspaceData } from "@/lib/workspace-server";
 import { formatWorkspaceDate } from "@/lib/workspace-view";
 import { PageHeader } from "@/components/ui/page-header";
+import { copy as uiCopy } from "@/lib/copy";
+import Link from "next/link";
 
 const moduleCopy: Record<string, { title: string; description: string }> = {
   work: { title: "งานและกิจกรรม", description: "ติดตามงานของคุณ ตรวจสอบกำหนด และประสานงานกับทีม" },
@@ -21,7 +23,7 @@ export async function NativeModuleFoundation({ moduleId, previewRequested = fals
   return <div className="native-module">
     <PreviewNotice developmentMode={data.developmentMode} preview={data.preview}/>
     <PageHeader title={copy.title} description={copy.description} parent={{ label: "ภาพรวม", href: "/" }} actions={<><RefreshButton/><span className="updated-at">{ready ? `ข้อมูล ณ ${formatWorkspaceDate(snapshot.generatedAt, true)}` : "อยู่ระหว่างเตรียมข้อมูล"}</span></>}/>
-    <WorkspaceQueue snapshot={snapshot} userId={data.identity.userId} moduleId={moduleId} preview={data.preview}/>
+    {ready ? <WorkspaceQueue snapshot={snapshot} userId={data.identity.userId} moduleId={moduleId} preview={data.preview}/> : <section className="queue-empty"><h2>{uiCopy.feedback.preparing}</h2><p>{uiCopy.feedback.preparingDescription}</p><Link href="/">{uiCopy.feedback.home}</Link></section>}
     <SourceDetails snapshot={snapshot} preview={data.preview}/>
     <p className="workspace-footnote">แสดงข้อมูลตามสิทธิ์ของคุณ · เปิดรายละเอียดจากชื่อรายการ</p>
   </div>;

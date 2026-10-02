@@ -1,5 +1,7 @@
 "use client";
 
+import { copy } from "@/lib/copy";
+
 import { useEffect, useRef, useState } from "react";
 import { escapeMapText, loadLongdoMap, normalizeLongdoStyle, subscribeMapReady, type LongdoMapInstance, type LongdoMarker, type LongdoNamespace, type LongdoStyle } from "./longdo-map-adapter";
 
@@ -194,7 +196,7 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
       <ul>{clusterCandidates.map((point) => <li key={point.id}><button type="button" onClick={() => { setClusterIds([]); callbackRef.current.onSelect?.(point.id); }}><strong>{point.name}</strong><span>{[point.code, point.status].filter(Boolean).join(" · ")}</span></button></li>)}</ul>
     </section>}
     {state !== "ready" && <div className="building-longdo-map-state" role="status">
-      {state === "loading" ? "กำลังโหลดแผนที่…" : state === "missing-key" ? <><strong>ยังไม่ได้ตั้งค่า Longdo Map API key</strong><span>รายการและข้อมูลอาคารยังใช้งานได้ตามปกติ</span></> : <><strong>โหลดแผนที่ Longdo ไม่สำเร็จ</strong><span>ตรวจเครือข่ายหรือการตั้งค่า key แล้วลองอีกครั้ง</span><button type="button" onClick={() => { setState("loading"); setRetry((value) => value + 1); }}>ลองอีกครั้ง</button></>}
+      {state === "loading" ? "กำลังโหลดแผนที่…" : state === "missing-key" ? <><strong>{copy.feedback.mapUnavailable}</strong><span>{copy.feedback.mapFallback}</span></> : <><strong>โหลดแผนที่ Longdo ไม่สำเร็จ</strong><span>{copy.feedback.mapRetry}</span><button type="button" onClick={() => { setState("loading"); setRetry((value) => value + 1); }}>ลองอีกครั้ง</button></>}
     </div>}
     {heatmap && points.length < 2 && <div className="building-longdo-map-hint" role="status">ต้องมีอาคารที่ระบุตำแหน่งอย่างน้อย 2 แห่ง จึงแสดงความหนาแน่นได้</div>}
   </div>;

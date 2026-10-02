@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "ภาพรวม" };
 import { DashboardOverview } from "@/components/dashboard-overview";
 import { getWorkspaceData } from "@/lib/workspace-server";
 

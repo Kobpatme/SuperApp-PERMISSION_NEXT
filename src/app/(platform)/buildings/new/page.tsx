@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "เพิ่มอาคาร" };
+
+import { copy } from "@/lib/copy";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { teams } from "@/db/schema";
@@ -14,7 +18,7 @@ export default async function NewBuildingPage() {
     grant.scope === "ALL" || grant.scope === "TEAM" && Boolean(access.subject?.teamIds.length) || grant.scope === "SELECTED_TEAMS" && Boolean(grant.selectedTeamId));
   if (!canCreate) return <main className="building-map-state" role="status"><strong>ไม่มีสิทธิ์สร้างอาคาร</strong><Link href="/buildings">กลับไปอาคารและค่าใช้จ่าย</Link></main>;
   const scopeTeamIds = new Set(grants.flatMap((grant) => grant.scope === "ALL" ? [] : grant.scope === "TEAM" ? access.subject?.teamIds ?? [] : grant.selectedTeamId ? [grant.selectedTeamId] : []));
-  if (!process.env.DATABASE_URL) return <main className="building-map-state" role="status"><strong>ยังไม่ได้เชื่อมฐานข้อมูลกลาง</strong><Link href="/buildings">กลับไปอาคารและค่าใช้จ่าย</Link></main>;
+  if (!process.env.DATABASE_URL) return <main className="building-map-state" role="status"><strong>{copy.feedback.unavailable}</strong><Link href="/buildings">กลับไปอาคารและค่าใช้จ่าย</Link></main>;
   const rows = await getDb().select({ id: teams.id, name: teams.name }).from(teams).where(eq(teams.isActive, true)).limit(100);
   const allowedTeams = grants.some((grant) => grant.scope === "ALL") ? rows : rows.filter((team) => scopeTeamIds.has(team.id));
   const canCreateWithoutTeam = grants.some((grant) => grant.scope === "ALL");

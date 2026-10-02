@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "เพิ่มรายการเงินประกัน" };
+
+import { copy } from "@/lib/copy";
 import { AccessDenied } from "@/components/access-denied";
 import { DepositEditor } from "@/components/deposit-editor";
 import { getAccessContext } from "@/lib/access";
@@ -7,6 +11,6 @@ import "../deposit.css";
 export default async function NewDepositPage() {
   const access = await getAccessContext("guarantees");
   if (!access.allowed || !canCreateDepositWorkItem(access)) return <AccessDenied moduleName="สร้างรายการเงินประกัน" />;
-  if (!process.env.DATABASE_URL) return <div className="deposit-banner">ยังไม่ได้เชื่อมฐานข้อมูลกลาง</div>;
+  if (!process.env.DATABASE_URL) return <div className="deposit-banner">{copy.feedback.unavailable}</div>;
   return <DepositEditor assignees={await listTlAssignees()} />;
 }

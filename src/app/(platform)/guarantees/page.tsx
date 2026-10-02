@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+export const metadata: Metadata = { title: "เงินประกันอาคาร" };
 import { AccessDenied } from "@/components/access-denied";
 import { DepositWorkspace } from "@/components/deposit-workspace";
 import { getAccessContext } from "@/lib/access";
