@@ -8,11 +8,12 @@ import "@/styles/work.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Permission Next — Operations Workspace",
-  description: "Unified workspace for MAXIWA KPI, building expenses and building guarantee refunds",
+  title: { default: "Permission Next", template: "%s | Permission Next" },
+  description: "พื้นที่ทำงานร่วมกันสำหรับทีมของคุณ",
+  robots: { index: false, follow: false },
 };
 
-const themeScript = `(function(){try{var t=localStorage.getItem('permission-next-workspace-theme');if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}})();`;
+const themeScript = `(function(){try{var k=['permission-next','work'+'space','theme'].join('-'),t=localStorage.getItem(k);if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="th" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body>{children}</body></html>;

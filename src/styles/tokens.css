@@ -5,11 +5,14 @@
   --color-surface: #ffffff;
   --color-surface-subtle: #eef2f7;
   --color-border: #d7dee8;
-  --color-border-strong: #8897ab;
+  --color-border-strong: #8594a8;
   --color-text: #182334;
   --color-text-muted: #536278;
-  --color-text-subtle: #627188;
+  --color-text-subtle: #606e84;
   --color-brand: #244fb8;
+  --color-brand-deep: #193d92;
+  --color-on-brand-deep: #ffffff;
+  --color-focus-ring: #244fb8;
   --color-brand-strong: #193d92;
   --color-brand-hover: #193d92;
   --color-brand-soft: #e9efff;
@@ -56,6 +59,7 @@ html[data-theme="dark"] {
   --color-border: #3a4a61; --color-border-strong: #8294ad;
   --color-text: #eff3f9; --color-text-muted: #b9c6d8; --color-text-subtle: #a2b3c9;
   --color-brand: #9bbcff; --color-brand-strong: #bad0ff; --color-brand-hover: #bad0ff; --color-brand-soft: #253d64;
+  --color-brand-deep: #12213c; --color-on-brand-deep: #eff3f9; --color-focus-ring: #9bbcff;
   --color-on-brand: #12213c;
   --color-success: #83d9a6; --color-success-soft: #1c3f30;
   --color-warning: #f4c36b; --color-warning-soft: #46381f;

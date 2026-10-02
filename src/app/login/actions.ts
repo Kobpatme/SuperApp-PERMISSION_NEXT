@@ -12,9 +12,11 @@ import { writeAuditLog } from "@/lib/audit-log";
 import { runMaterialChange } from "@/lib/material-change";
 import { validatePassword } from "@/lib/password-policy";
 import { safeNextPath } from "@/lib/safe-next-path";
+import { copy } from "@/lib/copy";
+import { logEvent } from "@/lib/logger";
 
-export type LoginState = { error?: string };
-const genericLoginError = "อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชียังไม่พร้อมใช้งาน";
+export type LoginState = { error?: string; email?: string };
+const genericLoginError = copy.auth.genericError;
 const dummyPasswordHash = "$argon2id$v=19$m=19456,t=2,p=1$wkwySqmJsieZfznthHo2Qg$d8F9W9AnR5D2cjrarKTUpsdhwyYNsXeC5Zchro3ngaw";
 
 function loginKeys(email: string, ipAddress?: string): LoginRateLimitKey[] {
@@ -37,20 +39,24 @@ async function auditLogin(input: { action: string; actorId?: string; requestId: 
 }
 
 export async function loginAction(_state: LoginState, form: FormData): Promise<LoginState> {
-  if (!process.env.DATABASE_URL) return { error: "ยังไม่ได้ตั้งค่าฐานข้อมูลภายในองค์กร" };
   const email = String(form.get("email") || "").trim().toLocaleLowerCase("en-US");
   const password = String(form.get("password") || "");
   const next = safeNextPath(String(form.get("next") || ""));
   const requestId = crypto.randomUUID();
+  if (!process.env.DATABASE_URL) {
+    logEvent("error", "auth.login.unavailable", { requestId, reason: "database_unconfigured" });
+    return { email, error: copy.auth.serviceError(requestId) };
+  }
   const requestHeaders = await headers();
   const ipAddress = getTrustedClientIp(requestHeaders);
   const userAgent = requestHeaders.get("user-agent") || undefined;
   const keys = loginKeys(email, ipAddress);
   let destination = "/";
   try {
-    if ((await getLoginRateLimit(keys)).blocked) {
+    const rateLimit = await getLoginRateLimit(keys);
+    if (rateLimit.blocked) {
       await auditLogin({ action: "auth.login.failure", requestId, reason: "rate_limited", email, ipAddress, userAgent });
-      return { error: genericLoginError };
+      return { email, error: copy.auth.rateLimited(rateLimit.retryAfterSeconds) };
     }
     const validEmail = /^\S+@\S+\.\S+$/.test(email);
     const validInput = validEmail && password.length >= 8 && password.length <= 256;
@@ -61,7 +67,7 @@ export async function loginAction(_state: LoginState, form: FormData): Promise<L
     if (!account) {
       await recordLoginFailure(keys);
       await auditLogin({ action: "auth.login.failure", requestId, reason: "invalid_credentials", email, ipAddress, userAgent });
-      return { error: genericLoginError };
+      return { email, error: genericLoginError };
     }
     const now = new Date();
     if (account.lockedUntil && account.lockedUntil <= now) {
@@ -72,11 +78,11 @@ export async function loginAction(_state: LoginState, form: FormData): Promise<L
     if (account.status !== "active") {
       await recordLoginFailure(keys);
       await auditLogin({ action: "auth.login.failure", actorId: account.id, requestId, reason: "inactive_account", email, ipAddress, userAgent });
-      return { error: genericLoginError };
+      return { email, error: genericLoginError };
     }
     if (account.lockedUntil && account.lockedUntil > now) {
       await auditLogin({ action: "auth.login.failure", actorId: account.id, requestId, reason: "account_locked", email, ipAddress, userAgent });
-      return { error: genericLoginError };
+      return { email, error: genericLoginError };
     }
     if (!valid) {
       await getDb().update(localCredentials).set({ failedAttempts: sql`${localCredentials.failedAttempts} + 1`,
@@ -84,7 +90,7 @@ export async function loginAction(_state: LoginState, form: FormData): Promise<L
         .where(eq(localCredentials.userId, account.id));
       await recordLoginFailure(keys);
       await auditLogin({ action: account.failedAttempts + 1 >= 5 ? "auth.account.locked" : "auth.login.failure", actorId: account.id, requestId, reason: "invalid_credentials", email, ipAddress, userAgent });
-      return { error: genericLoginError };
+      return { email, error: genericLoginError };
     }
     await getDb().update(localCredentials).set({ failedAttempts: 0, lockedUntil: null, updatedAt: new Date() }).where(eq(localCredentials.userId, account.id));
     await clearLoginRateLimit(keys);
@@ -93,8 +99,8 @@ export async function loginAction(_state: LoginState, form: FormData): Promise<L
     if (account.mustChangePassword) destination = "/change-password";
     else destination = next;
   } catch (error) {
-    console.error("Local login failed", error);
-    return { error: "ไม่สามารถเข้าสู่ระบบได้ กรุณาตรวจสอบการเชื่อมต่อเซิร์ฟเวอร์" };
+    logEvent("error", "auth.login.failed", { requestId, errorType: error instanceof Error ? error.name : "unknown" });
+    return { email, error: copy.auth.serviceError(requestId) };
   }
   redirect(destination);
 }
@@ -104,7 +110,7 @@ export async function changePasswordAction(_state: LoginState, form: FormData): 
   if (!user) redirect("/login");
   const password = String(form.get("password") || "");
   const confirm = String(form.get("confirm") || "");
-  if (password !== confirm) return { error: "รหัสผ่านทั้งสองช่องไม่ตรงกัน" };
+  if (password !== confirm) return { error: copy.auth.passwordMismatch };
   const passwordCheck = validatePassword(password);
   if (!passwordCheck.ok) return { error: passwordCheck.message };
   const passwordHash = await hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1, outputLen: 32 });
@@ -119,5 +125,5 @@ export async function changePasswordAction(_state: LoginState, form: FormData): 
 
 export async function logoutAction() {
   await destroySession();
-  redirect("/login");
+  redirect("/login?reason=signed-out");
 }
