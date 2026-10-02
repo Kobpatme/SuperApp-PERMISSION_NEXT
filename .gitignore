@@ -11,5 +11,7 @@ _discovery_sources/
 *.log
 *.tsbuildinfo
 *-check.png
+test-results/
+playwright-report/
 
 # Legacy workflow references are kept under _discovery_sources/.

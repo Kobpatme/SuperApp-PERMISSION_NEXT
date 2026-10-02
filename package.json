@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "check:css": "node scripts/check-css-quality.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "test:e2e": "playwright test",
+    "test:ux:seed": "node scripts/ux-test-db.mjs init && node scripts/ux-test-db.mjs seed",
     "dev": "node scripts/run-with-nas.cjs dev",
     "build": "next build",
     "start": "node scripts/run-with-nas.cjs start",
@@ -21,20 +25,21 @@
     "decimal.js": "^10.6.0",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.45.2",
-    "next": "^16.3.4",
+    "next": "^16.3.6",
     "postgres": "^3.4.5",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@playwright/test": "^1.62.1",
     "@types/node": "^22.15.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.7",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.27.0",
-    "eslint-config-next": "^16.3.4",
+    "eslint-config-next": "^16.3.6",
     "typescript": "^5.8.3",
     "vitest": "^5.0.0"
   }
