@@ -141,3 +141,34 @@ Historical checkpoint date: 2026-09-04
 - เพิ่มตัวกรองพื้นที่/เจ้าของงานที่ใช้กับทั้งรายงาน ตารางเดือนที่เข้าถึงด้วยคีย์บอร์ด ลิงก์รายละเอียด และรูปแบบพิมพ์ A4 landscape; ระบุขอบเขตสิทธิ์ ข้อจำกัด 500 รายการและความหมายของยอดตั้งเบิกอย่างชัดเจน
 - หลักฐาน: 143 unit tests ผ่าน (PostgreSQL deletion tests 3 เคสแยก opt-in ไม่ได้รันในงานรายงานนี้), document test 1 ผ่าน, lint/typecheck/production build ผ่าน ตรวจ Chrome ด้วย 51 รายการจริงและตัวกรอง BKK 4 ไม่มี console error/warning ใหม่ ตรวจขนาดเนื้อหารายงานมือถือ 343px ภายใน viewport 375px
 - การพิมพ์/PDF ใช้ print stylesheet; ยังไม่ได้ตรวจผล PDF ที่ผู้ใช้บันทึกจริง ไม่เปลี่ยนฐานข้อมูลหรือสิทธิ์เดิม
+# UX/login CP0 — baseline 2026-10-03
+
+HEAD ก่อนแก้: `f6ed848ea0e687e749a65349beca8075a4477238`; เริ่มจาก `codex/professional-workspace` แล้วสร้าง `codex/ux-login-polish` ตามคำสั่งเจ้าของ ผู้ใช้มีการลบแผน legacy สองไฟล์และ untracked docs/SuperApp; ไม่ทับหรือ stage ไฟล์เหล่านั้น
+
+| คำสั่งที่รัน | ผลจริง |
+|---|---|
+| npm ci | ครั้งแรก EPERM ที่ npm cache; rerun ด้วย escalation exit 0, 397 packages |
+| npm run lint | exit 0 |
+| npm run typecheck | exit 0 |
+| npm test | exit 0; 40 files ผ่าน/1 skipped; 143 tests ผ่าน/3 skipped |
+| npm run test:documents | exit 0; 1 test |
+| npm run build | exit 0; Next 16.3.4 |
+| npm audit --omit=dev | exit 1; 1 critical GHSA-vcvr-r3jv-pc5j; npm แจ้ง No fix available แต่ GitHub advisory ระบุ patched 16.3.6 — จะตรวจ registry ก่อนเลือก patch |
+
+Raw command logs: `docs/quality/ux-login-evidence/baseline-*.log` (local ignored logs; ไม่ใช่ข้อมูล production)
+
+| รายการจาก gap table | สถานะจากซอร์ส | หลักฐานก่อนแก้ |
+|---|---|---|
+| G1 generic error | verified-done | src/app/login/actions.ts:17,72,77 |
+| G2 dummy Argon2 | verified-done | src/app/login/actions.ts:18,61 |
+| G3 expired lock reset | verified-done | src/app/login/actions.ts:67–70 |
+| G4 email/IP limiter + login audit | partial: implementation มีแล้ว; IP ยังไม่ทำงานเมื่อ proxy=0 | src/app/login/actions.ts:21,48,51,64,86,91; src/lib/auth-rate-limit.ts:7,61 |
+| G5 forced-password guards | verified-done จาก source; DB integration ยังไม่ได้ยืนยัน | src/lib/access.ts:72; src/lib/request-context.ts:38; admin/actions.ts:20; work/actions.ts:45; guarantees/actions.ts:27; building APIs ตรวจ access.allowed |
+| G6 safe next / API 401 | verified-done | src/proxy.ts:11,17; src/proxy.test.ts:11,18 |
+| PreviewNotice dev-only | source verified; production DOM ยังไม่ได้ยืนยัน | src/components/workspace-feedback.tsx:13; src/lib/workspace-server.ts:11–12 (isDevelopmentSession ปัจจุบัน false) |
+
+CP0 JEV: health check_network=true + absolute root สำเร็จ network_ok=true; continue ตอบ gather_evidence confidence 0.39/fallback_to_codex ใช้คำแนะนำให้ตรวจ advisory/registry เพิ่ม แล้วทำ safe UX ต่อโดยไม่ประกาศ full gate ผ่าน
+
+ก่อน/หลัง screenshot: ก่อน login `docs/quality/ux-login-evidence/before-login-{light,dark}-{1440,1024,390}.png` กำลังเก็บ; authenticated screenshots ยังไม่ได้ยืนยัน ไม่มีการใช้บัญชีจริง
+
+แผน: docs/plans/ux-login-v1.md; Q1 generic contact/env, Q2 proxy=0/warning/docs, Q3 PN mark, Q4 blue ADR ได้คำตอบแล้ว Rollback CP0: revert เฉพาะ documentation commit ไม่มีการเปลี่ยนสิทธิ์/ข้อมูล
