@@ -141,6 +141,14 @@ Historical checkpoint date: 2026-09-04
 - เพิ่มตัวกรองพื้นที่/เจ้าของงานที่ใช้กับทั้งรายงาน ตารางเดือนที่เข้าถึงด้วยคีย์บอร์ด ลิงก์รายละเอียด และรูปแบบพิมพ์ A4 landscape; ระบุขอบเขตสิทธิ์ ข้อจำกัด 500 รายการและความหมายของยอดตั้งเบิกอย่างชัดเจน
 - หลักฐาน: 143 unit tests ผ่าน (PostgreSQL deletion tests 3 เคสแยก opt-in ไม่ได้รันในงานรายงานนี้), document test 1 ผ่าน, lint/typecheck/production build ผ่าน ตรวจ Chrome ด้วย 51 รายการจริงและตัวกรอง BKK 4 ไม่มี console error/warning ใหม่ ตรวจขนาดเนื้อหารายงานมือถือ 343px ภายใน viewport 375px
 - การพิมพ์/PDF ใช้ print stylesheet; ยังไม่ได้ตรวจผล PDF ที่ผู้ใช้บันทึกจริง ไม่เปลี่ยนฐานข้อมูลหรือสิทธิ์เดิม
+# UX/login CP1 — 2026-10-03
+
+AuthShell + friendly Thai forms/copy, email-only state, safe reasons, SUPPORT_CONTACT_TEXT, PN image swap prop และ blue ADR แล้วตาม source; full gate รอบ CP1 exit0: lint/typecheck/unit152 ผ่าน+3 skipped/documents1/build Next16.3.6/audit0 vulnerabilities; contrast50 pairs0 failures; Playwright auth7 passed (15.7s) exit0 แบบ external server บน isolated local Postgres
+
+JEV CP1: route shared_shell .90; risk1.91/.80 hard_gate=false; evidence needs_more .86 → ตรวจ HTML/axe/screenshotsเพิ่ม; classify environment .35/fallback; continue .72 verify_before_commit → ใช้ gates จริงก่อน commit รายงานเต็มและภาพก่อน/หลังอยู่ `docs/quality/ux-login-checkpoints.md`
+
+ข้อจำกัด: check:css legacy inventory ยังไม่ผ่าน รอ CP3; managed Playwright server teardown ค้างบน Windows แต่ external-server run exit0; CI/UAT ยังไม่ได้ยืนยัน
+
 # UX/login CP0 — baseline 2026-10-03
 
 HEAD ก่อนแก้: `f6ed848ea0e687e749a65349beca8075a4477238`; เริ่มจาก `codex/professional-workspace` แล้วสร้าง `codex/ux-login-polish` ตามคำสั่งเจ้าของ ผู้ใช้มีการลบแผน legacy สองไฟล์และ untracked docs/SuperApp; ไม่ทับหรือ stage ไฟล์เหล่านั้น
