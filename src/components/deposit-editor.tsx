@@ -7,6 +7,7 @@ import { DepositEvidenceUpload } from "@/components/deposit-evidence-upload";
 import { saveDepositWorkItem, transitionDepositWorkItem, type DepositActionState } from "@/app/(platform)/guarantees/actions";
 import { getOutstandingAmount, getWorkflowStatusKey, parseMoney, workflowLabels, type DepositItem } from "@/lib/deposit-v2-domain";
 import { availableDepositTransitions, depositStatusSchema } from "@/lib/deposit-v2-workflow";
+import { TruncatedText } from "@/components/ui/truncated-text";
 
 const initial: DepositActionState = { ok: false, message: "" };
 const installationAreas = ["BKK 1", "BKK 2", "BKK 3", "BKK 4", "CBI", "CMI", "PKT", "SNI"];
@@ -25,7 +26,7 @@ export function DepositEditor({ item, assignees = [], events = [] }: { item?: De
   const status = item ? depositStatusSchema.safeParse(item.status) : null;
   const targets = status?.success ? availableDepositTransitions(status.data) : [];
   return <div className="deposit-detail">
-    <div className="deposit-detail-head"><div><p className="eyebrow">เงินประกันอาคาร / {item ? "รายละเอียดรายการ" : "สร้างรายการ"}</p><h1>{item?.place || "สร้างรายการเงินประกัน"}</h1><p className="sub">{item ? workflowLabels[getWorkflowStatusKey(item)] : "เริ่มจากข้อมูลอาคารและจำนวนเงิน จากนั้นดำเนินงานตามขั้นตอน V2"}</p></div><Link href="/guarantees">← กลับรายการ</Link></div>
+     <div className="deposit-detail-head"><div><p className="eyebrow">เงินประกันอาคาร / {item ? "รายละเอียดรายการ" : "สร้างรายการ"}</p><h1><TruncatedText text={item?.place || "สร้างรายการเงินประกัน"} lines={2}/></h1><TruncatedText className="sub" text={item ? workflowLabels[getWorkflowStatusKey(item)] : "เริ่มจากข้อมูลอาคารและจำนวนเงิน จากนั้นดำเนินงานตามขั้นตอน V2"} lines={2}/></div><Link href="/guarantees">← กลับรายการ</Link></div>
     <div className="deposit-detail-grid"><section className="deposit-panel"><h2>ข้อมูลรายการ</h2><form action={saveAction} className="deposit-form">
       {item && <><input type="hidden" name="id" value={item.id}/><input type="hidden" name="version" value={item.version}/></>}
       <TextField name="place" label="อาคาร *" value={item?.place} required/><label>พื้นที่ / ทีมติดตั้ง<select name="area" value={area} onChange={(event) => setArea(event.target.value)} required><option value="">เลือกพื้นที่</option>{installationAreas.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
@@ -68,7 +69,7 @@ export function DepositEditor({ item, assignees = [], events = [] }: { item?: De
       <section className="deposit-panel"><h2>ขั้นตอนถัดไป</h2><form className="deposit-transition" action={transitionAction}><input type="hidden" name="id" value={item.id}/><input type="hidden" name="version" value={item.version}/><textarea name="reason" placeholder="เหตุผล (จำเป็นเมื่อส่งกลับหรือยกเลิก)" aria-label="เหตุผล" />
         {targets.map((target) => <button type="submit" name="to" value={target} disabled={transitionPending} key={target}>{target === "Cancel" ? "ยกเลิกรายการ" : `ไปขั้นตอน ${workflowLabels[target] || target}`}</button>)}
         {!targets.length && <p>รายการนี้สิ้นสุดแล้ว</p>}{transitionState.message && <p role="status">{transitionState.message}</p>}</form></section>
-      <section className="deposit-panel deposit-history"><h2>ประวัติการทำงาน</h2>{events.map((event) => <p key={event.id}>{new Date(event.occurredAt).toLocaleString("th-TH")} · {event.action === "transition" ? `${event.fromStatus} → ${event.toStatus}` : event.action}{event.reason ? ` · ${event.reason}` : ""}</p>)}{!events.length && <p>ยังไม่มีประวัติ</p>}</section>
+      <section className="deposit-panel deposit-history"><h2>ประวัติการทำงาน</h2>{events.map((event) => <TruncatedText key={event.id} text={`${new Date(event.occurredAt).toLocaleString("th-TH")} · ${event.action === "transition" ? `${event.fromStatus} → ${event.toStatus}` : event.action}${event.reason ? ` · ${event.reason}` : ""}`} lines={3}/>) }{!events.length && <p>ยังไม่มีประวัติ</p>}</section>
       <p className="sub">การเปลี่ยนสถานะถูกตรวจสิทธิ์ บันทึกประวัติ และตรวจเลขเวอร์ชันที่เซิร์ฟเวอร์</p></aside>}
     </div>
   </div>;

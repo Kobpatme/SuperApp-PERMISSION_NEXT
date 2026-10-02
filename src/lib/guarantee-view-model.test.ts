@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildGuaranteeExecutiveView } from "@/lib/guarantee-view-model";
+import { buildGuaranteeExecutiveView, buildGuaranteeManagementReport } from "@/lib/guarantee-view-model";
+import { getSidebarFinancialMetrics } from "@/lib/deposit-v2-domain";
 import type { DepositItem } from "@/lib/deposit-v2-domain";
 
 const items: DepositItem[] = [
@@ -32,5 +33,35 @@ describe("buildGuaranteeExecutiveView", () => {
 
   it("rejects an invalid reference timestamp", () => {
     expect(() => buildGuaranteeExecutiveView([], "not-a-date")).toThrow("generatedAt must be an ISO date");
+  });
+});
+
+describe("management report source-of-truth parity", () => {
+  const timestamp = "2026-09-29T00:00:00.000Z";
+  it("matches register totals and excludes cancelled money", () => {
+    const report = buildGuaranteeManagementReport(items, timestamp);
+    expect(report.finance).toEqual(getSidebarFinancialMetrics(items));
+    expect(report.total).toBe(180);
+    expect(report.refunded).toBe(60);
+    expect(report.excludedCount).toBe(1);
+    expect(report.areas.reduce((sum, row) => sum + row.amount, 0)).toBe(report.finance.totalOutstandingAmount);
+    expect(report.statuses.reduce((sum, row) => sum + row.amount, 0)).toBe(report.finance.totalOutstandingAmount);
+  });
+  it("retains On Service removal deposits and respects the removal return flag", () => {
+    const rows: DepositItem[] = [{ id: "on-service", status: "done", deposit: 100, demolish: 80, demoReturn: "no", area: "A" },
+      { id: "returned", status: "fin", deposit: 10, demolish: 20, demoReturn: "yes", area: "B" }];
+    const report = buildGuaranteeManagementReport(rows, timestamp);
+    expect(report.removal.onServiceAmount).toBe(80);
+    expect(report.removal.refundedAmount).toBe(20);
+    expect(report.refunded).toBe(120);
+    expect(report.finance.totalOutstandingAmount).toBe(90);
+    expect(report.topOutstanding[0]).toMatchObject({ item: { id: "on-service" }, amount: 80 });
+  });
+  it("uses an explicit unknown-area bucket and avoids a fabricated rate for no deposits", () => {
+    const empty = buildGuaranteeManagementReport([], timestamp);
+    expect(empty.refundPct).toBeNull();
+    expect(empty.topOutstanding).toEqual([]);
+    const report = buildGuaranteeManagementReport([{ deposit: 25, status: "fin" }], timestamp);
+    expect(report.areas).toEqual([{ key: "ไม่ระบุพื้นที่", label: "ไม่ระบุพื้นที่", count: 1, amount: 25 }]);
   });
 });

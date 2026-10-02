@@ -1,2 +1,2 @@
 import { WorkRoutePage } from "@/components/work-route-page";
-export default function WorkMinePage() { return <WorkRoutePage view="mine" />; }
+export default function WorkMinePage() { return <WorkRoutePage view="mine-list" />; }

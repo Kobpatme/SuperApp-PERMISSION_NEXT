@@ -13,7 +13,10 @@ export type PermissionBuildingRow = {
   installType: string; updateDate: string; location: string; duration: string; wmPoint: string;
   enclosure: string; maxHorizontal: string; address: string; remark: string; contact: string;
   phone: string; mobile: string; email: string; lat: number | null; lng: number | null;
+  locationAccuracy: number | null; locationSource: string | null; locationVerified: boolean; locationUpdatedAt: string | null;
+  subdistrict: string; district: string; postcode: string; longdoPlaceId: string | null; canUpdateLocation: boolean;
   conditionVersion: number | null; boq: ReturnType<typeof getBuildingBoqProfile> | null; feeReviewRequired: boolean;
+  conditionEffectiveAt: string | null;
   feeReviewValues: Array<{ sourceField: string; label: string; rawValue: string }>;
 };
 
@@ -55,7 +58,8 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
   const scope = readScope(access);
   if (!scope) return empty("ready");
   try {
-    const search = query.trim().slice(0, 120).replace(/[\\%_]/g, "\\$&");
+    const searchTokens = query.normalize("NFC").trim().slice(0, 120).toLocaleLowerCase("th-TH").split(/\s+/).filter(Boolean)
+      .map((token) => token.replace(/[\\%_]/g, "\\$&"));
     const jsonKeys = { status: "status", group: "group", type: "type", installType: "install_type", surveyType: "survey_type", area: "area" } as const;
     const filters = Object.entries(jsonKeys).flatMap(([key, jsonKey]) => {
       const value = input[key as keyof typeof jsonKeys];
@@ -66,7 +70,8 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
     if ((input.after && !after) || (input.before && !before)) return empty("ready");
     const cursorPredicate = after ? or(gt(buildings.nameTh, after.nameTh), and(eq(buildings.nameTh, after.nameTh), gt(buildings.id, after.id)))
       : before ? or(lt(buildings.nameTh, before.nameTh), and(eq(buildings.nameTh, before.nameTh), lt(buildings.id, before.id))) : undefined;
-    const predicate = and(scope, ...(search ? [ilike(buildings.searchText, `%${search}%`)] : []), ...filters);
+    const predicate = and(scope, input.buildingId ? eq(buildings.id, input.buildingId) : undefined,
+      ...searchTokens.map((token) => ilike(buildings.searchText, `%${token}%`)), ...filters);
     const db = getDb();
     const [tally] = await db.select({ value: count() }).from(buildings).where(predicate);
     const total = tally?.value ?? 0;
@@ -110,11 +115,16 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
         installType: stringValue(normalized.install_type), updateDate: stringValue(normalized.update_date),
         location: stringValue(normalized.location), duration: stringValue(normalized.duration), wmPoint: stringValue(normalized.wm_point),
         enclosure: stringValue(normalized.enclosure), maxHorizontal: stringValue(normalized.max_horizontal),
-        address: stringValue(normalized.address), remark: stringValue(normalized.remark), contact: stringValue(normalized.contact),
+        address: stringValue(row.address ?? normalized.address), remark: stringValue(normalized.remark), contact: stringValue(normalized.contact),
         phone: stringValue(normalized.phone), mobile: stringValue(normalized.mobile), email: stringValue(normalized.email),
-        lat: coordinate(normalized.lat, -90, 90), lng: coordinate(normalized.lng, -180, 180),
+        lat: coordinate(row.latitude ?? normalized.lat, -90, 90), lng: coordinate(row.longitude ?? normalized.lng, -180, 180),
+        locationAccuracy: coordinate(row.locationAccuracy, 0, 10_000_000), locationSource: row.locationSource,
+        locationVerified: row.locationVerified, locationUpdatedAt: row.locationUpdatedAt?.toISOString() ?? null,
+        subdistrict: row.subdistrict ?? "", district: row.district ?? "", postcode: row.postcode ?? "", longdoPlaceId: row.longdoPlaceId,
+        canUpdateLocation: isAuthorized(access.subject, "building.record.update", { teamId: row.ownerTeamId }),
         conditionVersion: condition?.version ?? null,
         boq: condition ? getBuildingBoqProfile({ ...normalized, boq_profile: { fees: normalizedFees } }) : null,
+        conditionEffectiveAt: condition?.effectiveFrom.toISOString() ?? null,
         feeReviewRequired, feeReviewValues } satisfies PermissionBuildingRow;
     });
     const first = rows[0], last = rows.at(-1);

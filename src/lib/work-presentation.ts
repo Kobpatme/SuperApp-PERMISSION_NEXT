@@ -7,5 +7,17 @@ export const workStatusPresentation: Record<string, { label: string; tone: "neut
 };
 
 export function presentWorkStatus(status: string) {
-  return workStatusPresentation[status] ?? { label: status, tone: "neutral" as const, nextAction: "ตรวจสอบรายการ" };
+  return workStatusPresentation[status] ?? { label: "สถานะยังไม่ระบุ", tone: "neutral" as const, nextAction: "ตรวจสอบรายการ" };
+}
+
+const activityLabels: Record<string, string> = {
+  "work.task.created.v1": "เพิ่มงาน",
+  "work.task.completed.v1": "ปิดงาน",
+  "work.task.status_changed.v1": "เปลี่ยนสถานะงาน",
+  "work.task.note_added.v1": "เพิ่มบันทึกงาน",
+  "work.task.assigned.v1": "มอบหมายงาน",
+};
+
+export function presentWorkActivity(eventType: string) {
+  return activityLabels[eventType] ?? "อัปเดตงาน";
 }

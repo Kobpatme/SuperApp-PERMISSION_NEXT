@@ -18,13 +18,21 @@ describe("Permission_Next building rules", () => {
 
   it("classifies fixed fees without treating variable rates or revenue share as a lump sum", () => {
     const profile = buildBuildingBoqProfile({ id: "12", name_th: "อาคารทดสอบ", main_fee: 1000, annual_fee: 200,
-      damage_deposit: 300, shaft_fee_per_floor: 50, other_fees: [{ label: "ส่วนแบ่ง", calculation_type: "revenue_share", rate: 10 }] });
+      damage_deposit: 300, shaft_fee_per_floor: 50, other_fees: [
+        { label: "ส่วนแบ่งรายเดือน", calculation_type: "revenue_share", rate: 10, revenue_period: "monthly" },
+        { label: "ส่วนแบ่งรายปี", calculation_type: "revenue_share", rate: 2.5, revenue_period: "annual" },
+      ] });
     expect(profile.capex_total).toBe(1000);
     expect(profile.opex_total).toBe(200);
     expect(profile.deposit_total).toBe(300);
-    expect(profile.variable_rate_count).toBe(2);
+    expect(profile.variable_rate_count).toBe(3);
     expect(profile.payable_total).toBe(1200);
     expect(profile.non_payable_total).toBe(300);
+    expect(profile.opex_total).toBe(200);
+    expect(profile.fees.filter((fee) => fee.calculation_type === "revenue_share")).toMatchObject([
+      { rate: 10, revenue_period: "monthly", unit: "%", amount: null, cost_type: "OPEX" },
+      { rate: 2.5, revenue_period: "annual", unit: "%", amount: null, cost_type: "OPEX" },
+    ]);
   });
 
   it("normalizes legacy other-fee shapes", () => {

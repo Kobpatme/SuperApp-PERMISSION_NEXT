@@ -1,21 +1,58 @@
 # Implementation status
 
-## Fresh source-parity recovery — 2026-09-29
+## Guarantee + Buildings parity recovery — 2026-10-01
 
-The current target checkout is `codex/professional-workspace@3d8d281`. The previous audit snapshots `4080160` and `6ccef5b` are stale for this checkout. Approved behavioral sources are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99`, and `Kobpatme/maxiwa_KPI@4f5fa99`; local folders and legacy compatibility routes are comparison artifacts, not source-of-truth authorities. The approved Guarantees SHA is not present in the local source object database; provisional source evidence is recorded separately and must be reconciled before declaring Guarantees parity.
+Target baseline: `codex/professional-workspace@ec778a41b63e0b55d811671d1d492d2df05044bd`. Baseline was run before module edits: lint and typecheck passed; Vitest 35 files / 108 tests passed; document test 1/1 passed; Next.js 16.3.4 production build passed. `npm audit --omit=dev` reports one critical advisory affecting the existing `next` dependency and says no fix is available for the locked version; framework dependency changes were outside this safe parity slice.
+
+Implemented a first native slice after the required audits:
+
+- Buildings now renders its result list beside the map. Selecting a result opens the existing detail drawer and updates the selected marker; marker selection continues to open the same building detail. The list and map use the same server-filtered result set.
+- Building contacts now support phone/email copy and the overview supports coordinate copy, with live success/error feedback.
+- Guarantees now opens on a personal operations dashboard, with owner/assigned work, deadline/missing-document/TL/refund/On Service summaries, outstanding balance, actionable notices and recent completion/update rows. The filter uses only rows already scoped by the server query. The TL workspace shortcut is rendered only when server-derived grants allow the view.
+- On Service is now a separate follow-up view showing removal deposit exposure, Off Service pending count, building, owner, activity age, next step and a link to each case.
+- Added a unit test for owned/assigned personal-dashboard filtering.
+- Expanded fee tests to verify monthly and annual revenue-share periods and that percentages stay outside currency totals.
+- Created `docs/audits/GUARANTEE-PARITY-AUDIT.md` and `docs/audits/BUILDINGS-COST-PARITY-AUDIT.md` before implementation and recorded provisional/approved source evidence there.
+
+Post-change verification: lint pass; typecheck pass; Vitest 35 files / 109 tests pass; document test 1/1 pass; production build pass; `git diff --check` pass. `npm audit --omit=dev` remains at one critical Next.js advisory. No authenticated screenshot/UAT was performed. No production database, NAS, SharePoint or source production service was accessed.
+
+JEV: `jev_health` succeeded with network connectivity; route selected Buildings at very low confidence and evidence check advised gathering more evidence, so source inspection and deterministic tools controlled decisions. Prioritization ranked source evidence freeze, map/list parity, quotation, personal dashboard and TL/On Service follow-up. A risk call for a contemplated financial formula port hit a human-approval hard gate and did not run; no formula or pricing policy changed. `jev_continue` advised gathering more evidence. JEV remained advisory throughout.
+
+Source freeze: Permission_Next matches approved `afaee997afecf0f42e059b7100fa90ed0d188784`; maxiwa_KPI matches approved `4f5fa99b05f8dbfea9304d47560aec3d48746908`; Guarantees source `maxiwa@94742a4` remains unavailable in the local object database and its provisional checkout at `471f2b6a20361f9114372c2493400c62d3ccf19c` is not claimed equivalent. Guarantees audit status remains PARTIAL.
+
+Remaining major work: complete native quotation route/calculation/revision/export; permissioned building and dynamic cost editors; guarantee date-filtered completed view, richer TL mobile/evidence handoff, executive drill-down and complete local role navigation; reconcile approved Guarantees source; verify with browser/UAT, accessibility, integration and performance evidence. This slice does not claim either module migrated or production-ready.
+
+## Fresh source-parity recovery — 2026-09-30
+
+The current target checkout is `codex/professional-workspace@e9841bb`. The previous audit snapshots `4080160`, `6ccef5b` and `3d8d281` are stale for this checkout. Approved behavioral sources are `Kobpatme/maxiwa@94742a4`, `Kobpatme/Permission_Next@afaee99`, and `Kobpatme/maxiwa_KPI@4f5fa99`; local folders and legacy compatibility routes are comparison artifacts, not source-of-truth authorities. The approved Guarantees SHA is not present in the local source object database; provisional source evidence is recorded separately and must be reconciled before declaring Guarantees parity.
 
 Fresh matrices and acceptance gates are maintained in [Work](modules/work/source-parity.md), [Buildings](modules/buildings/source-parity.md), [Guarantees](modules/guarantees/source-parity.md), and [parity gates](modules/parity-gates.md). UX baselines are maintained beside each matrix. SP-0 documentation is substantially complete, with the Guarantees baseline limitation open. Security hardening is the active implementation checkpoint; no module is declared migrated yet.
 
-### Fresh deterministic baseline
+### Fresh deterministic baseline after Work recovery slice
 
 - `npm run lint`: pass
 - `npm run typecheck`: pass
-- `npm test`: 27 files / 87 tests passed
+- `npm test`: 35 files / 108 tests passed
 - `npm run test:documents`: pass (1 test)
 - `npm run build`: pass (Next.js 16.3.4)
 - `npm audit --omit=dev`: 0 vulnerabilities
-- Target commit used for this baseline: `3d8d281`
-- JEV health: local and network checks passed; the subsequent `jev_continue` request was unavailable because the TypeSafe hostname could not be resolved at that moment. Deterministic evidence remains authoritative.
+- Target commit used for this baseline: `e9841bb`
+- Authenticated visual QA remains blocked by the absence of an organization-approved test credential; the public login screen was checked in the local browser and the dev server was stopped after inspection.
+- JEV health/routing/evidence/prioritization/risk checks were advisory only; deterministic checks remain authoritative.
+
+### P0 Work & KPI recovery checkpoint — 2026-09-30
+
+Implemented as a native, permission-scoped slice:
+
+- Explicit screens for dashboard, My Tasks, Team Command, Assignment Center, People, Job Tracker, KPI, reports, activity and due work. Unknown `view` values now return `notFound()` instead of silently falling back to My Work.
+- Source-compatible task fields for job code, Main KPI, Sub KPI, note and optional KPI weight, with additive local migration `0017_work_source_parity.sql`. The migration was not run against production.
+- Server-side read model with owner/team row filtering, humanized status/activity labels, grouped jobs, assignment options, KPI cards and weighted report values.
+- Assignment action for up to 20 jobs with Zod validation, duplicate protection, team/assignee re-check, atomic task/event/audit/outbox write and revalidation.
+- Task status and note actions preserve authorization, optimistic version checks and human-facing mutation errors.
+- Role-aware Work navigation is derived from server-loaded grants; protected screens still repeat server permission checks.
+- Work-specific readable table/overflow/empty/unavailable/error states and a neutral green operational token direction were added without changing the source-of-truth calculation layer.
+
+Known limitations remain explicit: holiday/KPI administration is not yet a native UI, historical source data has not been imported, assignment audit is currently batch-level, and authenticated browser/UAT/RLS evidence is still required before claiming parity or production readiness. See [the recovery audit](audits/PROFESSIONAL-UX-RECOVERY-AUDIT.md) and [the result record](audits/PROFESSIONAL-UX-RECOVERY-RESULT.md).
 
 ### Phase 1 security hardening checkpoint — 2026-09-29
 
@@ -90,3 +127,17 @@ Historical checkpoint date: 2026-09-04
 
 - Repository hardening: Implemented. CI, CSP/security headers, CSRF origin guard, redacted structured logging, health check and deployment/backup/restore/observability/incident/release runbooks are present.
 - Production approval: Not ready. Live RLS/concurrency/load/accessibility/browser testing, threat/privacy review, backup restore drill, monitoring ownership and deployment rehearsal remain mandatory.
+
+## Building deletion — 2026-10-03
+
+- เพิ่ม DELETE API และปุ่มยืนยันในหน้ารายละเอียดอาคาร จำกัดเฉพาะ platform_admin พร้อม read/update data scope ฝั่ง server, same-origin check, exact-name confirmation และ optimistic version check ภายใต้ row lock
+- ลบข้อมูลจาก PostgreSQL จริงพร้อม audit snapshot ใน transaction เดียว; ปฏิเสธเมื่อมี operational/financial/document dependencies
+- หลักฐาน: unit/API 140 tests ผ่าน; PostgreSQL integration 3 tests ผ่านโดย rollback fixtures ทั้งหมด; lint, typecheck และ production build ผ่าน ตรวจหน้าต่างยืนยันด้วย Chrome โดยไม่ลบอาคารผู้ใช้
+- ไม่เพิ่ม migration/environment; ไม่เปลี่ยนข้อมูลอาคารจริงระหว่างการตรวจ UI และไม่ได้ประกาศ production readiness
+
+## Guarantee executive analytics — 2026-10-03
+
+- แยกรายงานผู้บริหารเป็น GuaranteeExecutiveDashboard และ buildGuaranteeManagementReport ใช้สูตร refund/outstanding/On Service ชุดเดียวกับหน้ารายการ แสดง KPI, ประเด็นติดตาม, ความครอบคลุมวันครบกำหนด, ยอดตั้งเบิก 12 เดือน, สถานะ/พื้นที่ และ 5 รายการคงค้างสูงสุด
+- เพิ่มตัวกรองพื้นที่/เจ้าของงานที่ใช้กับทั้งรายงาน ตารางเดือนที่เข้าถึงด้วยคีย์บอร์ด ลิงก์รายละเอียด และรูปแบบพิมพ์ A4 landscape; ระบุขอบเขตสิทธิ์ ข้อจำกัด 500 รายการและความหมายของยอดตั้งเบิกอย่างชัดเจน
+- หลักฐาน: 143 unit tests ผ่าน (PostgreSQL deletion tests 3 เคสแยก opt-in ไม่ได้รันในงานรายงานนี้), document test 1 ผ่าน, lint/typecheck/production build ผ่าน ตรวจ Chrome ด้วย 51 รายการจริงและตัวกรอง BKK 4 ไม่มี console error/warning ใหม่ ตรวจขนาดเนื้อหารายงานมือถือ 343px ภายใน viewport 375px
+- การพิมพ์/PDF ใช้ print stylesheet; ยังไม่ได้ตรวจผล PDF ที่ผู้ใช้บันทึกจริง ไม่เปลี่ยนฐานข้อมูลหรือสิทธิ์เดิม

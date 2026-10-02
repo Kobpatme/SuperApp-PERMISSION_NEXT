@@ -4,6 +4,7 @@ export const buildingFilterKeys = ["status", "group", "type", "installType", "su
 export const defaultBuildingPageSize = 2_000;
 export const buildingQuerySchema = z.object({
   query: z.string().trim().max(120).default(""),
+  buildingId: z.string().uuid().or(z.literal("")).default(""),
   page: z.coerce.number().int().positive().max(100_000).default(1),
   limit: z.coerce.number().int().min(20).max(defaultBuildingPageSize).default(defaultBuildingPageSize),
   after: z.string().regex(/^(?:[A-Za-z0-9_-]+)?$/).max(500).default(""),
@@ -16,7 +17,7 @@ export type BuildingQuery = z.infer<typeof buildingQuerySchema>;
 
 export function parseBuildingQuery(params: Record<string, string | string[] | undefined>): BuildingQuery {
   const scalar = (key: string) => typeof params[key] === "string" ? params[key] : undefined;
-  const parsed = buildingQuerySchema.parse({ query: scalar("q"), page: scalar("page"), limit: scalar("limit"), after: scalar("after"), before: scalar("before"),
+  const parsed = buildingQuerySchema.parse({ query: scalar("q"), buildingId: scalar("buildingId"), page: scalar("page"), limit: scalar("limit"), after: scalar("after"), before: scalar("before"),
     status: scalar("status"), group: scalar("group"), type: scalar("type"), installType: scalar("installType"),
     surveyType: scalar("surveyType"), area: scalar("area") });
   if (parsed.after && parsed.before) throw new Error("Only one building cursor direction is allowed");

@@ -6,7 +6,11 @@
 .notification-dialog header { justify-content:space-between; }
 .notification-dialog h2 { font-size:20px; }
 .notification-list { padding:0; list-style:none; }
-.notification-list li { border-bottom:1px solid var(--color-border); padding:14px 0; }
+.notification-list li { min-width:0; border-bottom:1px solid var(--color-border); padding:14px 0; }
+.notification-list h3,
+.notification-list p { min-width:0; }
+.notification-list h3 .truncated-text-wrap,
+.notification-list p .truncated-text-wrap { min-width:0; }
 .notification-list h3 { margin:8px 0; font-size:14px; }
 .notification-list a { text-decoration:underline; text-underline-offset:3px; }
 .notification-list time { color:var(--color-text-muted); font-size:12px; }

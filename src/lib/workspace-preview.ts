@@ -1,5 +1,6 @@
 import type { DashboardItem, DashboardSnapshot } from "@/lib/dashboard";
 import { modules, type ModuleId } from "@/lib/module-registry";
+import { EXTREME_AMOUNT_LABEL, EXTREME_LONG_EMAIL, EXTREME_THAI_NAME } from "@/lib/ui-fixtures";
 
 /** Fictional examples. Only the server's development session may opt into this snapshot. */
 export function buildPreviewSnapshot(allowed: ModuleId[], userId: string, reference = new Date().toISOString()): DashboardSnapshot {
@@ -18,13 +19,14 @@ export function buildPreviewSnapshot(allowed: ModuleId[], userId: string, refere
       id: `example-${code}`, code, moduleId,
       kind: moduleId === "work" ? "task" : moduleId === "buildings" ? "building" : "guarantee",
       priority: index % 7 === 0 ? "urgent" : index % 3 === 0 ? "attention" : "normal",
-      title: (descriptions[moduleId] ?? [moduleId])[index % (descriptions[moduleId]?.length ?? 1)], buildingName: buildings[index % buildings.length],
-      description: "ข้อมูลสมมติสำหรับทดลองหน้าจอและขั้นตอนการใช้งาน ไม่มีผลต่อข้อมูลจริง",
+      title: index === 0 ? `ติดตามงาน ${EXTREME_THAI_NAME}` : (descriptions[moduleId] ?? [moduleId])[index % (descriptions[moduleId]?.length ?? 1)],
+      buildingName: index === 0 ? EXTREME_THAI_NAME : buildings[index % buildings.length],
+      description: index === 0 ? `ข้อมูลสุดโต่งสำหรับตรวจการตัดข้อความ: ${EXTREME_AMOUNT_LABEL} และข้อความไทยที่ยาวต่อเนื่องโดยไม่มีการขึ้นบรรทัดอัตโนมัติ` : "ข้อมูลสมมติสำหรับทดลองหน้าจอและขั้นตอนการใช้งาน ไม่มีผลต่อข้อมูลจริง",
       href: modules.find((module) => module.id === moduleId)!.href,
       dueAt: index % 9 === 8 ? undefined : due.toISOString(),
       statusLabel: statuses[index % statuses.length],
       ownerId: index % 3 === 0 ? userId : `example-team-${index % 2}`,
-      ownerName: index % 3 === 0 ? "ฉัน" : index % 2 ? "ทีมปฏิบัติการ" : "ทีมอาคาร",
+      ownerName: index === 0 ? EXTREME_LONG_EMAIL : index % 3 === 0 ? "ฉัน" : index % 2 ? "ทีมปฏิบัติการ" : "ทีมอาคาร",
       nextAction: index % 4 === 2 ? "รวบรวมเอกสารที่ยังขาด แล้วส่งให้ผู้รับผิดชอบตรวจสอบ" : "ตรวจสอบรายละเอียดและประสานงานกับผู้รับผิดชอบ",
       updatedAt: reference,
     };

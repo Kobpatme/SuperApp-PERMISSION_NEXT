@@ -11,7 +11,7 @@ Status: current repository evidence; authenticated production acceptance remains
 - Guarantee table rows activate only when the row itself has focus; keyboard events from nested links and buttons no longer trigger row navigation.
 - Admin inline editors have accessible names. Permission codes are progressively disclosed under Advanced details.
 
-Manual browser acceptance on 2026-09-29 covered the unauthenticated login route at desktop, 768×1024 tablet and 390×844 mobile widths. There was no horizontal overflow, labels and keyboard focus order were present, and the browser console reported no warning or error. Authenticated route acceptance is blocked by the absence of a test credential and must be repeated with an organization-approved test account.
+Manual browser acceptance on 2026-09-29 covered the unauthenticated login route at desktop, 768×1024 tablet and 390×844 mobile widths. On 2026-09-30 the local dev server also rendered the current login shell with the refreshed green/neutral token direction and visible focus state. There was no horizontal overflow, labels and keyboard focus order were present, and the browser console reported no warning or error. Authenticated Work route acceptance remains blocked by the absence of a test credential and must be repeated with an organization-approved test account; the new dense tables should specifically be checked at 390px and 768px widths.
 
 ## Performance
 

@@ -4,7 +4,7 @@ Status: current native workflow with production-data verification still required
 
 `/guarantees` opens on the scoped work queue so staff see actions, missing evidence and follow-up items before the full register. The register, On Service cases and completed work retain their source terminology and workflow rules. Financial analytics are a secondary view.
 
-The executive financial view is built by `buildGuaranteeExecutiveView`. It preserves the existing installation/removal deposit, refund, fee, area and outstanding-case formulas while moving calculation out of React rendering. Its 12-month window uses the server query timestamp, so the same data and timestamp always produce the same result.
+The executive financial view uses `buildGuaranteeManagementReport` and the same installation/removal refund, On Service and outstanding helpers as the register. Cancelled money is excluded; returned removal deposits follow `demoReturn`, and On Service outstanding deposits remain visible. Its 12-month registration chart uses the server query timestamp and request dates; it does not claim to represent bank cash flow. Area and owner filters apply to all report sections. Missing due dates are exposed as incomplete risk coverage rather than zero risk. The report has an accessible monthly data table, links to authorized case details and an A4 landscape print stylesheet.
 
 All reads are constrained by the server access context and rechecked per row. Assigned TL access stays limited to explicitly assigned cases. Create, update, transition and evidence actions remain server-authorized and audited as documented in `docs/migration/guarantee-v2-integration.md`.
 

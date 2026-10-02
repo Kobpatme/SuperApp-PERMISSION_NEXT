@@ -6,7 +6,7 @@ Inspectable evidence in the current checkout is concentrated in `index.html`, `f
 
 | Source feature | Source screen | Source role/use case | Source file/function | SuperApp target | Current status | Decision | Test evidence | Notes |
 |---|---|---|---|---|---|---|---|---|
-| My Dashboard | Dashboard | User, admin | `index.html` dashboard sections and renderers | Guarantees dashboard/workspace | Native operational surface exists | ADAPT | `deposit-v2-domain.test.ts` | Reconcile each metric against verified baseline |
+| My Dashboard | Dashboard | User, admin | `index.html` dashboard sections and renderers | Guarantees dashboard/workspace | Personal dashboard slice added; source reconciliation incomplete | ADAPT | `deposit-v2-domain.test.ts` personal owner/assignee selector | Dashboard filters already server-authorized rows by owner/assignee; recent activity is inferred from row update time, not persisted activity events |
 | Executive Dashboard | Dashboard | Admin/executive | `index.html` executive dashboard section | Guarantee dashboard | Partial | PORT | Gate G-01 | Scoped metrics and analytics |
 | List, filters, multi-status, CSV | Deposit list | User, TL, admin | `index.html` list filters, sorting and export handlers | Guarantees list/view models | Partial | ADAPT | Gate G-02 | Server-side scope and export |
 | Smart Queue | TL workspace | TL | `index.html` TL page, filters and task renderers | `deposit-tl-workspace.tsx` | Partial | ADAPT | Gate G-03 | Pending/actionable rules remain source-compatible |
