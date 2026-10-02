@@ -1,0 +1,23 @@
+src/lib\audit-log.ts:16:  const isDevelopmentActor = event.actorId === "development-session";
+src/lib\audit-log.ts:24:    metadata: isDevelopmentActor ? { ...event.metadata, actorType: "development-session" } : event.metadata || {},
+src/lib\audit-log.ts:31:  const isDevelopmentActor = event.actorId === "development-session";
+src/lib\auth.ts:7:import { getIdleDurationMs, getSessionDurationMs } from "@/lib/session-duration";
+src/lib\auth.ts:9:export const sessionCookieName = "pn_session";
+src/lib\auth.ts:16:  const token = (await cookies()).get(sessionCookieName)?.value;
+src/lib\env.ts:9:  PERMISSION_NAS_BRIDGE_URL: z.string().url().optional().or(z.literal("")),
+src/lib\env.ts:10:  PERMISSION_NAS_BRIDGE_SECRET: z.string().min(32).optional().or(z.literal("")),
+src/lib\env.ts:29:    PERMISSION_NAS_BRIDGE_URL: process.env.PERMISSION_NAS_BRIDGE_URL,
+src/lib\material-change.ts:1:import { activityEvents, auditLogs, outboxMessages } from "@/db/schema";
+src/lib\material-change.ts:37:  outbox?: {
+src/lib\material-change.ts:46:/** A material mutation, audit record, business event and outbox row commit or roll back together. */
+src/lib\nas-bridge-path.ts:2:  if (!path.length || path.length > 12) throw new Error("Invalid NAS bridge path");
+src/lib\nas-bridge-path.ts:4:    if (!segment || segment === "." || segment === ".." || segment.length > 160 || /[\\/\0]/.test(segment)) throw new Error("Invalid NAS bridge path");
+src/lib\permission-building-server.ts:19:  conditionEffectiveAt: string | null;
+src/lib\permission-building-server.ts:127:        conditionEffectiveAt: condition?.effectiveFrom.toISOString() ?? null,
+src/lib\work-report.ts:7:  kpiEffectiveWeight?: string | number | null;
+src/lib\work-report.ts:23:  const raw = task.kpiEffectiveWeight ?? task.weight ?? 1;
+src/lib\work-read-model.ts:109:  if (!process.env.DATABASE_URL) return buildEmptyModel("ยังไม่ได้เชื่อมต่อฐานข้อมูลงาน", "not_configured");
+src/lib\work-read-model.ts:202:    console.error("Unable to load native work read model", error);
+src/lib\work-service.ts:30:    outbox: { topic: eventType, idempotencyKey: `outbox:${input.idempotencyKey}`, aggregateType: "task", aggregateId: input.taskId, payload: { taskId: input.taskId, ownerId: current.ownerId, fromStatus: current.status, toStatus: input.toStatus, occurredAt: occurredAt.toISOString() } },
+src/lib\work-service.ts:47:    outbox: { topic: "work.manual_entry.recorded.v1", idempotencyKey: `outbox:${input.idempotencyKey}`, aggregateType: "manual_work_entry", aggregateId: id, payload: { id, ownerId: input.ownerId, occurredAt: input.occurredAt.toISOString() } },
+src/lib\workspace-preview.ts:5:/** Fictional examples. Only the server's development session may opt into this snapshot. */

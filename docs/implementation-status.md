@@ -180,3 +180,6 @@ CP0 JEV: health check_network=true + absolute root สำเร็จ network_ok
 ก่อน/หลัง screenshot: ก่อน login `docs/quality/ux-login-evidence/before-login-{light,dark}-{1440,1024,390}.png` กำลังเก็บ; authenticated screenshots ยังไม่ได้ยืนยัน ไม่มีการใช้บัญชีจริง
 
 แผน: docs/plans/ux-login-v1.md; Q1 generic contact/env, Q2 proxy=0/warning/docs, Q3 PN mark, Q4 blue ADR ได้คำตอบแล้ว Rollback CP0: revert เฉพาะ documentation commit ไม่มีการเปลี่ยนสิทธิ์/ข้อมูล
+
+## UX login CP2 — 2026-10-03
+Source presentation/copy checkpoint verified with full gate exit0 (unit152/3skip, documents1, audit0); production matrix8passed, root overflow/axe serious-critical/forbidden words/runtime errors0. Static JSX scan A0/B1. Evidence/report: docs/quality/ux-login-checkpoints.md. No production data, permission matrix or business rules changed. CP3 font/CSS and CP4/5 remain not yet verified.

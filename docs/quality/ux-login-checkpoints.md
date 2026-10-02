@@ -37,3 +37,21 @@ check:css ทั้งระบบยังมี legacy violations รอ CP3; 
 revert auth presentation/copy commits; เก็บ auth protection tests และ Next security patchไว้ได้ ไม่มี migration ใหม่
 ### ผลกระทบต่อสิทธิ์/ข้อมูลเดิม
 ไม่มีการเปลี่ยน permission/lockout/timeout/transaction; fixture writes เฉพาะฐานแยก ไม่มีข้อมูลจริงถูกใช้
+
+## Checkpoint 2 — ข้อความ สถานะ และการตัดบรรทัด
+### สิ่งที่ทำ (ไฟล์หลักที่แก้/เพิ่ม)
+copy.ts, SourceDetails, AccessDenied, NativeModuleFoundation, ErrorState/error/global-error/not-found, skeleton dashboard/table/detail, title metadata 18 routes, PN icon/apple-icon/manifest/robots, Thai admin labels, document/map feedback, wrapping cards/table text, mobile topbar 320px. รายละเอียดการเชื่อมต่อย้ายไปหน้า admin ที่บังคับ core.audit.read ฝั่ง server. แก้เลือกชื่ออาคารยาวไม่ส่งชื่อเกินข้อจำกัด query120 ไปค้นหาอีกครั้ง.
+### หลักฐาน (คำสั่งที่รัน + ผลลัพธ์จริง)
+full gate CP2 lint/typecheck/test/test:documents/build/audit exit0; unit152 passed/3 skipped, documents1, audit0. Playwright workspace.spec.ts 8 passed (1.2m): Light/Dark ×320/390/1024/1440, dashboard/work/buildings/guarantees/403/404 และ building drawer. ตรวจ root overflow0, serious/critical axe0, forbidden text0, runtime error0. document503 จำลองแล้วแสดงข้อความทั่วไป ไม่เผย error ต้นทาง. Static JSX display scanner เพิ่มหลัง JEV ขอหลักฐาน: `node scripts/check-ui-copy.mjs` category-A0, B1 เป็นคำเตือนลบอาคารถาวร (ไม่เปลี่ยนความหมาย). source grep ที่เหลือเป็น imports/identifiers/admin-only/dev-only; ไม่อ้างว่าตรวจได้ทุกค่าข้อมูลในอนาคต.
+### สถานะของงานที่ตรวจพบว่าทำไว้แล้ว
+PreviewNotice ยังใช้ developmentMode; workspace-server ยังต้อง NODE_ENV=development และ isDevelopmentSession; production ?preview=1 ไม่แสดง preview. ไม่มี auth bypass สำหรับภาพทดสอบ ใช้ synthetic users ในฐานแยก.
+### JEV ที่ใช้
+2026-10-03: prioritize inventory (admin .57, nowrap .56, NAS .42) ใช้ source classification A ก่อน B; evidence supported .65/needs_more .83 จึงเพิ่ม static JSX display scan และ rerun auth matrix ไม่อ้างตรวจทุก dynamic state; continue .97 ใช้ต่อ CP3 เพราะคำสั่งและ source evidence มีผลจริง.
+### Screenshot ก่อน-หลัง (path)
+ก่อน `docs/quality/ux-login-evidence/before-{dashboard,work,buildings,guarantees,admin,404}-{light,dark}-{1440,1024,390}.png`; หลัง `cp2-*-staff-{light,dark}-{320,390,1024,1440}.png` รวม building-detail และ `cp2-*` admin matrix. เปิดภาพ building-detail light320 และ buildings light390 ตรวจแล้ว. ภาพ baseline ก่อนใช้ fixture ยาวเพิ่มเติมจึงไม่ใช่ pixel regression แบบข้อมูลเดียวกัน.
+### สิ่งที่ยังไม่ได้ยืนยัน / ข้อสมมติ / คำถาม
+Q1 ช่องทางยังไม่ตัดสิน ใช้ข้อความทั่วไปและ SUPPORT_CONTACT_TEXT; Q2 เตือน production รอ CP5; fonts/CSS/motion รอ CP3/4. Production integration และ business UAT ไม่ได้ยืนยัน. ตารางที่เลื่อนแนวนอนภายใน container มีเจตนา; root ต้องไม่ล้น.
+### ความเสี่ยงและวิธี rollback
+revert presentation checkpoint commits. ไม่มี schema migration/business formula changes; คงคำเตือนลบถาวรและ permission checks. อ่าน diagnostics เฉพาะผู้มี audit permission และแสดงเฉพาะ module/status ไม่ raw exception.
+### ผลกระทบต่อสิทธิ์/ข้อมูลเดิม
+ไม่มี permission/data changes. Seed แก้เฉพาะ permission_next_ux_test loopback; ตัวเลขและชื่อทั้งหมดสมมติ.
