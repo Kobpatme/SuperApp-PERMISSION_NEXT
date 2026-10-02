@@ -86,8 +86,20 @@ export const userRoles = pgTable("user_roles", {
 export const buildings = pgTable("buildings", {
   id: uuid("id").defaultRandom().primaryKey(), code: text("code").notNull(), nameTh: text("name_th").notNull(), nameEn: text("name_en"),
   status: text("status").notNull().default("active"), searchText: text("search_text").notNull(), ownerTeamId: uuid("owner_team_id").references(() => teams.id, { onDelete: "set null" }),
+  latitude: numeric("latitude", { precision: 10, scale: 7 }), longitude: numeric("longitude", { precision: 11, scale: 7 }),
+  locationAccuracy: numeric("location_accuracy", { precision: 10, scale: 2 }), locationSource: text("location_source"),
+  locationVerified: boolean("location_verified").notNull().default(false), locationVerifiedAt: timestamp("location_verified_at", { withTimezone: true }),
+  locationVerifiedBy: uuid("location_verified_by").references(() => profiles.id, { onDelete: "set null" }),
+  locationUpdatedAt: timestamp("location_updated_at", { withTimezone: true }), address: text("address"), subdistrict: text("subdistrict"),
+  district: text("district"), province: text("province"), postcode: text("postcode"), longdoPlaceId: text("longdo_place_id"),
   version: integer("version").notNull().default(1), ...timestamps,
-}, (t) => [uniqueIndex("buildings_code_idx").on(t.code), index("buildings_search_idx").on(t.searchText), check("buildings_status_check", sql`${t.status} in ('active', 'inactive', 'merged')`), check("buildings_version_check", sql`${t.version} > 0`)]);
+}, (t) => [uniqueIndex("buildings_code_idx").on(t.code), index("buildings_search_idx").on(t.searchText),
+  index("buildings_location_idx").on(t.latitude, t.longitude),
+  check("buildings_location_coordinate_check", sql`(${t.latitude} is null and ${t.longitude} is null) or (${t.latitude} between -90 and 90 and ${t.longitude} between -180 and 180)`),
+  check("buildings_location_accuracy_check", sql`${t.locationAccuracy} is null or ${t.locationAccuracy} >= 0`),
+  check("buildings_location_source_check", sql`${t.locationSource} is null or ${t.locationSource} in ('gps','manual_pin','search','import')`),
+  check("buildings_location_verification_check", sql`not ${t.locationVerified} or (${t.latitude} is not null and ${t.longitude} is not null and ${t.locationVerifiedAt} is not null and ${t.locationVerifiedBy} is not null)`),
+  check("buildings_status_check", sql`${t.status} in ('active', 'inactive', 'merged')`), check("buildings_version_check", sql`${t.version} > 0`)]);
 
 export const buildingAliases = pgTable("building_aliases", {
   id: uuid("id").defaultRandom().primaryKey(), buildingId: uuid("building_id").notNull().references(() => buildings.id, { onDelete: "cascade" }),

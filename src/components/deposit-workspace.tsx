@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  getActionNotifications, getListPageKpiMetrics, getOperationalAnalytics, getSidebarFinancialMetrics,
+  getActionNotifications, getListPageKpiMetrics, getSidebarFinancialMetrics,
   daysBetween, getLastActivityDate, getMissingDocumentLabels, getRemovalDepositMetrics, getSmartWorkQueue, getWorkflowStatusKey, parseDateValue, parseMoney, selectPersonalDepositItems, sortCompletedLast,
   workflowLabels, type DepositItem,
 } from "@/lib/deposit-v2-domain";
-import { buildGuaranteeExecutiveView } from "@/lib/guarantee-view-model";
+import { GuaranteeExecutiveDashboard } from "@/components/guarantee-executive-dashboard";
 import { TruncatedText } from "@/components/ui/truncated-text";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 
@@ -74,8 +74,8 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   const finance = useMemo(() => getSidebarFinancialMetrics(filtered), [filtered]);
   const queue = useMemo(() => getSmartWorkQueue(items), [items]);
   const notifications = useMemo(() => getActionNotifications(items), [items]);
-  const analytics = useMemo(() => getOperationalAnalytics(items), [items]);
-  const executive = useMemo(() => buildGuaranteeExecutiveView(items, generatedAt), [items, generatedAt]);
+
+
   const personalItems = useMemo(() => selectPersonalDepositItems(items as Array<DepositItem & { ownerId?: string; tlAssigneeId?: string | null }>, personalUserId), [items, personalUserId]);
   const personalQueue = useMemo(() => getSmartWorkQueue(personalItems, new Date(generatedAt)), [personalItems, generatedAt]);
   const personalFinance = useMemo(() => getSidebarFinancialMetrics(personalItems), [personalItems]);
@@ -117,10 +117,12 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   return <div className="deposit-workspace legacy-deposit-workspace">
     <header className="deposit-head legacy-deposit-head"><div><p className="eyebrow">{installationTeamView ? "เงินประกันอาคาร / งานทีมติดตั้ง" : "เงินประกันอาคาร / งานดำเนินการ"}</p><h1>{installationTeamView ? "งานที่ทีมติดตั้งต้องดำเนินการ" : "รายการขอคืนเงินประกันอาคาร"}</h1><p className="sub">{installationTeamView ? "แสดงเฉพาะงานค้างในขั้นตอนของทีมติดตั้ง" : `ข้อมูลทั้งหมด · ${exportYear || "ทุกปี"}`} · อัปเดตล่าสุด {lastUpdated ? lastUpdated.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }) : "—"}</p></div>
       <div className="legacy-head-actions"><button type="button" className={`executive-nav-button${view === "analytics" ? " active" : ""}`} aria-pressed={view === "analytics"} onClick={() => setWorkspaceView("analytics")}>วิเคราะห์ข้อมูล</button>
+        {view !== "analytics" && <>
         <select aria-label="เดือนสำหรับส่งออก" value={exportMonth} onChange={(event) => setExportMonth(event.target.value)}><option value="">ทุกเดือน</option>{["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."].map((month, index) => <option value={index} key={month}>{month}</option>)}</select>
         <select aria-label="ปีสำหรับส่งออก" value={exportYear} onChange={(event) => setExportYear(event.target.value)}><option value="">ทุกปี</option>{years.map((year) => <option value={year} key={year}>{year}</option>)}</select>
         <button type="button" className="deposit-export" onClick={exportCsv} disabled={!filtered.length}>⇩ Export CSV</button>
         {!installationTeamView && (createUnavailableReason ? <button className="primary" type="button" disabled title={createUnavailableReason}>＋ เพิ่มรายการใหม่</button> : <Link className="primary" href="/guarantees/new">＋ เพิ่มรายการใหม่</Link>)}
+        </>}
       </div></header>
     {installationTeamView && <div className="deposit-banner">มุมมองนี้แสดงเฉพาะงานสถานะ “รอทีมติดตั้งรับงาน”, “ทีมติดตั้งดำเนินการ” และ “รอดำเนินการ Off Service”</div>}
     {preview && <div className="deposit-banner">ข้อมูลตัวอย่างจาก workflow V2 · ไม่มีการบันทึก <Link href={installationTeamView ? "/guarantees?view=installation-team" : "/guarantees"}>กลับข้อมูลจริง</Link></div>}
@@ -194,17 +196,6 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
       </div>
     </section>}
     {view === "queue" && <div className="deposit-queue">{queue.map((entry) => <article key={entry.item.id || entry.item.id_firestore} className="deposit-queue-row"><span className={`deposit-priority priority-${entry.priority}`}>{entry.priority === "high" ? "เร่งด่วน" : entry.priority === "medium" ? "ติดตาม" : "ทั่วไป"}</span><div><TruncatedText text={entry.item.place || "ไม่ระบุอาคาร"} lines={2}/><TruncatedText text={`${workflowLabels[entry.workflowKey]} · ${entry.reasons.join(" · ")}`} lines={2}/></div><b className="deposit-money">{money(entry.outstandingAmount)}</b><Link href={`/guarantees/${entry.item.id}`}>เปิด →</Link></article>)}{!queue.length && <div className="deposit-empty">ไม่มีรายการที่ต้องติดตาม</div>}</div>}
-    {view === "analytics" && <div className="executive-dashboard">
-      <section className="executive-hero"><div><span>Total Project Valuation</span><strong><AnimatedNumber value={executive.totalInsurance} format={money}/></strong></div><div className="executive-rate"><strong><AnimatedNumber value={executive.successPct} format={(value) => `${value.toFixed(2)}%`}/></strong><span>Refund Success Rate</span></div></section>
-      <section className="executive-lifecycle"><article className="install"><h2>◈ การขอคืนเงินประกันติดตั้ง</h2><div><p><span>เงินประกันติดตั้ง</span><strong><AnimatedNumber value={executive.totalInstall} format={money}/></strong></p><p><span>ได้รับคืนแล้ว</span><strong><AnimatedNumber value={executive.installRefunded} format={money}/></strong></p><p><span>ยอดคงค้าง</span><strong><AnimatedNumber value={executive.installPending} format={money}/></strong><small>{executive.installPendingCount} งาน</small></p></div></article>
-        <article className="removal"><h2>◇ เงินประกันรื้อถอน</h2><div><p><span>ยอดทั้งหมด</span><strong><AnimatedNumber value={executive.totalDemo} format={money}/></strong></p><p><span>ได้คืนแล้ว</span><strong><AnimatedNumber value={executive.demoRefunded} format={money}/></strong></p><p><span>คงค้าง</span><strong><AnimatedNumber value={executive.demoPending} format={money}/></strong><small>{executive.demoPendingCount} งาน</small></p></div></article></section>
-      <section className="executive-card executive-pending"><header><h2><TruncatedText text="รายละเอียดยอดคงค้างประกันติดตั้งตามสถานะ" lines={2}/></h2><span><AnimatedNumber value={executive.installPendingCount}/> งาน</span></header>{executive.pendingByStatus.map((row) => <div key={row.key}><TruncatedText text={row.label} lines={2}/><span><AnimatedNumber value={row.count}/> งาน</span><b className="deposit-money"><AnimatedNumber value={row.amount} format={money}/></b></div>)}{!executive.pendingByStatus.length && <p className="deposit-empty">ไม่มียอดคงค้างประกันติดตั้ง</p>}</section>
-      <div className="executive-grid"><section className="executive-card"><h2>แนวโน้มกระแสเงินสดรายเดือน</h2><div className="monthly-chart" aria-label="แนวโน้มรายเดือน">{executive.months.map((month) => { const max = Math.max(...executive.months.map((entry) => entry.deposit), 1); return <div key={`${month.year}-${month.month}`} title={`${month.label}: ${money(month.deposit)}`}><i style={{ height: `${Math.max(3, month.deposit / max * 100)}%` }}/><span>{month.label}</span></div>; })}</div><div className="chart-legend"><span><i className="deposit-dot"/>เงินประกันอาคาร</span><span>ค่าธรรมเนียม/อื่น {money(executive.months.reduce((sum, month) => sum + month.fee, 0))}</span></div></section>
-        <section className="executive-card"><h2>สัดส่วนการจัดสรรงบประมาณ</h2><div className="allocation-chart" style={{ "--install-share": `${executive.totalInsurance ? executive.totalInstall / executive.totalInsurance * 100 : 0}%` } as CSSProperties}><div><strong>{executive.totalInsurance ? (executive.totalInstall / executive.totalInsurance * 100).toFixed(1) : "0"}%</strong><span>ประกันติดตั้ง</span></div></div><div className="allocation-legend"><p><i className="install-dot"/>ประกันติดตั้ง <strong>{money(executive.totalInstall)}</strong></p><p><i className="removal-dot"/>ประกันรื้อถอน <strong>{money(executive.totalDemo)}</strong></p></div></section>
-        <section className="executive-card executive-area"><h2><TruncatedText text="ยอดเงินประกันคงค้างแยกตามพื้นที่ (Area)" lines={2}/></h2><div>{executive.areas.map((area) => { const max = Math.max(...executive.areas.map((entry) => entry.amount), 1); return <p key={area.label}><TruncatedText text={area.label} lines={1}/><i><b style={{ width: `${area.amount / max * 100}%` }}/></i><strong className="deposit-money">{money(area.amount)}</strong></p>; })}</div></section>
-        <section className="executive-card executive-top"><header><h2><TruncatedText text="5 อันดับอาคารที่มียอดเงินประกันคงค้างสูงสุด" lines={2}/></h2><span>Action Required</span></header><div className="deposit-table-wrap"><table><thead><tr><th>ชื่ออาคาร / สถานที่</th><th>พื้นที่</th><th>เจ้าของงาน</th><th>ประกันติดตั้ง</th><th>ประกันรื้อถอน</th><th>ยอดคงค้างสุทธิ</th></tr></thead><tbody>{executive.topOutstanding.map(({ item, amount }) => <tr key={item.id || item.id_firestore}><td><TruncatedText text={item.place || "ไม่ระบุอาคาร"} lines={2}/><TruncatedText text={item.customer || "—"} lines={1}/></td><td><span className="area-badge"><TruncatedText text={item.area || "—"} lines={1}/></span></td><td><span className="owner-badge"><TruncatedText text={item.owner || "—"} lines={1}/></span></td><td>{money(parseMoney(item.deposit))}</td><td>{money(parseMoney(item.demolish))}</td><td><b className="deposit-money">{money(amount)}</b></td></tr>)}</tbody></table></div></section>
-      </div>
-      <footer className="executive-footnote">ข้อมูลตามสิทธิ์ที่ได้รับ · รายการที่ต้องติดตาม {notifications.length} · ความครอบคลุมวันครบกำหนด {analytics.accuracy.dueDateCoveragePct.toFixed(0)}%</footer>
-    </div>}
+    {view === "analytics" && <GuaranteeExecutiveDashboard items={items} generatedAt={generatedAt} truncated={truncated} ready={state === "ready"} preview={preview} />}
   </div>;
 }

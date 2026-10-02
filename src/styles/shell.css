@@ -329,6 +329,10 @@
     margin-left: 0;
   }
 
+  .workspace-shell .account-trigger .avatar-name {
+    display: none;
+  }
+
   .workspace-shell .workspace-search:focus-within {
     position: absolute;
     right: 14px;

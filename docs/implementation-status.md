@@ -127,3 +127,17 @@ Historical checkpoint date: 2026-09-04
 
 - Repository hardening: Implemented. CI, CSP/security headers, CSRF origin guard, redacted structured logging, health check and deployment/backup/restore/observability/incident/release runbooks are present.
 - Production approval: Not ready. Live RLS/concurrency/load/accessibility/browser testing, threat/privacy review, backup restore drill, monitoring ownership and deployment rehearsal remain mandatory.
+
+## Building deletion — 2026-10-03
+
+- เพิ่ม DELETE API และปุ่มยืนยันในหน้ารายละเอียดอาคาร จำกัดเฉพาะ platform_admin พร้อม read/update data scope ฝั่ง server, same-origin check, exact-name confirmation และ optimistic version check ภายใต้ row lock
+- ลบข้อมูลจาก PostgreSQL จริงพร้อม audit snapshot ใน transaction เดียว; ปฏิเสธเมื่อมี operational/financial/document dependencies
+- หลักฐาน: unit/API 140 tests ผ่าน; PostgreSQL integration 3 tests ผ่านโดย rollback fixtures ทั้งหมด; lint, typecheck และ production build ผ่าน ตรวจหน้าต่างยืนยันด้วย Chrome โดยไม่ลบอาคารผู้ใช้
+- ไม่เพิ่ม migration/environment; ไม่เปลี่ยนข้อมูลอาคารจริงระหว่างการตรวจ UI และไม่ได้ประกาศ production readiness
+
+## Guarantee executive analytics — 2026-10-03
+
+- แยกรายงานผู้บริหารเป็น GuaranteeExecutiveDashboard และ buildGuaranteeManagementReport ใช้สูตร refund/outstanding/On Service ชุดเดียวกับหน้ารายการ แสดง KPI, ประเด็นติดตาม, ความครอบคลุมวันครบกำหนด, ยอดตั้งเบิก 12 เดือน, สถานะ/พื้นที่ และ 5 รายการคงค้างสูงสุด
+- เพิ่มตัวกรองพื้นที่/เจ้าของงานที่ใช้กับทั้งรายงาน ตารางเดือนที่เข้าถึงด้วยคีย์บอร์ด ลิงก์รายละเอียด และรูปแบบพิมพ์ A4 landscape; ระบุขอบเขตสิทธิ์ ข้อจำกัด 500 รายการและความหมายของยอดตั้งเบิกอย่างชัดเจน
+- หลักฐาน: 143 unit tests ผ่าน (PostgreSQL deletion tests 3 เคสแยก opt-in ไม่ได้รันในงานรายงานนี้), document test 1 ผ่าน, lint/typecheck/production build ผ่าน ตรวจ Chrome ด้วย 51 รายการจริงและตัวกรอง BKK 4 ไม่มี console error/warning ใหม่ ตรวจขนาดเนื้อหารายงานมือถือ 343px ภายใน viewport 375px
+- การพิมพ์/PDF ใช้ print stylesheet; ยังไม่ได้ตรวจผล PDF ที่ผู้ใช้บันทึกจริง ไม่เปลี่ยนฐานข้อมูลหรือสิทธิ์เดิม

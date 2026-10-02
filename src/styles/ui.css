@@ -44,6 +44,7 @@
 .building-360-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .building-360 dl { display:grid; gap:10px; }
 .building-360 dl div { display:flex; justify-content:space-between; gap:16px; border-bottom:1px solid var(--color-border); padding-block:8px; }
+.building-360 dl dd { min-width:0; margin-left:0; overflow-wrap:anywhere; }
 @media(max-width:720px) { .permission-pagination { grid-template-columns:1fr 1fr; } .permission-pagination>span { grid-column:1/-1; grid-row:1; } .building-360-grid { grid-template-columns:1fr; } }
 @container (max-width: 520px) {
   .work-kpi-grid,.building-360-grid { grid-template-columns:1fr; }

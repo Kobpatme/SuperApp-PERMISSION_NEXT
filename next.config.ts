@@ -2,9 +2,11 @@ import type { NextConfig } from "next";
 
 const contentSecurityPolicy = [
   "default-src 'self'", "base-uri 'self'", "object-src 'none'", "frame-ancestors 'self'",
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
-  "style-src 'self' 'unsafe-inline'", "img-src 'self' data: blob: https://tile.openstreetmap.org https://server.arcgisonline.com https://services.arcgisonline.com",
-  "connect-src 'self'", "font-src 'self' data:", "form-action 'self'",
+  `script-src 'self' 'unsafe-inline' https://api.longdo.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+  "style-src 'self' 'unsafe-inline' https://longdo.com https://*.longdo.com",
+  "img-src 'self' data: blob: https://tile.openstreetmap.org https://server.arcgisonline.com https://services.arcgisonline.com https://longdo.com https://*.longdo.com",
+  "connect-src 'self' https://longdo.com https://*.longdo.com wss://*.longdo.com",
+  "font-src 'self' data: https://longdo.com https://*.longdo.com", "worker-src 'self' blob:", "form-action 'self'",
 ].join("; ");
 
 const nextConfig: NextConfig = {

@@ -32,7 +32,7 @@ function matchesBuildingQuery(text: string, query: string) {
   return query.split(/\s+/).filter(Boolean).every((token) => text.includes(token));
 }
 
-export function BuildingsWorkspace({ buildings, total, initialQuery = "", initialFilters = emptyFilters }: { buildings: PermissionBuildingRow[]; total: number; initialQuery?: string; initialFilters?: Filters }) {
+export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApiKey = "", initialQuery = "", initialFilters = emptyFilters }: { buildings: PermissionBuildingRow[]; total: number; canCreate?: boolean; mapApiKey?: string; initialQuery?: string; initialFilters?: Filters }) {
   const router = useRouter(), pathname = usePathname();
   const [query, setQuery] = useState(initialQuery);
   const [previousInitialQuery, setPreviousInitialQuery] = useState(initialQuery);
@@ -93,7 +93,7 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
       const params = new URLSearchParams();
       if (query.trim()) params.set("q", query.trim());
       (Object.keys(filters) as FilterKey[]).forEach(key => { if (filters[key]) params.set(key, filters[key]); });
-      router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
+      if (params.toString() !== window.location.search.slice(1)) router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
     }, 300);
     return () => window.clearTimeout(timer);
   }, [filters, pathname, query, router]);
@@ -162,16 +162,16 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
   function searchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown" && suggestions.length) { event.preventDefault(); setSuggestionIndex((current) => Math.min(current + 1, suggestions.length - 1)); }
     if (event.key === "ArrowUp" && suggestions.length) { event.preventDefault(); setSuggestionIndex((current) => Math.max(current - 1, 0)); }
-    if (event.key === "Enter" && suggestions.length) { event.preventDefault(); const item = suggestions[suggestionIndex >= 0 ? suggestionIndex : 0]; setQuery(item.nameTh); openBuilding(item); }
+    if (event.key === "Enter" && suggestionIndex >= 0 && suggestions[suggestionIndex]) { event.preventDefault(); const item = suggestions[suggestionIndex]; setQuery(item.nameTh); openBuilding(item); }
     if (event.key === "Escape") { setFocused(false); setSuggestionIndex(-1); searchRef.current?.blur(); }
   }
   function setFilter(key: FilterKey, value: string) { setFilters((current) => ({ ...current, [key]: value })); }
   function reset() { setQuery(""); setFilters(emptyFilters); setFocused(false); searchRef.current?.focus(); }
-  const mapUrl = selected?.lat !== null && selected?.lng !== null && selected ? `https://www.openstreetmap.org/?mlat=${selected.lat}&mlon=${selected.lng}#map=17/${selected.lat}/${selected.lng}` : null;
 
   return <section className="permission-workspace" aria-label="ข้อมูลอาคารและค่าใช้จ่าย">
     <header className="permission-toolbar">
-      <div className="permission-toolbar-title"><h1>อาคารและค่าใช้จ่าย</h1><span>ค้นหาและตรวจสอบข้อมูลอาคาร</span></div>
+      <div className="permission-toolbar-title"><h1>อาคารและค่าใช้จ่าย</h1></div>
+      <div className="permission-search-actions">
       <div className="permission-search" role="search">
         <span aria-hidden="true">⌕</span>
         <input ref={searchRef} value={query} onChange={(event) => { setQuery(event.target.value); setSuggestionIndex(-1); }} onFocus={() => setFocused(true)} onKeyDown={searchKeyDown}
@@ -183,6 +183,8 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
              <i className={`permission-status-dot ${statusClass(item.status)}`} /><span className="permission-autocomplete-copy"><TruncatedText text={item.nameTh} lines={1}/><TruncatedText text={[item.nameEn, item.area, item.status].filter(Boolean).join(" · ")} lines={1}/></span>
           </button>) : <p>ไม่พบอาคารที่ตรงกับคำค้นหา</p>}
         </div>}
+      </div>
+      {canCreate && <Link className="permission-create-building" href="/buildings/new">เพิ่มอาคาร</Link>}
       </div>
       <div className="permission-quick-status" aria-label="กรองตามสถานะอาคาร">
         {statuses.map((status) => <button type="button" key={status} className={filters.status === status ? "active" : ""} aria-pressed={filters.status === status}
@@ -216,24 +218,13 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
 
     <div className="permission-main">
       <div className="permission-map-area">
-        <BuildingMap buildings={visible} selectedId={selectedId} onOpenDetails={(id) => { const item = buildings.find((entry) => entry.id === id); if (item) openBuilding(item); }} />
+        <BuildingMap buildings={visible} selectedId={selectedId} apiKey={mapApiKey} onOpenDetails={(id) => { const item = buildings.find((entry) => entry.id === id); if (item) openBuilding(item); }} />
         {visible.length === 0 && <div className="permission-map-empty" role="status"><strong>ไม่พบอาคารที่ตรงกับเงื่อนไข</strong><span>ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง</span><button type="button" onClick={reset}>ล้างการค้นหาและตัวกรอง</button></div>}
       </div>
-      <aside className="permission-list" aria-label="รายการอาคารที่ค้นพบ">
-        <header className="permission-list-head"><div><small>ผลการค้นหา</small><h2>รายการอาคาร</h2></div><span>{number(visible.length)} รายการ</span></header>
-        <div className="permission-list-scroll" role="listbox" aria-label="เลือกอาคารเพื่อดูรายละเอียด">
-          {visible.length ? visible.map((item) => <button type="button" role="option" aria-selected={selectedId === item.id} key={item.id}
-            className={`permission-list-item${selectedId === item.id ? " selected" : ""}`} onClick={() => openBuilding(item)}>
-            <strong><TruncatedText text={item.nameTh || item.code} lines={2}/></strong>
-            <small><TruncatedText text={[item.nameEn, item.area, item.province].filter(Boolean).join(" · ") || "ไม่มีข้อมูลพื้นที่"} lines={1}/></small>
-            <span className="permission-list-tags"><em className={statusClass(item.status)}>{statusLabel(item.status)}</em>{item.group && <em>{item.group}</em>}</span>
-          </button>) : <div className="permission-empty"><strong>ไม่พบอาคาร</strong><span>ลองแก้คำค้นหาหรือตัวกรองเพื่อดูรายการ</span><button type="button" onClick={reset}>ล้างตัวกรอง</button></div>}
-        </div>
-      </aside>
     </div>
 
     <dialog ref={dialogRef} className="permission-drawer" aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onClose={() => setSelectedId(null)}>
-       {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2><TruncatedText text={selected.nameTh} lines={2}/></h2><TruncatedText className="permission-drawer-name-en" text={selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"} lines={2}/><div className="permission-list-tags">{[selected.group, selected.surveyType, selected.type, selected.installType].filter(Boolean).map((tag) => <em key={tag}><TruncatedText text={tag as string} lines={1}/></em>)}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>เปิด Building 360</Link></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
+       {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2><TruncatedText text={selected.nameTh} lines={2}/></h2><TruncatedText className="permission-drawer-name-en" text={selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"} lines={2}/><div className="permission-list-tags">{[selected.group, selected.surveyType, selected.type, selected.installType].filter(Boolean).map((tag) => <em key={tag}><TruncatedText text={tag as string} lines={1}/></em>)}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>แก้ไขข้อมูลอาคาร / รายละเอียด</Link></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
          <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><strong className={statusClass(selected.status)}><TruncatedText text={selected.status || "—"} lines={1}/></strong></div><div><span>พื้นที่ / จังหวัด</span><TruncatedText text={[selected.area, selected.province].filter(Boolean).join(" · ") || "—"} lines={2}/></div><div><span>ข้อมูลล่าสุด</span><TruncatedText text={selected.updateDate || "ไม่ระบุวันที่"} lines={1}/></div></div>
         {(!selected.wmPoint || selected.feeReviewRequired || invalidDuration || invalidHorizontal) && <div className="permission-drawer-alert" role="status"><strong>ข้อมูลที่ควรตรวจสอบ</strong>{!selected.wmPoint && <span>ยังไม่มีข้อมูลจุดเชื่อมต่อ WM</span>}{invalidDuration && <span>ระยะดำเนินการไม่ใช่จำนวนวัน</span>}{invalidHorizontal && <span>ระยะสายแนวนอนไม่ใช่จำนวนเมตร</span>}{selected.feeReviewRequired && <span>ค่าใช้จ่ายจาก CSV รอตรวจสอบ</span>}</div>}
         <div className="permission-drawer-tabs" role="tablist" aria-label="รายละเอียดอาคาร">
@@ -264,7 +255,7 @@ export function BuildingsWorkspace({ buildings, total, initialQuery = "", initia
                (["dwg", "pdf", "image"] as const).map((category) => { const files = documentState.files.filter((file) => file.category === category); return files.length ? <section key={category} className="permission-doc-group"><h4>{categoryLabels[category]} <span>{files.length}</span></h4>{files.map((file, index) => <div key={`${file.name}-${index}`} className="permission-doc-row"><span className="permission-doc-ext">{file.extension.toUpperCase()}</span><div><TruncatedText className="text-safe" text={file.name} lines={2}/><small>{formatBytes(file.size)} · {formatDate(file.modifiedAt)}</small></div><a href={file.href} download={file.name}>ดาวน์โหลด</a></div>)}</section> : null; })}
           </>}
         </div>
-        <div className="permission-drawer-actions"><span>ข้อมูลจาก PostgreSQL กลาง · อ่านอย่างเดียว</span><div>{mapUrl && <a href={mapUrl} target="_blank" rel="noopener noreferrer">เปิดในแผนที่</a>}<button type="button" onClick={() => dialogRef.current?.close()}>ปิด</button></div></div>
+        <div className="permission-drawer-actions"><span>ข้อมูลจาก PostgreSQL กลาง · อ่านอย่างเดียว</span><div><button type="button" onClick={() => dialogRef.current?.close()}>ปิด</button></div></div>
       </>}
     </dialog>
   </section>;

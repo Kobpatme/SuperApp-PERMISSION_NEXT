@@ -1,12 +1,40 @@
 import {
+  getInstallationDepositMetrics, getRemovalDepositMetrics, getSidebarFinancialMetrics, getNonRefundableCostMetrics, getOperationalAnalytics, isCancelled,
   getWorkflowStatusKey,
   parseDateValue,
   parseMoney,
   workflowLabels,
   type DepositItem,
 } from "@/lib/deposit-v2-domain";
+import Decimal from "decimal.js";
 
 const normalized = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("th-TH");
+
+/** Executive presentation uses the same refund and On Service rules as the register. */
+export function buildGuaranteeManagementReport(items: DepositItem[], generatedAt: string) {
+  const installation = getInstallationDepositMetrics(items), removal = getRemovalDepositMetrics(items);
+  const finance = getSidebarFinancialMetrics(items), costs = getNonRefundableCostMetrics(items);
+  const operational = getOperationalAnalytics(items, new Date(generatedAt));
+  const active = items.filter((item) => !isCancelled(item));
+  const total = new Decimal(installation.totalAmount).plus(removal.totalAmount).toNumber();
+  const refunded = new Decimal(installation.refundedAmount).plus(removal.refundedAmount).toNumber();
+  const outstanding = active.map((item) => ({ item, amount: getSidebarFinancialMetrics([item]).totalOutstandingAmount })).filter((row) => row.amount > 0);
+  function groupBy(field: "area" | "status") {
+    const groups = new Map<string, DepositItem[]>();
+    for (const row of outstanding) {
+      const key = field === "area" ? row.item.area?.trim() || "ไม่ระบุพื้นที่" : getWorkflowStatusKey(row.item);
+      groups.set(key, [...(groups.get(key) ?? []), row.item]);
+    }
+    return [...groups].map(([key, rows]) => ({ key, label: field === "status" ? workflowLabels[key] || "รอตรวจสอบสถานะ" : key,
+      count: rows.length, amount: getSidebarFinancialMetrics(rows).totalOutstandingAmount })).sort((a, b) => b.amount - a.amount);
+  }
+  return { installation, removal, finance, costs, operational, total, refunded,
+    refundPct: total ? new Decimal(refunded).div(total).times(100).toNumber() : null,
+    outstandingCount: outstanding.length, excludedCount: items.length - active.length,
+    areas: groupBy("area"), statuses: groupBy("status"),
+    topOutstanding: [...outstanding].sort((a, b) => b.amount - a.amount).slice(0, 5),
+    months: buildGuaranteeExecutiveView(active, generatedAt).months };
+}
 
 export function buildGuaranteeExecutiveView(items: DepositItem[], generatedAt: string) {
   const reference = new Date(generatedAt);
