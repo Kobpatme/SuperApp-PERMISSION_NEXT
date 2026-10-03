@@ -14,4 +14,10 @@ _discovery_sources/
 test-results/
 playwright-report/
 
+# Intermediate UX diagnosis captures stay local; final checkpoint evidence is tracked.
+docs/quality/ux-login-evidence/cp5-*
+!docs/quality/ux-login-evidence/cp5-release-*
+!docs/quality/ux-login-evidence/cp5-final-security-gates.json
+docs/quality/ux-login-evidence/cp5-release-*.log
+
 # Legacy workflow references are kept under _discovery_sources/.

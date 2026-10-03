@@ -191,3 +191,8 @@ CP3 remote CI verified: run37127367637 at923ba38 completed success; GitHub job s
 
 ## UX login CP4 — 2026-10-03
 Full gate exit0; CSS181files0; browser18passed2.1m; reduced animations0, normal transform/opacity≤200ms, pending73.3/57.3ms, settled-windowCLS0. Fixed initially failing opener focus and reduced backdrop tests before rerun. Screenshots48+staff matrices0overflow/runtime errors; reports in docs/quality/ux-login-checkpoints.md. CP5 not yet verified.
+
+CP4 remoteCI verified:37128298589 at7ea4720 completed success, includingCSS/contrast/unit/documents/build/audit.
+
+## UX login CP5 — local verification 2026-10-03
+Full gate cp5-final-security exit0:unit169passed/3skip(44filespass/1skip),documents1,build/audit0. CSS182files0;contrast58pairs0;copyA0/total0. Localbrowser36passed3.4m;security6realPostgresflows,admin/error/authaxe,ordinaryreadrole/longThai/empty/drawer matrix320–1440. Fonts90,888bytes0external;pending78.5/62.8ms,settledWindowCLS0,reducedanimations0. Allfinalscreenshots0overflow/runtimeerrors. Serverbootwarningverifiedwithproxy0. CP5 initial CI37131654116 failed29passed/7failed because no-database build prerendered change-password as a static redirect. Fixed force-dynamic in ee8d49c; reproduced no-database build and focused13auth/security tests passed. RemoteCI37132528028 at ee8d49c verified success on all steps, browser36passed2.2m, unit169passed/3skip, CSS182files0, contrast58pairs0, audit0. JEV continue at2026-10-03T15:19:46Z returned continue confidence.70/verify_before_commit, advisory only. Detailed§9reportsandpaths:docs/quality/ux-login-checkpoints.md;operations:docs/operations/ux-login.md. No productiondeploy/data writes or permissionmatrix changes.

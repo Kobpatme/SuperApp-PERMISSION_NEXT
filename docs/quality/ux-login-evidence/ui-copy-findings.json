@@ -1,11 +1,4 @@
 {
   "scope": "JSX text and display attributes; dynamic state additionally checked through e2e; admin technical codes allowed; development-only legacy excluded",
-  "findings": [
-    {
-      "file": "src\\features\\buildings\\delete-building.tsx",
-      "line": 46,
-      "category": "B_admin_delete_confirmation",
-      "text": "การลบจะนำอาคารและข้อมูลเฉพาะอาคารออกจากฐานข้อมูลอย่างถาวร ไม่สามารถย้อนกลับจากหน้านี้ได้ ระบบจะเก็บประวัติการลบไว้สำหรับตรวจสอบ"
-    }
-  ]
+  "findings": []
 }
