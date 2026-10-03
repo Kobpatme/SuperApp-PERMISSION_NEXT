@@ -19,11 +19,13 @@ function category(selector,file){
 function rgb(color){if(color.startsWith('#')){let h=color.slice(1);if(h.length<=4)h=[...h].map(x=>x+x).join('');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16),h.length===8?parseInt(h.slice(6,8),16)/255:1];}return color.match(/[\d.]+/g).map(Number);}
 function semantic(color,prop,selector){const [r,g,b,a=1]=rgb(color);const max=Math.max(r,g,b),min=Math.min(r,g,b),light=(max+min)/510,saturation=max===min?0:(max-min)/(255-Math.abs(max+min-255));const background=/background/.test(prop),border=/border|outline/.test(prop),dark=selector.includes('data-theme="dark"');
  if(/shadow/.test(prop))return 'var(--color-shadow-ink)';
+ if(prop==='color'&&min>235)return dark?'var(--color-text)':'var(--color-on-brand)';
  if(a<.85){if(saturation<.22&&light<.4)return 'var(--color-overlay)';if(light>.85)return 'var(--color-highlight)';}
  if(saturation<.22){if(background)return `var(--color-${dark?'surface':light>.95?'surface':light>.84?'surface-subtle':'bg'})`;if(border)return `var(--color-${light<.5?'border-strong':'border'})`;return `var(--color-${dark?light>.85?'text':'text-muted':light<.28?'text':'text-muted'})`;}
  let hue=max===min?0:max===r?60*((g-b)/(max-min)%6):max===g?60*((b-r)/(max-min)+2):60*((r-g)/(max-min)+4);if(hue<0)hue+=360;
  const role=hue<20||hue>335?'danger':hue<80?'warning':hue<180?'success':hue<240?'info':'brand';
- return `var(--color-${role}${background||light>.88||a<.35?'-soft':''})`;
+ const soft=light>.88||a<.35||(background&&/badge|status|pill|banner|alert|notice|hint|health|state|tag/.test(selector));
+ return `var(--color-${role}${soft?'-soft':''})`;
 }
 let count=0;
 for(const file of files){const ast=postcss.parse(fs.readFileSync(file,'utf8'));ast.walkDecls(d=>{const selector=d.parent.selector||'';if(category(selector,file)!==group)return;

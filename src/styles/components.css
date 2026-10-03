@@ -136,21 +136,21 @@ body {
 .deposit-head h1,
 .deposit-detail-head h1 {
   margin: 4px 0 6px;
-  color: var(--app-text);
+  color: var(--color-text);
   font-size: clamp(24px, 2vw, 30px);
   font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -.02em;
+  line-height: 1.35;
+  letter-spacing: normal;
 }
 .page-heading .sub,
 .deposit-head .sub,
 .deposit-detail-head .sub,
-.native-module-header p:not(.eyebrow) { color: var(--app-muted); font-size: 14px; }
+.native-module-header p:not(.eyebrow) { color: var(--color-text-muted); font-size: 14px; }
 .eyebrow,
-.dashboard-eyebrow { color: var(--color-brand); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.dashboard-eyebrow { color: var(--color-brand); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .section-heading-row h2,
 .workspace-guide h2,
-.source-readiness h2 { font-size: 22px; line-height: 1.3; }
+.source-readiness h2 { font-size: 22px; line-height: 1.35; }
 .primary,
 .button,
 .secondary-action,
@@ -204,9 +204,9 @@ body {
 .deposit-analytics > div,
 .deposit-queue-row,
 .deposit-table-wrap {
-  border: 1px solid var(--app-line);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: var(--app-surface);
+  background: var(--color-surface);
   box-shadow: var(--shadow-xs);
 }
 .metric,
@@ -219,18 +219,18 @@ body {
 .module-directory > a { transition: transform var(--motion-base) var(--ease-out), box-shadow var(--motion-base) var(--ease-out), border-color var(--motion-base) var(--ease-out); }
 .metric:hover,
 .card:hover,
-.module-directory > a:hover { border-color: var(--app-line); box-shadow: var(--shadow-sm); transform: none; }
+.module-directory > a:hover { border-color: var(--color-border); box-shadow: var(--shadow-sm); transform: none; }
 .metric-icon,
 .module-mark,
 .empty-icon,
 .queue-empty > svg,
 .access-denied-mark,
 .owner-dot { border-radius: 8px; background: var(--color-brand-soft); color: var(--color-brand); }
-.workspace-health { background: var(--app-surface); }
+.workspace-health { background: var(--color-surface); }
 .health-icon { border-radius: 8px; background: var(--color-success-soft); color: var(--color-success); }
-.attention-strip { overflow: hidden; border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-surface); box-shadow: var(--shadow-xs); }
-.attention-item { border-color: var(--app-line); background: var(--app-surface); }
-.attention-item:hover { background: var(--app-surface-soft); }
+.attention-strip { overflow: hidden; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: var(--shadow-xs); }
+.attention-item { border-color: var(--color-border); background: var(--color-surface); }
+.attention-item:hover { background: var(--color-surface-subtle); }
 .attention-item.active { background: var(--color-brand-soft); box-shadow: inset 0 -3px var(--color-brand); }
 .attention-item.active strong { color: var(--color-brand); }
 .queue-section { border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-surface); box-shadow: var(--shadow-xs); }
@@ -265,7 +265,7 @@ body {
 .selection-cell input { width: 20px; height: 20px; accent-color: var(--app-text); }
 .status-badge.neutral { background: var(--color-surface-subtle); color: var(--color-text-muted); }
 .status-badge.urgent { background: color-mix(in srgb, var(--color-danger) 12%, var(--app-surface)); color: var(--color-danger); }
-.status-badge.attention { background: color-mix(in srgb, var(--color-warning) 14%, var(--app-surface)); color: var(--color-warning); }
+.status-badge.attention { background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface)); color: var(--color-warning); }
 .pagination .secondary-action { min-height: 36px; }
 .deposit-kpis { gap: 16px; }
 .deposit-kpis > div { padding: 18px; }
@@ -310,10 +310,10 @@ body {
 .next-step > div,
 .next-step > div > .truncated-text-wrap { min-width: 0; }
 .module-directory-copy > .truncated-text-wrap:first-child { font-size: 14px; font-weight: 700; }
-.module-directory-copy > .truncated-text-wrap:last-child { color: var(--app-muted); font-size: 11px; }
+.module-directory-copy > .truncated-text-wrap:last-child { color: var(--color-text-muted); font-size: 12px; }
 .source-readiness-copy { display: grid; gap: 2px; }
-.source-readiness-copy > .truncated-text-wrap:first-child { font-size: 11px; font-weight: 700; }
-.source-readiness-copy > .truncated-text-wrap:last-child { color: var(--app-muted); font-size: 9px; }
+.source-readiness-copy > .truncated-text-wrap:first-child { font-size: 12px; font-weight: 700; }
+.source-readiness-copy > .truncated-text-wrap:last-child { color: var(--color-text-muted); font-size: 12px; }
 .detail-section > .truncated-text-wrap,
 .next-step > div > .truncated-text-wrap { color: var(--app-muted); font-size: 12px; line-height: 1.65; }
 .next-step > div { flex: 1; }
@@ -321,7 +321,7 @@ body {
 .permission-drawer-head h2,
 .permission-list-head h2 { font-family: var(--font-ui); }
 .html[data-theme="dark"] :where(.workspace-table th, .deposit-table th) { background: var(--app-surface-soft); }
-html[data-theme="dark"] .workspace-health { background: var(--app-surface); border-color: var(--app-line); }
+html[data-theme="dark"] .workspace-health { background: var(--color-surface); border-color: var(--color-border); }
 html[data-theme="dark"] .health-modules span { background: var(--app-surface-soft); }
 
 
