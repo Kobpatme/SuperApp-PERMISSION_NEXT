@@ -17,35 +17,35 @@
 .deposit-tabs button.active { border-color: var(--app-brand); color: var(--app-brand); }
 .deposit-toolbar { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; }
 .deposit-search { flex: 1 1 440px; max-width: 560px; }
-.deposit-search input, .deposit-filter select, .deposit-form input, .deposit-form select, .deposit-transition textarea { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--app-line); border-radius: 10px; background: var(--app-surface); color: var(--app-text); }
-.deposit-filter { display: flex; align-items: center; gap: 8px; white-space: nowrap; color: var(--app-muted); font-weight: 700; }
+.deposit-search input, .deposit-filter select, .deposit-form input, .deposit-form select, .deposit-transition textarea { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); color: var(--color-text); }
+.deposit-filter { display: flex; align-items: center; gap: 8px; white-space: nowrap; color: var(--color-text-muted); font-weight: 700; }
 .deposit-filter select { min-width: 190px; }
 .deposit-count { margin-left: auto; color: var(--app-muted); white-space: nowrap; }
 .deposit-export { min-height: 42px; padding: 8px 12px; border: 1px solid var(--app-line); border-radius: 10px; background: var(--app-surface); color: var(--app-text); font-weight: 700; white-space: nowrap; }
 .deposit-export:disabled { opacity: .5; cursor: not-allowed; }
-.deposit-table-wrap { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--app-line); border-radius: 15px; background: var(--app-surface); }
+.deposit-table-wrap { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--color-border); border-radius: 15px; background: var(--color-surface); }
 .deposit-table { width: 100%; border-collapse: collapse; min-width: 970px; }
-.deposit-table th { padding: 14px 16px; border-bottom: 1px solid var(--app-line); background: var(--app-surface-soft); color: var(--app-muted); font-size: 12px; text-align: left; white-space: nowrap; }
-.deposit-table td { padding: 14px 16px; border-bottom: 1px solid var(--app-line); font-size: 13px; white-space: nowrap; }
+.deposit-table th { padding: 14px 16px; border-bottom: 1px solid var(--color-border); background: var(--color-surface-subtle); color: var(--color-text-muted); font-size: 12px; text-align: left; white-space: nowrap; }
+.deposit-table td { padding: 14px 16px; border-bottom: 1px solid var(--color-border); font-size: 13px; white-space: nowrap; }
 .deposit-table tr:last-child td { border-bottom: 0; }
-.deposit-table tbody tr:hover { background: var(--app-surface-soft); }
+.deposit-table tbody tr:hover { background: var(--color-surface-subtle); }
 .deposit-table td:first-child { min-width: 230px; white-space: normal; }
 .deposit-table td strong, .deposit-table td small { display: block; }
-.deposit-table td small { margin-top: 2px; color: var(--app-muted); }
-.deposit-table td:last-child a, .deposit-link, .deposit-queue-row a { border: 0; background: transparent; color: var(--app-brand); font-weight: 700; white-space: nowrap; }
+.deposit-table td small { margin-top: 2px; color: var(--color-text-muted); }
+.deposit-table td:last-child a, .deposit-link, .deposit-queue-row a { border: 0; background: transparent; color: var(--color-brand); font-weight: 700; white-space: nowrap; }
 .deposit-money { font-weight: 800; font-variant-numeric: tabular-nums; }
-.deposit-status, .deposit-priority { display: inline-flex; padding: 4px 9px; border-radius: 999px; background: var(--app-brand-soft); color: var(--app-brand); font-size: 11px; font-weight: 800; }
+.deposit-status, .deposit-priority { display: inline-flex; padding: 4px 9px; border-radius: 999px; background: var(--color-brand-soft); color: var(--color-brand); font-size: 12px; font-weight: 800; }
 .deposit-status.status-done, .deposit-status.status-on_service { background: var(--bounce-teal-soft); color: var(--bounce-teal); }
-.deposit-status.status-cancel { background: var(--app-surface-soft); color: var(--app-muted); }
-.deposit-status.status-off_service_pending, .deposit-priority.priority-high { background: color-mix(in srgb, var(--app-warning) 18%, var(--app-surface)); color: var(--app-warning); }
+.deposit-status.status-cancel { background: var(--color-surface-subtle); color: var(--color-text-muted); }
+.deposit-status.status-off_service_pending, .deposit-priority.priority-high { background: color-mix(in srgb, var(--color-warning) 18%, var(--color-surface)); color: var(--color-warning); }
 .deposit-priority.priority-medium { background: var(--app-brand-soft); color: var(--app-brand); }
 .deposit-priority.priority-low { background: var(--app-surface-soft); color: var(--app-muted); }
 .deposit-empty { padding: 64px 20px; color: var(--app-muted); text-align: center; }
 .deposit-queue { display: grid; gap: 8px; }
-.deposit-queue-row { display: flex; align-items: center; gap: 18px; min-height: 76px; padding: 14px 18px; border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-surface); }
+.deposit-queue-row { display: flex; align-items: center; gap: 18px; min-height: 76px; padding: 14px 18px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
 .deposit-queue-row > div { flex: 1; min-width: 0; }
 .deposit-queue-row strong, .deposit-queue-row small { display: block; }
-.deposit-queue-row small { overflow: hidden; margin-top: 3px; color: var(--app-muted); text-overflow: ellipsis; white-space: nowrap; }
+.deposit-queue-row small { overflow: hidden; margin-top: 3px; color: var(--color-text-muted); text-overflow: ellipsis; white-space: nowrap; }
 .deposit-queue-row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .deposit-analytics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .deposit-analytics > div { padding: 20px; border: 1px solid var(--app-line); border-radius: 15px; background: var(--app-surface); }
@@ -113,7 +113,7 @@
 .legacy-deposit-head { align-items:center; padding-bottom:18px; border-bottom:1px solid var(--app-line); }
 .legacy-deposit-head h1 { font-size:clamp(24px,2vw,32px); }
 .legacy-head-actions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
-.legacy-head-actions select,.legacy-filter-bar select { min-height:40px; padding:8px 34px 8px 11px; border:1px solid var(--app-line); border-radius:9px; background:var(--app-surface); color:var(--app-text); font-weight:650; }
+.legacy-head-actions select,.legacy-filter-bar select { min-height:40px; padding:8px 34px 8px 11px; border:1px solid var(--color-border); border-radius:9px; background:var(--color-surface); color:var(--color-text); font-weight:650; }
 .executive-nav-button { min-height:40px; padding:8px 13px; border:1px solid var(--app-line); border-radius:9px; background:var(--app-surface); color:var(--app-muted); font:inherit; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; }
 .executive-nav-button:hover { color:var(--app-text); background:var(--app-surface-soft); }
 .executive-nav-button.active { border-color:color-mix(in srgb,var(--app-brand) 55%,var(--app-line)); background:var(--app-brand-soft); color:var(--app-brand); }
@@ -129,20 +129,20 @@
 .legacy-kpis span,.legacy-kpis small { display:block; color:var(--app-muted); font-size:11px; font-weight:700; }
 .legacy-kpis strong { display:block; overflow:hidden; margin:8px 0 3px; color:var(--app-text); font-size:clamp(18px,1.45vw,24px); font-variant-numeric:tabular-nums; text-overflow:ellipsis; white-space:nowrap; }
 .legacy-kpis .tone-blue { color:var(--deposit-blue); }.legacy-kpis .tone-orange { color:var(--deposit-orange); }.legacy-kpis .tone-green { color:var(--deposit-green); }.legacy-kpis .tone-violet { color:var(--deposit-violet); }.legacy-kpis .tone-red { color:var(--deposit-red); }
-.legacy-filter-bar { display:flex; align-items:center; gap:8px; margin-bottom:12px; padding:12px; border:1px solid var(--app-line); border-radius:11px; background:var(--app-surface); }
+.legacy-filter-bar { display:flex; align-items:center; gap:8px; margin-bottom:12px; padding:12px; border:1px solid var(--color-border); border-radius:11px; background:var(--color-surface); }
 .legacy-filter-bar .deposit-search { max-width:none; }
 .legacy-filter-bar select { flex:0 1 190px; min-width:145px; }
 .legacy-clear { min-height:40px; padding:7px 11px; border:0; background:transparent; color:var(--app-warning); font-weight:750; white-space:nowrap; }
-.legacy-table-card { overflow:hidden; border:1px solid var(--app-line); border-radius:12px; background:var(--app-surface); }
-.legacy-table-card>header { display:flex; align-items:center; justify-content:space-between; padding:13px 15px; border-bottom:1px solid var(--app-line); }
-.legacy-table-card>header span { color:var(--app-muted); font-size:12px; }
+.legacy-table-card { overflow:hidden; border:1px solid var(--color-border); border-radius:12px; background:var(--color-surface); }
+.legacy-table-card>header { display:flex; align-items:center; justify-content:space-between; padding:13px 15px; border-bottom:1px solid var(--color-border); }
+.legacy-table-card>header span { color:var(--color-text-muted); font-size:12px; }
 .legacy-table-card .deposit-table-wrap { border:0; border-radius:0; }
 .legacy-deposit-table { min-width:1480px; }
-.legacy-deposit-table th { padding:11px 12px; font-size:10px; letter-spacing:.02em; text-transform:uppercase; }
+.legacy-deposit-table th { padding:11px 12px; font-size:12px; letter-spacing:.02em; text-transform:uppercase; }
 .legacy-deposit-table th button { padding:0; border:0; background:transparent; color:inherit; font:inherit; }
 .legacy-deposit-table td { padding:11px 12px; font-size:12px; }
 .legacy-deposit-table tbody tr { cursor:pointer; }
-.legacy-deposit-table tbody tr:focus-visible { outline:3px solid var(--app-brand); outline-offset:-3px; }
+.legacy-deposit-table tbody tr:focus-visible { outline:3px solid var(--color-brand); outline-offset:-3px; }
 .legacy-deposit-table td:first-child { min-width:145px; white-space:normal; }
 .deposit-table td .truncated-text-wrap,
 .deposit-queue-row > div { min-width:0; }
@@ -156,7 +156,7 @@
 .deposit-queue-row .deposit-money { white-space:nowrap; font-variant-numeric:tabular-nums; }
 .legacy-deposit-table td:nth-child(4) { min-width:240px; white-space:normal; }
 .copy-cid { padding:0; border:0; background:transparent; color:var(--app-brand); font-size:11px; text-decoration:underline; cursor:copy; }
-.owner-badge,.area-badge { display:inline-flex; padding:3px 7px; border-radius:999px; background:color-mix(in srgb,var(--deposit-violet) 12%,var(--app-surface)); color:var(--deposit-violet); font-size:10px; font-weight:800; }
+.owner-badge,.area-badge { display:inline-flex; padding:3px 7px; border-radius:999px; background:color-mix(in srgb,var(--color-info) 12%,var(--color-surface)); color:var(--color-info); font-size:12px; font-weight:800; }
 .area-badge { background:color-mix(in srgb,var(--deposit-orange) 12%,var(--app-surface)); color:var(--deposit-orange); }
 .legacy-pagination { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 15px; border-top:1px solid var(--app-line); color:var(--app-muted); font-size:12px; }
 .legacy-pagination>div { display:flex; align-items:center; gap:10px; }.legacy-pagination button { min-height:34px; padding:5px 10px; border:1px solid var(--app-line); border-radius:8px; background:var(--app-surface); color:var(--app-text); font-weight:700; }.legacy-pagination button:disabled { opacity:.4; }
@@ -185,13 +185,13 @@
 .deposit-personal-dashboard { display:grid; gap:16px; padding:18px 0; }
 .deposit-personal-dashboard>header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .deposit-personal-dashboard>header h2 { margin:0; font-size:20px; }
-.deposit-personal-dashboard>header p { margin:5px 0 0; color:var(--app-muted); font-size:13px; }
-.deposit-personal-dashboard>header>a { min-height:40px; padding:10px 14px; border:1px solid var(--app-line); border-radius:8px; color:var(--app-text); text-decoration:none; }
+.deposit-personal-dashboard>header p { margin:5px 0 0; color:var(--color-text-muted); font-size:13px; }
+.deposit-personal-dashboard>header>a { min-height:40px; padding:10px 14px; border:1px solid var(--color-border); border-radius:8px; color:var(--color-text); text-decoration:none; }
 .deposit-personal-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
-.deposit-personal-metrics article { display:grid; gap:6px; min-width:0; padding:15px; border:1px solid var(--app-line); border-radius:10px; background:var(--app-surface); }
-.deposit-personal-metrics article>span { color:var(--app-muted); font-size:13px; }
+.deposit-personal-metrics article { display:grid; gap:6px; min-width:0; padding:15px; border:1px solid var(--color-border); border-radius:10px; background:var(--color-surface); }
+.deposit-personal-metrics article>span { color:var(--color-text-muted); font-size:13px; }
 .deposit-personal-metrics article>strong { font-size:24px; font-variant-numeric:tabular-nums; }
-.deposit-personal-metrics article>small { color:var(--app-muted); font-size:12px; line-height:1.45; }
+.deposit-personal-metrics article>small { color:var(--color-text-muted); font-size:12px; line-height:1.6; }
 .deposit-personal-metrics article.financial { grid-column:span 2; }
 .deposit-personal-columns { display:grid; grid-template-columns:1.2fr 1fr; gap:14px; }
 .deposit-personal-list { min-width:0; padding:16px; border:1px solid var(--app-line); border-radius:10px; background:var(--app-surface); }
@@ -209,8 +209,8 @@
 .deposit-on-service>header p { margin:5px 0 0; color:var(--app-muted); font-size:13px; }
 .deposit-on-service>header button { min-height:40px; padding:9px 13px; border:1px solid var(--app-line); border-radius:8px; background:var(--app-surface); color:var(--app-text); font:inherit; cursor:pointer; }
 .deposit-on-service-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
-.deposit-on-service-metrics article { display:grid; gap:6px; padding:15px; border:1px solid var(--app-line); border-radius:10px; background:var(--app-surface); }
-.deposit-on-service-metrics article span,.deposit-on-service-metrics article small { color:var(--app-muted); font-size:12px; }
+.deposit-on-service-metrics article { display:grid; gap:6px; padding:15px; border:1px solid var(--color-border); border-radius:10px; background:var(--color-surface); }
+.deposit-on-service-metrics article span,.deposit-on-service-metrics article small { color:var(--color-text-muted); font-size:12px; }
 .deposit-on-service-metrics article strong { font-size:22px; font-variant-numeric:tabular-nums; }
 .deposit-on-service-list { min-width:0; border:1px solid var(--app-line); border-radius:10px; background:var(--app-surface); }
 .deposit-on-service-list-head { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--app-line); }

@@ -189,7 +189,7 @@ body {
 .foundation-state,
 .preview-caption,
 .deposit-status,
-.deposit-priority { border-radius: var(--radius-md); font-size: 11px; font-weight: 600; }
+.deposit-priority { border-radius: var(--radius-md); font-size: 12px; font-weight: 600; }
 .filter-count,
 .module-tab-count,
 .badge { border-radius: var(--radius-md); background: var(--color-brand-soft); color: var(--color-brand); }
@@ -233,7 +233,7 @@ body {
 .attention-item:hover { background: var(--color-surface-subtle); }
 .attention-item.active { background: var(--color-brand-soft); box-shadow: inset 0 -3px var(--color-brand); }
 .attention-item.active strong { color: var(--color-brand); }
-.queue-section { border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-surface); box-shadow: var(--shadow-xs); }
+.queue-section { border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); box-shadow: var(--shadow-xs); }
 .queue-filters,
 .queue-notice,
 .batch-toolbar,
@@ -241,12 +241,12 @@ body {
 .environment-banner,
 .deposit-banner { border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface-subtle); }
 .workspace-table th,
-.deposit-table th { background: var(--app-surface-soft); color: var(--app-muted); font-size: 12px; font-weight: 600; }
+.deposit-table th { background: var(--color-surface-subtle); color: var(--color-text-muted); font-size: 12px; font-weight: 600; }
 .workspace-table tbody tr:hover,
 .workspace-table tbody tr.selected,
-.deposit-table tbody tr:hover { background: var(--app-surface-soft); }
+.deposit-table tbody tr:hover { background: var(--color-surface-subtle); }
 .workspace-table td,
-.deposit-table td { border-color: var(--app-line); }
+.deposit-table td { border-color: var(--color-border); }
 .workspace-table th { height: 48px; }
 .workspace-table td { height: 52px; }
 .record-title:hover,
@@ -264,7 +264,7 @@ body {
 .status-badge > .truncated-text-wrap { flex: 1; }
 .selection-cell input { width: 20px; height: 20px; accent-color: var(--app-text); }
 .status-badge.neutral { background: var(--color-surface-subtle); color: var(--color-text-muted); }
-.status-badge.urgent { background: color-mix(in srgb, var(--color-danger) 12%, var(--app-surface)); color: var(--color-danger); }
+.status-badge.urgent { background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface)); color: var(--color-danger); }
 .status-badge.attention { background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface)); color: var(--color-warning); }
 .pagination .secondary-action { min-height: 36px; }
 .deposit-kpis { gap: 16px; }
@@ -277,7 +277,7 @@ body {
 .deposit-status.status-done,
 .deposit-status.status-on_service { background: var(--color-success-soft); color: var(--color-success); }
 .deposit-status.status-off_service_pending,
-.deposit-priority.priority-high { background: color-mix(in srgb, var(--color-warning) 14%, var(--app-surface)); color: var(--color-warning); }
+.deposit-priority.priority-high { background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface)); color: var(--color-warning); }
 .deposit-priority.priority-medium { background: var(--color-brand-soft); color: var(--color-brand); }
 .deposit-modal { border: 1px solid var(--app-line); border-radius: 16px; background: var(--app-surface); box-shadow: var(--shadow-md); }
 .deposit-modal-backdrop { background: rgba(34, 34, 34, .58); }
@@ -320,7 +320,7 @@ body {
 .saved-view-link > .truncated-text-wrap { display: block; }
 .permission-drawer-head h2,
 .permission-list-head h2 { font-family: var(--font-ui); }
-.html[data-theme="dark"] :where(.workspace-table th, .deposit-table th) { background: var(--app-surface-soft); }
+.html[data-theme="dark"] :where(.workspace-table th, .deposit-table th) { background: var(--color-surface-subtle); }
 html[data-theme="dark"] .workspace-health { background: var(--color-surface); border-color: var(--color-border); }
 html[data-theme="dark"] .health-modules span { background: var(--app-surface-soft); }
 
