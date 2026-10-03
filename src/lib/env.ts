@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { logEvent } from "@/lib/logger";
 
 const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -46,4 +47,11 @@ export function getEnvironmentReadiness() {
       serverEnv.DATABASE_URL && serverEnv.GUARANTEE_STORAGE_DIR,
     ),
   };
+}
+
+export function warnAboutProductionProxy() {
+  const env = getServerEnv();
+  if (env.NODE_ENV === "production" && env.TRUSTED_PROXY_COUNT === 0) {
+    logEvent("warn", "auth.trusted_proxy_not_configured", { trustedProxyCount: 0, message: "IP login limiting is inactive; email limiting remains enforced. Confirm proxy topology before changing TRUSTED_PROXY_COUNT." });
+  }
 }
