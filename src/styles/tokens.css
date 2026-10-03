@@ -1,4 +1,4 @@
-/* Sole workspace token source. Compatibility aliases keep existing domains stable. */
+/* Sole workspace token source. Consumers use semantic tokens directly. */
 :root {
   color-scheme: light;
   --color-bg: #f4f6f9;
@@ -37,19 +37,6 @@
   --font-ui: var(--font-nunito), var(--font-thai), sans-serif;
   --font-heading: var(--font-manrope), var(--font-thai), sans-serif;
   --font-mono: var(--font-code), monospace;
-  --app-bg: var(--color-bg); --app-surface: var(--color-surface);
-  --app-surface-soft: var(--color-surface-subtle); --app-line: var(--color-border);
-  --app-text: var(--color-text); --app-muted: var(--color-text-muted);
-  --app-brand: var(--color-brand); --app-brand-hover: var(--color-brand-hover); --app-brand-soft: var(--color-brand-soft);
-  --app-success: var(--color-success); --app-warning: var(--color-warning); --app-warning-soft: var(--color-warning-soft); --app-danger: var(--color-danger);
-  --app-radius-sm: var(--radius-sm); --app-radius: var(--radius-md); --app-radius-lg: var(--radius-lg);
-  --app-shadow-sm: var(--shadow-xs); --app-shadow: var(--shadow-sm);
-  --ink: var(--color-text); --muted: var(--color-text-muted); --line: var(--color-border);
-  --canvas: var(--color-bg); --surface: var(--color-surface);
-  --violet: var(--color-brand); --violet-soft: var(--color-brand-soft);
-  --teal: var(--color-success); --teal-soft: var(--color-success-soft);
-  --amber: var(--color-warning); --amber-soft: var(--color-warning-soft); --rose: var(--color-danger);
-  --shadow: var(--shadow-sm);
   --space-xs: 6px; --space-sm: 10px; --space-md: 16px; --space-lg: 24px; --space-xl: 36px;
   --z-sticky: 100; --z-dropdown: 220; --z-module: 90; --z-skip: 1000;
   --motion-fast: 120ms; --motion-base: 200ms; --motion-slow: 320ms;

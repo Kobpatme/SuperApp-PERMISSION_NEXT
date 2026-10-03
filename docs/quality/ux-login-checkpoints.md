@@ -55,3 +55,21 @@ Q1 ช่องทางยังไม่ตัดสิน ใช้ข้อ�
 revert presentation checkpoint commits. ไม่มี schema migration/business formula changes; คงคำเตือนลบถาวรและ permission checks. อ่าน diagnostics เฉพาะผู้มี audit permission และแสดงเฉพาะ module/status ไม่ raw exception.
 ### ผลกระทบต่อสิทธิ์/ข้อมูลเดิม
 ไม่มี permission/data changes. Seed แก้เฉพาะ permission_next_ux_test loopback; ตัวเลขและชื่อทั้งหมดสมมติ.
+
+## Checkpoint 3 — ฟอนต์และ CSS
+### สิ่งที่ทำ (ไฟล์หลักที่แก้/เพิ่ม)
+Local Manrope/Nunito/Noto Sans Thai/Source Code Pro พร้อม OFL licenses; fonts.ts/root layout; auth.css แยกโดเมน; semantic token migration หกกลุ่มพร้อม commit แยก; ลบ alias definitions41 ตัวหลังตรวจ consumer0; check:css ขยาย clamp/rem และเพิ่ม CI branch. แผน selector ที่ยังไม่แน่ใจอยู่ docs/plans/css-consolidation.md ไม่ลบแบบคาดเดา.
+### หลักฐาน (คำสั่งที่รัน + ผลลัพธ์จริง)
+ux-gate.ps1 รันทุกกลุ่มและ cp3-final: lint/typecheck/test/documents/build/contrast/audit exit0. Final unit152 passed/3 skipped, documents1, audit0; check:css179 files0 violations; contrast58 pairs0 failures. `UX_EXTERNAL_SERVER=1 UX_PHASE=cp3-final npx playwright test`16 passed1.8m หลังลบ alias; axe serious/critical0, root overflow0, forbidden0. Offline font test:3 preload responses90,888 bytes, external requests0. Globals59,591→58,064 bytes (-1,527). ทุกกลุ่ม screenshots48ภาพ/0 page errors รวม admin; final staff matrixตรวจ320–1440. เก็บ errors/gates/font-budget JSON ตาม phase.
+### สถานะของงานที่ตรวจพบว่าทำไว้แล้ว
+คง production preview guard และ auth controls เดิม; ไม่เปิด bypass เพื่อถ่ายภาพ. Selector dynamic ที่ยังไม่แน่ใจคงไว้. เดิม --bounce-teal/--app-info ไม่มี definition แก้เป็น semantic token ที่มีจริง.
+### JEV ที่ใช้
+2026-10-03: font route separate_local_variables .63/fallback; CSS route alternating extraction/consumer migration .67/fallback ใช้ตามการตรวจ cascadeจริง; prioritize auth.77 shell.60 tables.59 dashboard.56 details.48 modules.34. Evidenceก่อน alias deletion supported.72/needs_more.60 จึงเพิ่ม scriptที่ปฏิเสธการลบเมื่อ consumerเหลือ และ rerun browser16เคส. ไม่มี selector deletion. classify flaky.82/needs_more.85 สำหรับ streaming/axe ใช้รอ heading/fonts/RAF/finite animation โดยไม่ลด axe rules แล้ว rerunผ่าน. Continueผลเก็บใน implementation-status; ไม่ใช้แทน gate.
+### Screenshot ก่อน-หลัง (path)
+`docs/quality/ux-login-evidence/cp3-before-{login,change-password,dashboard,work,buildings,guarantees,admin,404}-{light,dark}-{390,1024,1440}.png`; หลังแต่ละกลุ่ม cp3-auth/shell/dashboard/tables/details/modules รูปแบบเดียวกัน. Final authและstaffใช้ `cp3-final-*.png` รวม detail/403/404 ที่320–1440. ตรวจภาพ dark dashboard1440 และ detail390 จริง. KPI animationเดิมยังมีเลขระหว่างนับ จะปรับ CP4.
+### สิ่งที่ยังไม่ได้ยืนยัน / ข้อสมมติ / คำถาม
+Remote CIยังไม่ได้ยืนยันก่อนpushนี้; workflowเพิ่มcheck:cssแล้ว จะตรวจrunจริง. Production integration/UATยังไม่ได้ยืนยัน. Q1/Q2ยังคงค่าตามเจ้าของ; CP4/CP5รอดำเนินการ.
+### ความเสี่ยงและวิธี rollback
+Revertแต่ละ presentation commitได้ตามกลุ่ม; original globalsอยู่docs/archive/ux-login-v1/cp3-globals-before.css. ไม่เปลี่ยนสูตร/สิทธิ์/ข้อมูล; fontsมีlicenseในrepo.
+### ผลกระทบต่อสิทธิ์/ข้อมูลเดิม
+ไม่มี; browserใช้synthetic usersในฐานแยกเท่านั้น.

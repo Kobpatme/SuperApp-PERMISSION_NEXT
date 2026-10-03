@@ -3,7 +3,7 @@ name: quality
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, codex/ux-login-polish]
 
 permissions:
   contents: read
@@ -21,6 +21,9 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
+      - run: npm run check:css
+      - run: npm run check:contrast
+      - run: node scripts/check-ui-copy.mjs
       - run: npm test
       - run: npm run test:documents
       - run: npm run build

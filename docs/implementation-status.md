@@ -183,3 +183,6 @@ CP0 JEV: health check_network=true + absolute root สำเร็จ network_ok
 
 ## UX login CP2 — 2026-10-03
 Source presentation/copy checkpoint verified with full gate exit0 (unit152/3skip, documents1, audit0); production matrix8passed, root overflow/axe serious-critical/forbidden words/runtime errors0. Static JSX scan A0/B1. Evidence/report: docs/quality/ux-login-checkpoints.md. No production data, permission matrix or business rules changed. CP3 font/CSS and CP4/5 remain not yet verified.
+
+## UX login CP3 — 2026-10-03
+Six CSS groups independently committed and verified; final full gate exit0, unit152/3skip/documents1/audit0. CSS179files0violations;contrast58pairs0failures. Final browser16passed1.8m; offline fonts90,888bytes/0external; globals59,591→58,064bytes.41alias definitions removed after zero-consumer check; uncertain selectors preserved with plan. Reports and before/after paths in docs/quality/ux-login-checkpoints.md. Remote CI pending push verification; CP4/5 not yet verified.

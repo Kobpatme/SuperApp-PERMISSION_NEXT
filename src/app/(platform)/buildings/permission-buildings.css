@@ -1,6 +1,6 @@
 html:has(.permission-workspace){overflow-x:clip}
 .workspace-shell > .main:has(.permission-workspace){padding:0;overflow:hidden}
-.permission-workspace{--pw-surface:var(--color-surface);--pw-soft:var(--color-surface-subtle);--pw-line:var(--color-border);--pw-text:var(--color-text);--pw-muted:var(--color-text-muted);display:flex;flex-direction:column;height:calc(100vh - 80px);min-height:590px;overflow:hidden;color:var(--color-text);background:var(--color-surface)}
+.permission-workspace{display:flex;flex-direction:column;height:calc(100vh - 80px);min-height:590px;overflow:hidden;color:var(--color-text);background:var(--color-surface)}
 .permission-toolbar{position:relative;z-index:700;display:flex;align-items:center;gap:16px;min-height:66px;padding:10px 20px;border-bottom:1px solid var(--color-border);background:var(--color-surface)}
 .permission-toolbar-title{min-width:162px;line-height:1.35}.permission-toolbar-title span{font-size:12px;color:var(--color-text-muted)}.permission-toolbar-title h1{font-size:18px;margin:3px 0 0;letter-spacing:normal}
 .permission-search{position:relative;display:flex;align-items:center;flex:1;max-width:600px;min-width:170px;height:40px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-surface-subtle)}

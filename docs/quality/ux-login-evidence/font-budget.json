@@ -1,0 +1,10 @@
+{
+  "bytes": 90888,
+  "fontResponses": 3,
+  "externalRequests": 0,
+  "families": {
+    "body": "nunito, \"nunito Fallback\", thai, \"thai Fallback\", sans-serif",
+    "heading": "manrope, \"manrope Fallback\", thai, \"thai Fallback\", sans-serif",
+    "thai": "\"thai\", \"thai Fallback\""
+  }
+}

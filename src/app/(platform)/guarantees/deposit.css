@@ -109,7 +109,6 @@
 @media (max-width: 760px) { .deposit-head, .deposit-toolbar, .deposit-queue-row { flex-wrap: wrap; } .deposit-kpis, .deposit-analytics, .deposit-detail-grid { grid-template-columns: 1fr; } .deposit-search { max-width: none; flex-basis: 100%; } .deposit-count { margin-left: 0; } .deposit-form, .deposit-form fieldset { grid-template-columns: 1fr; } .deposit-queue-row > div { flex-basis: 75%; } }
 
 /* Native workspace aligned with the familiar Deposit Manager operating model. */
-.legacy-deposit-workspace { --deposit-blue:var(--color-info); --deposit-orange:var(--color-warning); --deposit-green:var(--color-success); --deposit-violet:var(--color-brand); --deposit-red:var(--color-danger); }
 .legacy-deposit-head { align-items:center; padding-bottom:18px; border-bottom:1px solid var(--color-border); }
 .legacy-deposit-head h1 { font-size:clamp(24px,2vw,32px); }
 .legacy-head-actions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; }

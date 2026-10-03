@@ -3,8 +3,7 @@
     "argv": [
       "C:\\Program Files\\nodejs\\node.exe",
       "D:\\WebApp\\SuperApp PERMISSION_NEXT\\node_modules\\@playwright\\test\\cli.js",
-      "test",
-      "e2e/auth.spec.ts"
+      "test"
     ],
     "configFile": "D:\\WebApp\\SuperApp PERMISSION_NEXT\\playwright.config.ts",
     "rootDir": "D:/WebApp/SuperApp PERMISSION_NEXT/e2e",
@@ -87,12 +86,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1213,
+                  "duration": 2002,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-02T20:48:02.330Z",
+                  "startTime": "2026-10-03T13:42:35.884Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -102,7 +101,7 @@
           ],
           "id": "d748ac400d08b85935ef-b1069912d3a73a223bd2",
           "file": "auth.spec.ts",
-          "line": 4,
+          "line": 5,
           "column": 5
         },
         {
@@ -121,12 +120,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1737,
+                  "duration": 2214,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-02T20:48:04.440Z",
+                  "startTime": "2026-10-03T13:42:39.483Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -136,7 +135,7 @@
           ],
           "id": "d748ac400d08b85935ef-6c8451fdb52c91931243",
           "file": "auth.spec.ts",
-          "line": 20,
+          "line": 21,
           "column": 7
         },
         {
@@ -155,12 +154,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1850,
+                  "duration": 2116,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-02T20:48:06.187Z",
+                  "startTime": "2026-10-03T13:42:41.709Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -170,7 +169,7 @@
           ],
           "id": "d748ac400d08b85935ef-4df551ce0891e0af97f6",
           "file": "auth.spec.ts",
-          "line": 20,
+          "line": 21,
           "column": 7
         },
         {
@@ -189,12 +188,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1767,
+                  "duration": 2062,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-02T20:48:08.049Z",
+                  "startTime": "2026-10-03T13:42:43.836Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -204,7 +203,7 @@
           ],
           "id": "d748ac400d08b85935ef-69d8faaaab641b795ef9",
           "file": "auth.spec.ts",
-          "line": 20,
+          "line": 21,
           "column": 7
         },
         {
@@ -223,12 +222,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1793,
+                  "duration": 2191,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-02T20:48:09.827Z",
+                  "startTime": "2026-10-03T13:42:45.911Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -238,7 +237,7 @@
           ],
           "id": "d748ac400d08b85935ef-cd6c84e88a453c4ea9ab",
           "file": "auth.spec.ts",
-          "line": 20,
+          "line": 21,
           "column": 7
         },
         {
@@ -257,12 +256,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1825,
+                  "duration": 2149,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-02T20:48:11.632Z",
+                  "startTime": "2026-10-03T13:42:48.113Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -272,7 +271,7 @@
           ],
           "id": "d748ac400d08b85935ef-6eb7763a696ad10d5302",
           "file": "auth.spec.ts",
-          "line": 20,
+          "line": 21,
           "column": 7
         },
         {
@@ -291,12 +290,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 1767,
+                  "duration": 2103,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-10-02T20:48:13.470Z",
+                  "startTime": "2026-10-03T13:42:50.272Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -306,7 +305,329 @@
           ],
           "id": "d748ac400d08b85935ef-b93b502b473d776153b8",
           "file": "auth.spec.ts",
-          "line": 20,
+          "line": 21,
+          "column": 7
+        }
+      ]
+    },
+    {
+      "title": "fonts.spec.ts",
+      "file": "fonts.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "login fonts are self-hosted and fit the offline budget",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 385,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:42:52.390Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d1b9d93e1bbf842bca36-4166c8b31cd85630d967",
+          "file": "fonts.spec.ts",
+          "line": 3,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "workspace.spec.ts",
+      "file": "workspace.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "staff modules light 1440",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 12022,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:42:52.796Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-73d536ebb916d0a7a559",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 7
+        },
+        {
+          "title": "staff modules light 1024",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10479,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:43:04.831Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-4779e0c24eea8b4906e9",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 7
+        },
+        {
+          "title": "staff modules light 390",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9837,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:43:15.321Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-719144e4b63a9bdcb500",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 7
+        },
+        {
+          "title": "staff modules light 320",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10375,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:43:25.169Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-fa5e5ccfabdfa93ee911",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 7
+        },
+        {
+          "title": "staff modules dark 1440",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10760,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:43:35.554Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-613b54b5d1ba31e59151",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 7
+        },
+        {
+          "title": "staff modules dark 1024",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11596,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:43:46.334Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-22545d5a1e4223bb5cea",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 7
+        },
+        {
+          "title": "staff modules dark 390",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10833,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:43:57.940Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-f6e6814a663c80343fde",
+          "file": "workspace.spec.ts",
+          "line": 6,
+          "column": 7
+        },
+        {
+          "title": "staff modules dark 320",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10313,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-03T13:44:08.783Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "b163ed09f68681248ada-2f743ad1fefdf8ec11ff",
+          "file": "workspace.spec.ts",
+          "line": 6,
           "column": 7
         }
       ]
@@ -314,9 +635,9 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-02T20:48:01.688Z",
-    "duration": 14023.975,
-    "expected": 7,
+    "startTime": "2026-10-03T13:42:35.139Z",
+    "duration": 105921.819,
+    "expected": 16,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0
