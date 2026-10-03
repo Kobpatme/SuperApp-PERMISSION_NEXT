@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { settlePresentation } from "./settle";
 const forbidden = /Argon2|RBAC|ฐานข้อมูล|DATABASE|\bNAS\b|\bsession\b|\bserver\b|Workspace|Developer|readiness|foundation|Organization Identity|SECURE FIRST SIGN-IN|\bstack\b|\btoken\b/i;
 test("login retains email, focuses password, allows visibility and safe reasons", async ({ page }) => {
   await page.goto("/login?reason=untrusted-value&next=//evil.com");
@@ -29,9 +30,10 @@ for (const theme of ["light", "dark"] as const) for (const width of [1440, 1024,
       expect(await page.content()).not.toMatch(forbidden);
       await expect(page.locator("h1")).toHaveCount(1); await expect(page.locator("h1")).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      await settlePresentation(page);
       const results = await new AxeBuilder({ page }).analyze();
       expect(results.violations.filter(item => ["serious", "critical"].includes(item.impact || ""))).toEqual([]);
-      await page.screenshot({ path: `docs/quality/ux-login-evidence/cp1-${route}-${theme}-${width}.png`, fullPage: true });
+      await page.screenshot({ path: `docs/quality/ux-login-evidence/${process.env.UX_PHASE||'cp1'}-${route}-${theme}-${width}.png`, fullPage: true });
     }
   });
 }

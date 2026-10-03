@@ -25,15 +25,18 @@
   --color-danger-soft: #ffeaed;
   --color-info: #245db1;
   --color-info-soft: #e8f0ff;
+  --color-overlay: rgb(18 32 52 / 55%);
+  --color-highlight: rgb(255 255 255 / 15%);
+  --color-shadow-ink: rgb(18 32 52 / 15%);
   --radius-xs: 3px; --radius-sm: 5px; --radius-md: 8px; --radius-lg: 12px;
   --shadow-xs: 0 1px 2px rgb(18 32 52 / 5%);
   --shadow-sm: 0 3px 12px rgb(18 32 52 / 9%);
   --shadow-md: 0 12px 32px rgb(18 32 52 / 18%);
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
   --space-6: 24px; --space-7: 28px; --space-8: 32px; --space-9: 36px; --space-10: 40px;
-  /* Deliberate local system fonts: no network fetch or implied bundled fonts. */
-  --font-ui: "Segoe UI", "Leelawadee UI", Tahoma, sans-serif;
-  --font-mono: Consolas, "Courier New", monospace;
+  --font-ui: var(--font-nunito), var(--font-thai), sans-serif;
+  --font-heading: var(--font-manrope), var(--font-thai), sans-serif;
+  --font-mono: var(--font-code), monospace;
   --app-bg: var(--color-bg); --app-surface: var(--color-surface);
   --app-surface-soft: var(--color-surface-subtle); --app-line: var(--color-border);
   --app-text: var(--color-text); --app-muted: var(--color-text-muted);
@@ -65,6 +68,9 @@ html[data-theme="dark"] {
   --color-warning: #f4c36b; --color-warning-soft: #46381f;
   --color-danger: #ffa1ac; --color-danger-soft: #4b2834;
   --color-info: #9bbcff; --color-info-soft: #253d64;
+  --color-overlay: rgb(0 0 0 / 65%);
+  --color-highlight: rgb(255 255 255 / 8%);
+  --color-shadow-ink: rgb(0 0 0 / 30%);
   --shadow-xs: 0 1px 2px rgb(0 0 0 / 15%);
   --shadow-sm: 0 3px 12px rgb(0 0 0 / 22%);
   --shadow-md: 0 12px 32px rgb(0 0 0 / 35%);

@@ -4,11 +4,12 @@ body {
   color: var(--app-text);
   font-family: var(--font-ui);
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 :where(h1, h2, h3, h4, .top-brand-copy strong, .metric-value, .attention-item strong) {
-  font-family: var(--font-ui);
+  font-family: var(--font-heading);
+  line-height: 1.35;
 }
 
 :where(code, kbd, pre, .record-code) { font-family: var(--font-mono); }

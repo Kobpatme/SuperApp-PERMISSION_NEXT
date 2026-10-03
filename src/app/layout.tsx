@@ -5,7 +5,9 @@ import "@/styles/components.css";
 import "@/styles/ui.css";
 import "@/styles/notifications.css";
 import "@/styles/work.css";
+import "@/styles/auth.css";
 import type { Metadata } from "next";
+import { appFontClassName } from "@/app/fonts";
 
 export const metadata: Metadata = {
   title: { default: "Permission Next", template: "%s | Permission Next" },
@@ -16,5 +18,5 @@ export const metadata: Metadata = {
 const themeScript = `(function(){try{var k=['permission-next','work'+'space','theme'].join('-'),t=localStorage.getItem(k);if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="th" suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body>{children}</body></html>;
+  return <html lang="th" className={appFontClassName} suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body>{children}</body></html>;
 }
