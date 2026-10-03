@@ -30,8 +30,8 @@
   flex-direction: column;
   width: var(--workspace-sidebar-width);
   padding: 26px 12px 16px;
-  border-right: 2px solid var(--app-line);
-  background: var(--app-surface);
+  border-right: 2px solid var(--color-border);
+  background: var(--color-surface);
   transition: width var(--motion-fast) var(--ease-out);
 }
 
@@ -41,7 +41,7 @@
   gap: 12px;
   min-height: 32px;
   margin: 0 0 16px 12px;
-  color: var(--app-muted);
+  color: var(--color-text-muted);
   font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
@@ -49,7 +49,7 @@
 
 .sidebar-heading-rule {
   flex: 1;
-  border-top: 2px dashed var(--app-line);
+  border-top: 2px dashed var(--color-border);
 }
 
 .sidebar-nav {
@@ -75,10 +75,10 @@
   padding: 10px 14px;
   border: 2px solid transparent;
   border-radius: 16px;
-  color: var(--app-muted);
+  color: var(--color-text-muted);
   font-size: 16px;
   font-weight: 700;
-  line-height: 1.4;
+  line-height: 1.6;
   transition: background var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out);
 }
 
@@ -93,13 +93,13 @@
 .sidebar-link:hover {
   border-color: color-mix(in srgb, var(--color-brand) 35%, transparent);
   background: var(--color-brand-soft);
-  color: var(--app-text);
+  color: var(--color-text);
 }
 
 .sidebar-link.active {
-  border-color: color-mix(in srgb, var(--app-brand) 50%, transparent);
-  background: var(--app-brand-soft);
-  color: var(--app-brand);
+  border-color: color-mix(in srgb, var(--color-brand) 50%, transparent);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
 }
 
 .sidebar-subnav {
@@ -107,7 +107,7 @@
   gap: 4px;
   margin: -2px 0 0 16px;
   padding-left: 12px;
-  border-left: 1px solid var(--app-line);
+  border-left: 1px solid var(--color-border);
 }
 
 .sidebar-child-link {
@@ -118,23 +118,23 @@
   padding: 7px 12px;
   border: 1px solid transparent;
   border-radius: 10px;
-  color: var(--app-muted);
+  color: var(--color-text-muted);
   font-size: 13px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.6;
 }
 
 .sidebar-child-link:hover,
 .sidebar-child-link.active {
-  border-color: color-mix(in srgb, var(--app-brand) 35%, transparent);
-  background: var(--app-brand-soft);
-  color: var(--app-brand);
+  border-color: color-mix(in srgb, var(--color-brand) 35%, transparent);
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
 }
 
 .sidebar-link:focus-visible,
 .sidebar-collapse-button:focus-visible,
 .sidebar-mobile-toggle:focus-visible {
-  outline: 4px solid color-mix(in srgb, var(--app-brand) 30%, transparent);
+  outline: 4px solid color-mix(in srgb, var(--color-brand) 30%, transparent);
   outline-offset: 2px;
 }
 
@@ -146,10 +146,10 @@
   width: 44px;
   min-height: 44px;
   padding: 0;
-  border: 2px solid var(--app-line);
+  border: 2px solid var(--color-border);
   border-radius: 16px;
-  background: var(--app-surface);
-  color: var(--app-muted);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
   font-size: 14px;
   font-weight: 700;
 }
@@ -157,7 +157,7 @@
 .sidebar-collapse-button:hover {
   border-color: var(--color-brand);
   background: var(--color-brand-soft);
-  color: var(--app-text);
+  color: var(--color-text);
 }
 
 .sidebar-collapse-button svg {
@@ -266,15 +266,15 @@
     margin: 0;
     padding: 0;
     border: 0;
-    border-right: 2px solid var(--app-line);
+    border-right: 2px solid var(--color-border);
     border-radius: 0 24px 24px 0;
-    background: var(--app-surface);
-    color: var(--app-text);
-    box-shadow: var(--app-shadow);
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
   }
 
   .workspace-mobile-dialog::backdrop {
-    background: rgba(20, 22, 29, 0.55);
+    background: var(--color-overlay);
   }
 
   .mobile-sidebar-content {
@@ -291,7 +291,7 @@
     gap: 12px;
     margin-bottom: 20px;
     padding: 0 2px 16px;
-    border-bottom: 2px dashed var(--app-line);
+    border-bottom: 2px dashed var(--color-border);
     font-size: 20px;
   }
 
