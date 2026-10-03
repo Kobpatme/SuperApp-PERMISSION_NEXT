@@ -73,3 +73,21 @@ Remote CIยังไม่ได้ยืนยันก่อนpushนี้;
 Revertแต่ละ presentation commitได้ตามกลุ่ม; original globalsอยู่docs/archive/ux-login-v1/cp3-globals-before.css. ไม่เปลี่ยนสูตร/สิทธิ์/ข้อมูล; fontsมีlicenseในrepo.
 ### ผลกระทบต่อสิทธิ์/ข้อมูลเดิม
 ไม่มี; browserใช้synthetic usersในฐานแยกเท่านั้น.
+
+## Checkpoint 4 — motion ที่สื่อสถานะ
+### สิ่งที่ทำ (ไฟล์หลักที่แก้/เพิ่ม)
+motion.css รวม transform/opacity120/200ms; auth enter/error/pending spinner/eye crossfade; detailและbuilding drawerเข้าออก/backdrop; account/saved-view/search popover; inline success; แถวแรก3แถว stagger0/40/80ms; skeletonรูปทรงเดิม. ปิด decoration loops, layout/color transitions และ optional KPI count-up เพื่อแสดงจำนวนจริงทันที. useDialogDismissคงnative focus trapระหว่างexit; queueเก็บปุ่มเปิดเพื่อคืนfocus.
+### หลักฐาน (คำสั่งที่รัน + ผลลัพธ์จริง)
+cp4-final gate lint/typecheck/unit152+3skip/documents1/build/contrast58/audit0 exit0. check:css181files0. Playwright18passed2.1m. Motionnormal pending73.3ms/reduce57.3ms; settledWindowCLS0ทั้งสอง; reduced document animations0และcomputedanimationsnone. ปกติ keyframepropsเป็นtransform/opacity duration≤200ms; loopเฉพาะspinner/skeleton. Initialtestsพบfocus restorationและbackdrop reductionผิด แก้แล้วrerun18ผ่าน ไม่ลดassertion. Screenshot48ภาพ0errors/overflow; staffmatrix320–1440/axe0.
+### สถานะของงานที่ตรวจพบว่าทำไว้แล้ว
+loading skeleton/inline feedback/native dialogมีอยู่แล้ว ปรับpresentation; auth pending/guardsเดิมคงไว้. ไม่เพิ่มkeepaliveหรือเปลี่ยนข้อมูล.
+### JEV ที่ใช้
+continue confidence.80/verify_before_commit ใช้หลังผลจริง18เคส; ไม่ใช้JEVเกินจุดCP4. CP3 CIตรวจrun37127367637/verifyjobทุกstep successรวมcheck:css (https://github.com/Kobpatme/SuperApp-PERMISSION_NEXT/actions/runs/37127367637).
+### Screenshot ก่อน-หลัง (path)
+ก่อน cp3-final-*.png/cp3-modules-*.png; หลัง docs/quality/ux-login-evidence/cp4-final-{login,change-password,dashboard,work,buildings,guarantees,admin,404}-{light,dark}-{390,1024,1440}.png และ cp4-final-*-staff-*.png. เปิด loginlight390ตรวจจริง; motiontiming/CLSอยู่cp4-motion-{normal,reduce}.json.
+### สิ่งที่ยังไม่ได้ยืนยัน / ข้อสมมติ / คำถาม
+CLSเป็นช่วงหลังหน้าโหลดนิ่งที่ทดสอบเปิด/ปิดpanelและpopover ไม่อ้างทุกnetwork/font/dataในproduction. RemoteCIของCP4รอpush; CP5security/DBflowเต็มรอทำ. Q1/Q2คงตามคำตอบเจ้าของ.
+### ความเสี่ยงและวิธี rollback
+revertCP4presentation commit; ui.cssและAnimatedNumberเดิมเก็บในdocs/archive/ux-login-v1/cp4-*. Keyboardfocus regressionมีtest. Native closefallback160msรองรับanimationถูกยกเลิก.
+### ผลกระทบต่อสิทธิ์/ข้อมูลเดิม
+ไม่มี permission/formula/data changes.

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { DashboardItem, DashboardSnapshot } from "@/lib/dashboard";
 import { getModule, type ModuleId } from "@/lib/module-registry";
@@ -10,23 +10,24 @@ import { WorkspaceIcon } from "@/components/workspace-icon";
 import { RefreshButton } from "@/components/workspace-feedback";
 import { TruncatedText } from "@/components/ui/truncated-text";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { useDialogDismiss } from "@/components/ui/use-dialog-dismiss";
 
 const viewLabels: Record<QueueView, string> = { all: "ทั้งหมด", urgent: "เร่งด่วน", today: "ครบกำหนดวันนี้", mine: "งานของฉัน" };
 
-function DetailPanel({ item, preview, onClose }: { item: DashboardItem; preview: boolean; onClose: () => void }) {
+function DetailPanel({ item, preview, onClose, opener }: { item: DashboardItem; preview: boolean; onClose: () => void; opener: RefObject<HTMLElement | null> }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [message, setMessage] = useState("");
+  const {closing,dismiss}=useDialogDismiss(ref,onClose);
   useEffect(() => {
     const dialog = ref.current;
-    const focused = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    dialog?.showModal(); document.body.style.overflow = "hidden";
-    return () => { dialog?.close(); document.body.style.overflow = overflow; focused?.focus(); };
-  }, []);
+    const focused = opener.current ?? (document.activeElement as HTMLElement | null);
+    dialog?.showModal();
+    return () => { dialog?.close(); focused?.focus(); };
+  }, [opener]);
   const moduleInfo = getModule(item.moduleId)!;
-  return <dialog className="detail-panel" ref={ref} aria-labelledby="detail-title" onCancel={(event) => { event.preventDefault(); onClose(); }} onClick={(event) => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose(); } }}>
+  return <dialog className={`detail-panel ${closing ? "is-closing" : ""}`} ref={ref} aria-labelledby="detail-title" onCancel={(event) => { event.preventDefault(); dismiss(); }} onClick={(event) => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dismiss(); } }}>
     <div className="detail-inner">
-      <div className="detail-top"><span><WorkspaceIcon name={getModule(item.moduleId)!.icon}/>{moduleInfo.name}</span><button type="button" className="round-btn" aria-label="ปิดรายละเอียด" onClick={onClose} autoFocus><WorkspaceIcon name="close"/></button></div>
+      <div className="detail-top"><span><WorkspaceIcon name={getModule(item.moduleId)!.icon}/>{moduleInfo.name}</span><button type="button" className="round-btn" aria-label="ปิดรายละเอียด" onClick={dismiss} autoFocus><WorkspaceIcon name="close"/></button></div>
       <p className="eyebrow">{item.code || item.id}</p>
        <h2 id="detail-title"><TruncatedText text={item.moduleId === "buildings" && item.buildingName ? item.buildingName : item.title} lines={2}/></h2>
       <div className="detail-badges"><span className={`status-badge ${item.priority}`}>{priorityLabels[item.priority]}</span><span className="status-badge neutral">{item.statusLabel}</span></div>
@@ -83,6 +84,7 @@ function SavedViews({ storageKey, settings, apply }: { storageKey: string; setti
 export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetrics = false }: {
   snapshot: DashboardSnapshot; userId: string; moduleId?: ModuleId; preview: boolean; showMetrics?: boolean;
 }) {
+  const openerRef = useRef<HTMLElement | null>(null);
   const params = useSearchParams();
   const pathname = usePathname();
   const settings = readViewSettings(params);
@@ -156,7 +158,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
         </tr></thead><tbody>
           {visible.map((item) => <tr key={recordKey(item)} className={selectedKeys.has(recordKey(item)) ? "selected" : ""}>
             <td className="selection-cell"><input type="checkbox" aria-label={`เลือก ${item.code || item.title}`} checked={selectedKeys.has(recordKey(item))} onChange={() => toggleItem(item)}/></td>
-             <td className="record-cell"><button className="record-title" type="button" onClick={() => update({ record: item.id, module: item.moduleId }, true)}><TruncatedText text={moduleId === "buildings" && item.buildingName ? item.buildingName : item.title} lines={1}/><WorkspaceIcon name="arrow" size={16}/></button><div className="record-subtitle"><span className="record-code">{item.code || kindLabels[item.kind]}</span><TruncatedText text={moduleId === "buildings" ? item.title : item.buildingName || getModule(item.moduleId)?.name || ""} lines={1}/>{!moduleId && <TruncatedText className="record-source" text={getModule(item.moduleId)?.name || ""} lines={1}/>}</div></td>
+             <td className="record-cell"><button className="record-title" type="button" onClick={event => { openerRef.current=event.currentTarget; update({ record: item.id, module: item.moduleId }, true); }}><TruncatedText text={moduleId === "buildings" && item.buildingName ? item.buildingName : item.title} lines={1}/><WorkspaceIcon name="arrow" size={16}/></button><div className="record-subtitle"><span className="record-code">{item.code || kindLabels[item.kind]}</span><TruncatedText text={moduleId === "buildings" ? item.title : item.buildingName || getModule(item.moduleId)?.name || ""} lines={1}/>{!moduleId && <TruncatedText className="record-source" text={getModule(item.moduleId)?.name || ""} lines={1}/>}</div></td>
              <td className="owner-cell"><span className="owner-dot" aria-hidden="true">{(item.ownerName || "—").slice(0, 1)}</span><TruncatedText text={item.ownerName || "ยังไม่ระบุ"} lines={1}/></td>
             <td><span className="due-date">{formatWorkspaceDate(item.dueAt)}</span><span className={`priority-label ${item.priority}`}>{priorityLabels[item.priority]}</span></td>
              <td><span className="status-badge neutral"><TruncatedText text={item.statusLabel} lines={1}/></span></td>
@@ -166,7 +168,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
       </div>
       <footer className="queue-footer"><span role="status">{hasData ? rows.length ? `แสดง ${(page - 1) * size + 1}–${Math.min(page * size, rows.length)} จาก ${rows.length} รายการ` : "0 รายการ" : "ยังไม่มีข้อมูลพร้อมแสดง"}</span><div className="pagination"><button className="secondary-action" type="button" disabled={page <= 1} onClick={() => update({ page: String(page - 1) })}>ก่อนหน้า</button><span>หน้า {page} / {pageCount}</span><button className="secondary-action" type="button" disabled={page >= pageCount} onClick={() => update({ page: String(page + 1) })}>ถัดไป</button></div></footer>
     </section>
-    {activeRecord && <DetailPanel key={recordKey(activeRecord)} item={activeRecord} preview={preview} onClose={() => update({ record: null, module: null })}/>}
+    {activeRecord && <DetailPanel key={recordKey(activeRecord)} item={activeRecord} preview={preview} opener={openerRef} onClose={() => update({ record: null, module: null })}/>}
     {params.get("record") && !activeRecord && <div className="queue-notice" role="status">รายการนี้ไม่อยู่ในข้อมูลติดตามที่เข้าถึงได้ในขณะนี้<button type="button" className="text-btn" onClick={() => update({ record: null, module: null })}>ปิดข้อความ</button></div>}
   </>;
 }

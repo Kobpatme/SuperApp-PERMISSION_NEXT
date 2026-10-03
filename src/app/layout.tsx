@@ -6,6 +6,7 @@ import "@/styles/ui.css";
 import "@/styles/notifications.css";
 import "@/styles/work.css";
 import "@/styles/auth.css";
+import "@/styles/motion.css";
 import type { Metadata } from "next";
 import { appFontClassName } from "@/app/fonts";
 

@@ -1,0 +1,39 @@
+/* Motion communicates input and state. Only transform/opacity, 120/200ms. */
+@keyframes auth-enter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes auth-error { 0%,100% { transform:translateX(0); } 35% { transform:translateX(-2px); } 70% { transform:translateX(2px); } }
+@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes panel-enter { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
+@keyframes panel-exit { to { opacity:0; transform:translateX(24px); } }
+@keyframes backdrop-enter { from { opacity:0; } to { opacity:1; } }
+@keyframes backdrop-exit { to { opacity:0; } }
+@keyframes popover-enter { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+@keyframes success-enter { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:scale(1); } }
+@keyframes row-enter { from { opacity:0; } to { opacity:1; } }
+@keyframes skeleton-shimmer { from { transform:translateX(-100%); opacity:.25; } to { transform:translateX(100%); opacity:.6; } }
+.auth-shell { animation:auth-enter var(--motion-base) var(--ease-out) both; }
+.auth-error { animation:auth-error var(--motion-fast) ease-out; }
+.auth-spinner { animation:spin var(--motion-base) linear infinite; }
+.auth-eye { transition:opacity var(--motion-fast) ease-out; }
+:where(.detail-panel[open],.permission-drawer[open],.notification-dialog[open],.deposit-modal[open]) { animation:panel-enter var(--motion-base) var(--ease-out) both; }
+:where(.detail-panel[open],.permission-drawer[open],.notification-dialog[open],.deposit-modal[open])::backdrop { animation:backdrop-enter var(--motion-base) ease-out both; }
+:where(.detail-panel,.permission-drawer).is-closing { animation:panel-exit var(--motion-fast) ease-out both; }
+:where(.detail-panel,.permission-drawer).is-closing::backdrop { animation:backdrop-exit var(--motion-fast) ease-out both; }
+:where(.account-control[open] .account-popover,.saved-views[open] .saved-views-popover,.workspace-search-popover,.permission-search-suggestions) { animation:popover-enter var(--motion-fast) var(--ease-out) both; }
+.inline-feedback:not(:empty),.ui-status-success .ui-status-mark { animation:success-enter var(--motion-fast) ease-out both; }
+.workspace-table tbody tr:nth-child(-n+3),.deposit-queue-row:nth-child(-n+3) { animation:row-enter var(--motion-fast) ease-out both; }
+.workspace-table tbody tr:nth-child(2),.deposit-queue-row:nth-child(2) { animation-delay:40ms; }
+.workspace-table tbody tr:nth-child(3),.deposit-queue-row:nth-child(3) { animation-delay:80ms; }
+.loading-line::after,.loading-table::after { animation:skeleton-shimmer var(--motion-base) linear infinite; }
+:where(button,a,summary):not(:disabled):active { transition:transform var(--motion-fast) ease-out; }
+.auth-visibility { position:absolute; }
+.auth-eye { grid-area:1/1; opacity:0; }
+.auth-eye.is-visible { opacity:1; }
+.ui-status-mark { width:1em; height:1em; fill:none; stroke:currentColor; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.loading-line,.loading-table { position:relative; overflow:hidden; }
+.loading-line::after,.loading-table::after { content:""; position:absolute; inset:0; background:var(--color-border); }
+:where(button,a,summary):not(:disabled):active { transform:scale(.99); }
+body:has(dialog[open]) { overflow:hidden; }
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after,*::backdrop { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+  :where(button,a,summary):active { transform:none; }
+}

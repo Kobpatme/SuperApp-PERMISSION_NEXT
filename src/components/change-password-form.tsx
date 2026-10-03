@@ -16,7 +16,7 @@ export function ChangePasswordForm() {
     const message = !validation.ok ? validation.message : password !== confirm ? copy.auth.passwordMismatch : "";
     setError(message); if (message || pending) event.preventDefault();
   }}>
-    {(state.error || error) && <div className="auth-error" role="alert">! {state.error || error}</div>}
+    {(state.error || error) && !pending && <div className="auth-error" role="alert">! {state.error || error}</div>}
     <PasswordField label={copy.auth.newPassword} name="password" minLength={12} maxLength={256} autoComplete="new-password" required autoFocus value={password} onChange={event => setPassword(event.target.value)}/>
     <PasswordField label={copy.auth.confirmPassword} name="confirm" minLength={12} maxLength={256} autoComplete="new-password" required value={confirm} onChange={event => setConfirm(event.target.value)} error={confirm && password !== confirm ? copy.auth.passwordMismatch : undefined}/>
     <div className="auth-hint"><strong>{copy.auth.passwordChecklist}</strong><ul aria-live="polite">{checks.map(([met, label]) => <li key={label} className={met ? "is-met" : ""}><span aria-hidden="true">{met ? "✓" : "○"}</span> {label}</li>)}</ul><span aria-live="polite">{confirm && password === confirm && copy.auth.passwordMatch}</span></div>

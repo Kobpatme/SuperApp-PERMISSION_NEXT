@@ -186,3 +186,8 @@ Source presentation/copy checkpoint verified with full gate exit0 (unit152/3skip
 
 ## UX login CP3 — 2026-10-03
 Six CSS groups independently committed and verified; final full gate exit0, unit152/3skip/documents1/audit0. CSS179files0violations;contrast58pairs0failures. Final browser16passed1.8m; offline fonts90,888bytes/0external; globals59,591→58,064bytes.41alias definitions removed after zero-consumer check; uncertain selectors preserved with plan. Reports and before/after paths in docs/quality/ux-login-checkpoints.md. Remote CI pending push verification; CP4/5 not yet verified.
+
+CP3 remote CI verified: run37127367637 at923ba38 completed success; GitHub job steps show check:css/contrast/copy, unit/documents/build/audit success.
+
+## UX login CP4 — 2026-10-03
+Full gate exit0; CSS181files0; browser18passed2.1m; reduced animations0, normal transform/opacity≤200ms, pending73.3/57.3ms, settled-windowCLS0. Fixed initially failing opener focus and reduced backdrop tests before rerun. Screenshots48+staff matrices0overflow/runtime errors; reports in docs/quality/ux-login-checkpoints.md. CP5 not yet verified.

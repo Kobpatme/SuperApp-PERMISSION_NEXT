@@ -87,10 +87,9 @@ body {
 .sidebar-section-toggle {
   display:grid; flex:0 0 40px; place-items:center; min-height:40px; padding:0;
   border:1px solid transparent; border-radius:var(--radius-md); background:transparent; color:var(--color-text-muted);
-  cursor:pointer; transition:background var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out);
+  cursor:pointer;
 }
 .sidebar-section-toggle:hover { border-color:var(--color-border); background:var(--color-surface-subtle); color:var(--color-text); }
-.sidebar-section-toggle svg { transition:transform var(--motion-fast) var(--ease-out); }
 .sidebar-section-toggle.is-expanded svg { transform:rotate(180deg); }
 .workspace-shell > .main { padding: 32px clamp(24px, 4vw, 48px) 48px; }
 .workspace-search { width: min(520px, 42vw); }
@@ -161,7 +160,6 @@ body {
   border-radius: 8px;
   font-size: 14px;
   font-weight: 600;
-  transition: background var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out), color var(--motion-fast) var(--ease-out), transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out);
 }
 .primary,
 .button {
@@ -214,9 +212,6 @@ body {
 .access-denied,
 .workspace-health,
 .module-directory > a { padding: 20px; }
-.metric,
-.card,
-.module-directory > a { transition: transform var(--motion-base) var(--ease-out), box-shadow var(--motion-base) var(--ease-out), border-color var(--motion-base) var(--ease-out); }
 .metric:hover,
 .card:hover,
 .module-directory > a:hover { border-color: var(--color-border); box-shadow: var(--shadow-sm); transform: none; }
@@ -353,11 +348,6 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .metric,
-  .card,
-  .module-directory > a,
-  .primary,
-  .secondary-action { transition: none; }
   .metric:hover,
   .card:hover,
   .module-directory > a:hover { transform: none; }

@@ -8,6 +8,7 @@ import { BuildingMap } from "./building-map";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { TruncatedText } from "@/components/ui/truncated-text";
+import { useDialogDismiss } from "@/components/ui/use-dialog-dismiss";
 
 type FilterKey = "status" | "group" | "type" | "installType" | "surveyType" | "area";
 type Filters = Record<FilterKey, string>;
@@ -67,6 +68,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
   const [copyMessage, setCopyMessage] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const {closing,dismiss}=useDialogDismiss(dialogRef,()=>dialogRef.current?.close());
   const selected = buildings.find((item) => item.id === selectedId) ?? null;
   const deferredQuery = useDeferredValue(query);
   const normalizedQuery = deferredQuery.trim().normalize("NFC").toLocaleLowerCase("th-TH");
@@ -225,8 +227,8 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
       </div>
     </div>
 
-    <dialog ref={dialogRef} className="permission-drawer" aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onClose={() => setSelectedId(null)}>
-       {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2><TruncatedText text={selected.nameTh} lines={2}/></h2><TruncatedText className="permission-drawer-name-en" text={selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"} lines={2}/><div className="permission-list-tags">{[selected.group, selected.surveyType, selected.type, selected.installType].filter(Boolean).map((tag) => <em key={tag}><TruncatedText text={tag as string} lines={1}/></em>)}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>แก้ไขข้อมูลอาคาร / รายละเอียด</Link></div><button type="button" onClick={() => dialogRef.current?.close()} aria-label="ปิดรายละเอียด">×</button></div>
+    <dialog ref={dialogRef} className={`permission-drawer ${closing ? "is-closing" : ""}`} aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onCancel={event=>{event.preventDefault();dismiss();}} onClose={() => setSelectedId(null)}>
+       {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2><TruncatedText text={selected.nameTh} lines={2}/></h2><TruncatedText className="permission-drawer-name-en" text={selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"} lines={2}/><div className="permission-list-tags">{[selected.group, selected.surveyType, selected.type, selected.installType].filter(Boolean).map((tag) => <em key={tag}><TruncatedText text={tag as string} lines={1}/></em>)}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>แก้ไขข้อมูลอาคาร / รายละเอียด</Link></div><button type="button" onClick={dismiss} aria-label="ปิดรายละเอียด">×</button></div>
          <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><strong className={statusClass(selected.status)}><TruncatedText text={selected.status || "—"} lines={1}/></strong></div><div><span>พื้นที่ / จังหวัด</span><TruncatedText text={[selected.area, selected.province].filter(Boolean).join(" · ") || "—"} lines={2}/></div><div><span>ข้อมูลล่าสุด</span><TruncatedText text={selected.updateDate || "ไม่ระบุวันที่"} lines={1}/></div></div>
         {(!selected.wmPoint || selected.feeReviewRequired || invalidDuration || invalidHorizontal) && <div className="permission-drawer-alert" role="status"><strong>ข้อมูลที่ควรตรวจสอบ</strong>{!selected.wmPoint && <span>ยังไม่มีข้อมูลจุดเชื่อมต่อ WM</span>}{invalidDuration && <span>ระยะดำเนินการไม่ใช่จำนวนวัน</span>}{invalidHorizontal && <span>ระยะสายแนวนอนไม่ใช่จำนวนเมตร</span>}{selected.feeReviewRequired && <span>ค่าใช้จ่ายจาก CSV รอตรวจสอบ</span>}</div>}
         <div className="permission-drawer-tabs" role="tablist" aria-label="รายละเอียดอาคาร">
@@ -257,7 +259,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
                (["dwg", "pdf", "image"] as const).map((category) => { const files = documentState.files.filter((file) => file.category === category); return files.length ? <section key={category} className="permission-doc-group"><h4>{categoryLabels[category]} <span>{files.length}</span></h4>{files.map((file, index) => <div key={`${file.name}-${index}`} className="permission-doc-row"><span className="permission-doc-ext">{file.extension.toUpperCase()}</span><div><TruncatedText className="text-safe" text={file.name} lines={2}/><small>{formatBytes(file.size)} · {formatDate(file.modifiedAt)}</small></div><a href={file.href} download={file.name}>ดาวน์โหลด</a></div>)}</section> : null; })}
           </>}
         </div>
-        <div className="permission-drawer-actions"><span>ข้อมูลจาก PostgreSQL กลาง · อ่านอย่างเดียว</span><div><button type="button" onClick={() => dialogRef.current?.close()}>ปิด</button></div></div>
+        <div className="permission-drawer-actions"><span>ข้อมูลจาก PostgreSQL กลาง · อ่านอย่างเดียว</span><div><button type="button" onClick={dismiss}>ปิด</button></div></div>
       </>}
     </dialog>
   </section>;
