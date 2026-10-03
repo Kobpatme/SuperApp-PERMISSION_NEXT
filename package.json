@@ -6,6 +6,7 @@
     "check:css": "node scripts/check-css-quality.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "test:e2e": "playwright test",
+    "pretest:e2e": "node scripts/render-ux-error-fixture.cjs",
     "test:ux:seed": "node scripts/ux-test-db.mjs init && node scripts/ux-test-db.mjs seed",
     "dev": "node scripts/run-with-nas.cjs dev",
     "build": "next build",

@@ -1,5 +1,6 @@
+import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "รายละเอียดเงินประกัน" };
+export const metadata: Metadata = { title: copy.pages.guarantees_id };
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { AccessDenied } from "@/components/access-denied";

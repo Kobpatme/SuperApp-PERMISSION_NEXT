@@ -1,4 +1,5 @@
 "use client";
+import { copy } from "@/lib/copy";
 
 import Link from "next/link";
 import type { DashboardSnapshot } from "@/lib/dashboard";
@@ -17,7 +18,7 @@ export function DashboardOverview({ displayName, userId, allowedModuleIds, devel
     <PreviewNotice developmentMode={developmentMode} preview={preview}/>
     <header className="page-heading">
       <div><p className="eyebrow">ภาพรวมการทำงาน</p><h1>วันนี้ต้องจัดการอะไรบ้าง</h1><p className="sub">สวัสดี {displayName} · รวมงานและรายการสำคัญที่คุณต้องติดตาม</p></div>
-      <div className="heading-actions"><RefreshButton/><span className="updated-at">{hasLiveData ? `ข้อมูล ณ ${formatWorkspaceDate(snapshot.generatedAt, true)}` : "รอเชื่อมข้อมูลจากระบบต้นทาง"}</span></div>
+      <div className="heading-actions"><RefreshButton/><span className="updated-at">{hasLiveData ? `ข้อมูล ณ ${formatWorkspaceDate(snapshot.generatedAt, true)}` : copy.feedback.dataPreparing}</span></div>
     </header>
     {allowedModuleIds.length ? <WorkspaceQueue snapshot={snapshot} userId={userId} preview={preview} showMetrics/> : <div className="queue-empty"><WorkspaceIcon name="guarantees" size={32}/><h2>ยังไม่มีพื้นที่ทำงานที่เข้าถึงได้</h2><p>กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์ตามหน้าที่ของคุณ</p></div>}
     <section className="module-directory" aria-label="เปิดพื้นที่ทำงาน">{modules.filter((module) => allowedModuleIds.includes(module.id)).map((module) => <Link href={`${module.href}${preview ? "?preview=1" : ""}`} key={module.id}>

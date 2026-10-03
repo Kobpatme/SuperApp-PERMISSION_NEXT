@@ -42,5 +42,5 @@ for(const reduced of [false,true])test(`motion respects preference ${reduced?"re
   observations.push(...await checkMotion(page,reduced));await page.keyboard.press("Escape");
   const cls=await page.evaluate(()=>(window as unknown as {uxShifts:number[]}).uxShifts.reduce((a,b)=>a+b,0));
   expect(cls).toBe(0);
-  await fs.writeFile(`docs/quality/ux-login-evidence/cp4-motion-${reduced?"reduce":"normal"}.json`,JSON.stringify({feedbackMs,settledWindowCLS:cls,observations},null,2));
+  await fs.writeFile(`docs/quality/ux-login-evidence/${process.env.UX_PHASE||"cp4"}-motion-${reduced?"reduce":"normal"}.json`,JSON.stringify({feedbackMs,settledWindowCLS:cls,observations},null,2));
 });

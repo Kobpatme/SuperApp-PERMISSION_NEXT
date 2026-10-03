@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "แผนที่อาคาร" };
+export const metadata: Metadata = { title: copy.pages.buildings_map };
 
 import { copy } from "@/lib/copy";
 import { AccessDenied } from "@/components/access-denied";

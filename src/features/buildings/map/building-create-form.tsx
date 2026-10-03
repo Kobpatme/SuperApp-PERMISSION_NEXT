@@ -24,7 +24,8 @@ export function BuildingCreateForm({ apiKey, teams, canCreateWithoutTeam }: { ap
         body: JSON.stringify({ code, nameTh, nameEn, ownerTeamId: ownerTeamId || null, location: location ? { ...location, verified: true } : undefined }) });
       if (!response.ok) {
         const result = await response.json() as { error?: string };
-        throw new Error(response.status === 403 ? "ไม่มีสิทธิ์สร้างอาคารในทีมที่เลือก" : result.error === "invalid_building" ? "ตรวจรูปแบบรหัสและชื่ออาคารอีกครั้ง" : "สร้างข้อมูลไม่สำเร็จ อาจมีรหัสอาคารนี้แล้ว");
+        setMessage(response.status === 403 ? copy.feedback.createDenied : result.error === "invalid_building" ? copy.feedback.createInvalid : copy.feedback.createDuplicate);
+        return;
       }
       const result = await response.json() as { id: string };
       router.push(`/buildings/${result.id}`);

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "เพิ่มอาคาร" };
+export const metadata: Metadata = { title: copy.pages.buildings_new };
 
 import { copy } from "@/lib/copy";
 import Link from "next/link";

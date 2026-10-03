@@ -11,3 +11,4 @@
 @media(max-width:900px){.admin-inline-list form,.admin-role-create{grid-template-columns:1fr 1fr}.admin-capability-matrix{grid-template-columns:1fr}.admin-team-item>form:first-child{grid-template-columns:1fr}.admin-session-section{grid-template-columns:1fr}.admin-section-nav{top:64px;flex-wrap:wrap}}
 @media(max-width:600px){.admin-inline-list form,.admin-role-create,.admin-role-meta{grid-template-columns:1fr}.admin-team-item{align-items:stretch;flex-direction:column}.admin-team-item>form:last-child button{width:100%}}
 .admin-capability-matrix details summary{color:var(--color-text-muted);font-size:12px;cursor:pointer}
+.admin-table-wrap:focus-visible { outline:3px solid var(--color-focus-ring); outline-offset:3px; }

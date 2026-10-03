@@ -352,3 +352,5 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
   .card:hover,
   .module-directory > a:hover { transform: none; }
 }
+/* Keep browser-default small text readable when inherited from dense controls. */
+small { font-size:max(12px,.85em); }

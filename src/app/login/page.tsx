@@ -7,7 +7,7 @@ import { safeNextPath } from "@/lib/safe-next-path";
 import { getServerEnv } from "@/lib/env";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "เข้าสู่ระบบ" };
+export const metadata: Metadata = { title: copy.pages.login };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string; reason?: string }> }) {
   if (await getCurrentUser()) redirect("/");

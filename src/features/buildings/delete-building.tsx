@@ -1,4 +1,6 @@
 "use client";
+import { copy } from "@/lib/copy";
+
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -43,7 +45,7 @@ export function DeleteBuilding({ id, name, version }: { id: string; name: string
     <dialog ref={dialog} className="building-delete-dialog" aria-labelledby="building-delete-title" aria-describedby="building-delete-description" onCancel={(event) => { if (pendingRef.current) event.preventDefault(); }}>
       <form onSubmit={submit}>
         <h2 id="building-delete-title">ยืนยันลบอาคาร</h2>
-        <p id="building-delete-description">การลบจะนำอาคารและข้อมูลเฉพาะอาคารออกจากฐานข้อมูลอย่างถาวร ไม่สามารถย้อนกลับจากหน้านี้ได้ ระบบจะเก็บประวัติการลบไว้สำหรับตรวจสอบ</p>
+        <p id="building-delete-description">{copy.feedback.deleteBuildingWarning}</p>
         <strong className="building-delete-name">{name}</strong>
         <label>พิมพ์ชื่ออาคารให้ตรงเพื่อยืนยัน<input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" disabled={pending} required /></label>
         {message && <p className="building-delete-error" role="alert">{message}</p>}

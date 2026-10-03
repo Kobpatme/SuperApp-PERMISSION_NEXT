@@ -6,7 +6,7 @@ import { copy } from "@/lib/copy";
 import { getServerEnv } from "@/lib/env";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "ตั้งรหัสผ่านใหม่" };
+export const metadata: Metadata = { title: copy.pages.change_password };
 
 export default async function ChangePasswordPage() {
   const user = await getCurrentUser();

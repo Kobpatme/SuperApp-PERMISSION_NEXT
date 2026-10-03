@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "อาคารและค่าใช้จ่าย" };
+export const metadata: Metadata = { title: copy.pages.buildings };
 
 import { copy } from "@/lib/copy";
 import { AccessDenied } from "@/components/access-denied";

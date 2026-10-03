@@ -23,4 +23,11 @@ describe("proxy authentication boundary", () => {
     const response = proxy(new NextRequest("http://localhost:3000/api/health"));
     expect(response.status).toBe(200);
   });
+  it("overwrites a forged return header with the parsed local URL",()=>{
+    const response=proxy(new NextRequest("http://localhost:3000/work?view=mine",{headers:{cookie:"permission_next_session=fixture","x-pn-request-path":"//evil.example"}}));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-middleware-request-x-pn-request-path")).toBe("/work?view=mine");
+    expect(response.headers.get("x-pn-request-path")).toBeNull();
+  });
+  it.each(["/icon.png","/apple-icon.png","/manifest.webmanifest","/robots.txt"])("allows only public metadata asset %s",path=>{expect(proxy(new NextRequest(`http://localhost:3000${path}`)).status).toBe(200);});
 });

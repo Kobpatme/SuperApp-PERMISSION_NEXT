@@ -11,7 +11,21 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ux_fixture
+          POSTGRES_PASSWORD: ux_fixture_only
+          POSTGRES_DB: postgres
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U ux_fixture -d postgres"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      UX_TEST_DATABASE_URL: postgres://ux_fixture:ux_fixture_only@127.0.0.1:5432/postgres
+      TRUSTED_PROXY_COUNT: 0
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,3 +42,19 @@ jobs:
       - run: npm run test:documents
       - run: npm run build
       - run: npm audit --omit=dev
+      - run: npm run test:ux:seed
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+        env:
+          UX_PHASE: cp5-ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ux-browser-evidence
+          path: |
+            test-results/
+            docs/quality/ux-login-evidence/e2e-results.json
+            docs/quality/ux-login-evidence/cp5-ci-*.png
+            docs/quality/ux-login-evidence/cp5-ci-motion-*.json
+            docs/quality/ux-login-evidence/font-budget.json
+          retention-days: 14

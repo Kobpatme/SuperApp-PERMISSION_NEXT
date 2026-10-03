@@ -27,13 +27,16 @@ if (process.argv[2]==='init') {
   const passwordHash=await hash('FixturePassword123!',{memoryCost:19456,timeCost:2,parallelism:1,outputLen:32});
   try {
     await sql.begin(async tx=>{
-      for (const [id,email,temporary,role] of [['00000000-0000-4000-8000-000000000101','staff@example.test',false,'viewer'],['00000000-0000-4000-8000-000000000102','temporary@example.test',true,'viewer'],['00000000-0000-4000-8000-000000000103','admin@example.test',false,'platform_admin']]) {
+      const [staffRole]=await tx`insert into roles(code,name,is_system) values('ux_staff','Synthetic UX staff',false) on conflict(code) do update set name=excluded.name returning id`;
+      for(const permission of ['work.task.read','building.record.read','building.attachment.read','guarantee.case.read'])await tx`insert into role_permissions(role_id,permission_code) values(${staffRole.id},${permission}) on conflict do nothing`;
+      for (const [id,email,temporary,role] of [['00000000-0000-4000-8000-000000000101','staff@example.test',false,'ux_staff'],['00000000-0000-4000-8000-000000000102','temporary@example.test',true,'ux_staff'],['00000000-0000-4000-8000-000000000103','admin@example.test',false,'platform_admin']]) {
         await tx`insert into profiles(id,email,display_name,status) values(${id},${email},'ผู้ใช้ทดสอบ','active') on conflict(id) do update set status='active'`;
         await tx`insert into local_credentials(user_id,password_hash,must_change_password) values(${id},${passwordHash},${temporary}) on conflict(user_id) do update set password_hash=${passwordHash},must_change_password=${temporary},failed_attempts=0,locked_until=null`;
         await tx`delete from auth_sessions where user_id=${id}`;
         await tx`delete from auth_rate_limits where subject_type='email' and subject_key=${email}`;
         const [r]=await tx`select id from roles where code=${role}`;
         if (!r) throw new Error(`Fixture role missing: ${role}`);
+        if(role==='ux_staff')await tx`delete from user_role_assignments where user_id=${id} and role_id<>${r.id}`;
         const [existing]=await tx`select id from user_role_assignments where user_id=${id} and role_id=${r.id}`;
         const [a]=existing ? [] : await tx`insert into user_role_assignments(user_id,role_id) values(${id},${r.id}) returning id`;
         if (a) await tx`insert into data_scope_grants(assignment_id,scope_type) values(${a.id},'ALL')`;
@@ -46,6 +49,7 @@ if (process.argv[2]==='init') {
     }); console.log('Synthetic UX users and long-text fixtures seeded');
   } finally { await sql.end(); }
 } else if (process.argv[2]==='server') {
+  process.env.NODE_ENV='production';
   process.env.LONGDO_MAP_API_KEY=''; process.env.PERMISSION_NAS_BRIDGE_URL=''; process.env.PERMISSION_NAS_BRIDGE_SECRET='';
   const { nextStart }=await import('next/dist/cli/next-start.js');
   await nextStart({port:3100},process.cwd());

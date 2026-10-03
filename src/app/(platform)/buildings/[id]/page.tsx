@@ -1,5 +1,6 @@
+import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "รายละเอียดอาคาร" };
+export const metadata: Metadata = { title: copy.pages.buildings_id };
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";

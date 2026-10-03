@@ -4,7 +4,7 @@ import { safeNextPath } from "@/lib/safe-next-path";
 
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const isPublicRoute = pathname === "/login" || pathname === "/api/health";
+  const isPublicRoute = ["/login", "/api/health", "/icon.png", "/apple-icon.png", "/manifest.webmanifest", "/robots.txt"].includes(pathname);
   const isApiRoute = pathname.startsWith("/api/");
   const hasSession = Boolean(request.cookies.get(sessionCookieName)?.value);
   if (!hasSession && isApiRoute && !isPublicRoute) {
@@ -16,7 +16,10 @@ export function proxy(request: NextRequest) {
     url.search = `?next=${encodeURIComponent(safeNextPath(`${pathname}${request.nextUrl.search}`))}`;
     return NextResponse.redirect(url);
   }
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  // Always overwrite client-supplied values; this header is request-only, not identity.
+  requestHeaders.set("x-pn-request-path", safeNextPath(`${pathname}${request.nextUrl.search}`));
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };

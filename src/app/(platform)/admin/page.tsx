@@ -1,5 +1,6 @@
+import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "ผู้ดูแลระบบ" };
+export const metadata: Metadata = { title: copy.pages.admin };
 import { and, asc, count, desc, eq, gt, isNull, lte, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";

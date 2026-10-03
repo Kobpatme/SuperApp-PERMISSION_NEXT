@@ -1,6 +1,6 @@
 import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "เพิ่มงาน" };
+export const metadata: Metadata = { title: copy.pages.work_new };
 import Link from "next/link";
 import { AccessDenied } from "@/components/access-denied";
 import { WorkCreateForm } from "@/components/work-create-form";

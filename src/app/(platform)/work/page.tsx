@@ -1,5 +1,6 @@
+import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "ภาพรวมงาน" };
+export const metadata: Metadata = { title: copy.pages.work };
 import { WorkRoutePage } from "@/components/work-route-page";
 
 export default async function ModulePage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

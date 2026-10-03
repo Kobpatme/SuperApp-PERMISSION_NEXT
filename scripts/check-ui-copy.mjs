@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import fs from 'node:fs';
 import path from 'node:path';
-const forbidden=/Argon2|RBAC|ฐานข้อมูล|DATABASE|\bNAS\b|\bsession\b|\bserver\b|Developer|readiness|foundation|read model|outbox|Effective Access|Data Scope|เซิร์ฟเวอร์/i;
+const forbidden=/Argon2|RBAC|PostgreSQL|ฐานข้อมูล|DATABASE|\bNAS\b|\bsession\b|\bserver\b|Developer|readiness|foundation|read model|outbox|Effective Access|Data Scope|เซิร์ฟเวอร์/i;
 const findings=[];
 function scan(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){
  const file=path.join(dir,e.name); if(e.isDirectory()){if(!file.includes(`${path.sep}legacy`))scan(file);continue;}

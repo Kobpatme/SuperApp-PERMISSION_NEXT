@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "เพิ่มรายการเงินประกัน" };
+export const metadata: Metadata = { title: copy.pages.guarantees_new };
 
 import { copy } from "@/lib/copy";
 import { AccessDenied } from "@/components/access-denied";

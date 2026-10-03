@@ -1,5 +1,6 @@
+import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "เงินประกันอาคาร" };
+export const metadata: Metadata = { title: copy.pages.guarantees };
 import { AccessDenied } from "@/components/access-denied";
 import { DepositWorkspace } from "@/components/deposit-workspace";
 import { getAccessContext } from "@/lib/access";

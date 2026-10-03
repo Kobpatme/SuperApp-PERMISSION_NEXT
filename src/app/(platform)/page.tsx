@@ -1,5 +1,6 @@
+import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
-export const metadata: Metadata = { title: "ภาพรวม" };
+export const metadata: Metadata = { title: copy.pages.home };
 import { DashboardOverview } from "@/components/dashboard-overview";
 import { getWorkspaceData } from "@/lib/workspace-server";
 

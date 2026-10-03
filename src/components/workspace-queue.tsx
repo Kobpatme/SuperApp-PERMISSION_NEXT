@@ -1,4 +1,5 @@
-"use client";
+import { copy } from "@/lib/copy";
+
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type RefObject } from "react";
@@ -39,10 +40,10 @@ function DetailPanel({ item, preview, onClose, opener }: { item: DashboardItem; 
         <div><dt>ประเภท</dt><dd>{kindLabels[item.kind]}</dd></div>
         {item.updatedAt && <div><dt>แก้ไขล่าสุด</dt><dd>{formatWorkspaceDate(item.updatedAt, true)}</dd></div>}
       </dl>
-       <section className="detail-section"><h3>รายละเอียด</h3><TruncatedText text={item.description || "ยังไม่มีรายละเอียดเพิ่มเติมจากระบบต้นทาง"} lines={3}/></section>
+       <section className="detail-section"><h3>รายละเอียด</h3><TruncatedText text={item.description || copy.feedback.detailsEmpty} lines={3}/></section>
        <section className="next-step"><WorkspaceIcon name="arrow"/><div><h3>ขั้นตอนถัดไป</h3><TruncatedText text={item.nextAction || "ตรวจสอบข้อมูลกับผู้รับผิดชอบก่อนดำเนินการต่อ"} lines={3}/></div></section>
       <div className="detail-actions">
-        {!preview && item.href !== moduleInfo.href && <Link className="primary" href={item.href} onClick={onClose}>เปิดรายการต้นทาง<WorkspaceIcon name="arrow" size={17}/></Link>}
+        {!preview && item.href !== moduleInfo.href && <Link className="primary" href={item.href} onClick={onClose}>{copy.feedback.openRecord}<WorkspaceIcon name="arrow" size={17}/></Link>}
         <button className="secondary-action" type="button" onClick={async () => { try { await navigator.clipboard.writeText(item.code || item.id); setMessage("คัดลอกรหัสรายการแล้ว"); } catch { setMessage("คัดลอกไม่สำเร็จ กรุณาเลือกรหัสแล้วคัดลอกด้วยตนเอง"); } }}><WorkspaceIcon name="copy" size={17}/>คัดลอกรหัส</button>
       </div>
       <p role="status" className="inline-feedback">{message}</p>
@@ -135,7 +136,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
       <span>{view === "all" ? "รายการที่ต้องติดตาม" : viewLabels[view]}</span><strong>{hasData ? <AnimatedNumber value={counts[view]}/> : "—"}</strong><small>{hasData ? partial ? "รายการ · ข้อมูลบางส่วน" : "รายการ" : "รอข้อมูล"}<WorkspaceIcon name="arrow" size={16}/></small>
     </button>)}</section>}
     <section className="queue-section" aria-labelledby="queue-heading">
-      <div className="section-heading-row"><div><h2 id="queue-heading">รายการที่ต้องติดตาม</h2><p>{moduleId ? "ค้นหาและเปิดรายละเอียด โดยเก็บมุมมองการทำงานไว้" : "เลือกงานที่ต้องทำต่อจากทุกระบบในที่เดียว"}</p></div><span className="queue-total">{hasData ? `${items.length.toLocaleString("th-TH")} รายการ${preview ? "ตัวอย่าง" : ""}` : "รอเชื่อมข้อมูล"}</span></div>
+      <div className="section-heading-row"><div><h2 id="queue-heading">รายการที่ต้องติดตาม</h2><p>{moduleId ? "ค้นหาและเปิดรายละเอียด โดยเก็บมุมมองการทำงานไว้" : "เลือกงานที่ต้องทำต่อจากทุกระบบในที่เดียว"}</p></div><span className="queue-total">{hasData ? `${items.length.toLocaleString("th-TH")} รายการ${preview ? "ตัวอย่าง" : ""}` : copy.feedback.queueWaiting}</span></div>
       {!showMetrics && <div className="queue-views" aria-label="มุมมองรายการ">{(Object.keys(viewLabels) as QueueView[]).map((view) => <button type="button" key={view} className={settings.view === view ? "active" : ""} aria-pressed={settings.view === view} onClick={() => changeSettings({ view })}>{viewLabels[view]}<span>{hasData ? counts[view] : "—"}</span></button>)}</div>}
       <div className="queue-toolbar">
         <label className="queue-search"><WorkspaceIcon name="search" size={18}/><input type="search" aria-label="ค้นหาในรายการ" placeholder="ค้นหาชื่ออาคาร รหัส หรือผู้รับผิดชอบ…" maxLength={200} value={settings.query} onChange={(event) => changeSettings({ query: event.target.value })}/></label>
@@ -144,7 +145,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
       </div>
       {filtersOpen && <div className="queue-filters" id="queue-filters"><label>สถานะ<select value={settings.status} onChange={(event) => changeSettings({ status: event.target.value })}><option value="">ทุกสถานะ</option>{statuses.map((status) => <option key={status}>{status}</option>)}{settings.status && !statuses.includes(settings.status) && <option>{settings.status}</option>}</select></label><label>เรียงตาม<select value={settings.sort} onChange={(event) => changeSettings({ sort: event.target.value as ViewSettings["sort"] })}><option value="priority">ความเร่งด่วน</option><option value="due">กำหนดใกล้ที่สุด</option><option value="title">ชื่อรายการ ก–ฮ</option></select></label><button type="button" className="text-btn" onClick={() => changeSettings({ query: "", status: "", sort: "priority", view: "all" })}>ล้างตัวกรองทั้งหมด</button></div>}
       {partial && <div className="queue-notice" role="status"><WorkspaceIcon name="info" size={17}/>แสดงข้อมูลบางส่วน บางระบบยังเชื่อมต่อไม่ได้ ดูสถานะข้อมูลด้านล่าง</div>}
-      {sources.some((source) => source.itemCount >= 500) && <p className="queue-notice">แสดงรายการติดตามสูงสุด 500 รายการต่อระบบ ตรวจสอบรายการทั้งหมดในระบบต้นทาง</p>}
+      {sources.some((source) => source.itemCount >= 500) && <p className="queue-notice">{copy.feedback.queueLimit}</p>}
       {selected.length > 0 && <div className="batch-toolbar"><strong>เลือก {selected.length} รายการในหน้านี้</strong><button type="button" className="secondary-action" onClick={async () => {
         try { await navigator.clipboard.writeText(selected.map((item) => item.code || item.id).join("\n")); setMessage(`คัดลอกรหัส ${selected.length} รายการแล้ว`); }
         catch { setMessage("คัดลอกไม่สำเร็จ กรุณาลองอีกครั้ง"); }
@@ -163,7 +164,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
             <td><span className="due-date">{formatWorkspaceDate(item.dueAt)}</span><span className={`priority-label ${item.priority}`}>{priorityLabels[item.priority]}</span></td>
              <td><span className="status-badge neutral"><TruncatedText text={item.statusLabel} lines={1}/></span></td>
           </tr>)}
-          {!visible.length && <tr><td colSpan={5}><div className="queue-empty"><span className="empty-icon"><WorkspaceIcon name={hasData ? "search" : unavailable ? "refresh" : (getModule(moduleId ?? "")?.icon ?? "work")} size={28}/></span><h3>{hasData ? items.length ? "ไม่พบรายการที่ตรงกับตัวกรอง" : "ไม่มีรายการที่ต้องติดตาม" : unavailable ? "เชื่อมต่อข้อมูลไม่สำเร็จ" : "อยู่ระหว่างเตรียมข้อมูล"}</h3><p>{hasData ? items.length ? "ลองเปลี่ยนคำค้นหรือเลือกมุมมองทั้งหมด" : "ยังไม่มีรายการติดตามส่งมาจากระบบต้นทาง" : unavailable ? "ข้อมูลอาจไม่พร้อมใช้งานชั่วคราว ลองอัปเดตอีกครั้ง" : "รายการจะแสดงที่นี่เมื่อเชื่อมต่อระบบต้นทางแล้ว หากต้องใช้งาน กรุณาติดต่อผู้ดูแลระบบ"}</p>{hasData && items.length > 0 ? <button className="secondary-action" type="button" onClick={() => changeSettings({ query: "", status: "", view: "all" })}>แสดงรายการทั้งหมด</button> : unavailable ? <RefreshButton/> : null}</div></td></tr>}
+          {!visible.length && <tr><td colSpan={5}><div className="queue-empty"><span className="empty-icon"><WorkspaceIcon name={hasData ? "search" : unavailable ? "refresh" : (getModule(moduleId ?? "")?.icon ?? "work")} size={28}/></span><h3>{hasData ? items.length ? "ไม่พบรายการที่ตรงกับตัวกรอง" : "ไม่มีรายการที่ต้องติดตาม" : unavailable ? "เชื่อมต่อข้อมูลไม่สำเร็จ" : "อยู่ระหว่างเตรียมข้อมูล"}</h3><p>{hasData ? items.length ? "ลองเปลี่ยนคำค้นหรือเลือกมุมมองทั้งหมด" : copy.feedback.queueEmpty : unavailable ? "ข้อมูลอาจไม่พร้อมใช้งานชั่วคราว ลองอัปเดตอีกครั้ง" : copy.feedback.queuePreparingHint}</p>{hasData && items.length > 0 ? <button className="secondary-action" type="button" onClick={() => changeSettings({ query: "", status: "", view: "all" })}>แสดงรายการทั้งหมด</button> : unavailable ? <RefreshButton/> : null}</div></td></tr>}
         </tbody></table>
       </div>
       <footer className="queue-footer"><span role="status">{hasData ? rows.length ? `แสดง ${(page - 1) * size + 1}–${Math.min(page * size, rows.length)} จาก ${rows.length} รายการ` : "0 รายการ" : "ยังไม่มีข้อมูลพร้อมแสดง"}</span><div className="pagination"><button className="secondary-action" type="button" disabled={page <= 1} onClick={() => update({ page: String(page - 1) })}>ก่อนหน้า</button><span>หน้า {page} / {pageCount}</span><button className="secondary-action" type="button" disabled={page >= pageCount} onClick={() => update({ page: String(page + 1) })}>ถัดไป</button></div></footer>
