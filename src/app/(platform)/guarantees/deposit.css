@@ -53,17 +53,17 @@
 .deposit-analytics p { display: flex; justify-content: space-between; gap: 16px; margin: 0; padding: 10px 0; border-bottom: 1px solid var(--app-line); color: var(--app-muted); }
 .deposit-analytics p:last-child { border: 0; }
 .deposit-analytics p strong { color: var(--app-text); text-align: right; }
-.deposit-modal-backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 20px; background: rgba(10, 15, 24, .65); }
-.deposit-modal { position: relative; width: min(560px, 100%); padding: 28px; border: 1px solid var(--app-line); border-radius: 18px; background: var(--app-surface); }
+.deposit-modal-backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 20px; background: var(--color-info); }
+.deposit-modal { position: relative; width: min(560px, 100%); padding: 28px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); }
 .deposit-modal h2 { margin: 0; }
-.deposit-modal-close { position: absolute; top: 15px; right: 16px; border: 0; background: transparent; color: var(--app-muted); font-size: 27px; }
+.deposit-modal-close { position: absolute; top: 15px; right: 16px; border: 0; background: transparent; color: var(--color-text-muted); font-size: 27px; }
 .deposit-modal dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0 0; }
-.deposit-modal dt { color: var(--app-muted); font-size: 12px; }
+.deposit-modal dt { color: var(--color-text-muted); font-size: 12px; }
 .deposit-modal dd { margin: 2px 0 0; font-weight: 700; }
 .deposit-detail { width: 100%; max-width: none; }
 .deposit-detail-head { display: flex; justify-content: space-between; align-items: start; gap: 18px; margin-bottom: 24px; }
 .deposit-detail-head h1 { margin: 4px 0; }
-.deposit-detail-head a { color: var(--app-brand); font-weight: 700; }
+.deposit-detail-head a { color: var(--color-brand); font-weight: 700; }
 .deposit-detail-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, .7fr); gap: 18px; align-items: start; }
 .deposit-panel { padding: 22px; border: 1px solid var(--app-line); border-radius: 15px; background: var(--app-surface); }
 .deposit-panel h2 { margin: 0 0 16px; font-size: 19px; }
@@ -160,7 +160,7 @@
 .area-badge { background:color-mix(in srgb,var(--deposit-orange) 12%,var(--app-surface)); color:var(--deposit-orange); }
 .legacy-pagination { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 15px; border-top:1px solid var(--app-line); color:var(--app-muted); font-size:12px; }
 .legacy-pagination>div { display:flex; align-items:center; gap:10px; }.legacy-pagination button { min-height:34px; padding:5px 10px; border:1px solid var(--app-line); border-radius:8px; background:var(--app-surface); color:var(--app-text); font-weight:700; }.legacy-pagination button:disabled { opacity:.4; }
-.deposit-toast { position:fixed; right:24px; bottom:24px; z-index:500; padding:11px 15px; border-radius:10px; background:#172033; color:#fff; box-shadow:0 12px 30px rgba(0,0,0,.22); font-size:12px; font-weight:700; }
+.deposit-toast { position:fixed; right:24px; bottom:24px; z-index:500; padding:11px 15px; border-radius:10px; background:var(--color-info); color:var(--color-on-brand); box-shadow:0 12px 30px var(--color-shadow-ink); font-size:12px; font-weight:700; }
 @media (max-width:1350px) { .legacy-kpis { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:900px) { .legacy-deposit-head { align-items:flex-start; }.legacy-head-actions { justify-content:flex-start; }.legacy-filter-bar { flex-wrap:wrap; }.legacy-filter-bar .deposit-search { flex-basis:100%; }.legacy-filter-bar select { flex:1 1 160px; } }
 @media (max-width:620px) { .legacy-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }.legacy-head-actions select { flex:1; }.legacy-head-actions .executive-nav-button { flex:1 1 100%; }.legacy-head-actions .deposit-export,.legacy-head-actions .primary { flex:1 1 45%; }.legacy-pagination { align-items:flex-start; flex-direction:column; } }

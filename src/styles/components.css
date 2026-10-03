@@ -279,13 +279,13 @@ body {
 .deposit-status.status-off_service_pending,
 .deposit-priority.priority-high { background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface)); color: var(--color-warning); }
 .deposit-priority.priority-medium { background: var(--color-brand-soft); color: var(--color-brand); }
-.deposit-modal { border: 1px solid var(--app-line); border-radius: 16px; background: var(--app-surface); box-shadow: var(--shadow-md); }
-.deposit-modal-backdrop { background: rgba(34, 34, 34, .58); }
+.deposit-modal { border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); box-shadow: var(--shadow-md); }
+.deposit-modal-backdrop { background: var(--color-overlay); }
 .detail-panel,
-.permission-drawer { background: var(--app-surface); box-shadow: var(--shadow-md); }
-.detail-panel { border-color: var(--app-line); }
+.permission-drawer { background: var(--color-surface); box-shadow: var(--shadow-md); }
+.detail-panel { border-color: var(--color-border); }
 .detail-panel::backdrop,
-.permission-drawer::backdrop { background: rgba(34, 34, 34, .58); }
+.permission-drawer::backdrop { background: var(--color-overlay); }
 .permission-search { height: 48px; border: 1px solid var(--app-line); border-radius: var(--radius-md); background: var(--app-surface); box-shadow: var(--shadow-xs); }
 .permission-search:focus-within { border-color: var(--app-text); outline: 1px solid var(--app-text); }
 .permission-filter-toggle,
@@ -315,7 +315,7 @@ body {
 .source-readiness-copy > .truncated-text-wrap:first-child { font-size: 12px; font-weight: 700; }
 .source-readiness-copy > .truncated-text-wrap:last-child { color: var(--color-text-muted); font-size: 12px; }
 .detail-section > .truncated-text-wrap,
-.next-step > div > .truncated-text-wrap { color: var(--app-muted); font-size: 12px; line-height: 1.65; }
+.next-step > div > .truncated-text-wrap { color: var(--color-text-muted); font-size: 12px; line-height: 1.65; }
 .next-step > div { flex: 1; }
 .saved-view-link > .truncated-text-wrap { display: block; }
 .permission-drawer-head h2,
@@ -329,7 +329,7 @@ html[data-theme="dark"] .health-modules span { background: var(--app-surface-sof
   .workspace-shell .shell-header .topbar { min-height: 64px; }
   .workspace-sidebar { inset-block-start: 64px; }
   .workspace-shell > .main { padding: 24px clamp(16px, 4vw, 32px) 40px; }
-  .workspace-mobile-dialog[open] { border-right: 1px solid var(--app-line); border-radius: 0 16px 16px 0; }
+  .workspace-mobile-dialog[open] { border-right: 1px solid var(--color-border); border-radius: 0 16px 16px 0; }
   .mobile-sidebar-heading { border-bottom: 1px solid var(--color-border); }
 }
 

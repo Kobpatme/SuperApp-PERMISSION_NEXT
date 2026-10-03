@@ -19,6 +19,18 @@ for (const theme of ["light", "dark"] as const) for (const width of [1440,1024,3
       const results=await new AxeBuilder({page}).analyze();
       expect(results.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
       await page.screenshot({path:`docs/quality/ux-login-evidence/${process.env.UX_PHASE||'cp2'}-${name}-staff-${theme}-${width}.png`,fullPage:true});
+      if(name === "dashboard") {
+        await page.locator(".record-title").first().click();
+        await expect(page.locator(".detail-panel")).toBeVisible();
+        await settlePresentation(page);
+        const detail=await new AxeBuilder({page}).analyze();
+        expect(detail.violations.filter(v=>["serious","critical"].includes(v.impact||""))).toEqual([]);
+        expect(await page.locator(".detail-panel").innerText()).not.toMatch(forbidden);
+        expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+        await page.screenshot({path:`docs/quality/ux-login-evidence/${process.env.UX_PHASE||'cp2'}-queue-detail-staff-${theme}-${width}.png`,fullPage:true});
+        await page.getByRole("button",{name:"ปิดรายละเอียด",exact:true}).click();
+        await expect(page.locator(".detail-panel")).toHaveCount(0);
+      }
       if(name === "buildings") {
         await page.getByRole("textbox",{name:"ค้นหาอาคาร",exact:true}).fill("อาคารศูนย์ปฏิบัติการ");
         await page.getByRole("option").first().click();
