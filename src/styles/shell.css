@@ -134,7 +134,7 @@
 .sidebar-link:focus-visible,
 .sidebar-collapse-button:focus-visible,
 .sidebar-mobile-toggle:focus-visible {
-  outline: 4px solid color-mix(in srgb, var(--color-brand) 30%, transparent);
+  outline: 4px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 

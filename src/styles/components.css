@@ -1,7 +1,7 @@
 /* Shared presentation migrated from the former theme; domain layouts remain intact. */
 body {
-  background: var(--app-bg);
-  color: var(--app-text);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.6;
@@ -17,7 +17,7 @@ body {
 :where(code, kbd, pre, .record-code) { font-family: var(--font-mono); }
 
 :where(button, input, select, textarea, summary, a):focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--color-brand) 32%, transparent);
+  outline: 3px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 .shell-header {
@@ -105,7 +105,7 @@ body {
 .deposit-form select,
 .deposit-transition textarea {
   min-height: 40px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   background: var(--color-surface);
   color: var(--color-text);
@@ -174,13 +174,13 @@ body {
 .button:hover { border-color: var(--color-brand-hover); background: var(--color-brand-hover); transform: none; }
 .secondary-action,
 .native-toolbar button,
-.deposit-export { border: 1px solid var(--app-text); background: transparent; color: var(--app-text); box-shadow: none; }
+.deposit-export { border: 1px solid var(--color-text); background: transparent; color: var(--color-text); box-shadow: none; }
 .secondary-action:hover,
 .secondary-action.is-active,
 .native-toolbar button:hover,
-.deposit-export:hover { border-color: var(--app-text); background: var(--app-text); color: var(--app-surface); transform: none; }
-.text-btn { min-height: 36px; padding: 7px 10px; border-radius: 8px; color: var(--app-text); font-size: 12px; font-weight: 600; }
-.text-btn:hover { background: var(--app-surface-soft); color: var(--color-brand); }
+.deposit-export:hover { border-color: var(--color-text); background: var(--color-text); color: var(--color-surface); transform: none; }
+.text-btn { min-height: 36px; padding: 7px 10px; border-radius: 8px; color: var(--color-text); font-size: 12px; font-weight: 600; }
+.text-btn:hover { background: var(--color-surface-subtle); color: var(--color-brand); }
 .module-tab,
 .queue-views button,
 .deposit-tabs button { font-family: var(--font-ui); }
@@ -262,7 +262,7 @@ body {
 .record-subtitle > .truncated-text-wrap,
 .owner-cell > .truncated-text-wrap { flex: 1; }
 .status-badge > .truncated-text-wrap { flex: 1; }
-.selection-cell input { width: 20px; height: 20px; accent-color: var(--app-text); }
+.selection-cell input { width: 20px; height: 20px; accent-color: var(--color-text); }
 .status-badge.neutral { background: var(--color-surface-subtle); color: var(--color-text-muted); }
 .status-badge.urgent { background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface)); color: var(--color-danger); }
 .status-badge.attention { background: color-mix(in srgb, var(--color-warning) 14%, var(--color-surface)); color: var(--color-warning); }
@@ -273,7 +273,7 @@ body {
 .deposit-tabs { gap: 4px; }
 .deposit-tabs button.active { border-color: var(--color-brand); color: var(--color-brand); }
 .deposit-table-wrap { overflow: hidden; }
-.deposit-money { color: var(--app-text); }
+.deposit-money { color: var(--color-text); }
 .deposit-status.status-done,
 .deposit-status.status-on_service { background: var(--color-success-soft); color: var(--color-success); }
 .deposit-status.status-off_service_pending,
@@ -286,8 +286,8 @@ body {
 .detail-panel { border-color: var(--color-border); }
 .detail-panel::backdrop,
 .permission-drawer::backdrop { background: var(--color-overlay); }
-.permission-search { height: 48px; border: 1px solid var(--app-line); border-radius: var(--radius-md); background: var(--app-surface); box-shadow: var(--shadow-xs); }
-.permission-search:focus-within { border-color: var(--app-text); outline: 1px solid var(--app-text); }
+.permission-search { height: 48px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); box-shadow: var(--shadow-xs); }
+.permission-search:focus-within { border-color: var(--color-focus-ring); outline: 1px solid var(--color-text); }
 .permission-filter-toggle,
 .permission-filterbar select,
 .permission-summary .permission-map-stats button,
@@ -322,7 +322,7 @@ body {
 .permission-list-head h2 { font-family: var(--font-ui); }
 .html[data-theme="dark"] :where(.workspace-table th, .deposit-table th) { background: var(--color-surface-subtle); }
 html[data-theme="dark"] .workspace-health { background: var(--color-surface); border-color: var(--color-border); }
-html[data-theme="dark"] .health-modules span { background: var(--app-surface-soft); }
+html[data-theme="dark"] .health-modules span { background: var(--color-surface-subtle); }
 
 
 @media (max-width: 900px) {

@@ -11,7 +11,9 @@ for (const file of files) {
   const text=fs.readFileSync(file,'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
   if (!file.endsWith('tokens.css')) for (const m of text.matchAll(/#[\da-f]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\([^)]*\)/gi)) errors.push(`${file}: literal ${m[0]}`);
   if (file.endsWith('.css')) {
-    for (const m of text.matchAll(/font-size\s*:\s*([\d.]+)px/g)) if (+m[1]<12) errors.push(`${file}: font-size ${m[1]}px (no exceptions)`);
+    for (const m of text.matchAll(/font-size\s*:\s*([^;}]+)/g)) {
+      for(const v of m[1].matchAll(/([\d.]+)(px|rem)/g)) if(+v[1]<(v[2]==='px'?12:.75)) errors.push(`${file}: font-size ${v[0]} (no exceptions)`);
+    }
     for (const m of text.matchAll(/letter-spacing\s*:\s*-[\d.]+(?:px|em|rem)/g)) errors.push(`${file}: negative tracking ${m[0]}`);
   }
   for (const m of text.matchAll(/var\(\s*(--[\w-]+)/g)) if (!definitions.has(m[1])) errors.push(`${file}: undefined ${m[1]}`);

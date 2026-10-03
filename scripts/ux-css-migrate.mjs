@@ -33,7 +33,10 @@ for(const file of files){const ast=postcss.parse(fs.readFileSync(file,'utf8'));a
  value=value.replace(/var\((--[\w-]+)/g,(m,name)=>aliases[name]?`var(${aliases[name]}`:m);
  if(/(?:linear|radial)-gradient/.test(value))value='var(--color-surface-subtle)';
  value=value.replace(/#[\da-f]{3,8}\b|\b(?:rgb|rgba)\([^)]*\)/gi,c=>semantic(c,d.prop,selector));
- if(d.prop==='font-size'&&/^([\d.]+)px$/.test(value)&&parseFloat(value)<12)value='12px';
+ if(d.prop==='font-size') {
+   value=value.replace(/([\d.]+)px/g,(m,n)=>+n<12?'12px':m).replace(/([\d.]+)rem/g,(m,n)=>+n<.75?'.75rem':m);
+   if(/^([\d.]+)em$/.test(value)&&parseFloat(value)<1)value=`max(12px,${value})`;
+ }
  if(d.prop==='letter-spacing'&&value.startsWith('-'))value='normal';
  if(d.prop==='line-height'&&/^[\d.]+$/.test(value)){const floor=/h[1-6]|heading|title|headline/.test(selector)?1.35:1.6;if(parseFloat(value)<floor)value=String(floor);}
  if(d.prop==='font-family'&&!value.includes('var('))value=/mono|Consolas|Courier/i.test(value)?'var(--font-mono)':'var(--font-ui)';
