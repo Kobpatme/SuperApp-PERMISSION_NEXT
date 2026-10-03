@@ -8,6 +8,9 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: copy.pages.change_password };
 
+// Session validation must run per request, including builds without database env.
+export const dynamic = "force-dynamic";
+
 export default async function ChangePasswordPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
