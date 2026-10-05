@@ -1,0 +1,22 @@
+{
+  "baseline": "1ed939c",
+  "branch": "codex/admin-layout",
+  "lint": "pass",
+  "typecheck": "pass",
+  "build": "pass",
+  "unitPassed": 203,
+  "unitSkipped": 12,
+  "documentsPassed": 1,
+  "browserPassed": 5,
+  "browserFailed": 0,
+  "browserDurationMs": 106105.494,
+  "sectionViews": 52,
+  "screenshots": 20,
+  "axeSeriousCritical": 0,
+  "rootOverflow": 0,
+  "pageErrors": 0,
+  "cssFiles": 205,
+  "cssViolations": 0,
+  "contrastPairs": 58,
+  "contrastFailures": 0
+}
