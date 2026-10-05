@@ -54,3 +54,8 @@
 .work-command-dialog label { gap: 4px; }
 .work-command-dialog p, .work-command-dialog h2 { overflow-wrap: anywhere; }
 .work-command-dialog input, .work-command-dialog textarea, .work-command-dialog select { width: 100%; min-width: 0; }
+@media print {
+  .work-report-tools, .work-command-dialog, .work-action-row, .work-note-form, form[aria-label="ตัวกรองงาน"] { display: none !important; }
+  .work-report-layout { display: block; }
+  .work-panel, .work-metric-strip { break-inside: avoid; }
+}
