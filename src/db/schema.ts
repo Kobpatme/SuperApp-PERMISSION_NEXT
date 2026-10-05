@@ -192,6 +192,8 @@ export const tasks = pgTable("tasks", {
   title: text("title").notNull(), description: text("description"), status: text("status").notNull().default("queued"), priority: text("priority").notNull().default("normal"),
   jobCode: text("job_code"), mainKpi: text("main_kpi"), subKpi: text("sub_kpi"), note: text("note"),
   sourceKind: text("source_kind").notNull().default("legacy"),
+  workType: text("work_type"), extraData: jsonb("extra_data").$type<Record<string, unknown>>().notNull().default({}),
+  slaRuleVersionId: uuid("sla_rule_version_id"), holdData: jsonb("hold_data").$type<Record<string, unknown>>().notNull().default({}),
   kpiWeight: numeric("kpi_weight", { precision: 18, scale: 6 }),
   deletedAt: timestamp("deleted_at", { withTimezone: true }), deletedBy: uuid("deleted_by").references(() => profiles.id, { onDelete: "restrict" }),
   dueAt: timestamp("due_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), version: integer("version").notNull().default(1), ...timestamps,

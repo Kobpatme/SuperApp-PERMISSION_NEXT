@@ -51,7 +51,9 @@ export function bangkokDateKey(value: string | Date | undefined | null = new Dat
 
 function dateFromKey(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  return match ? new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]))) : null;
+  if(!match) return null;
+  const date=new Date(Date.UTC(Number(match[1]),Number(match[2])-1,Number(match[3])));
+  return date.toISOString().slice(0,10)===value ? date:null;
 }
 
 function keyFromDate(value: Date) {
@@ -64,6 +66,7 @@ export function activeHolidayDates(holidays: readonly WorkHoliday[]) {
 
 /** Matches maxiwa_KPI: start date is not counted; weekends and active holidays are skipped. */
 export function addWorkingDays(startDate: string | Date | undefined | null, days: number, holidays: readonly WorkHoliday[] = []) {
+  if(!Number.isInteger(days)||days<0||days>10000)throw new Error("Invalid working day count");
   const start = dateFromKey(bangkokDateKey(startDate));
   if (!start) throw new Error("Invalid work start date");
   const holidaySet = activeHolidayDates(holidays);

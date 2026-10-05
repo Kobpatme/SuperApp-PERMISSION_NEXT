@@ -50,4 +50,10 @@ describe("work parity additive migration contract", () => {
     for (const name of ["task_notes", "work_mutation_receipts", "deleted_at", "deleted_by", "enable row level security", "work.note.create", "work.task.assign", "work.task.delete", "created_by", "updated_by"]) expect(sql).toContain(name);
     expect(sql).not.toContain("delete from public.tasks");
   });
+  it("protects all administration tables and registers assignable admin capabilities",()=>{
+    const sql=["0021_holidays.sql","0022_system_links_announcements.sql","0023_kpi_admin.sql"].map(name=>readFileSync(join(process.cwd(),"supabase/migrations",name),"utf8").toLowerCase()).join("\n");
+    for(const table of ["holidays","system_links","system_link_roles","system_link_teams","admin_announcements","kpi_personal_versions","work_admin_previews"])expect(sql).toContain(`alter table public.${table} enable row level security`);
+    for(const permission of ["core.holiday.manage","core.system_link.manage","core.announcement.manage"])expect(sql).toContain(permission);
+    expect(sql).toContain("unique(holiday_date, source)");expect(sql).toContain("expires_at");expect(sql).toContain("created_by");expect(sql).toContain("updated_by");expect(sql).not.toContain("update public.kpi_facts");
+  });
 });

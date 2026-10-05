@@ -28,6 +28,7 @@ export const guaranteeCapabilities = [
   capability("guarantee.refund.record", "บันทึกการคืนเงิน", "sensitive"), capability("guarantee.tl.work", "ดำเนินงานที่ได้รับมอบหมาย (TL)", "sensitive", ["OWN"]),
 ];
 export const coreCapabilities = [
+  capability("core.holiday.manage", "จัดการวันหยุด", "administrative", ["ALL"]), capability("core.system_link.manage", "จัดการลิงก์ระบบ", "administrative", ["ALL"]), capability("core.announcement.manage", "จัดการประกาศ", "administrative", ["ALL"]),
   capability("core.profile.read", "ดูผู้ใช้", "administrative", ["ALL"]), capability("core.profile.update", "แก้ไขโปรไฟล์", "administrative", ["ALL"]),
   capability("core.user.manage", "จัดการบัญชีและความปลอดภัย", "administrative", ["ALL"]),
   capability("core.position.manage", "จัดการตำแหน่ง", "administrative", ["ALL"]),
