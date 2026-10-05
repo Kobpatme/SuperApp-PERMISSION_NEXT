@@ -1,5 +1,5 @@
 import "server-only";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
 import { activityEvents, attachments, buildingConditionVersions, buildings, guaranteeCases, priceEstimates, tasks } from "@/db/schema";
 import { getAccessContext } from "@/lib/access";
@@ -12,7 +12,7 @@ export async function getBuilding360(buildingId: string) {
   const [building] = await getDb().select().from(buildings).where(eq(buildings.id, buildingId)).limit(1);
   if (!building || !isAuthorized(access.subject, "building.record.read", { teamId: building.ownerTeamId })) return null;
   const [taskRows, guaranteeRows, estimateRows, activityRows, attachmentRows, conditionRows] = await Promise.all([
-    getDb().select().from(tasks).where(eq(tasks.buildingId, buildingId)).orderBy(desc(tasks.updatedAt)).limit(50),
+    getDb().select().from(tasks).where(and(eq(tasks.buildingId, buildingId), isNull(tasks.deletedAt))).orderBy(desc(tasks.updatedAt)).limit(50),
     getDb().select().from(guaranteeCases).where(eq(guaranteeCases.buildingId, buildingId)).orderBy(desc(guaranteeCases.updatedAt)).limit(50),
     getDb().select().from(priceEstimates).where(eq(priceEstimates.buildingId, buildingId)).orderBy(desc(priceEstimates.updatedAt)).limit(50),
     getDb().select().from(activityEvents).where(eq(activityEvents.buildingId, buildingId)).orderBy(desc(activityEvents.occurredAt)).limit(100),
@@ -43,3 +43,4 @@ export async function getBuilding360(buildingId: string) {
     attachments: isAuthorized(access.subject, "building.attachment.read", { teamId: building.ownerTeamId }) ? attachmentRows : [],
   };
 }
+

@@ -122,7 +122,7 @@ export async function getWorkReadModel(access: AccessContext): Promise<WorkReadM
       .leftJoin(profiles, eq(profiles.id, tasks.ownerId))
       .leftJoin(teams, eq(teams.id, tasks.teamId))
       .leftJoin(buildings, eq(buildings.id, tasks.buildingId))
-      .where(scope)
+      .where(and(scope, isNull(tasks.deletedAt)))
       .orderBy(desc(tasks.updatedAt), desc(tasks.id))
       .limit(500);
 
@@ -176,7 +176,7 @@ export async function getWorkReadModel(access: AccessContext): Promise<WorkReadM
     const assignmentRows = await getDb().select({ id: profiles.id, name: profiles.displayName, teamId: userTeams.teamId, teamName: teams.name, positionName: positions.name })
       .from(profiles).leftJoin(userTeams, eq(userTeams.userId, profiles.id)).leftJoin(teams, eq(teams.id, userTeams.teamId)).leftJoin(positions, eq(positions.id, profiles.positionId))
       .where(eq(profiles.status, "active")).limit(500);
-    const assignmentOptions = assignmentRows.filter((row) => Boolean(row.name) && (isAuthorized(access.subject, "work.task.manage", { ownerId: row.id, teamId: row.teamId }) || (row.id === access.userId && isAuthorized(access.subject, "work.task.create", { ownerId: row.id, teamId: row.teamId })))).map((row) => ({ id: row.id, name: row.name ?? "ผู้ใช้งาน", teamId: row.teamId, teamName: row.teamName ?? "ไม่ระบุทีม", positionName: row.positionName ?? "สมาชิกทีม" }));
+    const assignmentOptions = assignmentRows.filter((row) => Boolean(row.name) && (isAuthorized(access.subject, "work.task.assign", { ownerId: row.id, teamId: row.teamId }) || (row.id === access.userId && isAuthorized(access.subject, "work.task.create", { ownerId: row.id, teamId: row.teamId })))).map((row) => ({ id: row.id, name: row.name ?? "ผู้ใช้งาน", teamId: row.teamId, teamName: row.teamName ?? "ไม่ระบุทีม", positionName: row.positionName ?? "สมาชิกทีม" }));
 
     const personMap = new Map<string, WorkPersonSummary>();
     for (const task of taskRecords) {
@@ -205,3 +205,4 @@ export async function getWorkReadModel(access: AccessContext): Promise<WorkReadM
     return buildEmptyModel("ไม่สามารถโหลดข้อมูลงานได้ในขณะนี้", "unavailable");
   }
 }
+
