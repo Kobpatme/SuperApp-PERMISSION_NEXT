@@ -40,11 +40,13 @@ function RestoreForm({ task }: { task:WorkAdminData["deleted"][number] }) {
   const [state,action,pending]=useActionState(restoreWorkTaskAction,{ok:false,message:""} as WorkActionState);
   return <form action={action}><span>{task.title}</span><input type="hidden" name="taskId" value={task.id}/><input type="hidden" name="version" value={task.version}/><input type="hidden" name="idempotencyKey" value={`restore:${task.id}:${task.version}`}/><label>เหตุผลที่กู้คืน<input name="reason" required maxLength={1000}/></label><button className="secondary-action" disabled={pending}>กู้คืนงาน</button><p role="status">{state.message}</p></form>;
 }
-export function WorkAdminPanels({ data }: { data:WorkAdminData }) {
-  return <div className="work-admin-panels"><nav className="admin-section-nav" aria-label="ส่วนจัดการงาน">{data.granted.kpi&&<><a href="#kpi">KPI/SLA</a><a href="#personal-kpi">KPI รายบุคคล</a></>}{data.granted.calendar&&<a href="#calendar">วันหยุด</a>}{data.granted.systems&&<a href="#systems">ลิงก์ระบบ</a>}{data.granted.announcement&&<a href="#announcement">ประกาศ</a>}</nav>
-    {data.granted.kpi&&<><KpiPanel data={data}/><PersonalPanel data={data}/><RecalculationPanel kind="deadlines"/><RecalculationPanel kind="kpi_migration"/></>}
-    {data.granted.calendar&&<CalendarPanel data={data}/>} {data.granted.systems&&<SystemsPanel data={data}/>}
-    {data.granted.announcement&&<section id="announcement" className="admin-panel"><h2>ประกาศแอดมิน</h2>{data.announcements.map(r=><AdminForm key={`${r.id}:${r.version}`} kind="announcement" title="แก้ไขประกาศ"><Version id={r.id} version={r.version}/><label>ข้อความ<textarea name="message" defaultValue={r.message} maxLength={4000}/></label><label><input name="isActive" type="checkbox" defaultChecked={r.isActive}/> แสดงบนหน้าหลัก</label></AdminForm>)}<AdminForm kind="announcement" title="เพิ่มประกาศ"><label>ข้อความ<textarea name="message" required maxLength={4000}/></label><label><input name="isActive" type="checkbox"/> แสดงบนหน้าหลัก</label></AdminForm></section>}
-    {data.deleted.length>0&&<section className="admin-panel"><h2>กู้คืนงานที่ลบ</h2>{data.deleted.map(task=><RestoreForm key={task.id} task={task}/>)}</section>}
+export function WorkAdminPanels({ data,section }: { data:WorkAdminData;section:string }) {
+  return <div className="work-admin-panels">
+    {data.granted.kpi&&section==="kpi"&&<KpiPanel data={data}/>}
+    {data.granted.kpi&&section==="personal-kpi"&&<PersonalPanel data={data}/>}
+    {data.granted.kpi&&section==="recalculate"&&<><RecalculationPanel kind="deadlines"/><RecalculationPanel kind="kpi_migration"/></>}
+    {data.granted.calendar&&section==="calendar"&&<CalendarPanel data={data}/>} {data.granted.systems&&section==="systems"&&<SystemsPanel data={data}/>}
+    {data.granted.announcement&&section==="announcement"&&<section id="announcement" className="admin-panel"><h2>ประกาศแอดมิน</h2>{data.announcements.map(r=><AdminForm key={`${r.id}:${r.version}`} kind="announcement" title="แก้ไขประกาศ"><Version id={r.id} version={r.version}/><label>ข้อความ<textarea name="message" defaultValue={r.message} maxLength={4000}/></label><label><input name="isActive" type="checkbox" defaultChecked={r.isActive}/> แสดงบนหน้าหลัก</label></AdminForm>)}<AdminForm kind="announcement" title="เพิ่มประกาศ"><label>ข้อความ<textarea name="message" required maxLength={4000}/></label><label><input name="isActive" type="checkbox"/> แสดงบนหน้าหลัก</label></AdminForm></section>}
+    {section==="restore"&&<section className="admin-panel"><h2>กู้คืนงานที่ลบ</h2>{data.deleted.length?data.deleted.map(task=><RestoreForm key={task.id} task={task}/>):<p className="admin-empty">ไม่มีงานที่รอกู้คืนในขอบเขตสิทธิ์ของคุณ</p>}</section>}
   </div>;
 }
