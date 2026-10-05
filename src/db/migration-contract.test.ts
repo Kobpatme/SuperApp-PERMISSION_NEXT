@@ -43,3 +43,11 @@ describe("building location migration contract", () => {
     expect(locationMigration).toContain("location_verified_at is not null and location_verified_by is not null");
   });
 });
+
+describe("work parity additive migration contract", () => {
+  it("keeps recovery and note evidence behind scoped policies", () => {
+    const sql = readFileSync(join(process.cwd(), "supabase/migrations/0019_task_notes_and_edits.sql"), "utf8").toLowerCase();
+    for (const name of ["task_notes", "work_mutation_receipts", "deleted_at", "deleted_by", "enable row level security", "work.note.create", "work.task.assign", "work.task.delete", "created_by", "updated_by"]) expect(sql).toContain(name);
+    expect(sql).not.toContain("delete from public.tasks");
+  });
+});

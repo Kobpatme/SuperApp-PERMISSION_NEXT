@@ -44,8 +44,8 @@ export type MaterialChange = {
 };
 
 /** A material mutation, audit record, business event and outbox row commit or roll back together. */
-export async function runMaterialChange<T>(change: MaterialChange, mutate: (tx: DatabaseTransaction) => Promise<T>) {
-  return getDb().transaction(async (tx) => {
+export async function runMaterialChange<T>(change: MaterialChange, mutate: (tx: DatabaseTransaction) => Promise<T>, transaction?: DatabaseTransaction) {
+  const execute = async (tx: DatabaseTransaction) => {
     const result = await mutate(tx);
     await tx.insert(auditLogs).values({
       ...change.audit,
@@ -69,5 +69,6 @@ export async function runMaterialChange<T>(change: MaterialChange, mutate: (tx: 
     }
     if (change.outbox) await tx.insert(outboxMessages).values(change.outbox);
     return result;
-  });
+  };
+  return transaction ? execute(transaction) : getDb().transaction(execute);
 }

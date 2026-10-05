@@ -192,6 +192,7 @@ export const tasks = pgTable("tasks", {
   title: text("title").notNull(), description: text("description"), status: text("status").notNull().default("queued"), priority: text("priority").notNull().default("normal"),
   jobCode: text("job_code"), mainKpi: text("main_kpi"), subKpi: text("sub_kpi"), note: text("note"),
   kpiWeight: numeric("kpi_weight", { precision: 18, scale: 6 }),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }), deletedBy: uuid("deleted_by").references(() => profiles.id, { onDelete: "restrict" }),
   dueAt: timestamp("due_at", { withTimezone: true }), completedAt: timestamp("completed_at", { withTimezone: true }), version: integer("version").notNull().default(1), ...timestamps,
 }, (t) => [index("tasks_my_work_idx").on(t.ownerId, t.status, t.dueAt), index("tasks_team_idx").on(t.teamId, t.status, t.dueAt), check("tasks_status_check", sql`${t.status} in ('queued', 'in_progress', 'blocked', 'completed', 'cancelled')`), check("tasks_priority_check", sql`${t.priority} in ('low', 'normal', 'high', 'urgent')`), check("tasks_version_check", sql`${t.version} > 0`)]);
 
@@ -200,6 +201,19 @@ export const taskTransitions = pgTable("task_transitions", {
   fromStatus: text("from_status").notNull(), toStatus: text("to_status").notNull(), reason: text("reason"), actorId: uuid("actor_id").notNull().references(() => profiles.id, { onDelete: "restrict" }),
   idempotencyKey: text("idempotency_key").notNull(), occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [uniqueIndex("task_transitions_idempotency_idx").on(t.idempotencyKey), index("task_transitions_task_idx").on(t.taskId, t.occurredAt)]);
+
+export const taskNotes = pgTable("task_notes", {
+  id: uuid("id").defaultRandom().primaryKey(), taskId: uuid("task_id").notNull().references(() => tasks.id, { onDelete: "restrict" }),
+  authorId: uuid("author_id").notNull().references(() => profiles.id, { onDelete: "restrict" }), body: text("body").notNull(),
+  createdBy: uuid("created_by").notNull().references(() => profiles.id, { onDelete: "restrict" }), updatedBy: uuid("updated_by").notNull().references(() => profiles.id, { onDelete: "restrict" }), ...timestamps,
+}, (t) => [index("task_notes_task_idx").on(t.taskId, t.createdAt)]);
+
+export const workMutationReceipts = pgTable("work_mutation_receipts", {
+  idempotencyKey: text("idempotency_key").primaryKey(), taskId: uuid("task_id").notNull().references(() => tasks.id, { onDelete: "restrict" }),
+  actorId: uuid("actor_id").notNull().references(() => profiles.id, { onDelete: "restrict" }), fingerprint: text("fingerprint").notNull(),
+  resultVersion: integer("result_version").notNull(), createdBy: uuid("created_by").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+  updatedBy: uuid("updated_by").notNull().references(() => profiles.id, { onDelete: "restrict" }), ...timestamps,
+});
 
 export const manualWorkEntries = pgTable("manual_work_entries", {
   id: uuid("id").defaultRandom().primaryKey(), ownerId: uuid("owner_id").notNull().references(() => profiles.id, { onDelete: "restrict" }), teamId: uuid("team_id").references(() => teams.id, { onDelete: "set null" }),

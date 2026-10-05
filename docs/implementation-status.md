@@ -196,3 +196,14 @@ CP4 remoteCI verified:37128298589 at7ea4720 completed success, includingCSS/cont
 
 ## UX login CP5 — local verification 2026-10-03
 Full gate cp5-final-security exit0:unit169passed/3skip(44filespass/1skip),documents1,build/audit0. CSS182files0;contrast58pairs0;copyA0/total0. Localbrowser36passed3.4m;security6realPostgresflows,admin/error/authaxe,ordinaryreadrole/longThai/empty/drawer matrix320–1440. Fonts90,888bytes0external;pending78.5/62.8ms,settledWindowCLS0,reducedanimations0. Allfinalscreenshots0overflow/runtimeerrors. Serverbootwarningverifiedwithproxy0. CP5 initial CI37131654116 failed29passed/7failed because no-database build prerendered change-password as a static redirect. Fixed force-dynamic in ee8d49c; reproduced no-database build and focused13auth/security tests passed. RemoteCI37132528028 at ee8d49c verified success on all steps, browser36passed2.2m, unit169passed/3skip, CSS182files0, contrast58pairs0, audit0. JEV continue at2026-10-03T15:19:46Z returned continue confidence.70/verify_before_commit, advisory only. Detailed§9reportsandpaths:docs/quality/ux-login-checkpoints.md;operations:docs/operations/ux-login.md. No productiondeploy/data writes or permissionmatrix changes.
+# Work/KPI/Admin parity — baseline 2026-10-05
+
+คำขอ: ทำตาม CODEX-WORK-KPI-ADMIN-PARITY.md; baseline HEAD `7233bf4a5d4b965e626f1ab9e94a175320be924a`, source `maxiwa_KPI@4f5fa99b05f8dbfea9304d47560aec3d48746908` ตรวจจาก checkout จริงแบบ read-only
+
+Baseline rerun: typecheck/lint/unit/document/build exit 0; unit 186 passed / 3 skipped; document 1 passed. Logs `.parity-baseline-*.log` (ignored). ไม่ทับไฟล์งานอาคาร/UX ที่ค้างอยู่
+
+JEV health: local/network OK, metadata_only. Phase 1 route domain_service confidence .69 / fallback_to_codex. Risk local-code workflow ถูก deterministic hard gate จับคำ delete; เป็น advisory ไม่ได้อนุญาต mutation ใด ๆ งานนี้สร้างโค้ด soft delete ตามคำขอ ไม่ลบข้อมูลจริงและไม่รัน migration บนฐานผู้ใช้
+
+Migration numbering ปรับตาม schema จริง: 0017 work_source_parity และ 0018 building_location มีอยู่แล้ว จึงเริ่ม additive migrations ที่ 0019 ไม่แก้ไฟล์เดิม
+
+Phase 1 checkpoint: lint/typecheck/unit192 passed +6 skipped/documents1/build exit0. Isolated PostgreSQL integration 3 passed (rerun หลังแก้ stale-version ordering และ fixture completion timestamp). JEV continue gather_evidence .43/fallback; ใช้ full gates และ integration เป็นหลัก. ปุ่ม transition พร้อมเหตุผล/edit/soft-delete/notes มีแล้ว; preview SLA ต่อใน Phase 3. rollback: revert เฉพาะ commits งานนี้; migration เป็น additive และไม่ลบตารางประวัติ
