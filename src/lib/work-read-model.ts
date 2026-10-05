@@ -1,10 +1,11 @@
 
+import { taskQueryCondition, workScope, type WorkFilters } from "@/lib/work-query";
 import { copy } from "@/lib/copy";
 import "server-only";
 
-import { and, desc, eq, inArray, isNull, or, type SQL } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
 import { getDb } from "@/db";
-import { activityEvents, buildings, kpiFacts, kpiMetrics, kpiScoreSnapshots, kpiTargets, positions, profiles, tasks, teams, userTeams } from "@/db/schema";
+import { activityEvents, auditLogs, taskNotes, taskTransitions, buildings, kpiFacts, kpiMetrics, kpiScoreSnapshots, kpiTargets, positions, profiles, tasks, teams, userTeams } from "@/db/schema";
 import type { AccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import type { DashboardItem, DashboardSource } from "@/lib/dashboard";
@@ -32,6 +33,8 @@ export type WorkTaskRecord = {
   note: string | null;
   kpiWeight: string | null;
   version: number;
+  notes?: Array<{ id: string; body: string; authorId: string; createdAt: string }>;
+  timeline?: Array<{ id: string; label: string; reason: string | null; occurredAt: string }>;
 };
 
 export type WorkPersonSummary = {
@@ -79,18 +82,6 @@ export type WorkReadModel = {
   source: DashboardSource;
 };
 
-function scopedCondition(access: AccessContext, permission: string, owner: typeof tasks.ownerId, team: typeof tasks.teamId): SQL | undefined {
-  const grants = access.subject?.grants.filter((grant) => grant.permission === permission) ?? [];
-  if (grants.some((grant) => grant.scope === "ALL")) return eq(owner, owner);
-  const conditions: SQL[] = [];
-  if (grants.some((grant) => grant.scope === "OWN")) conditions.push(eq(owner, access.userId));
-  const teamIds = new Set<string>();
-  if (grants.some((grant) => grant.scope === "TEAM")) access.subject?.teamIds.forEach((id) => teamIds.add(id));
-  grants.filter((grant) => grant.scope === "SELECTED_TEAMS" && grant.selectedTeamId).forEach((grant) => teamIds.add(grant.selectedTeamId!));
-  if (teamIds.size) conditions.push(inArray(team, [...teamIds]));
-  return conditions.length ? or(...conditions) : undefined;
-}
-
 function toIso(value: Date | null | undefined) {
   return value ? value.toISOString() : null;
 }
@@ -107,10 +98,12 @@ function buildEmptyModel(message: string, status: DashboardSource["status"] = "r
   };
 }
 
-export async function getWorkReadModel(access: AccessContext): Promise<WorkReadModel> {
+export async function getWorkReadModel(access: AccessContext, filters: WorkFilters = {}, requiredPermission?: string): Promise<WorkReadModel> {
   if (!process.env.DATABASE_URL) return buildEmptyModel(copy.feedback.unavailable, "not_configured");
-  const scope = scopedCondition(access, "work.task.read", tasks.ownerId, tasks.teamId);
+  const scope = taskQueryCondition(access.subject, filters);
   if (!scope) return buildEmptyModel("ยังไม่มีรายการงานในขอบเขตสิทธิ์ของคุณ");
+  const extraScope = requiredPermission ? workScope(access.subject, requiredPermission) : undefined;
+  if (requiredPermission && !extraScope) return buildEmptyModel("ยังไม่มีรายการงานในขอบเขตสิทธิ์ของคุณ");
 
   try {
     const rows = await getDb().select({
@@ -122,7 +115,7 @@ export async function getWorkReadModel(access: AccessContext): Promise<WorkReadM
       .leftJoin(profiles, eq(profiles.id, tasks.ownerId))
       .leftJoin(teams, eq(teams.id, tasks.teamId))
       .leftJoin(buildings, eq(buildings.id, tasks.buildingId))
-      .where(and(scope, isNull(tasks.deletedAt)))
+      .where(and(scope, extraScope, isNull(tasks.deletedAt)))
       .orderBy(desc(tasks.updatedAt), desc(tasks.id))
       .limit(500);
 
@@ -133,6 +126,21 @@ export async function getWorkReadModel(access: AccessContext): Promise<WorkReadM
       mainKpi: row.mainKpi, subKpi: row.subKpi, note: row.note, kpiWeight: row.kpiWeight, version: row.version,
     }));
 
+    const taskIds = taskRecords.map(task => task.id);
+    if (taskIds.length) {
+      const [notes, transitions, edits] = await Promise.all([
+        getDb().select().from(taskNotes).where(inArray(taskNotes.taskId, taskIds)).orderBy(desc(taskNotes.createdAt)).limit(2000),
+        getDb().select().from(taskTransitions).where(inArray(taskTransitions.taskId, taskIds)).orderBy(desc(taskTransitions.occurredAt)).limit(2000),
+        getDb().select({ id: auditLogs.id, entityId: auditLogs.entityId, action: auditLogs.action, createdAt: auditLogs.createdAt }).from(auditLogs).where(and(eq(auditLogs.moduleId, "work"), eq(auditLogs.entityType, "task"), inArray(auditLogs.entityId, taskIds))).orderBy(desc(auditLogs.createdAt)).limit(2000),
+      ]);
+      for (const task of taskRecords) {
+        task.notes = notes.filter(row => row.taskId === task.id).map(row => ({ id: row.id, body: row.body, authorId: row.authorId, createdAt: row.createdAt.toISOString() }));
+        task.timeline = [
+          ...transitions.filter(row => row.taskId === task.id).map(row => ({ id: row.id, label: `${presentWorkStatus(row.fromStatus).label} → ${presentWorkStatus(row.toStatus).label}`, reason: row.reason, occurredAt: row.occurredAt.toISOString() })),
+          ...edits.filter(row => row.entityId === task.id && row.action !== "task.transition").map(row => ({ id: row.id, label: row.action === "task.note" ? "เพิ่มบันทึก" : row.action === "task.edit" ? "แก้ไขงาน" : "ปรับปรุงงาน", reason: null, occurredAt: row.createdAt.toISOString() })),
+        ].sort((a,b) => b.occurredAt.localeCompare(a.occurredAt));
+      }
+    }
     const now = Date.now();
     const statusCounts = taskRecords.reduce<Record<string, number>>((result, task) => {
       result[task.statusLabel] = (result[task.statusLabel] ?? 0) + 1;
@@ -187,7 +195,7 @@ export async function getWorkReadModel(access: AccessContext): Promise<WorkReadM
       if (task.status === "blocked") person.onHold += 1;
       if (task.status === "completed") person.completed += 1;
       if (isOverdue(task, now)) person.overdue += 1;
-      person.weightedPerformance = Math.round((person.completed / person.total) * 100);
+      person.weightedPerformance = calculateWeightedWorkReport(taskRecords.filter(row => row.ownerId === person.id).map(row => ({ status: row.status, weight: row.kpiWeight, deadline: row.dueAt, completedAt: row.completedAt }))).completion;
       personMap.set(task.ownerId, person);
     }
     for (const option of assignmentOptions) if (!personMap.has(option.id)) personMap.set(option.id, { id: option.id, name: option.name, teamName: option.teamName, positionName: option.positionName, total: 0, pending: 0, inProgress: 0, onHold: 0, completed: 0, overdue: 0, weightedPerformance: null });
@@ -205,4 +213,6 @@ export async function getWorkReadModel(access: AccessContext): Promise<WorkReadM
     return buildEmptyModel("ไม่สามารถโหลดข้อมูลงานได้ในขณะนี้", "unavailable");
   }
 }
+
+
 

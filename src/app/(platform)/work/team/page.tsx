@@ -1,5 +1,12 @@
 import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
+import { AccessDenied } from "@/components/access-denied";
+import { loadWorkPage } from "@/lib/work-page-data";
+import { TeamCommandScreen } from "@/features/work/screens/team-command";
+import { WorkFiltersForm } from "@/features/work/components/work-filters";
 export const metadata: Metadata = { title: copy.pages.work_team };
-import { WorkRoutePage } from "@/components/work-route-page";
-export default function WorkTeamPage() { return <WorkRoutePage view="team" />; }
+export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const data = await loadWorkPage("work.task.read", await searchParams);
+  if (!data) return <AccessDenied moduleName="งานและ KPI" />;
+  return <><WorkFiltersForm filters={data.filters}/><TeamCommandScreen model={data.model} subject={data.access.subject} />{data.model.tasks.length === 500 && <p role="status">แสดง 500 รายการล่าสุด กรุณาใช้ตัวกรองเพื่อดูช่วงที่ต้องการ</p>}</>;
+}

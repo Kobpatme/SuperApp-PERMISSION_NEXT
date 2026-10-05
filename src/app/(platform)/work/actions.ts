@@ -98,7 +98,7 @@ export async function createPersonalTaskAction(_previous: WorkActionState, form:
       audit: { actorId: access.userId, moduleId: "work", action: "task.create", entityType: "task_batch", entityId: batchId, requestId: crypto.randomUUID(), after: { taskIds: ids, ownerId: access.userId, teamId, jobCount: jobs.length, mainKpi: input.mainKpi || null, subKpi: input.subKpi || null, dueAt: dueAt?.toISOString() ?? null } },
       activity: { eventType: "work.task.created.v1", eventVersion: 1, actorId: access.userId, ownerId: access.userId, teamId: teamId ?? undefined, moduleId: "work", entityType: "task_batch", entityId: batchId, occurredAt: now, sourceSystem: "permission_next", sourceEventId: batchId, correlationId: batchId, kpiEligible: false, payload: { taskIds: ids, jobs, mainKpi: input.mainKpi || null, subKpi: input.subKpi || null, dueAt: dueAt?.toISOString() ?? null } },
       outbox: { topic: "work.task.created.v1", idempotencyKey: `work-task-create:${batchId}`, aggregateType: "task_batch", aggregateId: batchId, payload: { taskIds: ids, ownerId: access.userId } },
-    }, async (tx) => tx.insert(tasks).values(jobs.map((job, index) => ({ id: ids[index], ownerId: access.userId, teamId, title: job, description: input.note || null, jobCode: job, mainKpi: input.mainKpi || null, subKpi: input.subKpi || null, note: input.note || null, status: "in_progress" as const, dueAt, version: 1, createdAt: now, updatedAt: now }))));
+    }, async (tx) => tx.insert(tasks).values(jobs.map((job, index) => ({ id: ids[index], ownerId: access.userId, teamId, title: job, description: input.note || null, jobCode: job, mainKpi: input.mainKpi || null, subKpi: input.subKpi || null, note: input.note || null, sourceKind: "personal", status: "in_progress" as const, dueAt, version: 1, createdAt: now, updatedAt: now }))));
     revalidatePath("/work", "layout");
     return { ok: true, message: `เพิ่มงานแล้ว ${jobs.length} รายการ`, id: batchId };
   } catch (error) {
@@ -134,7 +134,7 @@ export async function assignWorkTasksAction(_previous: WorkActionState, form: Fo
       audit: { actorId: access.userId, moduleId: "work", action: "task.assign", entityType: "task_batch", entityId: batchId, requestId: crypto.randomUUID(), after: { taskIds: ids, assigneeId: target.id, teamId: input.teamId, jobCount: jobs.length } },
       activity: { eventType: "work.task.assigned.v1", eventVersion: 1, actorId: access.userId, ownerId: target.id, teamId: input.teamId, moduleId: "work", entityType: "task", entityId: ids[0], occurredAt: now, sourceSystem: "permission_next", sourceEventId: batchId, correlationId: batchId, kpiEligible: false, payload: { taskIds: ids, jobs, mainKpi: input.mainKpi || null, subKpi: input.subKpi || null } },
       outbox: { topic: "work.task.assigned.v1", idempotencyKey: `work-task-assign:${batchId}`, aggregateType: "task_batch", aggregateId: ids[0], payload: { taskIds: ids, ownerId: target.id, teamId: input.teamId } },
-    }, async (tx) => tx.insert(tasks).values(jobs.map((job, index) => ({ id: ids[index], ownerId: target.id, teamId: input.teamId, title: input.title, description: input.notes || null, jobCode: job, mainKpi: input.mainKpi || null, subKpi: input.subKpi || null, note: input.notes || null, priority: input.priority, status: "queued" as const, dueAt, version: 1, createdAt: now, updatedAt: now }))));
+    }, async (tx) => tx.insert(tasks).values(jobs.map((job, index) => ({ id: ids[index], ownerId: target.id, teamId: input.teamId, title: input.title, description: input.notes || null, jobCode: job, mainKpi: input.mainKpi || null, subKpi: input.subKpi || null, note: input.notes || null, priority: input.priority, sourceKind: "assigned", status: "queued" as const, dueAt, version: 1, createdAt: now, updatedAt: now }))));
     revalidatePath("/work", "layout");
     return { ok: true, message: `มอบหมายงานแล้ว ${jobs.length} รายการ`, id: batchId };
   } catch (error) {
@@ -142,5 +142,6 @@ export async function assignWorkTasksAction(_previous: WorkActionState, form: Fo
     return { ...invalid, message: humanWorkError(error) };
   }
 }
+
 
 
