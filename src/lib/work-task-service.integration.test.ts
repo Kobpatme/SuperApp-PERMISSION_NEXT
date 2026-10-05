@@ -93,6 +93,7 @@ describe.skipIf(process.env.PARITY_INTEGRATION !== "1")("task transactions on is
       await saveWorkAdmin("personal",{userId:actor.userId,teamId,expectedVersion:0,assignments:[{metricId:latest.metricId,weight:"100",enabled:true}]},ctx);
       expect(await resolveTaskKpi({teamId,userId:actor.userId,ruleVersionId:latest.id},tx)).toMatchObject({kpiWeight:"100",personalVersion:1});
       const input={jobs:"JOB-TEST",teamId,assigneeId:actor.userId,ruleVersionId:latest.id,idempotencyKey:crypto.randomUUID()};
+      await expect(createWorkBatch({...input,jobs:"JOB-TEST\nJOB-TEST"},"personal",ctx)).rejects.toThrow("INVALID_JOBS");
       const firstCreate=await createWorkBatch(input,"personal",ctx);expect(await createWorkBatch(input,"personal",ctx)).toMatchObject({id:firstCreate.id,replayed:true});
       await expect(createWorkBatch({...input,jobs:"JOB-CHANGED"},"personal",ctx)).rejects.toMatchObject({status:409});
       const created=await tx.select().from(tasks).where(and(eq(tasks.ownerId,actor.userId),eq(tasks.jobCode,"JOB-TEST")));

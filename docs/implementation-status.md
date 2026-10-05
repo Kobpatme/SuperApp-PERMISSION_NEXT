@@ -211,3 +211,20 @@ Phase 1 checkpoint: lint/typecheck/unit192 passed +6 skipped/documents1/build ex
 Phase 2 checkpoint: final lint/typecheck/unit195 +6 skipped/documents1/build exit0. เพิ่ม explicit route screens, shared scoped query filters, Tracker note/transition/audit timeline, weighted People summary, print และ CSV แบบ snapshot/keyset ที่ตัดกับสิทธิ์ work.report.read. Table screens จำกัด 500 พร้อมข้อความและตัวกรอง; CSV ไม่ตัดเหลือ 500. Migration 0020 origin field ใช้ legacy สำหรับข้อมูลเดิมโดยไม่เดา. JEV prioritize routes→people→reports→tracker→assign; continue gather_evidence .73. Source TYPE จริงเป็น contractorType B1/C1/C2/E1 ไม่ใช่ KPI type enumeration จึงเก็บเป็น task field ใน Phase 3. Browser UAT ยังต้องตรวจ
 
 Phase 3 advisory: route versioned_json .87/verify_before_commit; risk 1.12/confidence .23 ไม่มี hard gate ใช้ deterministic tests เป็นหลัก. ไม่ใช้ kpi_targets/adjustments แทน personal assignments เพราะ semantics เป็น target ตามช่วงเวลา/fact approval; เพิ่ม versioned personal assignment table แยก
+
+## Work/KPI/Admin parity — Phase 3/4 local close, 2026-10-05
+
+ครบขอบเขต implementation ภายใต้ D1–D5: versioned KPI/SLA + personal weights, calendar, scoped system links, announcements, overview/audit filters; native assignment/create fields + server deadline preview, append notes, edit/hold/soft-delete/restore. Deadline recalculation uses preview/explicit confirm/expiry/actor/config/task version checks. KPI migration remains dry-run; Executive presentation deferred. Full row-by-row §2 matrix, role mapping, JEV checkpoints and rollback: [parity matrix](modules/work/parity-2026-10-05.md).
+
+| Final local verification | Result |
+|---|---|
+| lint / typecheck / build | exit 0; Next 16.3.6 |
+| npm test | 50 files passed / 2 skipped; 203 tests passed / 12 skipped (9 PostgreSQL tests require opt-in, run separately below) |
+| test:documents | 1 passed |
+| Isolated PostgreSQL integration | 9 passed; actual concurrency409, replay/evidence rollback, scope denial, notes/recovery, versioned rule/override/create, preview/confirm, hold SLA, edit, calendar duplicate/stale |
+| Browser | 6 passed / 1.0m; 24 screen captures, Light/Dark1440/390, axe serious-critical0, root overflow0; Staff completion notes, CSV scope, denied assignment, server SLA preview/personal creation and admin announcement/system-link submission |
+| CSS / contrast | 205 files / 0 violations; 58 pairs / 0 failures |
+
+Logs `.parity-final-*.log`, `.parity-phase3-integration.log`, `.parity-browser.log` are local ignored command outputs. Browser JSON/screenshots in docs/quality/work-parity-evidence. Additive migrations0019–0023 passed contracts and were applied only to loopback permission_next_parity_test. No application/production database migration, historical KPI writes, deployment or real-user grants. Production least-privileged RLS and business UAT are still release gates; do not infer production cutover from this local checkpoint.
+
+JEV evidence_check supported .61 / needs_more_evidence .89; completed additional real concurrent/edit/calendar and browser checks. Phase4 continue escalate .28 / fallback_to_codex; advisory confidence weak, deterministic gates govern local completion, production claims withheld. Complete checkpoint log in parity matrix. Branch sequence codex/work-parity-phase1 → phase2 → phase3 → phase4; unrelated existing building/UX work preserved outside parity commits.

@@ -19,6 +19,9 @@ describe("source task policy", () => {
     expect(taskCapabilities(actor, { ...task, status: "completed" }).note).toBe(true);
     expect(taskCapabilities(actor, { ...task, status: "cancelled" }).note).toBe(false);
     expect(taskCapabilities(actor, { ...task, status: "completed" }).edit).toBe(false);
+    const noteOnly={...actor,grants:actor.grants.filter(g=>g.permission!=="work.task.update")};
+    expect(taskCapabilities(noteOnly,task).note).toBe(false);
+    expect(()=>assertWorkCommand(noteOnly,task,{...base,kind:"note",body:"บันทึก"},true)).toThrow();
   });
   it("does not let a team manager accept another owner's queued task", () => {
     const manager: AuthorizationSubject = { ...actor, userId: teamId, grants: [{ permission: "work.task.update", scope: "TEAM" }] };

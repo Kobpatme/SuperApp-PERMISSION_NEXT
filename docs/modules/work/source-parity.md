@@ -2,6 +2,8 @@
 
 Status: SP-1 native recovery slice, 2026-09-30. This matrix is evidence-led and does not claim migration completion.
 
+Latest local implementation status: [2026-10-05 Work/KPI/Admin parity matrix](parity-2026-10-05.md). The rows below preserve the earlier checkpoint and are not the current gap list.
+
 Authoritative source: `Kobpatme/maxiwa_KPI` at `4f5fa99b05f8dbfea9304d47560aec3d48746908` (`public/js/maxiwa.js`, `public/js/api.js`, `public/_worker.js`, `docs/legacy-system-audit.md`, `docs/product-blueprint.md`). Local checkout is only a comparison artifact.
 
 | Source feature | Source screen | Source role/use case | Source file/function | SuperApp target | Current status | Decision | Test evidence | Notes |

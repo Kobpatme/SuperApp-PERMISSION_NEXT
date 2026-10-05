@@ -16,12 +16,13 @@ export function taskCapabilities(actor: AuthorizationSubject | undefined, task: 
   const update = isAuthorized(actor, "work.task.update", task);
   const manage = isAuthorized(actor, "work.task.manage", task);
   const terminal = ["completed", "cancelled"].includes(task.status);
-  return { update, assign:isAuthorized(actor,"work.task.assign",task), accept: update && task.ownerId === actor?.userId, edit: update && (!terminal || manage), note: task.status !== "cancelled" && isAuthorized(actor, "work.note.create", task) && (task.ownerId === actor?.userId || manage), delete: isAuthorized(actor, "work.task.delete", task) && manage };
+  return { update, assign:isAuthorized(actor,"work.task.assign",task), accept: update && task.ownerId === actor?.userId, edit: update && (!terminal || manage), note: update && task.status !== "cancelled" && isAuthorized(actor, "work.note.create", task) && (task.ownerId === actor?.userId || manage), delete: isAuthorized(actor, "work.task.delete", task) && manage };
 }
 export function assertWorkCommand(actor: AuthorizationSubject, task: PolicyTask, command: WorkCommand, replay = false) {
   const caps = taskCapabilities(actor, task);
   const permission = command.kind === "note" ? "work.note.create" : ["delete", "restore"].includes(command.kind) ? "work.task.delete" : "work.task.update";
   assertAuthorized(actor, permission, task);
+  if (command.kind === "note") assertAuthorized(actor,"work.task.update",task);
   if (command.kind === "delete" || command.kind === "restore") assertAuthorized(actor, "work.task.manage", task);
   if (replay) return;
   if (task.deletedAt && command.kind !== "restore") throw new Error("TASK_DELETED");

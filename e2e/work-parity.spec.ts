@@ -24,3 +24,13 @@ test("staff accepts task with modal and completion retains note history",async({
  expect((await page.request.get("/api/work/export?owner=bad")).status()).toBe(400);
  await page.goto("/work/assign");await expect(page.getByRole("alert").first()).toContainText("สิทธิ์");await expect(page.locator('form input[name="jobs"]')).toHaveCount(0);
 });
+test("personal creation previews server SLA and admin messages appear on home",async({page})=>{
+ await login(page,true);await page.goto("/work/new");const job=`UI-CREATE-${crypto.randomUUID()}`;
+ await page.getByRole("combobox",{name:"Main KPI",exact:true}).selectOption({label:"งานทดสอบ"});await page.getByRole("combobox",{name:"Sub KPI",exact:true}).selectOption({label:"ตรวจเอกสาร"});await page.locator('textarea[name="jobs"]').fill(job);
+ await page.getByRole("button",{name:"ดู deadline ล่วงหน้า",exact:true}).click();await expect(page.getByRole("status").filter({hasText:/กำหนดส่ง/})).toBeVisible();
+ await page.getByRole("button",{name:"เพิ่มงาน",exact:true}).click();await expect(page.getByRole("status").filter({hasText:/เรียบร้อย/})).toBeVisible();await page.goto("/work/mine");await expect(page.getByRole("row").filter({hasText:job})).toBeVisible();
+ await page.context().clearCookies();await login(page);await page.goto("/admin");const message=`ประกาศทดสอบ ${crypto.randomUUID()}`;
+ const announcement=page.locator("form").filter({has:page.getByRole("heading",{name:"เพิ่มประกาศ",exact:true})});await announcement.locator('textarea[name="message"]').fill(message);await announcement.locator('input[name="isActive"]').check();await announcement.getByRole("button",{name:"บันทึก",exact:true}).click();await expect(announcement.getByRole("status")).toHaveText("บันทึกเรียบร้อยแล้ว");
+ const system=page.locator("form").filter({has:page.getByRole("heading",{name:"เพิ่มลิงก์",exact:true})});const name=`ระบบทดสอบ ${crypto.randomUUID()}`;await system.locator('input[name="name"]').fill(name);await system.locator('input[name="url"]').fill("/work");await system.locator('input[name="visibleToAll"]').check();await system.getByRole("button",{name:"บันทึก",exact:true}).click();await expect(system.getByRole("status")).toHaveText("บันทึกเรียบร้อยแล้ว");
+ await page.goto("/");await expect(page.getByText(message,{exact:true})).toBeVisible();await expect(page.getByRole("link",{name,exact:true})).toHaveAttribute("href","/work");
+});

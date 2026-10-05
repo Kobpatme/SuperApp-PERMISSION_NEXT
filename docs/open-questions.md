@@ -16,3 +16,15 @@ These questions cannot be proven from the repositories. They do not block archit
 | OQ-010 | Are Cloudflare/Electron deployments still required after web cutover? | Final deployment topology | Keep target Docker/Vercel compatible and do not remove legacy packaging yet. |
 | OQ-011 | Which production-like PostgreSQL/Supabase environment may be used for migration, RLS, concurrency and rollback tests? | Phase 1 integration gate and Phase 9 release | Do not apply migrations externally; validate types and SQL contracts only. |
 | OQ-012 | What are the approved pricing tax rates, rounding points and exception rules? | Pricing production calculations | Keep the exact-decimal/versioned engine configurable; do not seed business rates. |
+
+## Work/KPI/Admin parity defaults — 2026-10-05
+
+| Decision | Applied default | Remaining owner decision |
+|---|---|---|
+| D1 | Soft delete + preserved audit/history + scoped admin restore | Retention policy remains OQ-003 |
+| D2 | Source sync relies on external holiday data; manual date entry (source=thai/company), no network dependency | Approve authoritative provider and reviewed import/sync workflow |
+| D3 | Actor-bound KPI migration dry-run only; no historical writes/raw fact edits | Approve dataset/crosswalk/business UAT before any historical application |
+| D4 | Executive/Performance presentation deferred; native reports retained | Confirm current usage and presentation requirements |
+| D5 | Existing RBAC, no duplicate legacy roles; capability mapping in docs/modules/work/parity-2026-10-05.md | Configure actual users/scopes through Roles UI after review |
+
+Isolated local PostgreSQL fixtures were used for migrations/transactions/browser evidence. Production activation and least-privileged RLS assessment remain OQ-011; this work does not apply production migrations or grant real users new roles.

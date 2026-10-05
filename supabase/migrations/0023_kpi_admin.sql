@@ -14,4 +14,3 @@ alter table public.kpi_personal_versions enable row level security;
 alter table public.work_admin_previews enable row level security;
 create policy personal_kpi_manage on public.kpi_personal_versions for all using(public.has_scoped_permission('kpi.rule.manage',user_id,team_id)) with check(public.has_scoped_permission('kpi.rule.manage',user_id,team_id));
 create policy work_previews_owner on public.work_admin_previews for all using(actor_id=public.current_platform_user_id()) with check(actor_id=public.current_platform_user_id());
-

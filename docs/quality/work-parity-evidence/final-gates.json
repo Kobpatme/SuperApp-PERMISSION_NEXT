@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-05",
+  "environment": "isolated local PostgreSQL; synthetic browser fixtures",
+  "lint": "pass",
+  "typecheck": "pass",
+  "build": "pass Next16.3.6",
+  "unitPassed": 203,
+  "unitSkipped": 12,
+  "postgresIntegrationPassed": 9,
+  "documentMappingPassed": 1,
+  "browserExpected": 6,
+  "browserUnexpected": 0,
+  "browserDurationMs": 60010.986,
+  "screenshotCount": 24,
+  "cssFiles": 205,
+  "cssViolations": 0,
+  "contrastPairs": 58,
+  "contrastFailures": 0,
+  "productionMutations": false
+}

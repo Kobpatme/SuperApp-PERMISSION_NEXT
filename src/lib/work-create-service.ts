@@ -11,13 +11,14 @@ const inputSchema=z.object({ jobs:z.string().trim().min(1).max(4000),title:z.str
 export async function createWorkBatch(raw:unknown,kind:"personal"|"assigned",context:{ actor:AuthorizationSubject;requestId:string }) {
   const input=inputSchema.parse(raw);
   const jobs=input.jobs.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
-  if (!jobs.length || jobs.length>20 || jobs.some(v=>v.length<3||v.length>180) || (kind==="assigned"&&input.title.length<3)) throw new Error("INVALID_JOBS");
+  if (!jobs.length || jobs.length>20 || new Set(jobs).size!==jobs.length || jobs.some(v=>v.length<3||v.length>180) || (kind==="assigned"&&input.title.length<3)) throw new Error("INVALID_JOBS");
   if (kind==="personal" && input.assigneeId!==context.actor.userId) throw new Error("INVALID_OWNER");
   assertAuthorized(context.actor,kind==="personal"?"work.task.create":"work.task.assign",{ ownerId:input.assigneeId,teamId:input.teamId });
   const fingerprint=createHash("sha256").update(JSON.stringify({kind,input})).digest("hex");
   const key=`work-create:${context.actor.userId}:${input.idempotencyKey}`;
   return getDb().transaction(async tx=>{
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${key}))`);
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`work-create-scope:${input.teamId}:${input.assigneeId}`}))`);
     const [receipt]=await tx.select().from(outboxMessages).where(eq(outboxMessages.idempotencyKey,key));
     if (receipt) { if (receipt.payload.fingerprint!==fingerprint) throw new ConcurrentWorkUpdateError();return { id:receipt.aggregateId,count:jobs.length,replayed:true }; }
     const [person]=await tx.select().from(profiles).where(and(eq(profiles.id,input.assigneeId),eq(profiles.status,"active")));
