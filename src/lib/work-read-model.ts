@@ -1,5 +1,7 @@
 
 import { taskQueryCondition, workScope, type WorkFilters } from "@/lib/work-query";
+import { readWorkKpiCatalog } from "@/lib/work-kpi-catalog";
+import { personalKpiVersions } from "@/db/work-admin-schema";
 import { copy } from "@/lib/copy";
 import "server-only";
 
@@ -35,6 +37,11 @@ export type WorkTaskRecord = {
   version: number;
   notes?: Array<{ id: string; body: string; authorId: string; createdAt: string }>;
   timeline?: Array<{ id: string; label: string; reason: string | null; occurredAt: string }>;
+  ownerOptions?: Array<{ id:string;name:string }>;
+  kpiOptions?: Array<{ id:string;mainKpi:string;subKpi:string }>;
+  slaRuleVersionId?: string | null;
+  workType?: string | null;
+  extraData?: Record<string,unknown>;
 };
 
 export type WorkPersonSummary = {
@@ -66,6 +73,9 @@ export type WorkKpiCard = {
 };
 
 export type WorkReadModel = {
+  creationKey:string;
+  kpiOptions:Array<{ id:string;metricId:string;teamId:string;mainKpi:string;subKpi:string;version:number }>;
+  personalAssignments:Array<{name:string;weight:string;enabled:boolean;version:number}>;
   generatedAt: string;
   items: DashboardItem[];
   tasks: WorkTaskRecord[];
@@ -92,7 +102,7 @@ function isOverdue(task: WorkTaskRecord, now: number) {
 
 function buildEmptyModel(message: string, status: DashboardSource["status"] = "ready"): WorkReadModel {
   return {
-    generatedAt: new Date().toISOString(), items: [], tasks: [], activities: [], weightedReport: calculateWeightedWorkReport([]), statusCounts: {}, people: [], jobGroups: [], assignmentOptions: [], kpiCards: [], scores: [], facts: [],
+    creationKey:crypto.randomUUID(),kpiOptions:[],personalAssignments:[],generatedAt: new Date().toISOString(), items: [], tasks: [], activities: [], weightedReport: calculateWeightedWorkReport([]), statusCounts: {}, people: [], jobGroups: [], assignmentOptions: [], kpiCards: [], scores: [], facts: [],
     report: { taskCount: 0, overdue: 0, dueSoon: 0, completion: null, sla: null },
     source: { moduleId: "work", status, itemCount: 0, message },
   };
@@ -111,6 +121,7 @@ export async function getWorkReadModel(access: AccessContext, filters: WorkFilte
       dueAt: tasks.dueAt, completedAt: tasks.completedAt, updatedAt: tasks.updatedAt, ownerId: tasks.ownerId, teamId: tasks.teamId,
       ownerName: profiles.displayName, teamName: teams.name, jobCode: tasks.jobCode, mainKpi: tasks.mainKpi, subKpi: tasks.subKpi,
       note: tasks.note, kpiWeight: tasks.kpiWeight, version: tasks.version, buildingName: buildings.nameTh,
+      slaRuleVersionId:tasks.slaRuleVersionId,workType:tasks.workType,extraData:tasks.extraData,
     }).from(tasks)
       .leftJoin(profiles, eq(profiles.id, tasks.ownerId))
       .leftJoin(teams, eq(teams.id, tasks.teamId))
@@ -124,6 +135,7 @@ export async function getWorkReadModel(access: AccessContext, filters: WorkFilte
       priority: row.priority, dueAt: toIso(row.dueAt), completedAt: toIso(row.completedAt), updatedAt: row.updatedAt.toISOString(), ownerId: row.ownerId,
       ownerName: row.ownerName ?? "ยังไม่ระบุชื่อ", teamId: row.teamId, teamName: row.teamName ?? "ยังไม่ระบุทีม", jobCode: row.jobCode,
       mainKpi: row.mainKpi, subKpi: row.subKpi, note: row.note, kpiWeight: row.kpiWeight, version: row.version,
+      slaRuleVersionId:row.slaRuleVersionId,workType:row.workType,extraData:row.extraData,
     }));
 
     const taskIds = taskRecords.map(task => task.id);
@@ -187,6 +199,12 @@ export async function getWorkReadModel(access: AccessContext, filters: WorkFilte
     const assignmentOptions = assignmentRows.filter((row) => Boolean(row.name) && (isAuthorized(access.subject, "work.task.assign", { ownerId: row.id, teamId: row.teamId }) || (row.id === access.userId && isAuthorized(access.subject, "work.task.create", { ownerId: row.id, teamId: row.teamId })))).map((row) => ({ id: row.id, name: row.name ?? "ผู้ใช้งาน", teamId: row.teamId, teamName: row.teamName ?? "ไม่ระบุทีม", positionName: row.positionName ?? "สมาชิกทีม" }));
 
     const personMap = new Map<string, WorkPersonSummary>();
+    const personalRows=canReadKpi ? await getDb().select().from(personalKpiVersions).where(eq(personalKpiVersions.userId,access.userId)).orderBy(desc(personalKpiVersions.version)) : [];
+    const seenTeams=new Set<string>();
+    const personalAssignments=personalRows.flatMap(p=>{if(seenTeams.has(p.teamId))return [];seenTeams.add(p.teamId);return p.assignments.map(a=>({name:a.metricId,weight:a.weight,enabled:a.enabled,version:p.version,metricId:a.metricId}));});
+    const kpiOptions=(await readWorkKpiCatalog()).filter(r=>r.status==="active" && (isAuthorized(access.subject,"work.task.read",{ownerId:access.userId,teamId:r.config.teamId})||isAuthorized(access.subject,"work.task.assign",{teamId:r.config.teamId}))).map(r=>({id:r.id,metricId:r.metricId,version:r.version,...r.config}));
+    for(const assignment of personalAssignments) {const option=kpiOptions.find(r=>r.metricId===assignment.metricId);assignment.name=option ? `${option.mainKpi} / ${option.subKpi}` : "KPI ที่ปิดใช้งาน";}
+    for(const task of taskRecords){task.ownerOptions=assignmentOptions.filter(p=>p.teamId===task.teamId).map(p=>({id:p.id,name:p.name}));task.kpiOptions=kpiOptions.filter(r=>r.teamId===task.teamId);}
     for (const task of taskRecords) {
       const person = personMap.get(task.ownerId) ?? { id: task.ownerId, name: task.ownerName, teamName: task.teamName, positionName: "สมาชิกทีม", total: 0, pending: 0, inProgress: 0, onHold: 0, completed: 0, overdue: 0, weightedPerformance: null };
       person.total += 1;
@@ -203,7 +221,7 @@ export async function getWorkReadModel(access: AccessContext, filters: WorkFilte
     const jobGroups = groupTasksByJob(taskRecords.map((task) => ({ ...task, job: task.jobCode ?? task.title }))).map((group) => ({ key: group.key, label: group.tasks[0]?.jobCode || group.label, hasJobCode: group.tasks.some((task) => Boolean(task.jobCode)), tasks: group.tasks }));
     const dueSoon = taskRecords.filter((task) => task.dueAt && Date.parse(task.dueAt) >= now && Date.parse(task.dueAt) <= now + 3 * 86_400_000 && !["completed", "cancelled"].includes(task.status)).length;
     return {
-      generatedAt: new Date().toISOString(), items: dashboardItems, tasks: taskRecords, activities, weightedReport, statusCounts, people: [...personMap.values()], jobGroups, assignmentOptions, kpiCards,
+      creationKey:crypto.randomUUID(),kpiOptions,personalAssignments,generatedAt: new Date().toISOString(), items: dashboardItems, tasks: taskRecords, activities, weightedReport, statusCounts, people: [...personMap.values()], jobGroups, assignmentOptions, kpiCards,
       scores: scoreRows.map((row) => ({ id: row.id, metric: row.metric, unit: row.unit, score: row.score, factCount: row.factCount, calculatedAt: row.calculatedAt.toISOString() })), facts,
       report: { taskCount: taskRecords.length, overdue: taskRecords.filter((task) => isOverdue(task, now)).length, dueSoon, completion: weightedReport.completion, sla: weightedReport.sla },
       source: { moduleId: "work", status: "ready", itemCount: taskRecords.length, message: taskRecords.length ? "ข้อมูลพร้อมใช้งาน" : "ยังไม่มีงานในขอบเขตสิทธิ์" },
@@ -213,6 +231,3 @@ export async function getWorkReadModel(access: AccessContext, filters: WorkFilte
     return buildEmptyModel("ไม่สามารถโหลดข้อมูลงานได้ในขณะนี้", "unavailable");
   }
 }
-
-
-

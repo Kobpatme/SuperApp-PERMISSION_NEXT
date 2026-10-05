@@ -22,7 +22,7 @@ export default async function PlatformLayout({ children }: Readonly<{ children: 
   const access = await Promise.all(modules.map((module) => getAccessContext(module.id)));
   const identity = access.find((item) => item.userId);
   const allowedModuleIds = modules.filter((_, index) => access[index].allowed).map((module) => module.id);
-  const canAdmin = ["core.profile.read", "core.user.manage", "core.role.manage", "core.audit.read"].some(permission => isAuthorized(identity?.subject, permission));
+  const canAdmin = ["core.profile.read", "core.user.manage", "core.role.manage", "core.audit.read", "core.holiday.manage", "core.system_link.manage", "core.announcement.manage", "kpi.rule.manage"].some(permission => isAuthorized(identity?.subject, permission));
   const workGrants = identity?.subject?.grants ?? [];
   const hasWorkPermission = (permission: string) => workGrants.some((grant) => grant.permission === permission);
   const workNavigation = [
@@ -30,7 +30,7 @@ export default async function PlatformLayout({ children }: Readonly<{ children: 
     hasWorkPermission("work.task.read") ? { href: "/work/mine", label: "งานของฉัน", icon: "check" as const } : null,
     hasWorkPermission("work.task.create") ? { href: "/work/new", label: "เพิ่มงาน", icon: "info" as const } : null,
     hasWorkPermission("work.task.manage") ? { href: "/work/team", label: "ภาพรวมทีม", icon: "team" as const } : null,
-    hasWorkPermission("work.task.manage") ? { href: "/work/assign", label: "มอบหมายงาน", icon: "filter" as const } : null,
+    hasWorkPermission("work.task.assign") ? { href: "/work/assign", label: "มอบหมายงาน", icon: "filter" as const } : null,
     hasWorkPermission("work.task.manage") || hasWorkPermission("kpi.team.read") ? { href: "/work/people", label: "บุคลากร", icon: "team" as const } : null,
     hasWorkPermission("work.task.read") ? { href: "/work/tracker", label: copy.feedback.tracker, icon: "search" as const } : null,
     hasWorkPermission("kpi.score.read") ? { href: "/work/kpi", label: "KPI ของฉัน", icon: "check" as const } : null,

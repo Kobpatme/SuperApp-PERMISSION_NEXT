@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { presentWorkActivity, presentWorkStatus } from "@/lib/work-presentation";
 describe("work status presentation", () => {
   it("maps workflow states to text, semantic tone and next action", () => {
-    expect(presentWorkStatus("blocked")).toEqual({ label: "ติดขัด", tone: "warning", nextAction: "ระบุสิ่งที่ต้องช่วยแก้" });
+    expect(presentWorkStatus("blocked")).toEqual({ label: "พักงาน", tone: "warning", nextAction: "ดำเนินการต่อ" });
     expect(presentWorkStatus("completed").tone).toBe("success");
   });
   it("keeps unknown source states visible without implying success", () => {
