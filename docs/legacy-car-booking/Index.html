@@ -1,0 +1,2847 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบยืม-คืนรถแผนก OSP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Sarabun', sans-serif; box-sizing: border-box; }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%); min-height: 100vh; margin: 0; padding: 16px; }
+
+        /* Loading spinner */
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Loading overlay */
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .loading-overlay.hidden { display: none; }
+        .loading-box { background: white; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+        /* Toast notification */
+        .toast { position: fixed; bottom: 20px; right: 20px; background: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; max-width: 400px; }
+        .toast.show { transform: translateX(0); }
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        .toast.warning { border-left: 4px solid #f59e0b; }
+
+        /* Button styles */
+        .btn-primary { background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 16px; box-shadow: 0 2px 4px rgba(30,64,175,0.2); }
+        .btn-primary:hover { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); box-shadow: 0 4px 8px rgba(30,64,175,0.3); transform: translateY(-1px); }
+        .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; box-shadow: none; }
+
+        .btn-secondary { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+        .btn-secondary:hover { background: #2563eb; }
+        .btn-secondary:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        .btn-danger { background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-size: 14px; }
+        .btn-danger:hover { background: #b91c1c; }
+
+        .btn-loading { position: relative; pointer-events: none; opacity: 0.7; }
+        .btn-loading::after { content: ''; position: absolute; width: 16px; height: 16px; top: 50%; left: 50%; margin-left: -8px; margin-top: -8px; border: 2px solid rgba(255,255,255,0.5); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        
+        /* Tab styles */
+        .tab-btn { padding: 12px 16px; font-weight: 500; border-bottom: 2px solid transparent; transition: all 0.2s; cursor: pointer; background: none; outline: none; flex: 1; }
+        .tab-btn.active { color: #1e40af; border-bottom-color: #1e40af; background: white; }
+        .tab-btn:not(.active) { color: #64748b; border-bottom-color: transparent; }
+        .tab-btn:not(.active):hover { color: #1e40af; background: #f8fafc; }
+        
+        /* Form styles */
+        .form-input { width: 100%; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; font-size: 16px; transition: all 0.2s; }
+        .form-input:focus { outline: none; border-color: #1e40af; box-shadow: 0 0 0 3px rgba(30,64,175,0.1); }
+
+        .form-select { width: 100%; padding: 8px 16px; border: 1px solid #cbd5e1; border-radius: 8px; background: white; font-size: 16px; cursor: pointer; transition: all 0.2s; }
+        .form-select:focus { outline: none; border-color: #1e40af; box-shadow: 0 0 0 3px rgba(30,64,175,0.1); }
+        
+        /* Badge styles */
+        .badge { display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 500; border-radius: 9999px; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        
+        /* Modal animation */
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 50; padding: 16px; }
+        .modal-backdrop.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        
+        /* Utility classes */
+        .hidden { display: none !important; }
+        .container { max-width: 1024px; margin: 0 auto; }
+        .text-center { text-align: center; }
+        .text-sm { font-size: 14px; }
+        .text-lg { font-size: 18px; }
+        .text-2xl { font-size: 24px; }
+        .text-3xl { font-size: 30px; }
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .font-medium { font-weight: 500; }
+        .mb-1 { margin-bottom: 4px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-6 { margin-bottom: 24px; }
+        .mb-8 { margin-bottom: 32px; }
+        .mt-1 { margin-top: 4px; }
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        .mt-6 { margin-top: 24px; }
+        .mr-1 { margin-right: 4px; }
+        .mr-2 { margin-right: 8px; }
+        .mr-3 { margin-right: 12px; }
+        .ml-3 { margin-left: 12px; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .mx-1 { margin-left: 4px; margin-right: 4px; }
+        .p-2 { padding: 8px; }
+        .p-3 { padding: 12px; }
+        .p-4 { padding: 16px; }
+        .p-6 { padding: 24px; }
+        .p-8 { padding: 32px; }
+        .py-1 { padding-top: 4px; padding-bottom: 4px; }
+        .py-2 { padding-top: 8px; padding-bottom: 8px; }
+        .py-3 { padding-top: 12px; padding-bottom: 12px; }
+        .px-3 { padding-left: 12px; padding-right: 12px; }
+        .px-4 { padding-left: 16px; padding-right: 16px; }
+        .px-6 { padding-left: 24px; padding-right: 24px; }
+        .py-12 { padding-top: 48px; padding-bottom: 48px; }
+        .rounded-lg { border-radius: 8px; }
+        .rounded-xl { border-radius: 12px; }
+        .rounded-full { border-radius: 9999px; }
+        .shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .shadow-lg { box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+        .bg-white { background: white; }
+        .bg-gray-50 { background: #f9fafb; }
+        .bg-blue-50 { background: #eff6ff; }
+        .bg-yellow-50 { background: #fefce8; }
+        .bg-orange-50 { background: #fff7ed; }
+        .bg-blue-100 { background: #dbeafe; }
+        .border { border: 1px solid #e5e7eb; }
+        .border-b { border-bottom: 1px solid #e5e7eb; }
+        .border-l-4 { border-left-width: 4px; }
+        .border-gray-200 { border-color: #e5e7eb; }
+        .border-yellow-300 { border-color: #fde047; }
+        .border-yellow-400 { border-color: #facc15; }
+        .border-blue-200 { border-color: #bfdbfe; }
+        .text-white { color: white; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #64748b; }
+        .text-gray-600 { color: #475569; }
+        .text-gray-700 { color: #334155; }
+        .text-gray-800 { color: #1e293b; }
+        .text-blue-600 { color: #1e40af; }
+        .text-blue-700 { color: #1e3a8a; }
+        .text-yellow-800 { color: #92400e; }
+        .text-orange-600 { color: #ea580c; }
+        .text-green-500 { color: #10b981; }
+        .text-red-500 { color: #ef4444; }
+        .text-yellow-500 { color: #eab308; }
+        .text-blue-500 { color: #3b82f6; }
+        .text-orange-500 { color: #f97316; }
+        .text-purple-500 { color: #a855f7; }
+        .text-red-600 { color: #dc2626; }
+        .text-red-800 { color: #991b1b; }
+        .text-blue-800 { color: #1e40af; }
+        .text-green-800 { color: #166534; }
+        .text-yellow-800 { color: #854d0e; }
+        .text-opacity-90 { color: rgba(255,255,255,0.9); }
+        .w-full { width: 100%; }
+        .w-10 { width: 40px; }
+        .w-16 { width: 64px; }
+        .w-24 { width: 96px; }
+        .w-40 { width: 160px; }
+        .w-48 { width: 192px; }
+        .h-10 { height: 40px; }
+        .h-16 { height: 64px; }
+        .max-w-md { max-width: 28rem; }
+        .max-w-lg { max-width: 32rem; }
+        .max-w-5xl { max-width: 1024px; }
+        .flex { display: flex; }
+        .flex-1 { flex: 1; }
+        .flex-wrap { flex-wrap: wrap; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-end { justify-content: flex-end; }
+        .gap-2 { gap: 8px; }
+        .gap-3 { gap: 12px; }
+        .gap-4 { gap: 16px; }
+        .space-y-1 > * + * { margin-top: 4px; }
+        .space-y-2 > * + * { margin-top: 8px; }
+        .space-y-3 > * + * { margin-top: 12px; }
+        .space-y-4 > * + * { margin-top: 16px; }
+        .space-x-4 > * + * { margin-left: 16px; }
+        .grid { display: grid; }
+        .overflow-x-auto { overflow-x: auto; }
+        .overflow-y-auto { overflow-y: auto; }
+        .tracking-widest { letter-spacing: 0.1em; }
+        .divide-y > * + * { border-top: 1px solid #e5e7eb; }
+        .min-w-full { min-width: 100%; }
+        .cursor-pointer { cursor: pointer; }
+        .hover\\:text-gray-700:hover { color: #374151; }
+        .hover\\:text-blue-800:hover { color: #1e40af; }
+        .hover\\:text-red-800:hover { color: #991b1b; }
+        .hover\\:bg-red-600:hover { background: #dc2626; }
+        .last\\:border-0:last-child { border-width: 0; }
+        .last\\:mb-0:last-child { margin-bottom: 0; }
+        .last\\:pb-0:last-child { padding-bottom: 0; }
+        .pb-2 { padding-bottom: 8px; }
+        .pb-4 { padding-bottom: 16px; }
+        .pt-4 { padding-top: 16px; }
+        .pt-6 { padding-top: 24px; }
+        .border-t { border-top: 1px solid #e5e7eb; }
+        .text-left { text-align: left; }
+        .uppercase { text-transform: uppercase; }
+        .text-xs { font-size: 12px; }
+        .align-top { vertical-align: top; }
+        .block { display: block; }
+        .inline-block { display: inline-block; }
+        .table { display: table; }
+        .table-header-group { display: table-header-group; }
+        .table-row-group { display: table-row-group; }
+        .table-cell { display: table-cell; }
+        .border-collapse { border-collapse: collapse; }
+        
+        /* Table styles */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th, .data-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        .data-table th { background: #f9fafb; font-weight: 600; font-size: 12px; color: #6b7280; text-transform: uppercase; }
+        .data-table tbody tr:hover { background: #f3f4f6; }
+        
+        /* Calendar styles override */
+        .fc { font-size: 14px; }
+        .fc-toolbar { margin-bottom: 16px; }
+        .fc-toolbar-title { font-size: 18px; font-weight: 600; }
+        .fc-button { background: #3b82f6; border: 1px solid #3b82f6; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .fc-button:hover { background: #2563eb; }
+        .fc-button-active { background: #1d4ed8; border-color: #1d4ed8; }
+        .fc-event { cursor: pointer; }
+        .calendar-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .calendar-legend-item { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9999px; font-size: 12px; color: #334155; }
+        .calendar-legend-swatch { width: 12px; height: 12px; border-radius: 9999px; flex: 0 0 auto; }
+        
+        @media (min-width: 768px) {
+            .md\:p-8 { padding: 32px; }
+            .md\:text-4xl { font-size: 36px; }
+            .md\:col-span-2 { grid-column: span 2 / span 2; }
+            .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .md\:flex-row { flex-direction: row; }
+            .md\:items-center { align-items: center; }
+            .md\:justify-between { justify-content: space-between; }
+            .md\:flex { display: flex; }
+            .md\:block { display: block; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-box">
+            <div class="spinner mb-4" style="border-top-color: #3b82f6; border-color: #e5e7eb;"></div>
+            <p class="text-gray-600">กำลังโหลด...</p>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <div id="app" class="container mx-auto max-w-5xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">
+                <i class="fas fa-car mr-2"></i>ระบบยืม-คืนรถยนต์
+            </h1>
+            <p class="text-lg text-white text-opacity-90">แผนก OSP</p>
+        </header>
+
+        <!-- Login Section -->
+        <div id="login-section" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg p-8 max-w-md mx-auto">
+                <div class="text-center mb-6">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-user text-2xl" style="color: #1e40af;"></i>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-gray-800">เข้าสู่ระบบ</h2>
+                    <p class="text-gray-500 mt-2">กรุณาระบุรหัสพนักงาน 7 หลัก</p>
+                </div>
+                <input type="text" id="employee-id" class="form-input mb-4 text-center text-lg tracking-widest" placeholder="รหัสพนักงาน" maxlength="7" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <button id="login-btn" class="btn-primary w-full py-3 rounded-lg font-medium">
+                    <span class="btn-text"><i class="fas fa-sign-in-alt mr-2"></i>เข้าสู่ระบบ</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content" class="hidden">
+            <!-- User Bar -->
+            <div class="bg-white rounded-lg shadow-md p-4 mb-6 flex justify-between items-center" style="border-top: 3px solid #1e40af;">
+                <div class="flex items-center">
+                    <div style="background: #dbeafe;" class="w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user" style="color: #1e40af;"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">สวัสดี</p>
+                        <p class="font-medium text-gray-800" id="user-name"></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="user-role" class="badge badge-info"></span>
+                    <button id="logout-btn" class="btn-secondary text-sm py-2 px-4 rounded-lg">
+                        <i class="fas fa-sign-out-alt mr-1"></i>ออก
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Bookings Alert -->
+            <div id="active-bookings-alert" class="hidden mb-6">
+                <div style="background: #eff6ff; border-left: 4px solid #1e40af;" class="rounded-lg p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <h3 class="font-semibold" style="color: #1e40af;">
+                            <i class="fas fa-car mr-2"></i>รายการยืมรถที่ใช้งานอยู่
+                        </h3>
+                        <button id="add-booking-btn" class="btn-primary text-sm py-1 px-3">
+                            <i class="fas fa-plus mr-1"></i>จองรถเพิ่ม
+                        </button>
+                    </div>
+                    <div id="active-bookings-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="bg-white rounded-lg shadow-md mb-6">
+                <nav class="flex border-b border-gray-200">
+                    <button id="tab-book" class="tab-btn active flex-1">
+                        <i class="fas fa-calendar-plus mr-2"></i>จองรถ
+                    </button>
+                    <button id="tab-return" class="tab-btn flex-1">
+                        <i class="fas fa-undo mr-2"></i>คืนรถ
+                    </button>
+                    <button id="tab-calendar" class="tab-btn flex-1">
+                        <i class="fas fa-calendar-alt mr-2"></i>ปฏิทิน
+                    </button>
+                    <button id="tab-dashboard" class="tab-btn flex-1 hidden">
+                        <i class="fas fa-chart-line mr-2"></i>แดชบอร์ด
+                    </button>
+                    <button id="tab-admin" class="tab-btn flex-1 hidden">
+                        <i class="fas fa-cogs mr-2"></i>จัดการระบบ
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Booking Tab -->
+            <div id="booking-section" class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-6 flex items-center">
+                    <i class="fas fa-calendar-plus mr-2" style="color: #1e40af;"></i>แบบฟอร์มการจองรถ
+                </h2>
+                
+                <div id="time-slots-container" class="space-y-6"></div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <button id="book-btn" class="btn-primary w-full py-3 rounded-lg font-medium">
+                        <span class="btn-text"><i class="fas fa-check mr-2"></i>ยืนยันการจอง</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Return Tab -->
+            <div id="return-section" class="bg-white rounded-lg shadow-md p-6 hidden">
+                <h2 class="text-xl font-semibold mb-6 flex items-center">
+                    <i class="fas fa-undo mr-2" style="color: #1e40af;"></i>แบบฟอร์มคืนรถ
+                </h2>
+                
+                <div id="return-form-content" class="hidden">
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe;" class="rounded-lg p-4 mb-6">
+                        <p class="text-sm" style="color: #1e40af;">ทะเบียนรถที่ใช้งานอยู่</p>
+                        <p id="return-car-plate" class="text-2xl font-bold" style="color: #1e40af;"></p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-clock mr-1"></i>วันและเวลาที่คืน
+                            </label>
+                            <input type="datetime-local" id="return-time" class="form-input">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-parking mr-1"></i>ชั้นที่จอดรถ
+                            </label>
+                            <select id="parking-floor" class="form-select"></select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-tachometer-alt mr-1"></i>เลขไมล์ล่าสุด (กม.)
+                            </label>
+                            <input type="number" id="mileage" class="form-input" placeholder="ระบุเป็นตัวเลขเท่านั้น" min="0">
+                        </div>
+
+                        <!-- Fuel Section -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="font-medium text-gray-700">
+                                    <i class="fas fa-gas-pump text-orange-500 mr-1"></i>การเติมน้ำมัน
+                                </label>
+                                <select id="refueled-select" class="form-select w-48">
+                                    <option value="yes">มีการเติมน้ำมัน</option>
+                                    <option value="no">ไม่มีการเติมน้ำมัน</option>
+                                </select>
+                            </div>
+                            
+                            <div id="fuel-details" class="space-y-4 pt-4 border-t border-gray-200">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-sm text-gray-600 mb-1">เลขไมล์ตอนเติม</label>
+                                        <input type="number" id="fuel-mileage" class="form-input" placeholder="เลขไมล์" min="0">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-600 mb-1">จำนวนลิตร</label>
+                                        <input type="number" id="fuel-liters" class="form-input" placeholder="ลิตร" step="0.1" min="0">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm text-gray-600 mb-1">จำนวนเงิน (บาท)</label>
+                                        <input type="number" id="fuel-amount" class="form-input" placeholder="บาท" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trip Log Section -->
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                                <div>
+                                    <h3 class="font-medium text-gray-700">
+                                        <i class="fas fa-route text-purple-500 mr-1"></i>บันทึกระหว่างทาง
+                                    </h3>
+                                    <p class="text-sm text-gray-500">จอดพัก เติมน้ำมัน หรืออื่นๆ</p>
+                                </div>
+                                <button id="open-trip-log-btn" class="btn-secondary text-sm py-2 px-4 rounded-lg">
+                                    <i class="fas fa-plus mr-1"></i>เพิ่มบันทึก
+                                </button>
+                            </div>
+                            <div id="trip-log-list" class="mt-4"></div>
+                            <p id="trip-log-empty" class="text-sm text-gray-500 text-center py-8">ยังไม่มีบันทึกระหว่างทาง</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <button id="return-btn" class="btn-primary w-full py-3 rounded-lg font-medium">
+                            <span class="btn-text"><i class="fas fa-check mr-2"></i>ยืนยันการคืนรถ</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="no-return-message" class="text-center py-12">
+                    <div class="text-gray-400 text-6xl mb-4"><i class="fas fa-car"></i></div>
+                    <p class="text-gray-500 text-lg">คุณไม่มีรายการยืมรถที่ต้องคืน</p>
+                    <p class="text-gray-400 text-sm mt-2">กรุณาจองรถก่อนใช้งานระบบคืนรถ</p>
+                </div>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="calendar-section" class="bg-white rounded-lg shadow-md p-6 hidden">
+                <h2 class="text-xl font-semibold mb-6 flex items-center">
+                    <i class="fas fa-calendar-alt text-indigo-600 mr-2"></i>ปฏิทินการจอง
+                </h2>
+                <div id="calendar"></div>
+                <div id="calendar-legend" class="calendar-legend"></div>
+            </div>
+
+            <!-- Dashboard Tab (Admin Only) -->
+            <div id="dashboard-section" class="bg-white rounded-lg shadow-md p-6 hidden">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                    <h2 class="text-xl font-semibold flex items-center">
+                        <i class="fas fa-chart-line mr-2" style="color: #1e40af;"></i>แดชบอร์ดสรุปการใช้งาน
+                    </h2>
+                    <button id="dashboard-download-csv-btn" class="btn-primary py-2 px-4 rounded-lg mt-3 md:mt-0">
+                        <i class="fas fa-download mr-1"></i>ดาวน์โหลด CSV
+                    </button>
+                </div>
+
+                <!-- Date Filter -->
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div class="flex flex-wrap gap-4 items-end">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">เดือน</label>
+                            <select id="dashboard-month-select" class="form-select w-40"></select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">ปี</label>
+                            <input type="number" id="dashboard-year-input" class="form-input w-24" placeholder="2569" min="2500" max="2600">
+                        </div>
+                        <button id="dashboard-all-time-btn" class="btn-secondary py-2 px-4 rounded-lg">
+                            <i class="fas fa-calendar mr-1"></i>ทั้งหมด
+                        </button>
+                        <button id="dashboard-refresh-btn" class="btn-primary py-2 px-4 rounded-lg">
+                            <i class="fas fa-sync-alt mr-1"></i>รีเฟรช
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div id="dashboard-summary-cards" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="rounded-lg p-4 border" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe;">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-sm" style="color: #1e40af;">ทั้งหมด</p>
+                            <i class="fas fa-list" style="color: #1e40af;"></i>
+                        </div>
+                        <p id="dashboard-total-bookings" class="text-3xl font-bold" style="color: #1e3a8a;">-</p>
+                    </div>
+                    <div class="rounded-lg p-4 border bg-white border-gray-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-sm text-gray-600">คืนรถแล้ว</p>
+                            <i class="fas fa-check-circle text-green-500"></i>
+                        </div>
+                        <p id="dashboard-completed" class="text-3xl font-bold text-green-700">-</p>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-sm text-yellow-600">กำลังใช้งาน</p>
+                            <i class="fas fa-car text-yellow-500"></i>
+                        </div>
+                        <p id="dashboard-active" class="text-3xl font-bold text-yellow-700">-</p>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <p class="text-sm text-gray-600">ระยะทางรวม</p>
+                        <p id="dashboard-total-distance" class="text-2xl font-bold text-gray-800">-</p>
+                        <p class="text-xs text-gray-500">กม.</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <p class="text-sm text-gray-600">ค่าน้ำมันรวม</p>
+                        <p id="dashboard-total-fuel-amount" class="text-2xl font-bold text-gray-800">-</p>
+                        <p class="text-xs text-gray-500">บาท</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <p class="text-sm text-gray-600">ลิตรน้ำมันรวม</p>
+                        <p id="dashboard-total-fuel-liters" class="text-2xl font-bold text-gray-800">-</p>
+                        <p class="text-xs text-gray-500">ลิตร</p>
+                    </div>
+                </div>
+
+                <!-- Car Stats & Top Users -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-car text-blue-600 mr-2"></i>การใช้รถแต่ละคัน
+                        </h3>
+                        <div id="car-usage-stats" class="space-y-2"></div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-users text-green-600 mr-2"></i>ผู้ใช้รถ Top 5
+                        </h3>
+                        <div id="top-users-stats" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-table text-purple-600 mr-2"></i>ข้อมูลทั้งหมด
+                    </h3>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">ลำดับ</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">วันที่ใช้รถ</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">ทะเบียน</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">ผู้ใช้</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">ระยะทาง</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">ค่าน้ำมัน</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-data-table" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="admin-section" class="bg-white rounded-lg shadow-md p-6 hidden">
+                <h2 class="text-xl font-semibold mb-6 flex items-center">
+                    <i class="fas fa-cogs mr-2" style="color: #1e40af;"></i>จัดการระบบ
+                </h2>
+                
+                <!-- Admin Sub-tabs -->
+                <div class="border-b border-gray-200 mb-6">
+                    <nav class="flex space-x-4">
+                        <button id="admin-tab-cars" class="tab-btn active">
+                            <i class="fas fa-car mr-1"></i>รถยนต์
+                        </button>
+                        <button id="admin-tab-bookings" class="tab-btn">
+                            <i class="fas fa-calendar-check mr-1"></i>การจอง
+                        </button>
+                        <button id="admin-tab-employees" class="tab-btn">
+                            <i class="fas fa-users mr-1"></i>พนักงาน
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Cars Management -->
+                <div id="admin-content-cars">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-gray-800">รายการรถยนต์</h3>
+                        <button id="add-car-btn" class="btn-primary text-sm py-2 px-4 rounded-lg">
+                            <i class="fas fa-plus mr-1"></i>เพิ่มรถยนต์
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ทะเบียน</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ที่จอด</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">เลขไมล์</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="car-list-table" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bookings Management -->
+                <div id="admin-content-bookings" class="hidden">
+                    <h3 class="font-semibold text-gray-800 mb-4">รายการจองทั้งหมด</h3>
+                    
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <div class="flex flex-wrap gap-4 items-end">
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1">เดือน</label>
+                                <select id="report-month-select" class="form-select w-40"></select>
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1">ปี</label>
+                                <input type="number" id="report-year-input" class="form-input w-24" placeholder="2024" min="2000" max="2100">
+                            </div>
+                            <button id="download-report-btn" class="btn-primary py-2 px-4 rounded-lg">
+                                <i class="fas fa-download mr-1"></i>ดาวน์โหลดรายงาน
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ผู้จอง</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ทะเบียน</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลาเริ่ม</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">เลขไมล์</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">เวลาคืน</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="booking-list-table" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Employees Management -->
+                <div id="admin-content-employees" class="hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-semibold text-gray-800">รายการพนักงาน</h3>
+                        <button id="add-employee-btn" class="btn-primary text-sm py-2 px-4 rounded-lg">
+                            <i class="fas fa-plus mr-1"></i>เพิ่มพนักงาน
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border border-gray-200">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ชื่อ</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">บทบาท</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employee-list-table" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Simple Message -->
+    <div id="simple-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="text-center">
+                <div id="simple-modal-icon" class="mb-4"></div>
+                <p id="simple-modal-message" class="text-gray-700 mb-6"></p>
+                <div class="flex justify-center gap-3">
+                    <button id="simple-modal-close-btn" class="btn-secondary py-2 px-6 rounded-lg">ตกลง</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Trip Log -->
+    <div id="trip-log-modal" class="modal-backdrop">
+        <div class="modal-content max-w-lg">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-route text-purple-500 mr-2"></i>บันทึกระหว่างทาง
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ประเภทบันทึก</label>
+                    <select id="trip-log-type" class="form-select">
+                        <option value="overnight_stop">จอดพัก</option>
+                        <option value="fuel">เติมน้ำมัน</option>
+                        <option value="other">อื่นๆ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">วันและเวลา</label>
+                    <input type="datetime-local" id="trip-log-time" class="form-input">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">สถานที่</label>
+                    <input type="text" id="trip-log-location" class="form-input" placeholder="เช่น ขอนแก่น / ปั๊ม ปตท.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">เลขไมล์</label>
+                    <input type="number" id="trip-log-mileage" class="form-input" placeholder="ระบุเลขไมล์ปัจจุบัน" min="0">
+                </div>
+                <div id="trip-log-fuel-fields" class="hidden bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-4">
+                    <p class="text-sm font-medium text-orange-700"><i class="fas fa-gas-pump mr-1"></i>ข้อมูลการเติมน้ำมัน</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">จำนวนลิตร</label>
+                            <input type="number" id="trip-log-fuel-liters" class="form-input" step="0.1" min="0">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-600 mb-1">จำนวนเงิน (บาท)</label>
+                            <input type="number" id="trip-log-fuel-amount" class="form-input" min="0">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">หมายเหตุ</label>
+                    <textarea id="trip-log-note" class="form-input" rows="3" placeholder="ระบุรายละเอียดเพิ่มเติม"></textarea>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button id="trip-log-cancel-btn" class="btn-secondary py-2 px-6 rounded-lg">ยกเลิก</button>
+                <button id="trip-log-save-btn" class="btn-primary py-2 px-6 rounded-lg">
+                    <span class="btn-text"><i class="fas fa-save mr-1"></i>บันทึก</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Car -->
+    <div id="car-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 id="car-modal-title" class="text-lg font-semibold mb-4"></h3>
+            <div class="space-y-4">
+                <input type="hidden" id="car-id-input">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ทะเบียนรถ</label>
+                    <input type="text" id="car-license-plate-input" class="form-input" placeholder="ระบุทะเบียนรถ">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชั้นที่จอด</label>
+                    <select id="car-parking-floor-select" class="form-select"></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">เลขไมล์ล่าสุด (กม.)</label>
+                    <input type="number" id="car-mileage-input" class="form-input" placeholder="ระบุเลขไมล์" min="0">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button id="car-modal-cancel-btn" class="btn-secondary py-2 px-6 rounded-lg">ยกเลิก</button>
+                <button id="car-modal-save-btn" class="btn-primary py-2 px-6 rounded-lg">
+                    <span class="btn-text"><i class="fas fa-save mr-1"></i>บันทึก</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Employee -->
+    <div id="employee-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <h3 id="employee-modal-title" class="text-lg font-semibold mb-4"></h3>
+            <div class="space-y-4">
+                <input type="hidden" id="employee-modal-id">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสพนักงาน</label>
+                    <input type="text" id="employee-id-input" class="form-input" placeholder="รหัสพนักงาน 7 หลัก" maxlength="7" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ-นามสกุล</label>
+                    <input type="text" id="employee-name-input" class="form-input" placeholder="ชื่อ-นามสกุล">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">บทบาท</label>
+                    <select id="employee-role-select" class="form-select">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button id="employee-modal-cancel-btn" class="btn-secondary py-2 px-6 rounded-lg">ยกเลิก</button>
+                <button id="employee-modal-save-btn" class="btn-primary py-2 px-6 rounded-lg">
+                    <span class="btn-text"><i class="fas fa-save mr-1"></i>บันทึก</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/locales-all.min.js"></script>
+    <script>
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+        const state = {
+            currentUser: null,
+            allCars: [],
+            allBookings: [],
+            openBookings: [],
+            activeBookings: [],
+            activeBooking: null,
+            currentTripLogs: [],
+            allEmployees: [],
+            calendar: null
+        };
+
+        function getAuthContext() {
+            return state.currentUser
+                ? { authToken: state.currentUser.authToken, employeeId: state.currentUser.id }
+                : null;
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        /**
+         * แสดง toast notification
+         */
+        function showToast(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            // Ensure message is not undefined/null
+            const safeMessage = (message !== undefined && message !== null) ? String(message) : 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+
+            const icons = {
+                success: '<i class="fas fa-check-circle text-green-500 text-xl"></i>',
+                error: '<i class="fas fa-times-circle text-red-500 text-xl"></i>',
+                warning: '<i class="fas fa-exclamation-circle text-yellow-500 text-xl"></i>'
+            };
+
+            toast.innerHTML = `
+                <div class="flex items-start">
+                    <div class="mr-3">${icons[type] || icons.success}</div>
+                    <div class="flex-1">
+                        <p class="text-gray-800">${safeMessage}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600 ml-3">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        function updateActiveBookings() {
+            const alertContainer = document.getElementById('active-bookings-alert');
+            const listContainer = document.getElementById('active-bookings-list');
+            const titleEl = document.querySelector('#active-bookings-alert h3');
+
+            if (titleEl) {
+                titleEl.innerHTML = '<i class="fas fa-car mr-2"></i>รายการจองรถของคุณ';
+            }
+
+            listContainer.innerHTML = '';
+
+            if (state.openBookings.length === 0) {
+                alertContainer.classList.add('hidden');
+                return;
+            }
+
+            alertContainer.classList.remove('hidden');
+
+            state.openBookings.forEach(booking => {
+                const car = state.allCars.find(c => c.license_plate === booking.car_plate);
+                if (!car) return;
+
+                const isActive = isBookingActiveNow(booking);
+                const statusClass = isActive ? 'badge-success' : 'badge-info';
+                const statusLabel = isActive ? 'กำลังใช้งาน' : 'จองล่วงหน้า';
+                const effectiveEnd = getEffectiveBookingEnd(booking);
+                const endLabel = effectiveEnd !== booking.end_time ? 'คืนจริง' : 'สิ้นสุด';
+
+                const item = document.createElement('div');
+                item.className = 'bg-white border border-yellow-300 rounded-lg p-4';
+                item.innerHTML = `
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="badge badge-warning"><i class="fas fa-car mr-1"></i>${car.license_plate}</span>
+                                <span class="badge badge-info"><i class="fas fa-map-marker-alt mr-1"></i>${car.parking_floor}</span>
+                                <span class="badge badge-success"><i class="fas fa-tachometer-alt mr-1"></i>${car.latest_mileage} กม.</span>
+                                <span class="badge ${statusClass}">${statusLabel}</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div><span class="text-gray-500">เริ่ม:</span> ${formatDateTimeThai(booking.start_time)}</div>
+                                <div><span class="text-gray-500">${endLabel}:</span> ${formatDateTimeThai(effectiveEnd)}</div>
+                                <div class="md:col-span-2"><span class="text-gray-500">ปลายทาง:</span> ${booking.destination || '-'}</div>
+                                <div class="md:col-span-2"><span class="text-gray-500">ผู้ใช้รถก่อนหน้า:</span> <span class="font-medium text-blue-700">${car.last_user}</span></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            ${isActive ? `
+                                <button class="btn-secondary text-sm py-2 px-3 rounded-lg trip-log-btn" data-booking-id="${booking.booking_id}" title="บันทึกระหว่างทาง">
+                                    <i class="fas fa-route"></i>
+                                </button>
+                                <button class="btn-primary text-sm py-2 px-3 rounded-lg return-car-btn" data-booking-id="${booking.booking_id}" data-car-plate="${car.license_plate}" title="คืนรถ">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            ` : ''}
+                            <button class="bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-3 rounded-lg cancel-booking-btn" data-booking-id="${booking.booking_id}" title="ยกเลิก">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+
+            if (!listContainer.dataset.bound) {
+                listContainer.addEventListener('click', function(e) {
+                    const tripLogBtn = e.target.closest('.trip-log-btn');
+                    const returnBtn = e.target.closest('.return-car-btn');
+                    const cancelBtn = e.target.closest('.cancel-booking-btn');
+
+                    if (tripLogBtn) {
+                        e.preventDefault();
+                        openTripLogModal(tripLogBtn.dataset.bookingId);
+                    } else if (returnBtn) {
+                        e.preventDefault();
+                        showReturnForm(returnBtn.dataset.bookingId);
+                    } else if (cancelBtn) {
+                        e.preventDefault();
+                        handleCancelBooking(cancelBtn.dataset.bookingId);
+                    }
+                });
+
+                listContainer.dataset.bound = 'true';
+            }
+        }
+
+        /**
+         * แสดง modal ข้อความ
+         */
+        function showSimpleModal(message, callback, type = 'info') {
+            const modal = document.getElementById('simple-modal');
+            const messageEl = document.getElementById('simple-modal-message');
+            const iconEl = document.getElementById('simple-modal-icon');
+            const closeBtn = document.getElementById('simple-modal-close-btn');
+
+            const icons = {
+                success: '<div class="text-green-500 text-4xl"><i class="fas fa-check-circle"></i></div>',
+                error: '<div class="text-red-500 text-4xl"><i class="fas fa-times-circle"></i></div>',
+                warning: '<div class="text-yellow-500 text-4xl"><i class="fas fa-exclamation-triangle"></i></div>',
+                info: '<div class="text-blue-500 text-4xl"><i class="fas fa-info-circle"></i></div>'
+            };
+
+            iconEl.innerHTML = icons[type] || icons.info;
+            messageEl.innerHTML = message;
+            closeBtn.textContent = 'ตกลง';
+            closeBtn.classList.remove('hidden');
+            modal.classList.add('show');
+
+            closeBtn.onclick = () => {
+                modal.classList.remove('show');
+                if (callback) callback();
+            };
+        }
+
+        /**
+         * แสดง modal ยืนยัน (มี 2 ปุ่ม)
+         */
+        function showConfirmModal(message, onConfirm, onCancel) {
+            const modal = document.getElementById('simple-modal');
+            const messageEl = document.getElementById('simple-modal-message');
+            const iconEl = document.getElementById('simple-modal-icon');
+            const closeBtn = document.getElementById('simple-modal-close-btn');
+            const btnContainer = closeBtn.parentElement;
+
+            iconEl.innerHTML = '<div class="text-yellow-500 text-4xl"><i class="fas fa-exclamation-triangle"></i></div>';
+            messageEl.innerHTML = message;
+            
+            // เปลี่ยนปุ่มปิดเป็น "ยกเลิก"
+            closeBtn.textContent = 'ยกเลิก';
+            closeBtn.className = 'btn-secondary py-2 px-6 rounded-lg';
+            closeBtn.classList.remove('hidden');
+            modal.classList.add('show');
+
+            // ลบปุ่มยืนยันเก่าถ้ามี
+            const existingConfirmBtn = document.getElementById('confirm-modal-btn');
+            if (existingConfirmBtn) existingConfirmBtn.remove();
+
+            // สร้างปุ่มยืนยัน
+            const confirmBtn = document.createElement('button');
+            confirmBtn.id = 'confirm-modal-btn';
+            confirmBtn.className = 'btn-primary py-2 px-6 rounded-lg';
+            confirmBtn.textContent = 'ยืนยัน';
+            btnContainer.appendChild(confirmBtn);
+
+            closeBtn.onclick = () => {
+                modal.classList.remove('show');
+                if (existingConfirmBtn) existingConfirmBtn.remove();
+                if (onCancel) onCancel();
+            };
+
+            confirmBtn.onclick = () => {
+                modal.classList.remove('show');
+                confirmBtn.remove();
+                if (onConfirm) onConfirm();
+            };
+        }
+
+        /**
+         * แสดง/ซ่อน loading overlay
+         */
+        function showLoading(show) {
+            document.getElementById('loading-overlay').classList.toggle('hidden', !show);
+        }
+
+        /**
+         * แสดง loading state บนปุ่ม
+         */
+        function setButtonLoading(button, loading) {
+            if (!button) return;
+            button.disabled = loading;
+            button.classList.toggle('btn-loading', loading);
+        }
+
+        /**
+         * ตั้งค่า datetime-local เป็นเวลาปัจจุบัน
+         */
+        function setDateTimeToNow(element) {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            if (element) element.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        /**
+         * แปลงวันที่เป็นภาษาไทย
+         */
+        function formatDateTimeThai(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '-';
+
+            const day = date.getDate();
+            const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const month = monthNames[date.getMonth()];
+            const year = date.getFullYear() + 543;
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+
+            return `${day} ${month} ${year} ${hours}:${minutes}`;
+        }
+
+        /**
+         * แปลงเวลาเป็น string สั้น
+         */
+        function formatTimeShort(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return '-';
+            
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        function getEffectiveBookingEnd(booking) {
+            if (!booking) return null;
+            return booking.actual_return_time || booking.end_time || null;
+        }
+
+        function isBookingActiveNow(booking) {
+            if (!booking || booking.booking_status !== 'booked' || booking.actual_return_time) {
+                return false;
+            }
+
+            const start = new Date(booking.start_time);
+            if (isNaN(start.getTime())) return false;
+
+            return start <= new Date();
+        }
+
+        function getCalendarCarColorMap() {
+            const palette = [
+                '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
+                '#0891b2', '#ea580c', '#4f46e5', '#be123c', '#65a30d'
+            ];
+
+            const uniquePlates = [...new Set(
+                state.allBookings
+                    .filter(b => b.booking_status !== 'cancelled' && b.car_plate)
+                    .map(b => b.car_plate)
+            )].sort((a, b) => a.localeCompare(b));
+
+            const colorMap = {};
+            uniquePlates.forEach((plate, index) => {
+                colorMap[plate] = palette[index % palette.length];
+            });
+
+            return colorMap;
+        }
+
+        function getCalendarCarColor(carPlate) {
+            const colorMap = getCalendarCarColorMap();
+            if (carPlate && colorMap[carPlate]) {
+                return colorMap[carPlate];
+            }
+
+            const palette = [
+                '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
+                '#0891b2', '#ea580c', '#4f46e5', '#be123c', '#65a30d'
+            ];
+            return palette[0];
+        }
+
+        function renderCalendarLegend() {
+            const legendEl = document.getElementById('calendar-legend');
+            if (!legendEl) return;
+
+            const colorMap = getCalendarCarColorMap();
+            const uniquePlates = Object.keys(colorMap);
+
+            if (uniquePlates.length === 0) {
+                legendEl.innerHTML = '';
+                return;
+            }
+
+            legendEl.innerHTML = uniquePlates.map(plate => `
+                <div class="calendar-legend-item">
+                    <span class="calendar-legend-swatch" style="background:${colorMap[plate]}"></span>
+                    <span>${plate}</span>
+                </div>
+            `).join('');
+        }
+
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+            const carColorMap = getCalendarCarColorMap();
+
+            if (state.calendar) {
+                state.calendar.destroy();
+            }
+
+            state.calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'th',
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: state.allBookings
+                    .filter(b => b.booking_status !== 'cancelled')
+                    .map(b => ({
+                        title: `${b.car_plate} (${b.employee_name})`,
+                        start: b.start_time,
+                        end: getEffectiveBookingEnd(b),
+                        color: carColorMap[b.car_plate] || getCalendarCarColor(b.car_plate),
+                        backgroundColor: carColorMap[b.car_plate] || getCalendarCarColor(b.car_plate),
+                        borderColor: carColorMap[b.car_plate] || getCalendarCarColor(b.car_plate),
+                        textColor: '#ffffff',
+                        extendedProps: {
+                            booking_id: b.booking_id,
+                            effective_end: getEffectiveBookingEnd(b),
+                            car_plate: b.car_plate
+                        }
+                    })),
+                eventDidMount: function(info) {
+                    const color = carColorMap[info.event.extendedProps.car_plate] || '#2563eb';
+                    info.el.style.backgroundColor = color;
+                    info.el.style.borderColor = color;
+
+                    const dotEl = info.el.querySelector('.fc-daygrid-event-dot');
+                    if (dotEl) {
+                        dotEl.style.borderColor = color;
+                    }
+                },
+                eventClick: function(info) {
+                    const booking = state.allBookings.find(b => b.booking_id === info.event.extendedProps.booking_id);
+                    if (booking) {
+                        const effectiveEnd = getEffectiveBookingEnd(booking);
+                        const endLabel = effectiveEnd !== booking.end_time ? 'คืนจริง' : 'สิ้นสุด';
+                        const content = `
+                            <div class="text-left">
+                                <p class="mb-2"><strong>ทะเบียน:</strong> ${booking.car_plate}</p>
+                                <p class="mb-2"><strong>ผู้จอง:</strong> ${booking.employee_name}</p>
+                                <p class="mb-2"><strong>เวลาเริ่ม:</strong> ${formatDateTimeThai(booking.start_time)}</p>
+                                <p class="mb-2"><strong>${endLabel}:</strong> ${formatDateTimeThai(effectiveEnd)}</p>
+                                ${booking.destination ? `<p class="mb-2"><strong>สถานที่:</strong> ${booking.destination}</p>` : ''}
+                            </div>
+                        `;
+                        showSimpleModal(content, null, 'info');
+                    }
+                }
+            });
+
+            state.calendar.render();
+            renderCalendarLegend();
+        }
+
+        // ============================================
+        // EVENT HANDLERS
+        // ============================================
+        
+        function handleLogin() {
+            const id = document.getElementById('employee-id').value;
+
+            if (id.length !== 7) {
+                showToast('รหัสพนักงานต้องมี 7 หลัก', 'error');
+                return;
+            }
+
+            setButtonLoading(document.getElementById('login-btn'), true);
+
+            google.script.run
+                .withSuccessHandler(user => {
+                    setButtonLoading(document.getElementById('login-btn'), false);
+
+                    if (user && user.id) {
+                        state.currentUser = user;
+                        document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('main-content').classList.remove('hidden');
+                        document.getElementById('user-name').textContent = user.name;
+                        document.getElementById('user-role').textContent = user.role === 'admin' ? 'Admin' : 'User';
+
+                        loadInitialData();
+                        showToast('เข้าสู่ระบบสำเร็จ', 'success');
+                        
+                        // เปิดใช้งาน auto-logout
+                        enableAutoLogout();
+                    } else {
+                        showSimpleModal('รหัสพนักงานไม่ถูกต้อง', null, 'error');
+                    }
+                })
+                .withFailureHandler(err => {
+                    setButtonLoading(document.getElementById('login-btn'), false);
+                    showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+                })
+                .login(id);
+        }
+
+        function handleLogout() {
+            const authContext = getAuthContext();
+            state.currentUser = null;
+            state.allCars = [];
+            state.allBookings = [];
+            state.openBookings = [];
+            state.activeBookings = [];
+            state.activeBooking = null;
+
+            // ล้าง auto-logout timers
+            clearTimeout(window._inactivityTimer);
+            window.removeEventListener('beforeunload', handleTabClose);
+            window._lastActivityTime = 0;
+
+            document.getElementById('main-content').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('employee-id').value = '';
+
+            google.script.run.logout(authContext);
+            showToast('ออกจากระบบสำเร็จ', 'success');
+        }
+
+        // ============================================
+        // AUTO-LOGOUT FUNCTIONALITY
+        // ============================================
+        
+        const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 นาที (มิลลิวินาที)
+        window._lastActivityTime = Date.now();
+        window._inactivityTimer = null;
+
+        /**
+         * เริ่มจับเวลา auto-logout
+         */
+        function startInactivityTimer() {
+            // ล้าง timer เก่า
+            if (window._inactivityTimer) {
+                clearTimeout(window._inactivityTimer);
+            }
+            
+            // ตั้ง timer ใหม่
+            window._inactivityTimer = setTimeout(() => {
+                if (state.currentUser) {
+                    showToast('ระบบออกจากระบบอัตโนมัติเนื่องจากไม่มีการใช้งานนานเกิน 5 นาที', 'warning');
+                    handleLogout();
+                }
+            }, INACTIVITY_TIMEOUT);
+        }
+
+        /**
+         * รีเซ็ต timer เมื่อมีการใช้งาน
+         */
+        function resetInactivityTimer() {
+            if (state.currentUser) {
+                window._lastActivityTime = Date.now();
+                startInactivityTimer();
+            }
+        }
+
+        /**
+         * จัดการเมื่อปิดแท็บ
+         */
+        function handleTabClose(e) {
+            if (state.currentUser) {
+                // บันทึกเวลาสุดท้ายก่อนปิด
+                const logoutData = {
+                    employeeId: state.currentUser.id,
+                    timestamp: new Date().toISOString(),
+                    reason: 'tab_closed'
+                };
+                
+                // บันทึกเก็บไว้ใน localStorage (optional)
+                localStorage.setItem('lastLogout', JSON.stringify(logoutData));
+                
+                // เรียก logout API (ใช้ sendBeacon เพื่อให้แน่ใจว่าส่งสำเร็จ)
+                if (navigator.sendBeacon) {
+                    // GAS ไม่รองรับ sendBeacon โดยตรง จึงต้องใช้วิธีอื่น
+                }
+            }
+        }
+
+        /**
+         * เปิดใช้งาน auto-logout monitoring
+         */
+        function enableAutoLogout() {
+            // ฟังเหตุการณ์การใช้งาน
+            const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', 'wheel', 'keydown', 'resize'];
+            
+            events.forEach(event => {
+                document.addEventListener(event, resetInactivityTimer, true);
+            });
+
+            // ฟังเหตุการณ์ปิดแท็บ
+            window.addEventListener('beforeunload', handleTabClose);
+
+            // เริ่ม timer
+            startInactivityTimer();
+            
+            console.log('Auto-logout enabled: 5 minutes inactivity timeout');
+        }
+
+        /**
+         * ปิด auto-logout monitoring
+         */
+        function disableAutoLogout() {
+            const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click', 'wheel', 'keydown', 'resize'];
+            
+            events.forEach(event => {
+                document.removeEventListener(event, resetInactivityTimer, true);
+            });
+
+            window.removeEventListener('beforeunload', handleTabClose);
+
+            if (window._inactivityTimer) {
+                clearTimeout(window._inactivityTimer);
+                window._inactivityTimer = null;
+            }
+            
+            console.log('Auto-logout disabled');
+        }
+
+        function loadInitialData(silent = false) {
+            if (!silent) showLoading(true);
+            
+            if (!state.currentUser || !state.currentUser.id) {
+                showSimpleModal('ข้อมูลผู้ใช้ไม่ถูกต้อง กรุณาลองเข้าสู่ระบบอีกครั้ง', () => handleLogout(), 'error');
+                return;
+            }
+            
+            google.script.run
+                .withSuccessHandler(data => {
+                    if (!silent) showLoading(false);
+                    
+                    if (!data || data.error) {
+                        showSimpleModal('ไม่สามารถโหลดข้อมูลได้: ' + (data?.error || 'ข้อมูลไม่ถูกต้อง'), null, 'error');
+                        return;
+                    }
+                    
+                    state.allCars = data.cars || [];
+                    state.allBookings = data.bookings || [];
+                    state.openBookings = data.openBookings || [];
+                    state.activeBookings = data.activeBookings || [];
+                    state.currentUser.role = data.currentUserRole || 'user';
+                    
+                    updateUI();
+                    initCalendar();
+                })
+                .withFailureHandler(err => {
+                    if (!silent) showLoading(false);
+                    showToast('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message, 'error');
+                })
+                .getInitialData(state.currentUser.id, getAuthContext());
+        }
+
+        function updateUI() {
+            // แสดง/ซ่อน tab admin และ dashboard
+            const isAdmin = state.currentUser.role === 'admin';
+            document.getElementById('tab-admin').classList.toggle('hidden', !isAdmin);
+            document.getElementById('tab-dashboard').classList.toggle('hidden', !isAdmin);
+
+            // อัปเดต active bookings
+            updateActiveBookings();
+
+            // อัปเดต return form
+            updateReturnForm();
+
+            // อัปเดต available cars
+            updateAvailableCars();
+        }
+
+        function legacyUpdateActiveBookings() {
+            const alertContainer = document.getElementById('active-bookings-alert');
+            const listContainer = document.getElementById('active-bookings-list');
+            
+            listContainer.innerHTML = '';
+            
+            if (state.activeBookings.length === 0) {
+                alertContainer.classList.add('hidden');
+                return;
+            }
+            
+            alertContainer.classList.remove('hidden');
+            
+            state.activeBookings.forEach(booking => {
+                const car = state.allCars.find(c => c.license_plate === booking.car_plate);
+                if (!car) return;
+                
+                const item = document.createElement('div');
+                item.className = 'bg-white border border-yellow-300 rounded-lg p-4';
+                item.innerHTML = `
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="badge badge-warning"><i class="fas fa-car mr-1"></i>${car.license_plate}</span>
+                                <span class="badge badge-info"><i class="fas fa-map-marker-alt mr-1"></i>${car.parking_floor}</span>
+                                <span class="badge badge-success"><i class="fas fa-tachometer-alt mr-1"></i>${car.latest_mileage} กม.</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                <div><span class="text-gray-500">เริ่ม:</span> ${formatDateTimeThai(booking.start_time)}</div>
+                                <div><span class="text-gray-500">สิ้นสุด:</span> ${formatDateTimeThai(booking.end_time)}</div>
+                                <div class="md:col-span-2"><span class="text-gray-500">ปลายทาง:</span> ${booking.destination}</div>
+                                <div class="md:col-span-2"><span class="text-gray-500">ผู้ที่ใช้รถก่อนหน้า:</span> <span class="font-medium text-blue-700">${car.last_user}</span></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn-secondary text-sm py-2 px-3 rounded-lg trip-log-btn" data-booking-id="${booking.booking_id}" title="บันทึกระหว่างทาง">
+                                <i class="fas fa-route"></i>
+                            </button>
+                            <button class="btn-primary text-sm py-2 px-3 rounded-lg return-car-btn" data-booking-id="${booking.booking_id}" data-car-plate="${car.license_plate}" title="คืนรถ">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                            <button class="bg-red-500 hover:bg-red-600 text-white text-sm py-2 px-3 rounded-lg cancel-booking-btn" data-booking-id="${booking.booking_id}" title="ยกเลิก">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+
+            // เพิ่ม event listeners - ใช้ event delegation ที่ container
+            listContainer.addEventListener('click', function(e) {
+                const tripLogBtn = e.target.closest('.trip-log-btn');
+                const returnBtn = e.target.closest('.return-car-btn');
+                const cancelBtn = e.target.closest('.cancel-booking-btn');
+                
+                if (tripLogBtn) {
+                    e.preventDefault();
+                    openTripLogModal(tripLogBtn.dataset.bookingId);
+                } else if (returnBtn) {
+                    e.preventDefault();
+                    showReturnForm(returnBtn.dataset.bookingId);
+                } else if (cancelBtn) {
+                    e.preventDefault();
+                    handleCancelBooking(cancelBtn.dataset.bookingId);
+                }
+            });
+        }
+
+        /**
+         * แสดงฟอร์มคืนรถ
+         */
+        function showReturnForm(bookingId) {
+            const booking = state.activeBookings.find(b => b.booking_id === bookingId);
+            
+            if (!booking) {
+                showToast('ไม่พบข้อมูลการจองนี้', 'error');
+                return;
+            }
+            
+            const car = state.allCars.find(c => c.license_plate === booking.car_plate);
+            if (!car) {
+                showToast('ไม่พบข้อมูลรถยนต์', 'error');
+                return;
+            }
+            
+            // ตั้งค่า active booking
+            state.activeBooking = booking;
+            
+            // แสดงฟอร์ม
+            document.getElementById('return-car-plate').textContent = car.license_plate;
+            setDateTimeToNow(document.getElementById('return-time'));
+            document.getElementById('mileage').value = car.latest_mileage || '';
+            document.getElementById('parking-floor').value = car.parking_floor || '2A';
+            
+            // รีเซ็ตฟอร์มการเติมน้ำมัน
+            document.getElementById('refueled-select').value = 'yes';
+            document.getElementById('fuel-mileage').value = '';
+            document.getElementById('fuel-liters').value = '';
+            document.getElementById('fuel-amount').value = '';
+            document.getElementById('fuel-details').classList.remove('hidden');
+            
+            // รีเซ็ต trip logs
+            state.currentTripLogs = [];
+            document.getElementById('trip-log-list').innerHTML = '';
+            document.getElementById('trip-log-empty').classList.remove('hidden');
+            
+            // แสดงฟอร์ม ซ่อนข้อความว่าง
+            document.getElementById('return-form-content').classList.remove('hidden');
+            document.getElementById('no-return-message').classList.add('hidden');
+            
+            // ไปที่แท็บคืนรถ
+            document.getElementById('tab-return').click();
+            
+            // โหลด trip logs
+            loadTripLogs(bookingId);
+        }
+
+        function updateReturnForm() {
+            const formContent = document.getElementById('return-form-content');
+            const noMessage = document.getElementById('no-return-message');
+            
+            // หา active booking ที่จะคืน
+            state.activeBooking = state.activeBookings.length > 0 ? state.activeBookings[0] : null;
+            
+            if (!state.activeBooking) {
+                formContent.classList.add('hidden');
+                noMessage.classList.remove('hidden');
+                return;
+            }
+            
+            const car = state.allCars.find(c => c.license_plate === state.activeBooking.car_plate);
+            if (!car) {
+                formContent.classList.add('hidden');
+                noMessage.classList.remove('hidden');
+                return;
+            }
+            
+            formContent.classList.remove('hidden');
+            noMessage.classList.add('hidden');
+            
+            document.getElementById('return-car-plate').textContent = car.license_plate;
+            setDateTimeToNow(document.getElementById('return-time'));
+            document.getElementById('mileage').value = car.latest_mileage || '';
+            
+            // Reset trip logs
+            state.currentTripLogs = [];
+            document.getElementById('trip-log-list').innerHTML = '';
+            document.getElementById('trip-log-empty').classList.remove('hidden');
+            
+            // โหลด trip logs
+            loadTripLogs(state.activeBooking.booking_id);
+        }
+
+        function addTimeSlot() {
+            const container = document.getElementById('time-slots-container');
+            container.innerHTML = '';
+            
+            const slot = document.createElement('div');
+            slot.className = 'border border-gray-200 rounded-lg p-4';
+            slot.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar mr-1"></i>วันและเวลาที่จะใช้
+                        </label>
+                        <input type="datetime-local" class="form-input start-time-input">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-check mr-1"></i>วันและเวลาที่จะกลับ
+                        </label>
+                        <input type="datetime-local" class="form-input end-time-input">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-car mr-1"></i>ทะเบียนรถ
+                    </label>
+                    <select class="form-select car-plate-select"></select>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-map-marker-alt mr-1"></i>สถานที่ที่จะไปและรายละเอียด
+                    </label>
+                    <input type="text" class="form-input destination-input" placeholder="ระบุจังหวัด หรือสถานที่สำคัญและรายละเอียด">
+                </div>
+            `;
+            
+            container.appendChild(slot);
+            
+            const startInput = slot.querySelector('.start-time-input');
+            const endInput = slot.querySelector('.end-time-input');
+            
+            setDateTimeToNow(startInput);
+            setDateTimeToNow(endInput);
+            
+            startInput.addEventListener('change', updateAvailableCars);
+            endInput.addEventListener('change', updateAvailableCars);
+            
+            updateAvailableCars();
+        }
+
+        function updateAvailableCars() {
+            const slot = document.querySelector('#time-slots-container .border');
+            if (!slot) return;
+            
+            const startTimeInput = slot.querySelector('.start-time-input');
+            const endTimeInput = slot.querySelector('.end-time-input');
+            const carSelect = slot.querySelector('.car-plate-select');
+            
+            const startTime = startTimeInput?.value;
+            const endTime = endTimeInput?.value;
+            
+            if (!startTime || !endTime) {
+                carSelect.innerHTML = '<option value="">-- กรุณาเลือกวันและเวลา --</option>';
+                return;
+            }
+            
+            const requestedStart = new Date(startTime);
+            const requestedEnd = new Date(endTime);
+            
+            // หารถที่ถูกจองในช่วงเวลานี้
+            const bookedPlates = state.allBookings
+                .filter(b => {
+                    if (b.booking_status === 'cancelled') return false;
+                    
+                    const bookingStart = new Date(b.start_time);
+                    const bookingEnd = b.actual_return_time ? new Date(b.actual_return_time) : new Date(b.end_time);
+                    
+                    return b.car_plate && requestedStart < bookingEnd && requestedEnd > bookingStart;
+                })
+                .map(b => b.car_plate);
+            
+            const availableCars = state.allCars.filter(c => !bookedPlates.includes(c.license_plate));
+            
+            carSelect.innerHTML = '';
+            
+            if (availableCars.length > 0) {
+                availableCars.forEach(car => {
+                    const option = document.createElement('option');
+                    option.value = car.license_plate;
+                    option.textContent = `${car.license_plate} (${car.parking_floor})`;
+                    carSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '-- ไม่มีรถว่างในช่วงเวลานี้ --';
+                carSelect.appendChild(option);
+            }
+        }
+
+        function legacyInitCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+            
+            if (state.calendar) {
+                state.calendar.destroy();
+            }
+            
+            state.calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'th',
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: state.allBookings
+                    .filter(b => b.booking_status !== 'cancelled')
+                    .map(b => ({
+                        title: `${b.car_plate} (${b.employee_name})`,
+                        start: b.start_time,
+                        end: b.end_time,
+                        color: b.booking_status === 'booked' ? '#3b82f6' : '#9ca3af',
+                        extendedProps: { booking_id: b.booking_id }
+                    })),
+                eventClick: function(info) {
+                    const booking = state.allBookings.find(b => b.booking_id === info.event.extendedProps.booking_id);
+                    if (booking) {
+                        const content = `
+                            <div class="text-left">
+                                <p class="mb-2"><strong>ทะเบียน:</strong> ${booking.car_plate}</p>
+                                <p class="mb-2"><strong>ผู้จอง:</strong> ${booking.employee_name}</p>
+                                <p class="mb-2"><strong>เวลาเริ่ม:</strong> ${formatDateTimeThai(booking.start_time)}</p>
+                                <p class="mb-2"><strong>เวลาสิ้นสุด:</strong> ${formatDateTimeThai(booking.end_time)}</p>
+                                ${booking.destination ? `<p class="mb-2"><strong>สถานที่:</strong> ${booking.destination}</p>` : ''}
+                            </div>
+                        `;
+                        showSimpleModal(content, null, 'info');
+                    }
+                }
+            });
+            
+            state.calendar.render();
+        }
+
+        // ============================================
+        // BOOKING ACTIONS
+        // ============================================
+        
+        function handleBookCar() {
+            const slot = document.querySelector('#time-slots-container .border');
+            if (!slot) {
+                showToast('ไม่พบฟอร์มการจอง', 'error');
+                return;
+            }
+            
+            const bookingInfo = {
+                car_plate: slot.querySelector('.car-plate-select').value,
+                destination: slot.querySelector('.destination-input').value.trim(),
+                start_time: slot.querySelector('.start-time-input').value,
+                end_time: slot.querySelector('.end-time-input').value,
+                ...getAuthContext()
+            };
+            
+            if (!bookingInfo.car_plate) {
+                showToast('กรุณาเลือกทะเบียนรถ', 'error');
+                return;
+            }
+            if (!bookingInfo.start_time || !bookingInfo.end_time) {
+                showToast('กรุณากรอกวันและเวลาให้ครบ', 'error');
+                return;
+            }
+            if (!bookingInfo.destination) {
+                showToast('กรุณากรอกสถานที่ที่จะไป', 'error');
+                return;
+            }
+            if (new Date(bookingInfo.start_time) >= new Date(bookingInfo.end_time)) {
+                showToast('เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่มต้น', 'error');
+                return;
+            }
+            
+            setButtonLoading(document.getElementById('book-btn'), true);
+            
+            google.script.run
+                .withSuccessHandler(result => {
+                    setButtonLoading(document.getElementById('book-btn'), false);
+                    
+                    if (result.success) {
+                        showToast(result.message, 'success');
+                        
+                        // เคลียร์ฟอร์มหลังจองสำเร็จ
+                        addTimeSlot();
+                        
+                        loadInitialData(true);
+                    } else {
+                        showSimpleModal(result.message, null, 'error');
+                    }
+                })
+                .withFailureHandler(err => {
+                    setButtonLoading(document.getElementById('book-btn'), false);
+                    showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+                })
+                .bookCar([bookingInfo], getAuthContext());
+        }
+
+        function handleReturnCar() {
+            if (!state.activeBooking) {
+                showToast('ไม่พบรายการจองที่เลือก', 'error');
+                return;
+            }
+            
+            const car = state.allCars.find(c => c.license_plate === state.activeBooking.car_plate);
+            if (!car) {
+                showToast('ไม่พบข้อมูลรถยนต์', 'error');
+                return;
+            }
+            
+            const returnInfo = {
+                booking_id: state.activeBooking.booking_id,
+                car_plate: state.activeBooking.car_plate,
+                return_time: document.getElementById('return-time').value,
+                parking_floor: document.getElementById('parking-floor').value,
+                mileage: document.getElementById('mileage').value,
+                refueled: document.getElementById('refueled-select').value === 'yes',
+                fuel_mileage: document.getElementById('fuel-mileage').value,
+                fuel_liters: document.getElementById('fuel-liters').value,
+                fuel_amount: document.getElementById('fuel-amount').value,
+                ...getAuthContext()
+            };
+            
+            // Validate
+            if (!returnInfo.return_time || !returnInfo.parking_floor || !returnInfo.mileage) {
+                showToast('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+                return;
+            }
+            
+            const currentMileage = parseFloat(car.latest_mileage) || 0;
+            if (parseFloat(returnInfo.mileage) <= currentMileage) {
+                showToast(`เลขไมล์ต้องมากกว่า ${currentMileage}`, 'error');
+                return;
+            }
+            
+            if (new Date(returnInfo.return_time) < new Date(state.activeBooking.start_time)) {
+                showToast('เวลาคืนรถต้องหลังเวลาเริ่มต้น', 'error');
+                return;
+            }
+            
+            if (returnInfo.refueled) {
+                if (!returnInfo.fuel_mileage || !returnInfo.fuel_liters || !returnInfo.fuel_amount) {
+                    showToast('กรุณากรอกข้อมูลการเติมน้ำมันให้ครบ', 'error');
+                    return;
+                }
+                if (parseFloat(returnInfo.fuel_mileage) < currentMileage) {
+                    showToast('เลขไมล์ตอนเติมต้องไม่น้อยกว่าเลขไมล์เริ่มต้น', 'error');
+                    return;
+                }
+                if (parseFloat(returnInfo.fuel_mileage) > parseFloat(returnInfo.mileage)) {
+                    showToast('เลขไมล์ตอนเติมต้องไม่มากกว่าเลขไมล์ล่าสุด', 'error');
+                    return;
+                }
+            }
+            
+            setButtonLoading(document.getElementById('return-btn'), true);
+            
+            google.script.run
+                .withSuccessHandler(result => {
+                    setButtonLoading(document.getElementById('return-btn'), false);
+                    
+                    if (result.success) {
+                        showToast(result.message, 'success');
+                        loadInitialData(true);
+                    } else {
+                        showSimpleModal(result.message, null, 'error');
+                    }
+                })
+                .withFailureHandler(err => {
+                    setButtonLoading(document.getElementById('return-btn'), false);
+                    showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+                })
+                .returnCar(returnInfo);
+        }
+
+        function handleCancelBooking(bookingId) {
+            showConfirmModal(
+                '<strong>ต้องการยกเลิกการจองนี้ใช่หรือไม่?</strong><br><span class="text-sm text-gray-500">การดำเนินการนี้ไม่สามารถย้อนกลับได้</span>',
+                () => {
+                    // เมื่อกด "ยืนยัน"
+                    google.script.run
+                        .withSuccessHandler(result => {
+                            if (result.success) {
+                                showToast(result.message, 'success');
+                                loadInitialData(true);
+                            } else {
+                                showSimpleModal(result.message, null, 'error');
+                            }
+                        })
+                        .withFailureHandler(err => {
+                            showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+                        })
+                        .cancelBooking(bookingId, getAuthContext());
+                },
+                () => {
+                    // เมื่อกด "ยกเลิก" - ไม่ต้องทำอะไร
+                    console.log('ยกเลิกการยกเลิกการจอง');
+                }
+            );
+        }
+
+        // ============================================
+        // TRIP LOG FUNCTIONS
+        // ============================================
+        
+        function openTripLogModal(bookingId) {
+            state.activeBooking = state.activeBookings.find(b => b.booking_id === bookingId) || state.activeBooking;
+            
+            if (!state.activeBooking) {
+                showToast('ไม่พบรายการที่ต้องการบันทึก', 'error');
+                return;
+            }
+            
+            // Reset form
+            document.getElementById('trip-log-type').value = 'overnight_stop';
+            setDateTimeToNow(document.getElementById('trip-log-time'));
+            document.getElementById('trip-log-location').value = '';
+            document.getElementById('trip-log-mileage').value = '';
+            document.getElementById('trip-log-fuel-liters').value = '';
+            document.getElementById('trip-log-fuel-amount').value = '';
+            document.getElementById('trip-log-note').value = '';
+            document.getElementById('trip-log-fuel-fields').classList.add('hidden');
+            
+            document.getElementById('trip-log-modal').classList.add('show');
+        }
+
+        function handleSaveTripLog() {
+            if (!state.activeBooking) {
+                showToast('ไม่พบรายการที่ต้องการบันทึก', 'error');
+                return;
+            }
+            
+            const logData = {
+                booking_id: state.activeBooking.booking_id,
+                log_type: document.getElementById('trip-log-type').value,
+                log_time: document.getElementById('trip-log-time').value,
+                location: document.getElementById('trip-log-location').value.trim(),
+                mileage: document.getElementById('trip-log-mileage').value,
+                refueled: document.getElementById('trip-log-type').value === 'fuel',
+                fuel_liters: document.getElementById('trip-log-fuel-liters').value,
+                fuel_amount: document.getElementById('trip-log-fuel-amount').value,
+                note: document.getElementById('trip-log-note').value.trim(),
+                ...getAuthContext()
+            };
+            
+            if (!logData.log_time || !logData.location || !logData.mileage) {
+                showToast('กรุณากรอกวันเวลา สถานที่ และเลขไมล์ให้ครบ', 'error');
+                return;
+            }
+            
+            if (logData.log_type === 'fuel' && (!logData.fuel_liters || !logData.fuel_amount)) {
+                showToast('กรุณากรอกจำนวนลิตรและจำนวนเงินสำหรับการเติมน้ำมัน', 'error');
+                return;
+            }
+            
+            setButtonLoading(document.getElementById('trip-log-save-btn'), true);
+            
+            // ดึงพิกัด GPS (ซ่อนจากผู้ใช้ - ไม่ต้องแสดง UI)
+            // ใช้ callback เพื่อให้แน่ใจว่า GPS พร้อมก่อนส่ง
+            getGPSLocation(function(gpsData) {
+                // เพิ่ม GPS data เข้ากับ logData (ถ้ามี)
+                const finalLogData = gpsData ? { ...logData, ...gpsData } : logData;
+                
+                console.log('=== GPS Debug ===');
+                console.log('GPS Data:', gpsData);
+                console.log('Final Log Data:', finalLogData);
+                console.log('================');
+                
+                google.script.run
+                    .withSuccessHandler(result => {
+                        setButtonLoading(document.getElementById('trip-log-save-btn'), false);
+                        
+                        if (result.success) {
+                            document.getElementById('trip-log-modal').classList.remove('show');
+                            loadTripLogs(state.activeBooking.booking_id);
+                            showToast(result.message, 'success');
+                        } else {
+                            showSimpleModal(result.message, null, 'error');
+                        }
+                    })
+                    .withFailureHandler(err => {
+                        setButtonLoading(document.getElementById('trip-log-save-btn'), false);
+                        showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+                    })
+                    .addBookingLog(finalLogData);
+            });
+        }
+        
+        /**
+         * ดึงพิกัด GPS จากเบราว์เซอร์ (ทำงานเบื้องหลัง)
+         * ใช้ callback เพื่อให้แน่ใจว่าได้ข้อมูลก่อนดำเนินการต่อ
+         */
+        function getGPSLocation(callback) {
+            if (!navigator.geolocation) {
+                // ถ้าไม่มี GPS API ให้เรียก callback ทันทีโดยไม่มีข้อมูล
+                if (callback) callback(null);
+                return;
+            }
+            
+            // พยายามดึง GPS ที่อาจบันทึกไว้ก่อนหน้า
+            let gpsData = window._lastGPSData || null;
+            
+            // ขอพิกัดใหม่ (ใช้ enableHighAccuracy เพื่อให้ได้ค่าที่แม่นยำ)
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    gpsData = {
+                        gps_latitude: parseFloat(position.coords.latitude.toFixed(7)),
+                        gps_longitude: parseFloat(position.coords.longitude.toFixed(7)),
+                        gps_accuracy_meters: parseFloat(position.coords.accuracy.toFixed(1))
+                    };
+                    
+                    // บันทึก GPS data เก็บไว้ใช้ตอนส่ง
+                    window._lastGPSData = gpsData;
+                    
+                    console.log('GPS obtained:', gpsData);
+                    
+                    // เรียก callback พร้อมข้อมูล GPS
+                    if (callback) callback(gpsData);
+                },
+                function(error) {
+                    // ถ้าดึง GPS ไม่ได้ ใช้ข้อมูลเก่าที่มี (ถ้ามี)
+                    console.log('GPS error:', error.message, '- Using cached:', gpsData);
+                    
+                    // เรียก callback พร้อมข้อมูลที่มี (อาจเป็น null)
+                    if (callback) callback(gpsData);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 8000,
+                    maximumAge: 120000 // ใช้ cache ได้สูงสุด 2 นาที
+                }
+            );
+        }
+
+        function loadTripLogs(bookingId) {
+            google.script.run
+                .withSuccessHandler(result => {
+                    if (result.success) {
+                        state.currentTripLogs = result.data || [];
+                        renderTripLogs();
+                    } else {
+                        showToast(result.message, 'error');
+                    }
+                })
+                .withFailureHandler(err => {
+                    showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+                })
+                .getBookingLogs(bookingId, getAuthContext());
+        }
+
+        function renderTripLogs() {
+            const container = document.getElementById('trip-log-list');
+            const empty = document.getElementById('trip-log-empty');
+
+            container.innerHTML = '';
+
+            if (state.currentTripLogs.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+
+            // สร้างตารางแสดงข้อมูล
+            const tableWrapper = document.createElement('div');
+            tableWrapper.className = 'overflow-x-auto rounded-lg border border-gray-200';
+            tableWrapper.style.marginTop = '12px';
+            tableWrapper.style.overflowX = 'auto';
+            tableWrapper.style.maxWidth = '100%';
+            
+            const table = document.createElement('table');
+            table.className = 'trip-log-table';
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.minWidth = '600px';
+            
+            // สร้าง header
+            const thead = document.createElement('thead');
+            thead.className = 'bg-gray-50';
+            thead.innerHTML = `
+                <tr>
+                    <th style="padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; white-space: nowrap;">เวลา</th>
+                    <th style="padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; white-space: nowrap;">ประเภท</th>
+                    <th style="padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase;">สถานที่</th>
+                    <th style="padding: 8px 10px; text-align: right; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; white-space: nowrap;">เลขไมล์ (กม.)</th>
+                    <th style="padding: 8px 10px; text-align: right; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; white-space: nowrap;">ลิตร</th>
+                    <th style="padding: 8px 10px; text-align: right; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; white-space: nowrap;">บาท</th>
+                    <th style="padding: 8px 10px; text-align: left; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase;">หมายเหตุ</th>
+                </tr>
+            `;
+            table.appendChild(thead);
+            
+            // สร้าง body
+            const tbody = document.createElement('tbody');
+            tbody.className = 'bg-white';
+            
+            const typeLabels = {
+                overnight_stop: '<span class="badge badge-info"><i class="fas fa-parking mr-1"></i>จอดพัก</span>',
+                fuel: '<span class="badge badge-success"><i class="fas fa-gas-pump mr-1"></i>เติม</span>',
+                other: '<span class="badge badge-warning"><i class="fas fa-sticky-note mr-1"></i>อื่นๆ</span>'
+            };
+            
+            state.currentTripLogs.forEach((log, index) => {
+                const isFuel = log.log_type === 'fuel' || log.refueled;
+                const timeStr = formatTimeShort(log.log_time);
+                
+                const row = document.createElement('tr');
+                row.style.borderBottom = index < state.currentTripLogs.length - 1 ? '1px solid #e5e7eb' : 'none';
+                row.style.transition = 'background-color 0.15s';
+                row.style.cursor = 'default';
+                row.addEventListener('mouseenter', () => row.style.backgroundColor = '#f3f4f6');
+                row.addEventListener('mouseleave', () => row.style.backgroundColor = 'white');
+                
+                row.innerHTML = `
+                    <td style="padding: 8px 10px; font-size: 14px; color: #374151; white-space: nowrap;">${timeStr}</td>
+                    <td style="padding: 8px 10px; font-size: 14px;">${typeLabels[log.log_type] || typeLabels.other}</td>
+                    <td style="padding: 8px 10px; font-size: 14px; color: #374151; max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.location || '-'}</td>
+                    <td style="padding: 8px 10px; font-size: 14px; color: #374151; text-align: right; white-space: nowrap;">${log.mileage ? log.mileage + ' กม.' : '-'}</td>
+                    <td style="padding: 8px 10px; font-size: 14px; color: #ea580c; text-align: right; white-space: nowrap;">${isFuel ? (log.fuel_liters ? log.fuel_liters + ' ลิตร' : '-') : '-'}</td>
+                    <td style="padding: 8px 10px; font-size: 14px; color: #ea580c; text-align: right; white-space: nowrap;">${isFuel ? (log.fuel_amount ? log.fuel_amount + ' บาท' : '-') : '-'}</td>
+                    <td style="padding: 8px 10px; font-size: 14px; color: #6b7280; max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.note || '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            table.appendChild(tbody);
+            tableWrapper.appendChild(table);
+            container.appendChild(tableWrapper);
+        }
+
+        // ============================================
+        // DASHBOARD FUNCTIONS
+        // ============================================
+
+        function loadDashboard() {
+            console.log('=== loadDashboard START ===');
+            showLoading(true);
+            const month = document.getElementById('dashboard-month-select').value;
+            const year = document.getElementById('dashboard-year-input').value;
+            const filterType = state.dashboardFilterType || 'month';
+
+            console.log('Params:', { month, year, filterType });
+
+            google.script.run
+                .withSuccessHandler(result => {
+                    console.log('=== Success Handler ===');
+                    console.log('Result:', result);
+                    showLoading(false);
+                    
+                    if (!result) {
+                        console.error('Result is null/undefined');
+                        showToast('ไม่ได้รับการตอบกลับจากเซิร์ฟเวอร์', 'error');
+                        return;
+                    }
+                    
+                    if (result.success) {
+                        console.log('Calling renderDashboard with:', result.data);
+                        renderDashboard(result.data);
+                        state.dashboardData = result.data;
+                        console.log('renderDashboard call completed');
+                    } else {
+                        const msg = (result && result.message) ? result.message : 'ไม่สามารถโหลดข้อมูลได้';
+                        console.error('Server returned error:', msg);
+                        showToast(msg, 'error');
+                    }
+                })
+                .withFailureHandler(err => {
+                    console.error('=== Failure Handler ===');
+                    console.error('Error:', err);
+                    showLoading(false);
+                    showToast('เกิดข้อผิดพลาด: ' + (err ? err.message : 'ไม่ทราบสาเหตุ'), 'error');
+                })
+                .getDashboardDataFromOSP(month, year, filterType, getAuthContext());
+        }
+
+        function renderDashboard(data) {
+            console.log('renderDashboard called with:', data);
+            if (!data) {
+                console.error('renderDashboard: data is null/undefined');
+                return;
+            }
+
+            try {
+                console.log('data.all_data:', data.all_data);
+                console.log('data.car_stats:', data.car_stats);
+                console.log('data.top_users:', data.top_users);
+
+                // Summary cards
+                const elTotal = document.getElementById('dashboard-total-bookings');
+                const elCompleted = document.getElementById('dashboard-completed');
+                const elActive = document.getElementById('dashboard-active');
+                
+                if (elTotal) elTotal.textContent = data.total_bookings || 0;
+                if (elCompleted) elCompleted.textContent = data.completed || 0;
+                if (elActive) elActive.textContent = data.active || 0;
+                
+                console.log('Summary cards updated:', {total: data.total_bookings, completed: data.completed, active: data.active});
+
+                // Stats
+                const elDist = document.getElementById('dashboard-total-distance');
+                const elFuelAmt = document.getElementById('dashboard-total-fuel-amount');
+                const elFuelLtr = document.getElementById('dashboard-total-fuel-liters');
+                
+                if (elDist) elDist.textContent = (data.total_distance || 0).toLocaleString();
+                if (elFuelAmt) elFuelAmt.textContent = (data.total_fuel_amount || 0).toLocaleString();
+                if (elFuelLtr) elFuelLtr.textContent = (data.total_fuel_liters || 0).toLocaleString();
+
+                // Car stats
+                const carContainer = document.getElementById('car-usage-stats');
+                console.log('carContainer:', carContainer, 'car_stats:', data.car_stats);
+                if (carContainer && data.car_stats && data.car_stats.length > 0) {
+                    carContainer.innerHTML = data.car_stats.map(car => `
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                            <div>
+                                <p class="font-medium text-sm">${car.car_plate || '-'}</p>
+                                <p class="text-xs text-gray-500">${car.usage_count || 0} ครั้ง</p>
+                            </div>
+                            <div class="text-right text-sm">
+                                <p>${car.total_distance || 0} กม.</p>
+                                <p class="text-gray-500">${car.total_fuel || 0} ฿</p>
+                            </div>
+                        </div>
+                    `).join('');
+                } else if (carContainer) {
+                    carContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">ไม่มีข้อมูล</p>';
+                }
+
+                // Top users
+                const userContainer = document.getElementById('top-users-stats');
+                console.log('userContainer:', userContainer, 'top_users:', data.top_users);
+                if (userContainer && data.top_users && data.top_users.length > 0) {
+                    userContainer.innerHTML = data.top_users.map((user, i) => `
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                            <div class="flex items-center">
+                                <span class="bg-blue-100 text-blue-600 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-2">${i + 1}</span>
+                                <div>
+                                    <p class="font-medium text-sm">${user.employee_name || '-'}</p>
+                                    <p class="text-xs text-gray-500">${user.booking_count || 0} ครั้ง</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else if (userContainer) {
+                    userContainer.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">ไม่มีข้อมูล</p>';
+                }
+
+                // Data table
+                const tableBody = document.getElementById('dashboard-data-table');
+                console.log('tableBody:', tableBody, 'all_data:', data.all_data);
+                if (tableBody && data.all_data && data.all_data.length > 0) {
+                    tableBody.innerHTML = data.all_data.map(row => {
+                        const statusBadgeMap = {
+                            completed: '<span class="badge badge-success">คืนแล้ว</span>',
+                            active: '<span class="badge badge-warning">กำลังใช้งาน</span>',
+                            upcoming: '<span class="badge badge-info">จองล่วงหน้า</span>'
+                        };
+                        const statusBadge = statusBadgeMap[row.status_type] || '<span class="badge badge-info">ไม่ระบุ</span>';
+                        return `
+                            <tr>
+                                <td class="px-3 py-3 text-sm">${row.sequence || '-'}</td>
+                                <td class="px-3 py-3 text-sm">${row.start_date || '-'}</td>
+                                <td class="px-3 py-3 text-sm">${row.car_plate || '-'}</td>
+                                <td class="px-3 py-3 text-sm">${row.employee_name || '-'}</td>
+                                <td class="px-3 py-3 text-sm">${row.distance || 0} กม.</td>
+                                <td class="px-3 py-3 text-sm">${row.fuel_amount || 0} ฿</td>
+                                <td class="px-3 py-3">${statusBadge}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="px-3 py-8 text-center text-gray-500">ไม่มีข้อมูล</td></tr>';
+                }
+                
+                console.log('renderDashboard completed successfully');
+            } catch (err) {
+                console.error('renderDashboard error:', err);
+                showToast('ไม่สามารถแสดงผลข้อมูลได้: ' + err.message, 'error');
+            }
+        }
+
+        function downloadDashboardCSV() {
+            if (!state.dashboardData || !state.dashboardData.all_data || state.dashboardData.all_data.length === 0) {
+                showToast('ไม่มีข้อมูลสำหรับดาวน์โหลด', 'error');
+                return;
+            }
+
+            const data = state.dashboardData.all_data;
+            const headers = Object.keys(data[0]);
+            const csvRows = ['\ufeff', headers.join(',')];
+
+            data.forEach(row => {
+                const values = headers.map(h => {
+                    let v = (row[h] !== undefined && row[h] !== null) ? String(row[h]) : '';
+                    if (v.includes(',') || v.includes('\n') || v.includes('"')) v = '"' + v.replace(/"/g, '""') + '"';
+                    return v;
+                });
+                csvRows.push(values.join(','));
+            });
+
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const month = document.getElementById('dashboard-month-select').value;
+            const year = document.getElementById('dashboard-year-input').value;
+            const months = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            link.download = `Dashboard_OSP_${months[parseInt(month)] || ''}_${year}.csv`;
+            link.click();
+            showToast('ดาวน์โหลด CSV สำเร็จ', 'success');
+        }
+
+        // ============================================
+        // ADMIN FUNCTIONS
+        // ============================================
+
+        function loadAdminTab(tab) {
+            const tabMap = {
+                'cars': { btn: 'admin-tab-cars', content: 'admin-content-cars', fn: loadCarsList },
+                'bookings': { btn: 'admin-tab-bookings', content: 'admin-content-bookings', fn: loadBookingsList },
+                'employees': { btn: 'admin-tab-employees', content: 'admin-content-employees', fn: loadEmployeesList }
+            };
+            
+            Object.keys(tabMap).forEach(key => {
+                const t = tabMap[key];
+                document.getElementById(t.btn).classList.toggle('active', key === tab);
+                document.getElementById(t.content).classList.toggle('hidden', key !== tab);
+            });
+            
+            if (tabMap[tab]) tabMap[tab].fn();
+        }
+
+        function loadCarsList() {
+            google.script.run
+                .withSuccessHandler(result => {
+                    if (result.success) {
+                        state.allCars = result.data || [];
+                        const table = document.getElementById('car-list-table');
+                        table.innerHTML = '';
+                        
+                        state.allCars.forEach(car => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td class="px-4 py-3 text-sm">${car.id}</td>
+                                <td class="px-4 py-3 text-sm font-medium">${car.license_plate}</td>
+                                <td class="px-4 py-3 text-sm">${car.parking_floor}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    <div>${car.latest_mileage}</div>
+                                    <div class="text-xs text-gray-500"><i class="fas fa-user mr-1"></i>${car.last_user || '-'}</div>
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    <button class="text-blue-600 hover:text-blue-800 mr-2 edit-car-btn" data-id="${car.id}" title="แก้ไข">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 delete-car-btn" data-id="${car.id}" title="ลบ">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            `;
+                            table.appendChild(row);
+                        });
+                    } else {
+                        showToast(result.message, 'error');
+                    }
+                })
+                .withFailureHandler(err => showToast(err.message, 'error'))
+                .getAllCars(getAuthContext());
+        }
+
+        function loadBookingsList() {
+            google.script.run
+                .withSuccessHandler(result => {
+                    if (result.success) {
+                        const table = document.getElementById('booking-list-table');
+                        table.innerHTML = '';
+                        
+                        (result.data || []).forEach(booking => {
+                            const statusBadges = {
+                                booked: '<span class="badge badge-success">จองแล้ว</span>',
+                                completed: '<span class="badge badge-info">เสร็จแล้ว</span>',
+                                cancelled: '<span class="badge badge-danger">ยกเลิก</span>'
+                            };
+                            
+                            const returnTime = booking.actual_return_time ? formatDateTimeThai(booking.actual_return_time) : '-';
+                            const startMileage = booking.start_mileage || '-';
+                            const endMileage = booking.mileage_on_return || '-';
+                            const mileageInfo = booking.booking_status === 'completed' 
+                                ? `<div class="text-xs text-gray-500">${startMileage} → ${endMileage} กม.</div>`
+                                : `<div class="text-xs text-gray-500">เริ่ม: ${startMileage} กม.</div>`;
+                            
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td class="px-4 py-3 text-sm">${booking.employee_name}</td>
+                                <td class="px-4 py-3 text-sm font-medium">${booking.car_plate}</td>
+                                <td class="px-4 py-3 text-sm">${statusBadges[booking.booking_status] || booking.booking_status}</td>
+                                <td class="px-4 py-3 text-sm">${formatDateTimeThai(booking.start_time)}</td>
+                                <td class="px-4 py-3 text-sm">${mileageInfo}</td>
+                                <td class="px-4 py-3 text-sm">${returnTime}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    ${booking.booking_status === 'booked' ? `
+                                    <button class="text-red-600 hover:text-red-800 cancel-booking-admin-btn" data-id="${booking.booking_id}" title="ยกเลิก">
+                                        <i class="fas fa-times"></i>
+                                    </button>` : '-'}
+                                </td>
+                            `;
+                            table.appendChild(row);
+                        });
+                    } else {
+                        showToast(result.message, 'error');
+                    }
+                })
+                .withFailureHandler(err => showToast(err.message, 'error'))
+                .getAllBookings(getAuthContext());
+        }
+
+        function loadEmployeesList() {
+            google.script.run
+                .withSuccessHandler(result => {
+                    if (result.success) {
+                        state.allEmployees = result.data || [];
+                        const table = document.getElementById('employee-list-table');
+                        table.innerHTML = '';
+                        
+                        state.allEmployees.forEach(emp => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td class="px-4 py-3 text-sm">${emp.id}</td>
+                                <td class="px-4 py-3 text-sm font-medium">${emp.name}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    <span class="badge ${emp.role === 'admin' ? 'badge-danger' : 'badge-info'}">${emp.role}</span>
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    <button class="text-blue-600 hover:text-blue-800 mr-2 edit-employee-btn" data-id="${emp.id}" title="แก้ไข">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800 delete-employee-btn" data-id="${emp.id}" title="ลบ">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            `;
+                            table.appendChild(row);
+                        });
+                    } else {
+                        showToast(result.message, 'error');
+                    }
+                })
+                .withFailureHandler(err => showToast(err.message, 'error'))
+                .getAllEmployees(getAuthContext());
+        }
+
+        function openCarModal(car = null) {
+            document.getElementById('car-modal-title').textContent = car ? 'แก้ไขข้อมูลรถยนต์' : 'เพิ่มรถยนต์ใหม่';
+            document.getElementById('car-id-input').value = car?.id || '';
+            document.getElementById('car-license-plate-input').value = car?.license_plate || '';
+            document.getElementById('car-parking-floor-select').value = car?.parking_floor || '2A';
+            document.getElementById('car-mileage-input').value = car?.latest_mileage || '';
+            document.getElementById('car-modal').classList.add('show');
+            
+            // อัปเดตเลขไมล์ล่าสุดในรายการ (ถ้ามี)
+            if (car) {
+                const mileageInfo = document.createElement('p');
+                mileageInfo.className = 'text-sm text-gray-500 mt-2';
+                mileageInfo.innerHTML = `<i class="fas fa-tachometer-alt mr-1"></i>ผู้ใช้ก่อนหน้า: <span class="font-medium">${car.last_user || 'ไม่มีข้อมูล'}</span>`;
+                
+                const existingInfo = document.getElementById('car-modal').querySelector('.last-user-info');
+                if (existingInfo) existingInfo.remove();
+                
+                mileageInfo.classList.add('last-user-info');
+                document.getElementById('car-modal').querySelector('.modal-content > div').appendChild(mileageInfo);
+            }
+        }
+
+        function handleSaveCar() {
+            const carData = {
+                id: document.getElementById('car-id-input').value,
+                license_plate: document.getElementById('car-license-plate-input').value,
+                parking_floor: document.getElementById('car-parking-floor-select').value,
+                latest_mileage: document.getElementById('car-mileage-input').value,
+                ...getAuthContext()
+            };
+            
+            if (!carData.license_plate || !carData.parking_floor || !carData.latest_mileage) {
+                showToast('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+                return;
+            }
+            
+            setButtonLoading(document.getElementById('car-modal-save-btn'), true);
+            
+            const isUpdate = !!carData.id;
+            const fn = isUpdate ? 'updateCar' : 'addCar';
+            
+            google.script.run
+                .withSuccessHandler(result => {
+                    setButtonLoading(document.getElementById('car-modal-save-btn'), false);
+                    
+                    if (result.success) {
+                        document.getElementById('car-modal').classList.remove('show');
+                        loadAdminTab('cars');
+                        showToast(result.message, 'success');
+                    } else {
+                        showSimpleModal(result.message, null, 'error');
+                    }
+                })
+                .withFailureHandler(err => {
+                    setButtonLoading(document.getElementById('car-modal-save-btn'), false);
+                    showToast(err.message, 'error');
+                })
+                [fn](carData);
+        }
+
+        function openEmployeeModal(emp = null) {
+            document.getElementById('employee-modal-title').textContent = emp ? 'แก้ไขข้อมูลพนักงาน' : 'เพิ่มพนักงานใหม่';
+            document.getElementById('employee-modal-id').value = emp?.id || '';
+            document.getElementById('employee-id-input').value = emp?.id || '';
+            document.getElementById('employee-name-input').value = emp?.name || '';
+            document.getElementById('employee-role-select').value = emp?.role || 'user';
+            document.getElementById('employee-modal').classList.add('show');
+        }
+
+        function handleSaveEmployee() {
+            const empData = {
+                id: document.getElementById('employee-id-input').value,
+                name: document.getElementById('employee-name-input').value,
+                role: document.getElementById('employee-role-select').value,
+                ...getAuthContext()
+            };
+            
+            if (!empData.id || empData.id.length !== 7) {
+                showToast('รหัสพนักงานต้องมี 7 หลัก', 'error');
+                return;
+            }
+            if (!empData.name) {
+                showToast('กรุณากรอกชื่อ-นามสกุล', 'error');
+                return;
+            }
+            
+            setButtonLoading(document.getElementById('employee-modal-save-btn'), true);
+            
+            const isUpdate = !!document.getElementById('employee-modal-id').value;
+            const fn = isUpdate ? 'updateEmployeeDetails' : 'addEmployee';
+            
+            google.script.run
+                .withSuccessHandler(result => {
+                    setButtonLoading(document.getElementById('employee-modal-save-btn'), false);
+                    
+                    if (result.success) {
+                        document.getElementById('employee-modal').classList.remove('show');
+                        loadAdminTab('employees');
+                        showToast(result.message, 'success');
+                    } else {
+                        showSimpleModal(result.message, null, 'error');
+                    }
+                })
+                .withFailureHandler(err => {
+                    setButtonLoading(document.getElementById('employee-modal-save-btn'), false);
+                    showToast(err.message, 'error');
+                })
+                [fn](empData);
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Login
+            document.getElementById('login-btn').addEventListener('click', handleLogin);
+            document.getElementById('employee-id').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') handleLogin();
+            });
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            
+            // Tabs
+            document.getElementById('tab-book').addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                document.getElementById('tab-book').classList.add('active');
+                document.getElementById('booking-section').classList.remove('hidden');
+                document.getElementById('return-section').classList.add('hidden');
+                document.getElementById('calendar-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                // แสดง active-bookings-alert เมื่อมีรายการจอง
+                if (state.openBookings && state.openBookings.length > 0) {
+                    document.getElementById('active-bookings-alert').classList.remove('hidden');
+                } else {
+                    document.getElementById('active-bookings-alert').classList.add('hidden');
+                }
+            });
+            
+            document.getElementById('tab-return').addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                document.getElementById('tab-return').classList.add('active');
+                document.getElementById('booking-section').classList.add('hidden');
+                document.getElementById('return-section').classList.remove('hidden');
+                document.getElementById('calendar-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                // ซ่อน active-bookings-alert เมื่อไม่ได้อยู่ที่แท็บจองรถ
+                document.getElementById('active-bookings-alert').classList.add('hidden');
+            });
+            
+            document.getElementById('tab-calendar').addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                document.getElementById('tab-calendar').classList.add('active');
+                document.getElementById('booking-section').classList.add('hidden');
+                document.getElementById('return-section').classList.add('hidden');
+                document.getElementById('calendar-section').classList.remove('hidden');
+                document.getElementById('admin-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('active-bookings-alert').classList.add('hidden');
+                if (state.calendar) state.calendar.render();
+            });
+            
+            document.getElementById('tab-admin').addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                document.getElementById('tab-admin').classList.add('active');
+                document.getElementById('booking-section').classList.add('hidden');
+                document.getElementById('return-section').classList.add('hidden');
+                document.getElementById('calendar-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+                document.getElementById('active-bookings-alert').classList.add('hidden');
+                loadAdminTab('cars');
+            });
+
+            document.getElementById('tab-dashboard').addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+                document.getElementById('tab-dashboard').classList.add('active');
+                document.getElementById('booking-section').classList.add('hidden');
+                document.getElementById('return-section').classList.add('hidden');
+                document.getElementById('calendar-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('active-bookings-alert').classList.add('hidden');
+                loadDashboard();
+            });
+            
+            // Admin sub-tabs
+            document.getElementById('admin-tab-cars').addEventListener('click', () => loadAdminTab('cars'));
+            document.getElementById('admin-tab-bookings').addEventListener('click', () => loadAdminTab('bookings'));
+            document.getElementById('admin-tab-employees').addEventListener('click', () => loadAdminTab('employees'));
+            
+            // Booking
+            document.getElementById('book-btn').addEventListener('click', handleBookCar);
+            document.getElementById('add-booking-btn').addEventListener('click', addTimeSlot);
+            
+            // Return
+            document.getElementById('return-btn').addEventListener('click', handleReturnCar);
+            document.getElementById('refueled-select').addEventListener('change', function() {
+                document.getElementById('fuel-details').classList.toggle('hidden', this.value === 'no');
+            });
+            
+            // Trip log
+            document.getElementById('open-trip-log-btn').addEventListener('click', () => openTripLogModal());
+            document.getElementById('trip-log-save-btn').addEventListener('click', handleSaveTripLog);
+            document.getElementById('trip-log-cancel-btn').addEventListener('click', () => {
+                document.getElementById('trip-log-modal').classList.remove('show');
+            });
+            document.getElementById('trip-log-type').addEventListener('change', function() {
+                document.getElementById('trip-log-fuel-fields').classList.toggle('hidden', this.value !== 'fuel');
+            });
+            
+            // Car modal
+            document.getElementById('add-car-btn').addEventListener('click', () => openCarModal());
+            document.getElementById('car-modal-save-btn').addEventListener('click', handleSaveCar);
+            document.getElementById('car-modal-cancel-btn').addEventListener('click', () => {
+                document.getElementById('car-modal').classList.remove('show');
+            });
+            document.getElementById('car-list-table').addEventListener('click', function(e) {
+                const editBtn = e.target.closest('.edit-car-btn');
+                const deleteBtn = e.target.closest('.delete-car-btn');
+                
+                if (editBtn) {
+                    const car = state.allCars.find(c => c.id == editBtn.dataset.id);
+                    if (car) openCarModal(car);
+                } else if (deleteBtn) {
+                    showSimpleModal('ต้องการลบรถยนต์คันนี้ใช่หรือไม่?', () => {
+                        google.script.run
+                            .withSuccessHandler(result => {
+                                showToast(result.message, result.success ? 'success' : 'error');
+                                if (result.success) loadAdminTab('cars');
+                            })
+                            .withFailureHandler(err => showToast(err.message, 'error'))
+                            .deleteCar(deleteBtn.dataset.id, getAuthContext());
+                    }, 'warning');
+                }
+            });
+            
+            // Employee modal
+            document.getElementById('add-employee-btn').addEventListener('click', () => openEmployeeModal());
+            document.getElementById('employee-modal-save-btn').addEventListener('click', handleSaveEmployee);
+            document.getElementById('employee-modal-cancel-btn').addEventListener('click', () => {
+                document.getElementById('employee-modal').classList.remove('show');
+            });
+            document.getElementById('employee-list-table').addEventListener('click', function(e) {
+                const editBtn = e.target.closest('.edit-employee-btn');
+                const deleteBtn = e.target.closest('.delete-employee-btn');
+                
+                if (editBtn) {
+                    const emp = state.allEmployees.find(c => c.id == editBtn.dataset.id);
+                    if (emp) openEmployeeModal(emp);
+                } else if (deleteBtn) {
+                    showSimpleModal('ต้องการลบพนักงานคนนี้ใช่หรือไม่?', () => {
+                        google.script.run
+                            .withSuccessHandler(result => {
+                                showToast(result.message, result.success ? 'success' : 'error');
+                                if (result.success) loadAdminTab('employees');
+                            })
+                            .withFailureHandler(err => showToast(err.message, 'error'))
+                            .deleteEmployee(deleteBtn.dataset.id, getAuthContext());
+                    }, 'warning');
+                }
+            });
+            
+            // Booking admin
+            document.getElementById('booking-list-table').addEventListener('click', function(e) {
+                const cancelBtn = e.target.closest('.cancel-booking-admin-btn');
+                if (cancelBtn) {
+                    showConfirmModal(
+                        '<strong>ต้องการยกเลิกการจองนี้ใช่หรือไม่?</strong><br><span class="text-sm text-gray-500">การดำเนินการนี้ไม่สามารถย้อนกลับได้</span>',
+                        () => {
+                            google.script.run
+                                .withSuccessHandler(result => {
+                                    if (result.success) {
+                                        showToast(result.message, 'success');
+                                        loadAdminTab('bookings');
+                                    } else {
+                                        showSimpleModal(result.message, null, 'error');
+                                    }
+                                })
+                                .withFailureHandler(err => showToast(err.message, 'error'))
+                                .cancelBookingByAdmin(cancelBtn.dataset.id, getAuthContext());
+                        }
+                    );
+                }
+            });
+            
+            // Download report
+            document.getElementById('download-report-btn').addEventListener('click', function() {
+                const month = document.getElementById('report-month-select').value;
+                const year = document.getElementById('report-year-input').value;
+
+                if (!month || !year) {
+                    showToast('กรุณาเลือกเดือนและปี', 'error');
+                    return;
+                }
+
+                setButtonLoading(this, true);
+
+                google.script.run
+                    .withSuccessHandler(result => {
+                        setButtonLoading(this, false);
+                        if (result.success) {
+                            window.open(result.url, '_blank');
+                            showToast(result.message, 'success');
+                        } else {
+                            showToast(result.message, 'error');
+                        }
+                    })
+                    .withFailureHandler(err => {
+                        setButtonLoading(this, false);
+                        showToast(err.message, 'error');
+                    })
+                    .downloadBookingsByMonth(parseInt(month), parseInt(year));
+            });
+
+            // Dashboard
+            document.getElementById('dashboard-refresh-btn').addEventListener('click', () => {
+                state.dashboardFilterType = 'month';
+                loadDashboard();
+            });
+
+            document.getElementById('dashboard-all-time-btn').addEventListener('click', () => {
+                state.dashboardFilterType = 'all';
+                loadDashboard();
+            });
+
+            document.getElementById('dashboard-download-csv-btn').addEventListener('click', () => downloadDashboardCSV());
+
+            document.getElementById('dashboard-month-select').addEventListener('change', () => {
+                state.dashboardFilterType = 'month';
+                loadDashboard();
+            });
+
+            document.getElementById('dashboard-year-input').addEventListener('change', () => {
+                state.dashboardFilterType = 'month';
+                loadDashboard();
+            });
+
+            // Initialize
+            showLoading(true);
+            
+            // Setup month/year selects
+            const months = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            document.getElementById('report-month-select').innerHTML = months.map((m, i) =>
+                `<option value="${i + 1}" ${i === currentMonth ? 'selected' : ''}>${m}</option>`
+            ).join('');
+            document.getElementById('report-year-input').value = currentYear;
+
+            // Setup dashboard month/year selects
+            document.getElementById('dashboard-month-select').innerHTML = months.map((m, i) =>
+                `<option value="${i + 1}" ${i === currentMonth ? 'selected' : ''}>${m}</option>`
+            ).join('');
+            // แปลง ค.ศ. เป็น พ.ศ. สำหรับ Dashboard
+            document.getElementById('dashboard-year-input').value = currentYear + 543;
+
+            // Initialize dashboard filter type
+            state.dashboardFilterType = 'month';
+
+            // Setup parking floors
+            const floors = ['2A', '2B', '3A', '3B', '4A', '4B', '5A', '5B', '6A', '6B', '7A', '7B', '8A', '8B'];
+            const floorOptions = floors.map(f => `<option value="${f}">${f}</option>`).join('');
+            document.getElementById('parking-floor').innerHTML = floorOptions;
+            document.getElementById('car-parking-floor-select').innerHTML = floorOptions;
+            
+            showLoading(false);
+
+            // Add initial time slot
+            addTimeSlot();
+
+            // Always require a fresh employee-code login on page load.
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+            /*
+            google.script.run
+                .withSuccessHandler(user => {
+                    if (user && user.id) {
+                        state.currentUser = user;
+                        document.getElementById('login-section').classList.add('hidden');
+                        document.getElementById('main-content').classList.remove('hidden');
+                        document.getElementById('user-name').textContent = user.name;
+                        document.getElementById('user-role').textContent = user.role === 'admin' ? 'Admin' : 'User';
+                        loadInitialData();
+                        
+                        // เปิดใช้งาน auto-logout (กรณี login ค้างไว้)
+                        enableAutoLogout();
+                    } else {
+                        document.getElementById('loading-overlay').classList.add('hidden');
+                        document.getElementById('login-section').classList.remove('hidden');
+                    }
+                })
+                .withFailureHandler(() => {
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    document.getElementById('login-section').classList.remove('hidden');
+                })
+                .getCurrentUser();
+            */
+        });
+    </script>
+</body>
+</html>
