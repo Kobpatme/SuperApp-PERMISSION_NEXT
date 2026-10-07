@@ -1,5 +1,11 @@
 # Implementation status
 
+## โมดูลจองรถ — เฟส 2, 08/10/2569
+
+เพิ่มบริการ/API จอง atomic batch/คืน/ยกเลิก/log/รถ/ปฏิทิน/GPS admin พร้อม Zod, transaction-local identity, fresh database grants, car+booking row locks และ runMaterialChange; migration 0025 เพิ่ม narrow service-worker functions/policies โดยไม่ให้ runtime BYPASSRLS หรือสมาชิก worker role รายละเอียดและข้อจำกัดใน [รายงานเฟส 2](plans/car-booking-phase-2.md)
+
+Fresh baseline ที่ `47fb236` ผ่านทุก gate; หลังแก้ unit 215 ผ่าน/22 skipped, lint/typecheck/documents/build/audit ผ่าน; PostgreSQL 16.15 schema 10/10 + service 10/10 ผ่าน รวม concurrent booking/double-return/audit rollback, migration 25 ไฟล์ผ่านบน cluster สะอาดและ rerun=0 โมดูลยัง disabled; ไม่มี browser UAT/remote CI/production deployment รอไฟเขียว UI เฟส 3 ตามเอกสารงาน §10
+
 ## โมดูลจองรถ — เฟส 1, 08/10/2569
 
 เพิ่ม migration 0024, schema/indexes/exclusion, FORCE RLS สามตาราง, capability use/admin, calendar projection และ OSP numeric view ตาม [รายงานเฟส 1](plans/car-booking-phase-1.md) โมดูลยัง development/disabled ไม่มี service/UI และไม่มี grant อัตโนมัติให้ผู้ใช้เดิม ยกเว้น car-booking ออกจาก trigger platform_admin เดิมโดยรักษาพฤติกรรมโมดูลอื่น

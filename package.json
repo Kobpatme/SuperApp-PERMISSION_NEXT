@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test:car:schema": "node scripts/car-booking-test-db.mjs && node --test scripts/car-booking-schema.test.mjs",
+    "test:car:services": "node scripts/car-booking-test-db.mjs && node scripts/car-booking-service-test.mjs",
     "check:css": "node scripts/check-css-quality.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "test:e2e": "playwright test",

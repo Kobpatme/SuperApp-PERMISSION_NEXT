@@ -48,6 +48,8 @@ export async function initializeCarBookingTestDb() {
     grant select,insert,update,delete on public.car_booking_cars,public.car_booking_bookings,public.car_booking_logs to car_booking_test_runtime;
     grant select on public.car_booking_osp_report to car_booking_test_runtime;
     grant execute on function public.car_booking_has_access(text,uuid),public.car_booking_calendar(timestamptz,timestamptz) to car_booking_test_runtime;`);
+    await db.unsafe(`grant execute on function public.car_booking_lock_car(uuid),public.car_booking_previous_unreturned(uuid),public.car_booking_sync_return(uuid),public.car_booking_vehicle_state(),public.car_booking_busy_cars(timestamptz,timestamptz) to car_booking_test_runtime;
+      grant insert on public.audit_logs,public.activity_events,public.outbox_messages to car_booking_test_runtime;`);
     const [{ count }] = await db`select count(*)::int as count from public.schema_migrations`;
     console.log(JSON.stringify({ database: testDatabaseName, applied, migrations: count, role: 'non-owner/non-superuser/NOBYPASSRLS' }));
   } finally { await db.end(); }

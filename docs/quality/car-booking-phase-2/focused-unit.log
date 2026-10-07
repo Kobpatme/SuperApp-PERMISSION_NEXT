@@ -1,0 +1,13 @@
+
+> permission-next-super-app@0.1.0 test
+> vitest run src/lib/car-booking-input.test.ts src/lib/car-booking-api.test.ts
+
+
+ RUN  v5.0.0 D:/WebApp/SuperApp PERMISSION_NEXT
+
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  00:52:29
+   Duration  536ms (transform 45%, import 37%, tests 14%, worker 4%)
+

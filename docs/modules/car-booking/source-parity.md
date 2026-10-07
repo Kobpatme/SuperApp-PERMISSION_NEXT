@@ -6,13 +6,13 @@ Source ที่ผู้ใช้ระบุ: `D:/WebApp/จองรถ/New V
 
 | ฟีเจอร์/หลักฐานต้นทาง | การจัดประเภท | สถานะ target | หลักฐานที่จะต้องมี |
 |---|---|---|---|
-| bookCar/checkCarConflict/checkEmployeeConflict, Index handleBookCar | ADAPT | missing | ว่าง/ซ้อน/ขอบพอดี/cancelled/คืนเร็ว/person conflict/batch self-conflict/concurrent winner เดียวบน DB |
-| returnCar/checkPreviousBookingNotReturned/updateCarMileageAndFloor | ADAPT | missing | owner/admin; order; เวลา/ไมล์/fuel validation; row locks; double-return; audit rollback |
-| cancelBooking/cancelBookingByAdmin | ADAPT | missing | booked เท่านั้น, ownership, cancelled ไม่ล็อกช่วงและไม่อยู่ OSP |
-| addBookingLog/getBookingLogs/getBookingGpsLogsForAdmin | ADAPT | missing | fuel/ไมล์/status validation; GPS optional; admin-only map; cross-user denial |
-| Index initCalendar/getEffectiveBookingEnd/renderCalendarLegend | ADAPT | missing | date-range query; labels/legend; visibility CB-03; actual return display |
-| getInitialData/ข้อมูลรถ/ผู้ใช้ล่าสุด/ที่จอด | PORT | missing | เริ่มแล้ว/ยังไม่คืน/ไม่เคยใช้; return default floor |
-| addCar/updateCar/deleteCar และ Index admin | REPLACE | missing | server-admin guard; archive ตาม CB-05; preserve historical references |
+| bookCar/checkCarConflict/checkEmployeeConflict, Index handleBookCar | ADAPT | partial — service/API ผ่าน; UI ยังไม่มี | ว่าง/ซ้อน/ขอบพอดี/cancelled/คืนเร็ว/person conflict/batch self-conflict/concurrent winner เดียวบน DB |
+| returnCar/checkPreviousBookingNotReturned/updateCarMileageAndFloor | ADAPT | partial — service/API ผ่าน; UI ยังไม่มี | owner/admin; order; เวลา/ไมล์/fuel validation; row locks; double-return; audit rollback |
+| cancelBooking/cancelBookingByAdmin | ADAPT | partial — service/API ผ่าน; UI ยังไม่มี | booked เท่านั้น, ownership, cancelled ไม่ล็อกช่วงและไม่อยู่ OSP |
+| addBookingLog/getBookingLogs/getBookingGpsLogsForAdmin | ADAPT | partial — service/API ผ่าน; UI/map ยังไม่มี | fuel/ไมล์/status validation; GPS optional; admin-only map; cross-user denial |
+| Index initCalendar/getEffectiveBookingEnd/renderCalendarLegend | ADAPT | partial — projection/API ผ่าน; UI/legend ยังไม่มี | date-range query; labels/legend; visibility CB-03; actual return display |
+| getInitialData/ข้อมูลรถ/ผู้ใช้ล่าสุด/ที่จอด | PORT | partial — vehicle state/API; UI/default floor/config ยังไม่มี | เริ่มแล้ว/ยังไม่คืน/ไม่เคยใช้; return default floor |
+| addCar/updateCar/deleteCar และ Index admin | REPLACE | partial — admin service/API; UI ยังไม่มี | server-admin guard; archive ตาม CB-05; preserve historical references |
 | buildOSPSummaryRow (1686), mapBookingLogRow_ | ADAPT | missing | 19 columns/order; 10+30=40 liters/400+1200=1600; none/return-only/multi-log; Buddhist/Bangkok; zero-mile decision CB-12 |
 | rebuildAllBookingsOSP (2230)/previewRebuildBookingsOSP | ADAPT | missing | deterministic rebuild; backup/SAP/manual-row preservation ถ้าเลือก A; duplicates/rejected report |
 | buildDashboardResponseFromOSP (2039)/downloadBookingsByMonth (2153) | REPLACE | missing | aggregate เดียวกับ OSP รวม trip fuel; filters/stats/top5; ดาวน์โหลดใช้ได้จริง |
@@ -20,7 +20,7 @@ Source ที่ผู้ใช้ระบุ: `D:/WebApp/จองรถ/New V
 | Apps Script authContext/admin flags/Sheet access | REPLACE | missing | server RBAC+scope+least privilege RLS ทั้งสามตาราง; direct API deny; live grant/revoke without re-login |
 | CSV import 5 sheets (ข้อกำหนดใหม่) | PORT | missing | CSV ยังไม่มี; dry-run, idempotency, counts/monthly totals/mapping/orphans/rejections |
 
-เฟส 1 เพิ่มฐาน/schema/exclusion/RLS/calendar projection/OSP numeric aggregation และผ่าน SQL integration 10 กรณีบน PostgreSQL 16.15 แล้ว ([รายงาน](../../plans/car-booking-phase-1.md)); ช่อง missing ข้างต้นยังหมายถึง workflow/service/UI ที่ยังไม่มี ไม่ถือว่า SQL foundation ทำให้ source parity complete เจ้าของยืนยัน calendar privacy, late-return cap, zero mileage และ parking config แล้ว ส่วน Sheets/SAP/import/UAT ยังอยู่เฟสถัดไป
+เฟส 1 เพิ่มฐาน/schema/exclusion/RLS/calendar projection/OSP numeric aggregation และผ่าน SQL integration 10 กรณีบน PostgreSQL 16.15 แล้ว ([รายงาน](../../plans/car-booking-phase-1.md)); เฟส 2 เพิ่ม service/API booking/return/cancel/log/cars/calendar/GPS พร้อม integration 10 กรณี ([รายงาน](../../plans/car-booking-phase-2.md)) สถานะ partial ยืนยันเฉพาะ service/API ที่มีหลักฐาน ส่วน missing ยังเป็นช่องว่างจริง UI/report/export/import/UAT ยังไม่ครบ ไม่ถือว่า foundation/service ทำให้ source parity complete เจ้าของยืนยัน calendar privacy, late-return cap, zero mileage และ parking config แล้ว ส่วน Sheets/SAP/import/UAT ยังอยู่เฟสถัดไป
 
 ไม่มี RETIRE ฟีเจอร์ธุรกิจจากการที่ target ยังไม่มี implementation การแทน identity/hard-delete/bug aggregation เป็นข้อกำหนดเอกสารงาน ไม่ใช่ข้ออ้างลด workflow
 

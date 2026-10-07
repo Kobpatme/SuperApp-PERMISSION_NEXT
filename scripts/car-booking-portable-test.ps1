@@ -1,8 +1,9 @@
-param([string]$BinaryDirectory = '.data/car-booking-postgres/pgsql/bin')
+param([string]$BinaryDirectory = '.data/car-booking-postgres/pgsql/bin', [switch]$ServiceTests, [string]$ClusterName = 'cluster-verified')
 $ErrorActionPreference = 'Stop'
 $carTestRoot = Join-Path (Get-Location) '.data/car-booking-postgres'
-$carCluster = Join-Path $carTestRoot 'cluster-verified'
-$carPasswordFile = Join-Path $carTestRoot 'verified-test-password.txt'
+if ($ClusterName -notmatch '^[a-z0-9-]+$') { throw 'Invalid fixture cluster name' }
+$carCluster = Join-Path $carTestRoot $ClusterName
+$carPasswordFile = Join-Path $carTestRoot $(if ($ClusterName -eq 'cluster-verified') { 'verified-test-password.txt' } else { $ClusterName + '-password.txt' })
 $carPgControl = Join-Path $BinaryDirectory 'pg_ctl.exe'
 $carInitializer = Join-Path $BinaryDirectory 'initdb.exe'
 if (!(Test-Path -LiteralPath $carPgControl)) { throw 'Portable PostgreSQL binaries required' }
@@ -32,6 +33,10 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Migration rerun failed' }
   & node --test scripts/car-booking-schema.test.mjs
   if ($LASTEXITCODE -ne 0) { throw 'Car schema integration tests failed' }
+  if ($ServiceTests) {
+    & node scripts/car-booking-service-test.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Car service integration tests failed' }
+  }
 } finally {
   $env:CAR_BOOKING_TEST_DATABASE_URL = $carPreviousConnection
   if ($carStarted) { & $carPgControl -D $carCluster -m fast -w stop }

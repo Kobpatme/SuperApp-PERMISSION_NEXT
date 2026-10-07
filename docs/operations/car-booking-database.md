@@ -1,6 +1,6 @@
 # ฐานทดสอบและสิทธิ์ runtime ของระบบจองรถ
 
-โมดูลเฟส 1 ยัง development/disabled ไม่เปิดให้ผู้ใช้ทำรายการ ไม่มีการ apply ลง production
+โมดูลเฟส 2 ยัง development/disabled ไม่เปิดให้ผู้ใช้ทำรายการ ไม่มีการ apply ลง production บริการ/API มีแล้วแต่ยังไม่ผ่าน browser UAT/activation
 
 ## แยกฐานทดสอบ
 
@@ -16,17 +16,20 @@
 
 ```powershell
 ./scripts/car-booking-portable-test.ps1
+./scripts/car-booking-portable-test.ps1 -ServiceTests
 ```
 
-สคริปต์สร้าง cluster ของ fixture ภายใน .data, random password เก็บ local ignored, เปิดเฉพาะ 127.0.0.1:55439 ด้วย SCRAM, ปฏิเสธ port ที่มีผู้ใช้อยู่, รัน migrations สองรอบและ tests แล้ว stop cluster ใน finally ไม่เปลี่ยน .env.local cluster/credentials ห้ามนำไปใช้เป็น production infrastructure
+สคริปต์สร้าง cluster ของ fixture ภายใน .data, random password เก็บ local ignored, เปิดเฉพาะ 127.0.0.1:55439 ด้วย SCRAM, ปฏิเสธ port ที่มีผู้ใช้อยู่, รัน migrations สองรอบและ tests แล้ว stop cluster ใน finally ไม่เปลี่ยน .env.local `-ClusterName phase2-fresh` ใช้ cluster ใหม่โดยไม่ล้างของเดิม ชื่ออนุญาตเฉพาะตัวอักษรเล็ก/ตัวเลข/ขีด cluster/credentials ห้ามนำไปใช้เป็น production infrastructure
 
 ## Provisioning runtime (ต้องทำในฐานที่เจ้าของอนุมัติก่อนเปิดใช้จริง)
 
 migration `0024_car_booking.sql` เพิ่มตารางและสอง capabilities โดยไม่เพิ่ม role_permissions/user assignments ขององค์กร ยกเว้น car-booking จาก trigger แจกสิทธิ์ platform_admin เดิม โดยคงพฤติกรรม permission อื่น ต้องใช้ migration operator ที่สร้าง role/โอนเจ้าของ function ได้ แยกจาก runtime role
 
-- Runtime DB role ห้าม superuser/BYPASSRLS และห้ามเป็นสมาชิก `car_booking_calendar_reader`
+- Runtime DB role ห้าม superuser/BYPASSRLS และห้ามเป็นสมาชิก `car_booking_calendar_reader` หรือ `car_booking_service_worker`
 - ให้ USAGE public schema; SELECT/INSERT/UPDATE บน cars/bookings, SELECT/INSERT บน logs; SELECT บน osp_report; EXECUTE บน car_booking_has_access(text,uuid) และ car_booking_calendar(timestamptz,timestamptz) โดย DBA ระบุ role จริงอย่างชัดเจน ไม่มี GRANT TO PUBLIC ใน migration
-- ทุกคำขอใช้ server session ที่ตรวจแล้วและ `set_config('app.user_id', verifiedUserId, true)` ภายใน transaction ก่อน query; connection pool ห้ามใช้ session-wide SET เนื่องจากอาจรั่วตัวตนระหว่างคำขอ จะต่อเข้ากับ services ในเฟส 2
+- ทุกคำขอใช้ server session ที่ตรวจแล้วและ `set_config('app.user_id', verifiedUserId, true)` ภายใน transaction ก่อน query; connection pool ห้ามใช้ session-wide SET เนื่องจากอาจรั่วตัวตนระหว่างคำขอ บริการเฟส 2 ผูกแล้วและตรวจ helper ใหม่ทุก transaction
+- เฟส 2 ต้องให้ runtime EXECUTE บน `car_booking_lock_car(uuid)`, `car_booking_previous_unreturned(uuid)`, `car_booking_sync_return(uuid)`, `car_booking_vehicle_state()` และ `car_booking_busy_cars(timestamptz,timestamptz)`; INSERT บน audit_logs/activity_events/outbox_messages สำหรับ runMaterialChange ไม่มี GRANT PUBLIC ใหม่
+- Migration 0025 สร้าง `car_booking_service_worker` NOLOGIN/NOINHERIT/NOSUPERUSER/NOBYPASSRLS เป็นเจ้าของ functions ข้างต้น มี SELECT/UPDATE เฉพาะ cars/bookings เพื่อ lock/sync และ policies เฉพาะ role ทุก function ตรวจ permission ก่อนทำงาน; runtime ไม่ได้ SELECT การจองคนอื่นหรือ UPDATE รถผ่าน use grant โดยตรง
 - `car_booking_calendar_reader` เป็น NOLOGIN/NOINHERIT/NOBYPASSRLS มี SELECT เพียง cars/bookings ไม่มี logs/เขียนข้อมูล มี policies เฉพาะ projection; function ตรวจ grant+active+mustChangePassword ก่อน SELECT และคืนเพียง car_id/license_plate/start_time/end_time ภายในช่วงไม่เกิน 93 วัน ห้ามเพิ่ม raw owner/destination/GPS fields
 - Tables ใช้ FORCE RLS และไม่มี delete policy; log ไม่มี update policy เจ้าของการจองหรือ admin อ่านได้; use แม้ถูกกำหนด ALL ผิดพลาดก็ไม่อ่านข้ามเจ้าของ; admin ต้องเป็น ALL
 - OSP view เป็น security_invoker และ admin-only numeric projection; 19-column display/export และ dashboard ยังเป็นงานเฟส 4
