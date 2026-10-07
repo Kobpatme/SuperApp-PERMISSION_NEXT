@@ -47,6 +47,7 @@ jobs:
       - run: npm audit --omit=dev
       - run: npm run test:ux:seed
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:car:browser
       - run: npm run test:e2e
         env:
           UX_PHASE: cp5-ci
@@ -60,4 +61,6 @@ jobs:
             docs/quality/ux-login-evidence/cp5-ci-*.png
             docs/quality/ux-login-evidence/cp5-ci-motion-*.json
             docs/quality/ux-login-evidence/font-budget.json
+            docs/quality/car-booking-phase-3/e2e-results.json
+            docs/quality/car-booking-phase-3/*.png
           retention-days: 14

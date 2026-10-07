@@ -17,6 +17,7 @@
 ```powershell
 ./scripts/car-booking-portable-test.ps1
 ./scripts/car-booking-portable-test.ps1 -ServiceTests
+./scripts/car-booking-portable-test.ps1 -ServiceTests -BrowserTests -ClusterName phase3-fresh
 ```
 
 สคริปต์สร้าง cluster ของ fixture ภายใน .data, random password เก็บ local ignored, เปิดเฉพาะ 127.0.0.1:55439 ด้วย SCRAM, ปฏิเสธ port ที่มีผู้ใช้อยู่, รัน migrations สองรอบและ tests แล้ว stop cluster ใน finally ไม่เปลี่ยน .env.local `-ClusterName phase2-fresh` ใช้ cluster ใหม่โดยไม่ล้างของเดิม ชื่ออนุญาตเฉพาะตัวอักษรเล็ก/ตัวเลข/ขีด cluster/credentials ห้ามนำไปใช้เป็น production infrastructure
@@ -41,6 +42,14 @@ migration `0024_car_booking.sql` เพิ่มตารางและสอ�
 ชื่อ “ระบบจองรถ”, icon รถ, `/car-booking`; ปิดใช้งานรถแทนลบ; calendar ผู้ใช้ทั่วไปเห็นเพียงทะเบียน/ช่วงไม่ว่าง; late return ไม่ขยาย reservation range เกิน end_time แต่แสดง actual return จริง; early return ปล่อยช่วงด้วย LEAST(end_time,actual_return_time); interval เป็น [) ทั้งรถและคน cancelled ไม่ล็อกช่วง
 
 เจ้าของตอบเพิ่มเติม: อนุญาตจองย้อนหลังตามต้นทาง; แอดมินแก้รายการชั้นจอดได้ (ตาราง cars/bookings จึงเก็บข้อความ ไม่ hard-code enum; จะทำ configuration/UI ในเฟส 3); เลขไมล์เริ่มต้น 0 เป็นค่าจริงสำหรับคำนวณระยะทาง ไม่ย้ายบั๊กช่องว่างของ source OSP ตามมา
+
+## Runtime และการทดสอบเฟส 3
+
+เฟส 3 เพิ่ม `0026_car_booking_ui.sql`: ให้ runtime SELECT/UPDATE บน `car_booking_settings` และ EXECUTE บน `car_booking_can_manage_access()`, `car_booking_access_users()`, `car_booking_set_user_access(uuid,boolean,boolean)` โดยระบุ role จริง ห้ามให้ runtime เป็นสมาชิก `car_booking_access_manager` ไม่มี PUBLIC EXECUTE; use/admin roles ที่ migration สร้างเป็น definitions ที่ยังไม่มี assignment
+
+หน้าจัดสิทธิ์ต้องมี `core.user.manage` และใช้ server transaction binding/audit; การลด car grants จาก mixed role รักษา current non-car capabilities โดยขยาย generic scopes เป็น permission-specific scopes ถ้าเพิ่ม permission ใหม่ให้ role ภายหลัง ต้องจัด scope ใหม่ให้ assignment ที่ถูกขยายด้วย การเปลี่ยนสิทธิ์ผ่านหน้าของ car ไม่ล้าง session ส่วน Admin Core เดิมยังมี behavior เดิม
+
+คำสั่ง portable ยืนยันบน PowerShell 7; browser fixture/server ใช้ localhost:3109 และ synthetic login เท่านั้น Playwright ต้องมี Chromium (`npx playwright install chromium`) และ production build ก่อนรัน Browser ใช้ fixture operator แยกจาก non-owner/NOBYPASSRLS schema/service tests; ไม่ถือเป็น runtime provisioning production และไม่ได้ใช้ข้อมูลจริงหรือ map tiles จริงเป็นหลักฐาน UAT
 
 ## Rollback
 

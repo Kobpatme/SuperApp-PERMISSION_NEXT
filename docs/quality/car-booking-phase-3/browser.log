@@ -1,0 +1,38 @@
+{"database":"permission_next_car_booking_test","applied":0,"migrations":26,"role":"non-owner/non-superuser/NOBYPASSRLS"}
+{"database":"permission_next_car_booking_test","applied":0,"migrations":26,"role":"non-owner/non-superuser/NOBYPASSRLS"}
+✔ all three tables FORCE RLS and runtime is non-owner/non-superuser (328.2822ms)
+✔ no automatic grants to existing system roles; no permission and forced-password/suspended accounts denied (103.1884ms)
+✔ OWN cannot read/write another booking or logs; admin-only grant can read both; no hard delete (76.315ms)
+✔ redacted bounded calendar sees busy cars without owner/destination/GPS; cannot assume reader role (16.8088ms)
+✔ revoke/grant on next transaction takes effect without replacing the same session (20.5893ms)
+✔ car and user overlap rejected; exact boundary and cancelled reservations do not conflict (23.6688ms)
+✔ two independent simultaneous requests have one winner at the exclusion constraint (339.0208ms)
+✔ even ALL use scope cannot read another owner; malformed fuel/GPS/return values rejected (81.3453ms)
+✔ early return releases interval and late return cannot block completion (34.8078ms)
+✔ report exact fuel aggregation 10+30 / 400+1200; report is admin-only (44.6318ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1277.5313
+Synthetic car browser fixture ready (no existing application database writes)
+[WebServer] (node:28876) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] {"timestamp":"2026-10-07T19:01:12.460Z","level":"warn","event":"auth.trusted_proxy_not_configured","trustedProxyCount":0,"message":"IP login limiting is inactive; email limiting remains enforced. Confirm proxy topology before changing TRUSTED_PROXY_COUNT."}
+
+Running 5 tests using 1 worker
+
+(node:19448) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e\car-booking.spec.ts:9:5 › desktop booking, logs with denied GPS, return validation, calendar privacy, keyboard and themes (8.3s)
+  ok 2 e2e\car-booking.spec.ts:28:5 › admin-only access edits grant and revoke on the same live session without changing work access (3.9s)
+  ok 3 e2e\car-booking.spec.ts:41:5 › admin car editing, parking configuration and private GPS map (7.4s)
+  ok 4 e2e\car-booking.spec.ts:50:5 › mobile forms, cancellation confirmation and no horizontal page overflow (2.9s)
+  ok 5 e2e\car-booking.spec.ts:57:5 › anonymous API and forced-password account are denied (763ms)
+
+  5 passed (27.7s)
+waiting for server to shut down.... done
+server stopped

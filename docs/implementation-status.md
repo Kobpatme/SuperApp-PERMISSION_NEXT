@@ -1,5 +1,11 @@
 # Implementation status
 
+## โมดูลจองรถ — เฟส 3, 08/10/2569
+
+เพิ่ม UI จอง/คืน/log/cancel, ปฏิทินเดือน/สัปดาห์/วันพร้อม privacy projection, รถ/config/GPS สำหรับแอดมิน, หน้าไม่มีสิทธิ์ และจัด use/admin รายบุคคลผ่าน Core grants โดยคง non-car scopes และ session เดิม; migration 0026 เพิ่ม settings และ guarded access editor role ไม่มี user assignment อัตโนมัติ รายละเอียด/ข้อจำกัดใน [รายงานเฟส 3](plans/car-booking-phase-3.md)
+
+Fresh baseline `0c2c8d6` ผ่านทุก gate; หลังแก้ lint/typecheck/unit/documents/build/audit ผ่าน, unit 218 ผ่าน/24 skipped, schema 10 + services 12 ผ่านบน runtime non-owner/NOBYPASSRLS, fresh migrations 26/rerun=0; Chromium 5/5 ผ่าน รวม live grant/revoke/session เดิมและสิทธิ์ work คงอยู่, mobile/keyboard/Light/Dark/scoped axe/design gates ผ่าน Manifest เปิด native UI ในโค้ดแล้วแต่ไม่มี deploy/ฐานจริง/remote CI/UAT; รายงาน/export/dashboard/import ยังไม่ครบทั้งโมดูล หยุดหลังเฟส 3 ตาม spec §10
+
 ## โมดูลจองรถ — เฟส 2, 08/10/2569
 
 เพิ่มบริการ/API จอง atomic batch/คืน/ยกเลิก/log/รถ/ปฏิทิน/GPS admin พร้อม Zod, transaction-local identity, fresh database grants, car+booking row locks และ runMaterialChange; migration 0025 เพิ่ม narrow service-worker functions/policies โดยไม่ให้ runtime BYPASSRLS หรือสมาชิก worker role รายละเอียดและข้อจำกัดใน [รายงานเฟส 2](plans/car-booking-phase-2.md)

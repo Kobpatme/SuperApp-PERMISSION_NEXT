@@ -1,4 +1,4 @@
-param([string]$BinaryDirectory = '.data/car-booking-postgres/pgsql/bin', [switch]$ServiceTests, [string]$ClusterName = 'cluster-verified')
+param([string]$BinaryDirectory = '.data/car-booking-postgres/pgsql/bin', [switch]$ServiceTests, [switch]$BrowserTests, [string]$ClusterName = 'cluster-verified')
 $ErrorActionPreference = 'Stop'
 $carTestRoot = Join-Path (Get-Location) '.data/car-booking-postgres'
 if ($ClusterName -notmatch '^[a-z0-9-]+$') { throw 'Invalid fixture cluster name' }
@@ -36,6 +36,12 @@ try {
   if ($ServiceTests) {
     & node scripts/car-booking-service-test.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Car service integration tests failed' }
+  }
+  if ($BrowserTests) {
+    & node scripts/car-booking-browser-fixture.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Browser fixture initialization failed' }
+    & node scripts/car-booking-browser-test.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Car browser tests failed' }
   }
 } finally {
   $env:CAR_BOOKING_TEST_DATABASE_URL = $carPreviousConnection

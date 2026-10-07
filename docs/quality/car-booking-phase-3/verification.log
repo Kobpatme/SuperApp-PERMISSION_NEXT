@@ -1,0 +1,47 @@
+{"database":"permission_next_car_booking_test","applied":0,"migrations":26,"role":"non-owner/non-superuser/NOBYPASSRLS"}
+{"database":"permission_next_car_booking_test","applied":0,"migrations":26,"role":"non-owner/non-superuser/NOBYPASSRLS"}
+✔ all three tables FORCE RLS and runtime is non-owner/non-superuser (345.9599ms)
+✔ no automatic grants to existing system roles; no permission and forced-password/suspended accounts denied (139.0387ms)
+✔ OWN cannot read/write another booking or logs; admin-only grant can read both; no hard delete (91.025ms)
+✔ redacted bounded calendar sees busy cars without owner/destination/GPS; cannot assume reader role (18.9012ms)
+✔ revoke/grant on next transaction takes effect without replacing the same session (25.4564ms)
+✔ car and user overlap rejected; exact boundary and cancelled reservations do not conflict (20.4326ms)
+✔ two independent simultaneous requests have one winner at the exclusion constraint (299.268ms)
+✔ even ALL use scope cannot read another owner; malformed fuel/GPS/return values rejected (69.987ms)
+✔ early return releases interval and late return cannot block completion (33.8406ms)
+✔ report exact fuel aggregation 10+30 / 400+1200; report is admin-only (44.3104ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1298.365
+
+ RUN  v5.0.0 D:/WebApp/SuperApp PERMISSION_NEXT
+
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  02:11:21
+   Duration  3.45s (tests 56%, import 34%, transform 10%)
+
+Synthetic car browser fixture ready (no existing application database writes)
+[WebServer] (node:21596) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] {"timestamp":"2026-10-07T19:11:29.381Z","level":"warn","event":"auth.trusted_proxy_not_configured","trustedProxyCount":0,"message":"IP login limiting is inactive; email limiting remains enforced. Confirm proxy topology before changing TRUSTED_PROXY_COUNT."}
+
+Running 5 tests using 1 worker
+
+(node:30948) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e\car-booking.spec.ts:9:5 › desktop booking, logs with denied GPS, return validation, calendar privacy, keyboard and themes (6.9s)
+  ok 2 e2e\car-booking.spec.ts:28:5 › admin-only access edits grant and revoke on the same live session without changing work access (4.3s)
+  ok 3 e2e\car-booking.spec.ts:41:5 › admin car editing, parking configuration and private GPS map (3.5s)
+  ok 4 e2e\car-booking.spec.ts:50:5 › mobile forms, cancellation confirmation and no horizontal page overflow (3.3s)
+  ok 5 e2e\car-booking.spec.ts:57:5 › anonymous API and forced-password account are denied (668ms)
+
+  5 passed (24.2s)
+waiting for server to shut down.... done
+server stopped
