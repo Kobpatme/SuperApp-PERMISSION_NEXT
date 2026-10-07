@@ -92,6 +92,8 @@ export async function returnCarBooking(id:string,raw:unknown,context:CarBookingC
     const [previous]=await tx.execute<{name:string|null}>(sql`select public.car_booking_previous_unreturned(${id}::uuid) as name`);
     if(previous.name!==null) throw new CarBookingError("PREVIOUS_UNRETURNED",`ไม่สามารถคืนรถได้ เนื่องจากผู้ใช้งานก่อนหน้า (${previous.name}) ยังไม่ได้คืนรถ กรุณาติดต่อให้ผู้ใช้งานก่อนหน้าคืนรถก่อน`,409);
     if(input.actualReturnTime<booking.startTime) throw new CarBookingError("RETURN_TIME","เวลาคืนรถต้องหลังเวลาเริ่มต้น");
+    const [settings]=await tx.execute<{parking_floors:string[]}>(sql`select parking_floors from public.car_booking_settings where id=1`);
+    if(!settings?.parking_floors.includes(input.parkingFloor))throw new CarBookingError("PARKING_FLOOR","กรุณาเลือกชั้นที่จอดที่เปิดใช้งาน");
     if(new Decimal(input.mileage).lte(car.latestMileage) || new Decimal(input.mileage).lte(booking.startMileage)) throw new CarBookingError("RETURN_MILEAGE",`เลขไมล์ต้องมากกว่าเลขไมล์ล่าสุด (${car.latestMileage})`);
     if(input.refueled && (new Decimal(input.fuelMileage!).lt(car.latestMileage) || new Decimal(input.fuelMileage!).gt(input.mileage))) throw new CarBookingError("FUEL_MILEAGE","เลขไมล์ตอนเติมน้ำมันต้องอยู่ระหว่างเลขไมล์ล่าสุดและเลขไมล์ตอนคืน");
     const change={status:"completed",actualReturnTime:input.actualReturnTime,mileageOnReturn:input.mileage,parkingFloor:input.parkingFloor,refueled:input.refueled,fuelMileage:input.refueled?input.fuelMileage:null,fuelLiters:input.refueled?input.fuelLiters:null,fuelAmount:input.refueled?input.fuelAmount:null,updatedAt:new Date()};
@@ -126,6 +128,10 @@ export async function saveCar(raw:unknown,context:CarBookingContext,id?:string) 
   const input=carInputSchema.parse(raw);if(id)idSchema.parse(id);
   return transaction(context,async(tx,admin)=>{
     if(!admin)throw new CarBookingError("FORBIDDEN","คุณไม่มีสิทธิ์จัดการรถ",403);
+    if(input.parkingFloor!==null) {
+      const [settings]=await tx.execute<{parking_floors:string[]}>(sql`select parking_floors from public.car_booking_settings where id=1`);
+      if(!settings?.parking_floors.includes(input.parkingFloor))throw new CarBookingError("PARKING_FLOOR","กรุณาเลือกชั้นที่จอดที่เปิดใช้งาน");
+    }
     const target=id || randomUUID();const previous=id?await lockCar(tx,id):undefined;
     await material(tx,context,id?"car.updated":"car.created",target,context.actorId,async()=>{
       if(id)await tx.update(cars).set({...input,updatedAt:new Date()}).where(eq(cars.id,id));
@@ -139,6 +145,10 @@ export async function readCarBookings(raw:unknown,context:CarBookingContext,offs
   const range=intervalSchema.parse(raw);
   if(range.endTime.getTime()-range.startTime.getTime()>93*86400000)throw new CarBookingError("RANGE","เลือกช่วงเวลาไม่เกิน 93 วัน");
   return transaction(context,async(tx,admin)=>tx.select().from(bookings).where(and(ownFilter(context,admin),lt(bookings.startTime,range.endTime),gte(bookings.endTime,range.startTime))).orderBy(bookings.startTime,bookings.id).limit(1000).offset(offset));
+}
+export async function readCarOpenBookings(context:CarBookingContext,offset=0) {
+  z.number().int().min(0).max(1000000).parse(offset);
+  return transaction(context,async(tx,admin)=>tx.select().from(bookings).where(and(ownFilter(context,admin),eq(bookings.status,"booked"))).orderBy(bookings.startTime,bookings.id).limit(1000).offset(offset));
 }
 export async function readCarBookingLogs(id:string,context:CarBookingContext,gpsOnly=false,offset=0) {
   z.number().int().min(0).max(1000000).parse(offset);
@@ -164,3 +174,4 @@ export async function readCars(context:CarBookingContext,range?:unknown) {
     return rows.filter(row=>(admin || row.is_active)&&!ids.has(row.car_id)).map(row=>({...row,last_user:row.last_user || (row.using_now?"กำลังใช้งานครั้งแรก":"ยังไม่เคยมีผู้ใช้งาน")}));
   });
 }
+export { transaction as withCarBookingTransaction, material as materialCarChange };

@@ -2,10 +2,11 @@ import { z } from "zod";
 import { getAccessContext } from "@/lib/access";
 import { logEvent } from "@/lib/logger";
 import { CarBookingError } from "@/lib/car-booking-input";
-import { addCarBookingLog, cancelCarBooking, createCarBookings, readCarBookingLogs, readCarBookings, readCarCalendar, readCars, returnCarBooking, saveCar } from "@/lib/car-booking-service";
+import { readCarSettings,saveCarSettings } from "@/lib/car-booking-settings";
+import { addCarBookingLog, cancelCarBooking, createCarBookings, readCarBookingLogs, readCarBookings, readCarCalendar, readCars, readCarOpenBookings, returnCarBooking, saveCar } from "@/lib/car-booking-service";
 
 const headers={"Cache-Control":"no-store"};
-type Operation="bookings"|"return"|"cancel"|"logs"|"gps"|"cars"|"calendar";
+type Operation="bookings"|"return"|"cancel"|"logs"|"gps"|"cars"|"calendar"|"settings";
 export async function handleCarBookingRequest(request:Request,operation:Operation,id?:string) {
   const requestId=crypto.randomUUID();
   try {
@@ -19,12 +20,13 @@ export async function handleCarBookingRequest(request:Request,operation:Operatio
     const url=new URL(request.url),range={startTime:url.searchParams.get("start"),endTime:url.searchParams.get("end")};
     if(!write) {
       const offset=z.coerce.number().int().min(0).max(1000000).parse(url.searchParams.get("offset") || "0");
-      const data=operation==="bookings"?await readCarBookings(range,context,offset)
+      const data=operation==="bookings"?url.searchParams.get("view")==="active"?await readCarOpenBookings(context,offset):await readCarBookings(range,context,offset)
+        :operation==="settings"?await readCarSettings(context)
         :operation==="calendar"?await readCarCalendar(range,context)
         :operation==="cars"?await readCars(context,url.searchParams.has("start") || url.searchParams.has("end")?range:undefined)
         :operation==="logs" || operation==="gps"?await readCarBookingLogs(id!,context,operation==="gps",offset):undefined;
       if(data===undefined)throw new CarBookingError("METHOD","คำขอไม่ถูกต้อง",405);
-      const page=["bookings","logs","gps"].includes(operation)?{offset,limit:1000,nextOffset:data.length===1000?offset+1000:null}:undefined;
+      const page=["bookings","logs","gps"].includes(operation)&&Array.isArray(data)?{offset,limit:1000,nextOffset:data.length===1000?offset+1000:null}:undefined;
       return Response.json({data,page},{headers});
     }
     let raw:unknown={};
@@ -34,6 +36,7 @@ export async function handleCarBookingRequest(request:Request,operation:Operatio
       try { raw=JSON.parse(text); }catch{throw new CarBookingError("PAYLOAD","คำขอไม่ถูกต้อง");}
     }
     const result=operation==="bookings"?await createCarBookings(raw,context)
+      :operation==="settings"?await saveCarSettings(raw,context)
       :operation==="return"?await returnCarBooking(id!,raw,context)
       :operation==="cancel"?await cancelCarBooking(id!,context)
       :operation==="logs"?await addCarBookingLog(id!,raw,context)

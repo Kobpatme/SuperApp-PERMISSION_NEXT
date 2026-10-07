@@ -45,9 +45,9 @@ test('all three tables FORCE RLS and runtime is non-owner/non-superuser', async 
   assert.deepEqual(role, { rolsuper: false, rolbypassrls: false });
   await runtime('', async tx => { assert.equal((await tx`select * from car_booking_cars`).length, 0); });
 });
-test('no automatic module grants, no permission and forced-password/suspended accounts denied', async () => {
+test('no automatic grants to existing system roles; no permission and forced-password/suspended accounts denied', async () => {
   const [auto] = await db`select count(*)::int as count from role_permissions rp join roles r on r.id=rp.role_id
-    where r.is_system and rp.permission_code like 'car_booking.%'`;
+    where r.is_system and r.code not in ('car_booking_use','car_booking_admin') and rp.permission_code like 'car_booking.%'`;
   assert.equal(auto.count, 0);
   const stranger = await user(), staff = await user('car_booking.module.use'), carId = await car();
   await assert.rejects(runtime(stranger, tx => booking(tx, stranger, carId)), denied);

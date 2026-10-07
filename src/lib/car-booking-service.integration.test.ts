@@ -7,6 +7,8 @@ import * as schema from "@/db/schema";
 const mockDb=vi.hoisted(()=>vi.fn());
 vi.mock("@/db",()=>({getDb:mockDb}));
 import { addCarBookingLog, cancelCarBooking, createCarBookings, readCarBookingLogs, readCarBookings, readCarCalendar, readCars, returnCarBooking, saveCar, type CarBookingContext } from "./car-booking-service";
+import { readCarSettings,saveCarSettings } from "./car-booking-settings";
+import { readCarAccessUsers,saveCarUserAccess } from "./car-booking-access";
 describe.skipIf(process.env.CAR_BOOKING_SERVICE_INTEGRATION!=="1")("car services on isolated PostgreSQL with runtime RLS",()=>{
   let operator:ReturnType<typeof postgres>;
   const ctx=(id:string):CarBookingContext=>({actorId:id,displayName:"พนักงานทดสอบ",requestId:randomUUID()});
@@ -135,5 +137,36 @@ describe.skipIf(process.env.CAR_BOOKING_SERVICE_INTEGRATION!=="1")("car services
     expect((await operator`select car_id from car_booking_bookings where id=${bookingId}`)[0].car_id).toBe(id);
     await expect(book(id,await user(),range("2030-01-01T03:00:00Z","2030-01-01T04:00:00Z"))).rejects.toMatchObject({code:"CAR_INACTIVE"});
     await cancelCarBooking(bookingId,admin);
+  });
+  it("edits parking configuration with admin checks, version conflict and valid return-floor enforcement",async()=>{
+    const staff=await user(),admin=await user("car_booking.module.admin","ALL");const settings=await readCarSettings(staff);
+    await expect(saveCarSettings({floors:["Z9"],version:settings.version},staff)).rejects.toMatchObject({status:403});
+    const saved=await saveCarSettings({floors:[...settings.floors,"Z9"],version:settings.version},admin);
+    await expect(saveCarSettings({floors:["Z9"],version:settings.version},admin)).rejects.toMatchObject({status:409});
+    const id=await car(),bookingId=await book(id,staff);
+    await expect(returnCarBooking(bookingId,{...returned(),parkingFloor:"NOT-CONFIGURED"},staff)).rejects.toMatchObject({code:"PARKING_FLOOR"});
+    await returnCarBooking(bookingId,{...returned(),parkingFloor:"Z9"},staff);
+    await saveCarSettings({floors:settings.floors,version:saved.version},admin);
+  });
+  it("edits only car grants on mixed roles, preserves other scoped grants and the live session, and denies module admin access editing",async()=>{
+    const manager=await user("core.user.manage","ALL"),moduleAdmin=await user("car_booking.module.admin","ALL"),target=await user("car_booking.module.use","ALL");
+    const [assignment]=await operator`select id,role_id from user_role_assignments where user_id=${target.actorId}`;
+    await operator`insert into role_permissions(role_id,permission_code) values(${assignment.role_id},'work.task.read')`;
+    const session=randomUUID();await operator`insert into auth_sessions(id,user_id,token_hash,expires_at) values(${session},${target.actorId},${randomUUID()},now()+interval '1 hour')`;
+    const snapshot=()=>operator`select rp.permission_code,s.scope_type,s.selected_team_id,a.team_id,a.valid_until from user_role_assignments a join role_permissions rp on rp.role_id=a.role_id join data_scope_grants s on s.assignment_id=a.id and (s.permission_code is null or s.permission_code=rp.permission_code) where a.user_id=${target.actorId} and rp.permission_code<>'car_booking.module.use' and (a.valid_until is null or a.valid_until>now()) order by rp.permission_code,s.scope_type`;
+    const before=await snapshot();
+    await expect(readCarAccessUsers(moduleAdmin)).rejects.toMatchObject({status:403});
+    await operator.unsafe("revoke insert on public.audit_logs from car_booking_test_runtime");
+    try {await expect(saveCarUserAccess({userId:target.actorId,canUse:false,canAdmin:false,expectedUse:true,expectedAdmin:false},manager)).rejects.toThrow();}
+    finally {await operator.unsafe("grant insert on public.audit_logs to car_booking_test_runtime");}
+    expect(await snapshot()).toEqual(before);expect((await readCars(target)).length).toBeGreaterThan(0);
+    await saveCarUserAccess({userId:target.actorId,canUse:false,canAdmin:false,expectedUse:true,expectedAdmin:false},manager);
+    expect(await snapshot()).toEqual(before);expect(await operator`select id from auth_sessions where id=${session}`).toHaveLength(1);
+    await expect(readCars(target)).rejects.toMatchObject({status:403});
+    await saveCarUserAccess({userId:target.actorId,canUse:true,canAdmin:false,expectedUse:false,expectedAdmin:false},manager);
+    expect((await readCars(target)).length).toBeGreaterThan(0);expect(await snapshot()).toEqual(before);
+    await expect(saveCarUserAccess({userId:target.actorId,canUse:false,canAdmin:false,expectedUse:false,expectedAdmin:false},manager)).rejects.toMatchObject({status:409});
+    const [role]=await operator`select rolsuper,rolbypassrls,rolcanlogin,rolinherit from pg_roles where rolname='car_booking_access_manager'`;expect(role).toEqual({rolsuper:false,rolbypassrls:false,rolcanlogin:false,rolinherit:false});
+    expect((await operator`select pg_has_role('car_booking_test_runtime','car_booking_access_manager','MEMBER') as allowed`)[0].allowed).toBe(false);
   });
 });
