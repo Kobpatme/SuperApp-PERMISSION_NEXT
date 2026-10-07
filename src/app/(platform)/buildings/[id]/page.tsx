@@ -11,7 +11,7 @@ import { BuildingLocationPicker } from "@/features/buildings/map/location-picker
 import { DeleteBuilding } from "@/features/buildings/delete-building";
 import "@/features/buildings/map/building-map.css";
 
-export default async function BuildingDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string }> }) {
+export default async function BuildingDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ tab?: string; saved?: string }> }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const data = await getBuilding360(id);
@@ -19,7 +19,8 @@ export default async function BuildingDetailPage({ params, searchParams }: { par
   const tabs = [["overview", "ภาพรวม"], ["location", "ตำแหน่ง"], ["documents", "เอกสาร"], ["work", "งานที่เกี่ยวข้อง"], ["guarantees", "เงินประกัน"], ["activity", "ประวัติ"]] as const;
   const tab = tabs.some(([key]) => key === query.tab) ? query.tab : "overview";
   return <div className="building-360">
-    <PageHeader title={data.building.nameTh} description={[data.building.code, data.building.nameEn].filter(Boolean).join(" · ")} parent={{ label: "อาคารและค่าใช้จ่าย", href: "/buildings" }} actions={<><StatusBadge label={data.building.status} tone={data.building.status === "active" ? "success" : "neutral"}/>{data.canDelete && <DeleteBuilding id={id} name={data.building.nameTh} version={data.building.version}/>}</>}/>
+    <PageHeader title={data.building.nameTh} description={[data.building.code, data.building.nameEn].filter(Boolean).join(" · ")} parent={{ label: "อาคารและค่าใช้จ่าย", href: "/buildings" }} actions={<><StatusBadge label={data.building.status} tone={data.building.status === "active" ? "success" : "neutral"}/>{data.location.canUpdate && <Link className="button" href={`/buildings/${id}/edit`}>{copy.buildingEditor.editTitle}</Link>}{data.canDelete && <DeleteBuilding id={id} name={data.building.nameTh} version={data.building.version}/>}</>}/>
+    {query.saved === "1" && <p role="status">{copy.buildingEditor.saved}</p>}
     <nav className="ui-tabs" aria-label="รายละเอียดอาคาร">{tabs.map(([key, label]) => <Link key={key} href={`/buildings/${id}?tab=${key}`} aria-current={tab === key ? "page" : undefined}>{label}</Link>)}</nav>
     {tab === "overview" && <div className="building-360-grid"><section className="ui-panel"><h2>ข้อมูลอ้างอิง</h2><dl><div><dt>รหัสอาคาร</dt><dd>{data.building.code}</dd></div><div><dt>สถานะ</dt><dd>{data.building.status}</dd></div><div><dt>เจ้าของข้อมูล</dt><dd>{data.building.ownerTeamId ?? "ไม่กำหนดทีม"}</dd></div></dl></section><section className="ui-panel"><h2>บริบทที่เกี่ยวข้อง</h2><dl><div><dt>งาน</dt><dd>{data.tasks.length}</dd></div><div><dt>เงินประกัน</dt><dd>{data.guarantees.length}</dd></div><div><dt>ใบเสนอราคา</dt><dd>{data.estimates.length}</dd></div></dl></section></div>}
     {tab === "location" && <BuildingLocationPicker buildingId={id} apiKey={process.env.LONGDO_MAP_API_KEY ?? ""} canUpdate={data.location.canUpdate} initial={data.location.latitude !== null && data.location.longitude !== null ? {

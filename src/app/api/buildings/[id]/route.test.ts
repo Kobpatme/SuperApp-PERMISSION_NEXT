@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ access: vi.fn(), remove: vi.fn() }));
 vi.mock("@/lib/access", () => ({ getAccessContext: mocks.access }));
+vi.mock("@/lib/building-editor-api", () => ({ mutateBuildingRequest: vi.fn() }));
 vi.mock("@/lib/building-delete-server", () => ({ deleteBuildingRecord: mocks.remove,
   BuildingDeleteError: class extends Error { constructor(readonly code: string) { super(code); } } }));
 import { DELETE } from "./route";

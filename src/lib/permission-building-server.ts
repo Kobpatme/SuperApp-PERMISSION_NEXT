@@ -6,6 +6,7 @@ import { getAccessContext, type AccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { getBuildingBoqProfile, normalizePermissionBuilding, type LegacyBuilding } from "@/lib/permission-building-domain";
 import { decodeBuildingCursor, encodeBuildingCursor, type BuildingQuery } from "@/lib/building-query";
+import { normalizeBuildingAlias } from "@/lib/buildings";
 
 export type PermissionBuildingRow = {
   id: string; code: string; nameTh: string; nameEn: string | null; ownerTeamId: string | null;
@@ -58,7 +59,7 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
   const scope = readScope(access);
   if (!scope) return empty("ready");
   try {
-    const searchTokens = query.normalize("NFC").trim().slice(0, 120).toLocaleLowerCase("th-TH").split(/\s+/).filter(Boolean)
+    const searchTokens = normalizeBuildingAlias(query.slice(0, 120)).split(/\s+/).filter(Boolean)
       .map((token) => token.replace(/[\\%_]/g, "\\$&"));
     const jsonKeys = { status: "status", group: "group", type: "type", installType: "install_type", surveyType: "survey_type", area: "area" } as const;
     const filters = Object.entries(jsonKeys).flatMap(([key, jsonKey]) => {

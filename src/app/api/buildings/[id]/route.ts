@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getAccessContext } from "@/lib/access";
 import { BuildingDeleteError, deleteBuildingRecord } from "@/lib/building-delete-server";
+import { mutateBuildingRequest } from "@/lib/building-editor-api";
 
 const inputSchema = z.object({ confirmationName: z.string().trim().min(1).max(500), version: z.number().int().positive() }).strict();
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  return mutateBuildingRequest(request, (await params).id);
+}
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const access = await getAccessContext("buildings");

@@ -23,7 +23,7 @@ export default async function NewBuildingPage() {
   const allowedTeams = grants.some((grant) => grant.scope === "ALL") ? rows : rows.filter((team) => scopeTeamIds.has(team.id));
   const canCreateWithoutTeam = grants.some((grant) => grant.scope === "ALL");
   return <main className="building-create-page">
-    <header><Link href="/buildings">← อาคารและค่าใช้จ่าย</Link><h1>เพิ่มอาคาร</h1><p>บันทึกข้อมูลอาคารในขอบเขตทีมที่ได้รับอนุญาต และเลือกตำแหน่งได้ก่อนสร้าง</p></header>
+    <header><Link href="/buildings">← {copy.pages.buildings}</Link><h1>{copy.buildingEditor.createTitle}</h1><p>{copy.buildingEditor.createDescription}</p></header>
     <BuildingCreateForm apiKey={process.env.LONGDO_MAP_API_KEY ?? ""} teams={allowedTeams} canCreateWithoutTeam={canCreateWithoutTeam} />
   </main>;
 }
