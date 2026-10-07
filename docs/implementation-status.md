@@ -1,5 +1,13 @@
 # Implementation status
 
+## โมดูลจองรถ — เฟส 1, 08/10/2569
+
+เพิ่ม migration 0024, schema/indexes/exclusion, FORCE RLS สามตาราง, capability use/admin, calendar projection และ OSP numeric view ตาม [รายงานเฟส 1](plans/car-booking-phase-1.md) โมดูลยัง development/disabled ไม่มี service/UI และไม่มี grant อัตโนมัติให้ผู้ใช้เดิม ยกเว้น car-booking ออกจาก trigger platform_admin เดิมโดยรักษาพฤติกรรมโมดูลอื่น
+
+PostgreSQL 16.15 fixture: migrations 24 ผ่าน/รันซ้ำ applied=0; integration 10/10 ผ่านด้วย non-owner/non-superuser/NOBYPASSRLS; lint/typecheck/unit/documents/build/audit ผ่าน, unit 207 ผ่าน/12 skipped, audit 0 ไม่ได้ deploy หรือ apply ฐานจริง รอไฟเขียวเฟส 2 ตามเอกสารงาน §10
+
+เจ้าของยืนยันจองย้อนหลังได้, admin แก้รายการชั้นจอดได้, mileage=0 ใช้คำนวณได้, calendar แสดงเพียงทะเบียน/ช่วงไม่ว่าง, late return แสดงเวลาจริงแต่ไม่ขยาย reservation เกินเวลานัด, ชื่อ/เส้นทาง/icon และปิดใช้งานรถแทนลบ
+
 ## โมดูลจองรถ — เฟส 0, 08/10/2569
 
 สำรวจบน HEAD `c22bd86890b8ac4bc4f03b29ea8f210b7ed45d5d` จาก working tree สะอาด และสร้าง branch `codex/car-booking-phase-0` ตามเอกสารงานที่ผู้ใช้ให้ดำเนินการอย่างเคร่งครัด อ่านต้นทาง `D:/WebApp/จองรถ/New Vertion/Code.gs` และ `Index.html` ตามที่ผู้ใช้ระบุ; ตรึง SHA256 ใน [รายงานเฟส 0](plans/car-booking-phase-0.md) พร้อม [parity inventory](modules/car-booking/source-parity.md) และ [UX baseline](modules/car-booking/source-ux-baseline.md)

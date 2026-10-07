@@ -20,6 +20,8 @@ Source ที่ผู้ใช้ระบุ: `D:/WebApp/จองรถ/New V
 | Apps Script authContext/admin flags/Sheet access | REPLACE | missing | server RBAC+scope+least privilege RLS ทั้งสามตาราง; direct API deny; live grant/revoke without re-login |
 | CSV import 5 sheets (ข้อกำหนดใหม่) | PORT | missing | CSV ยังไม่มี; dry-run, idempotency, counts/monthly totals/mapping/orphans/rejections |
 
+เฟส 1 เพิ่มฐาน/schema/exclusion/RLS/calendar projection/OSP numeric aggregation และผ่าน SQL integration 10 กรณีบน PostgreSQL 16.15 แล้ว ([รายงาน](../../plans/car-booking-phase-1.md)); ช่อง missing ข้างต้นยังหมายถึง workflow/service/UI ที่ยังไม่มี ไม่ถือว่า SQL foundation ทำให้ source parity complete เจ้าของยืนยัน calendar privacy, late-return cap, zero mileage และ parking config แล้ว ส่วน Sheets/SAP/import/UAT ยังอยู่เฟสถัดไป
+
 ไม่มี RETIRE ฟีเจอร์ธุรกิจจากการที่ target ยังไม่มี implementation การแทน identity/hard-delete/bug aggregation เป็นข้อกำหนดเอกสารงาน ไม่ใช่ข้ออ้างลด workflow
 
 ข้อแตกต่างที่ต้องตัดสิน: late-return range กับ actual return source; zero start mileage ของ OSP; calendar privacy; Sheets/SAP preservation; แผนและคำถามอยู่ [เฟส 0](../../plans/car-booking-phase-0.md)

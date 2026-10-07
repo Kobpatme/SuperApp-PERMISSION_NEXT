@@ -1,0 +1,17 @@
+
+> permission-next-super-app@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.0 D:/WebApp/SuperApp PERMISSION_NEXT
+
+
+ Test Files  51 passed | 2 skipped (53)
+      Tests  207 passed | 12 skipped (219)
+   Start at  00:23:50
+   Duration  6.87s (import 65%, transform 27%, tests 4%, worker 4%)
+
+  Transform  transforming modules took 5.24s · 27% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
