@@ -11,10 +11,11 @@ describe("car booking catalog and activation boundary", () => {
     ]);
     expect(carBookingCapabilities.map(c => c.allowedScopes)).toEqual([["OWN"], ["ALL"]]);
   });
-  it("keeps the incomplete module out of production navigation even when granted", () => {
+  it("activates the UI but keeps navigation denied without grants", () => {
     const car = getModule("car-booking");
-    expect(car).toMatchObject({ href: "/car-booking", icon: "car", lifecycle: "development", enabledByDefault: false });
-    expect(visibleModules(modules, ["car_booking.module.use", "car_booking.module.admin"])).toEqual([]);
+    expect(car).toMatchObject({ href: "/car-booking", icon: "car", lifecycle: "active", enabledByDefault: true });
+    expect(visibleModules(modules, ["car_booking.module.use", "car_booking.module.admin"])).toHaveLength(1);
+    expect(visibleModules(modules, [])).toEqual([]);
   });
   it("admin alone can enter after explicit activation and no grant remains hidden", () => {
     const active = defineModuleRegistry([{ ...getModule("car-booking"), lifecycle: "active", enabledByDefault: true }]);

@@ -4,7 +4,7 @@ import { buildingCapabilities, carBookingCapabilities, coreCapabilities, guarant
 export const modules = defineModuleRegistry([
   {
     id: "car-booking", version: "1.0.0", owner: "Operations", icon: "car", group: "operations", order: 40,
-    lifecycle: "development", enabledByDefault: false, capabilities: carBookingCapabilities,
+    lifecycle: "active", enabledByDefault: true, capabilities: carBookingCapabilities,
     entryPermissions: ["car_booking.module.use", "car_booking.module.admin"],
     number: 4, href: "/car-booking", name: "ระบบจองรถ", shortLabel: "จองรถ",
     description: "จองและคืนรถ บันทึกระหว่างทาง และรายงานการใช้รถ OSP",
