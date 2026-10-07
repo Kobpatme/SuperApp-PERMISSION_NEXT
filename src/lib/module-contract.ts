@@ -13,7 +13,7 @@ export const moduleManifestSchema = z.object({
   name: z.string().min(1), shortLabel: z.string().min(1), description: z.string(), purpose: z.string(),
   repository: z.string(), owner: z.string().min(1),
   accent: z.enum(["violet", "blue", "amber"]), searchTerms: z.array(z.string()),
-  icon: z.enum(["work", "buildings", "guarantees", "team", "settings"]),
+  icon: z.enum(["work", "buildings", "guarantees", "team", "settings", "car"]),
   group: z.enum(["work", "operations", "finance", "reports", "management"]), order: z.number().int(),
   lifecycle: z.enum(["development", "pilot", "active", "maintenance", "disabled", "retired"]),
   enabledByDefault: z.boolean(), capabilities: z.array(capabilitySchema).min(1),

@@ -6,6 +6,36 @@ const timestamps = {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 };
 
+// Exclusion constraints, FORCE RLS, calendar projection and report view live in 0024.
+export const carBookingCars = pgTable("car_booking_cars", {
+  id: uuid("id").defaultRandom().primaryKey(), legacyId: integer("legacy_id"),
+  licensePlate: text("license_plate").notNull(), parkingFloor: text("parking_floor"),
+  latestMileage: numeric("latest_mileage").notNull().default("0"), isActive: boolean("is_active").notNull().default(true), ...timestamps,
+}, t => [uniqueIndex("car_booking_cars_license_plate_key").on(t.licensePlate), uniqueIndex("car_booking_cars_legacy_id_key").on(t.legacyId)]);
+
+export const carBookingBookings = pgTable("car_booking_bookings", {
+  id: uuid("id").defaultRandom().primaryKey(), legacyId: text("legacy_id"),
+  userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "restrict" }), employeeName: text("employee_name").notNull(),
+  carId: uuid("car_id").notNull().references(() => carBookingCars.id, { onDelete: "restrict" }), destination: text("destination").notNull(),
+  startTime: timestamp("start_time", { withTimezone: true }).notNull(), endTime: timestamp("end_time", { withTimezone: true }).notNull(),
+  status: text("status").notNull().default("booked"), startMileage: numeric("start_mileage").notNull(),
+  actualReturnTime: timestamp("actual_return_time", { withTimezone: true }), mileageOnReturn: numeric("mileage_on_return"),
+  parkingFloor: text("parking_floor"), refueled: boolean("refueled").notNull().default(false),
+  fuelMileage: numeric("fuel_mileage"), fuelLiters: numeric("fuel_liters"), fuelAmount: numeric("fuel_amount"),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }), cancelledBy: uuid("cancelled_by").references(() => profiles.id), ...timestamps,
+}, t => [uniqueIndex("car_booking_bookings_legacy_id_key").on(t.legacyId), index("car_booking_car_start_idx").on(t.carId, t.startTime),
+  index("car_booking_user_status_idx").on(t.userId, t.status), index("car_booking_status_start_idx").on(t.status, t.startTime), index("car_booking_start_idx").on(t.startTime)]);
+
+export const carBookingLogs = pgTable("car_booking_logs", {
+  id: uuid("id").defaultRandom().primaryKey(), legacyId: text("legacy_id"),
+  bookingId: uuid("booking_id").notNull().references(() => carBookingBookings.id, { onDelete: "restrict" }),
+  logTime: timestamp("log_time", { withTimezone: true }).notNull(), logType: text("log_type").notNull(), location: text("location").notNull(),
+  mileage: numeric("mileage").notNull(), refueled: boolean("refueled").notNull().default(false), fuelLiters: numeric("fuel_liters"), fuelAmount: numeric("fuel_amount"),
+  note: text("note").notNull().default(""), gpsLatitude: numeric("gps_latitude", { precision: 10, scale: 7 }),
+  gpsLongitude: numeric("gps_longitude", { precision: 10, scale: 7 }), gpsAccuracyMeters: numeric("gps_accuracy_meters"),
+  createdBy: uuid("created_by").notNull().references(() => profiles.id), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [uniqueIndex("car_booking_logs_legacy_id_key").on(t.legacyId), index("car_booking_log_booking_idx").on(t.bookingId, t.logTime, t.id)]);
+
 export const profiles = pgTable("profiles", {
   id: uuid("id").primaryKey(), employeeCode: text("employee_code"), email: text("email").notNull(),
   displayName: text("display_name"), positionId: uuid("position_id"), status: text("status").notNull().default("active"), ...timestamps,

@@ -4,6 +4,10 @@ const scopes = ["OWN", "TEAM", "SELECTED_TEAMS", "ALL"] as const;
 function capability(code: string, labelTh: string, risk: ModuleCapability["risk"] = "normal", allowedScopes: ModuleCapability["allowedScopes"] = [...scopes]): ModuleCapability {
   return { code, labelTh, descriptionTh: labelTh, risk, allowedScopes };
 }
+export const carBookingCapabilities = [
+  capability("car_booking.module.use", "ใช้งานระบบจองรถ", "normal", ["OWN"]),
+  capability("car_booking.module.admin", "ดูแลระบบจองรถ", "administrative", ["ALL"]),
+];
 export const workCapabilities = [
   capability("work.task.read", "ดูงาน"), capability("work.task.manage", "จัดการงาน", "sensitive"),
   capability("work.task.create", "เพิ่มงาน"), capability("work.task.update", "แก้ไขงาน"),

@@ -1,7 +1,16 @@
 import { defineModuleRegistry, capabilityCatalog } from "@/lib/module-contract";
-import { buildingCapabilities, coreCapabilities, guaranteeCapabilities, workCapabilities } from "@/lib/capabilities";
+import { buildingCapabilities, carBookingCapabilities, coreCapabilities, guaranteeCapabilities, workCapabilities } from "@/lib/capabilities";
 
 export const modules = defineModuleRegistry([
+  {
+    id: "car-booking", version: "1.0.0", owner: "Operations", icon: "car", group: "operations", order: 40,
+    lifecycle: "development", enabledByDefault: false, capabilities: carBookingCapabilities,
+    entryPermissions: ["car_booking.module.use", "car_booking.module.admin"],
+    number: 4, href: "/car-booking", name: "ระบบจองรถ", shortLabel: "จองรถ",
+    description: "จองและคืนรถ บันทึกระหว่างทาง และรายงานการใช้รถ OSP",
+    purpose: "การใช้รถของทีม", repository: "docs/legacy-car-booking",
+    accent: "blue", searchTerms: ["จองรถ", "คืนรถ", "OSP"],
+  },
   {
     id: "work",
     version: "1.0.0", owner: "Operations", icon: "work", group: "work", order: 10,
