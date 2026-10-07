@@ -1,5 +1,17 @@
 # Implementation status
 
+## โมดูลจองรถ — เฟส 0, 08/10/2569
+
+สำรวจบน HEAD `c22bd86890b8ac4bc4f03b29ea8f210b7ed45d5d` จาก working tree สะอาด และสร้าง branch `codex/car-booking-phase-0` ตามเอกสารงานที่ผู้ใช้ให้ดำเนินการอย่างเคร่งครัด อ่านต้นทาง `D:/WebApp/จองรถ/New Vertion/Code.gs` และ `Index.html` ตามที่ผู้ใช้ระบุ; ตรึง SHA256 ใน [รายงานเฟส 0](plans/car-booking-phase-0.md) พร้อม [parity inventory](modules/car-booking/source-parity.md) และ [UX baseline](modules/car-booking/source-ux-baseline.md)
+
+Fresh gates ก่อนเพิ่มเอกสาร: lint/typecheck/test/test:documents/build exit 0; Vitest 204 ผ่าน/12 skipped (50 files ผ่าน/2 skipped), document 1 ผ่าน; Next.js 16.3.6; audit ไม่พบช่องโหว่ Logs อยู่ `docs/quality/car-booking-phase-0/` ไม่ใช้จำนวน test ในเอกสารเก่าแทนผลรอบนี้
+
+พบ employee_code ใน profiles, migration ล่าสุด 0023, catalog capability แบบสามส่วน; ยังต้องทำรายบุคคลโดยรักษา grant อื่นและไม่ล้าง session เฉพาะโมดูลใหม่ เนื่องจาก Admin ปัจจุบัน revoke sessions เมื่อเปลี่ยนสิทธิ์ RLS helper อ่าน app.user_id แต่ search ยังไม่พบ application binding; runtime least-privilege/RLS ยังไม่ได้ยืนยัน ต้นทาง OSP รวม fuel ระหว่างทาง+ตอนคืนถูกต้อง ส่วน dashboard ยังต้องแก้ให้ใช้ aggregate เดียวกันตามข้อกำหนด
+
+JEV health local/network OK; evidence supported .52/needs_more_evidence .88/do_not_rely_on_claim จึงไม่อ้างความพร้อม implementation/RLS/parity ใช้ metadata_only และ deterministic source/gates เป็นหลัก
+
+สถานะ: รอคำตอบ policy และไฟเขียวก่อนเฟส 1 ตามเอกสารจองรถ §3/§10 ไม่มี application/schema/permission/data changes ไม่มี migration/deploy/external write; CSV 5 ชีตและ actual hosting ยังไม่มีหลักฐาน การถอนเอกสารเฟสนี้ไม่ต้อง rollback DB
+
 ## Guarantee + Buildings parity recovery — 2026-10-01
 
 Target baseline: `codex/professional-workspace@ec778a41b63e0b55d811671d1d492d2df05044bd`. Baseline was run before module edits: lint and typecheck passed; Vitest 35 files / 108 tests passed; document test 1/1 passed; Next.js 16.3.4 production build passed. `npm audit --omit=dev` reports one critical advisory affecting the existing `next` dependency and says no fix is available for the locked version; framework dependency changes were outside this safe parity slice.
