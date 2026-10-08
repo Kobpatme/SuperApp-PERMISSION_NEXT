@@ -1,5 +1,7 @@
 # CODEX MASTER PLAN V2 — Permission Next Super App
 
+> Repository documentation policy (2026-10-08): use `docs/README.md`, current implementation status, module contracts and operations guides for handoff. Completed plans and historical audit/result reports are retained locally/in Git history and are not prerequisites in a new checkout. References to those historical reports below describe earlier execution checkpoints. This clarification does not alter business rules or release gates.
+
 > **สถานะ:** Master execution specification สำหรับ Codex + JEV
 > **Target repository:** `Kobpatme/SuperApp-PERMISSION_NEXT`
 > **Audited target baseline:** `6ccef5b40fc5a9c006d02e58860897142d50ce52` (ต้องตรวจ current HEAD ใหม่ก่อนเริ่มทุกครั้ง)
@@ -638,6 +640,5 @@ Start now with JEV health + fresh baseline + Fresh Source Freeze.
 - import/backfill มี reconciliation + idempotency evidence
 - lint/typecheck/unit/document/integration/e2e/build gates ที่เกี่ยวข้องผ่านจริง
 - UAT ของเจ้าของโมดูลยังเป็นเงื่อนไขก่อนประกาศ production-ready
-
 
 

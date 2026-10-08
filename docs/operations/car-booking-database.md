@@ -1,6 +1,6 @@
 # ฐานทดสอบและสิทธิ์ runtime ของระบบจองรถ
 
-โค้ดบริการ/API/UI/รายงานและเครื่องมือนำเข้า/ตรวจความพร้อมมีแล้ว วันที่08/10/2569เจ้าของอนุญาตให้ติดตั้งบนฐานหลัก local: apply0024–0027และ runtimeจำกัดสิทธิ์แล้ว main preflight readyForUat=true ยังไม่ใช่ UAT โดยผู้ใช้จริงหรือproduction/cutover เจ้าของเลื่อน CSVไปย้ายครั้งเดียวภายหลัง ดู [ผลติดตั้ง](../plans/car-booking-local-uat.md) และ [คู่มือเฟส6](car-booking-cutover.md)
+โค้ดบริการ/API/UI/รายงานและเครื่องมือนำเข้า/ตรวจความพร้อมมีแล้ว วันที่08/10/2569เจ้าของอนุญาตให้ติดตั้งบนฐานหลัก local: apply0024–0027และ runtimeจำกัดสิทธิ์แล้ว main preflight readyForUat=true ยังไม่ใช่ UAT โดยผู้ใช้จริงหรือproduction/cutover เจ้าของเลื่อน CSVไปย้ายครั้งเดียวภายหลัง ดู ผลติดตั้ง (historical local reference) และ [คู่มือเฟส6](car-booking-cutover.md)
 
 เว็บใช้ `CAR_BOOKING_DATABASE_URL` แยกจาก Core `DATABASE_URL` ต้องอยู่ฐานเดียวกันเพื่อใช้ Core UUID/สิทธิ์ล่าสุด ให้ grantsตาม `scripts/car-booking-runtime-grants.sql` แก่ `permission_car_booking_runtime` รวม SELECT schema_migrationsเพื่อ preflight ไม่ให้ SELECT audit/DELETE domain/UPDATE logsหรือ membership helper roles นอก NODE_ENV=test หากไม่มี car URL โมดูลรถ fail closed ไม่ fallback ไปบัญชี Core หลังเปลี่ยน connectionต้อง restartเพื่อสร้าง poolใหม่
 

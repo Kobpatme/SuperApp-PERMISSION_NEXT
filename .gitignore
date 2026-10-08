@@ -44,3 +44,47 @@ scripts/ux-motion-migration.mjs
 scripts/ux-overflow.mjs
 scripts/ux-presentation-fixes.mjs
 scripts/ux-remove-unused-aliases.mjs
+
+# Retired plans and historical reports; originals remain local.
+CODEX-PROFESSIONAL-UX-RECOVERY.md
+CODEX-TASK-UX-LOGIN-V1.md
+DESIGN-SYSTEM.md
+PLAN-super-app.md
+SuperApp/PERMISSION_NEXT/PERMISSION_NEXT_FRESH_SOURCE_PARITY_AUDIT.md
+SuperApp/PERMISSION_NEXT/PERMISSION_NEXT_PROFESSIONAL_REBUILD.md
+SuperApp/โมดูล KPI.md
+SuperApp/โมดูล ติอตามขอคืนเงินประกันอาคาร.md
+SuperApp/โมดูล รายละเอียดค่าใช้จ่ายของอาคาร.md
+UX-UI-LIVELY-UPGRADE.md
+docs/audits/BUILDINGS-COST-PARITY-AUDIT.md
+docs/audits/GUARANTEE-PARITY-AUDIT.md
+docs/audits/PROFESSIONAL-UX-RECOVERY-AUDIT.md
+docs/audits/PROFESSIONAL-UX-RECOVERY-RESULT.md
+docs/plans/admin-workspace-plan.md
+docs/plans/building-editor-parity.md
+docs/plans/car-booking-local-uat.md
+docs/plans/car-booking-phase-0.md
+docs/plans/car-booking-phase-1.md
+docs/plans/car-booking-phase-2.md
+docs/plans/car-booking-phase-3.md
+docs/plans/car-booking-phase-4.md
+docs/plans/car-booking-phase-5.md
+docs/plans/car-booking-phase-6.md
+docs/plans/css-consolidation.md
+docs/plans/ux-login-v1.md
+docs/quality/accessibility-performance.md
+docs/quality/admin-layout/README.md
+docs/quality/security-review.md
+docs/quality/sync-session-health/README.md
+docs/quality/ux-login-checkpoints.md
+docs/quality/work-overview-repair/README.md
+docs/repository-audit/comparison-matrix.md
+docs/repository-audit/dependency-security-scan.md
+docs/repository-audit/maxiwa-guarantee-audit.md
+docs/repository-audit/maxiwa-kpi-audit.md
+docs/repository-audit/permission-next-audit.md
+docs/repository-audit/professional-rebuild.md
+docs/repository-audit/reusable-assets.md
+docs/results/BUILDINGS-COST-PARITY-RESULT.md
+docs/results/GUARANTEE-PARITY-RESULT.md
+docs/implementation-checklist.md

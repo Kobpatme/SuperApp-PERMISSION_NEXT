@@ -24,4 +24,4 @@
 
 เจ้าของเลือก A รายงาน/ดาวน์โหลด + Sheets เดิม รายงานและแดชบอร์ดอยู่ในเมนูแอดมิน กรองเดือน/ทุกเดือนและแบ่งหน้า 50 แถว CSV ดาวน์โหลดครบช่วง รายงานแสดง 19 คอลัมน์ในพื้นที่เลื่อนแนวนอนที่ focus/ArrowRight ได้; ข้อมูล GPS ใน logs_json เป็นรายงาน admin เท่านั้น
 
-Dashboard counts/ระยะทาง/น้ำมัน/รายคัน/top5 ใช้ aggregate รวม trip+return fuel และมีสถานะคิวส่ง/ลองใหม่/ยืนยัน rebuild งานล่าสุดซ่อนใน details เพื่อลดความหนาแน่น ตัวกรอง report แยกจากปฏิทินและไม่แสดงเดือนซ้ำ Screenshot/scoped axe/CSV จริง/keyboard/mobile Light-Dark ผ่าน browser 7 กรณี ([รายงาน](../../plans/car-booking-phase-4.md)); ไม่ถือว่า UAT/Google connectivity จริงผ่านแล้ว
+Dashboard counts/ระยะทาง/น้ำมัน/รายคัน/top5 ใช้ aggregate รวม trip+return fuel และมีสถานะคิวส่ง/ลองใหม่/ยืนยัน rebuild งานล่าสุดซ่อนใน details เพื่อลดความหนาแน่น ตัวกรอง report แยกจากปฏิทินและไม่แสดงเดือนซ้ำ Screenshot/scoped axe/CSV จริง/keyboard/mobile Light-Dark ผ่าน browser 7 กรณี (รายงาน (historical local reference)); ไม่ถือว่า UAT/Google connectivity จริงผ่านแล้ว

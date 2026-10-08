@@ -6,4 +6,4 @@ SHA256: Code.gs `B22674C71B0905C8A9623880D0D02F28F3DB473FE9F9489E73A3C8CDBB61815
 
 คงต้นฉบับไว้ ไม่มีการรัน Apps Script หรือเข้าถึงชีตจริงจากเฟส 0 CSV Employees/Cars/Bookings/BookingLogs/BookingsOSP ยังไม่ได้รับ
 
-รายละเอียดกฎ ข้อแตกต่างจาก source และ policy ที่รอเจ้าของ: [รายงานเฟส 0](../plans/car-booking-phase-0.md)
+รายละเอียดกฎ ข้อแตกต่างจาก source และ policy ที่รอเจ้าของ: รายงานเฟส 0 (historical local reference)

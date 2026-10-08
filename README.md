@@ -27,7 +27,7 @@ Primary module routes are native Next.js surfaces. Legacy compatibility routes r
 
 Git tracks application code, dependencies, migrations, repeatable tests, development/deployment tools, and architecture/operations references. Generated screenshots, reports, logs, and rendered fixtures under `docs/quality/` stay local or in CI artifacts; historical report links refer to those artifacts. See [repository policy](./docs/operations/repository-policy.md). Completed one-time source transformations are no longer tracked.
 
-Start with [target architecture](./docs/architecture/overview.md), [implementation status](./docs/implementation-status.md), [implementation checklist](./docs/implementation-checklist.md), and [release checklist](./docs/operations/release-checklist.md). Legacy files remain as read-only workflow references during migration.
+Start with the [documentation index](./docs/README.md), [current implementation status](./docs/implementation-status.md), and [release checklist](./docs/operations/release-checklist.md). Module contracts and unresolved business specifications remain available during migration.
 
 ## Microsoft 365 readiness
 
