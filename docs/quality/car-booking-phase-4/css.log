@@ -1,0 +1,5 @@
+
+> permission-next-super-app@0.1.0 check:css
+> node scripts/check-css-quality.mjs
+
+240 files checked; 0 CSS quality violations; development-only legacy routes excluded (production 404)

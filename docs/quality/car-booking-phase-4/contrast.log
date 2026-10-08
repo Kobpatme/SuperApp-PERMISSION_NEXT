@@ -1,0 +1,5 @@
+
+> permission-next-super-app@0.1.0 check:contrast
+> node scripts/check-contrast.mjs
+
+58 contrast pairs checked; 0 failures

@@ -1,5 +1,11 @@
 # Implementation status
 
+## โมดูลจองรถ — เฟส 4, 08/10/2569
+
+เจ้าของเลือก A: native OSP 19 คอลัมน์/CSV + dashboard และส่ง Google Sheets เดิมเบื้องหลัง เพิ่ม durable return queue/retry/serialized lease, Sheets JWT adapter/backup/SAP/manual-row preservation/idempotent merge และ guarded scheduler endpoint ค่าเงินใช้ numeric/Decimal; report read RLS ตรวจสิทธิ์ once per statement พร้อม OWN/fresh grants ตามเดิม คู่มือ [OSP](operations/car-booking-osp.md) และ [รายงานเฟส 4](plans/car-booking-phase-4.md)
+
+Fresh baseline `030156f` ผ่านทุก gate; unit ล่าสุด 229 ผ่าน/27 skipped, lint/typecheck/documents/build ผ่านบน Next.js 16.3.8, audit 0 หลังแพตช์ advisory ใหม่ SQL schema 10/service 15 ผ่านบน non-owner/NOBYPASSRLS, fresh migrations 27/rerun 0 Benchmark 5,000 bookings/10,000 logs: report50 rows 75ms/dashboard44ms/CSV5.1MB1,067ms (local service measurement ไม่ใช่ production latency) Chromium 7/7 ผ่าน รวม CSV download/keyboard/scoped axe/report/dashboard/staff denial/mobile Light-Dark ไม่มี external write/real secret/deploy/ฐานจริง/remote CI; real Sheets configuration/connection/UAT และ legacy import ยังไม่ยืนยัน หยุดขอบเขตเฟส 4 ตาม spec §10
+
 ## โมดูลจองรถ — เฟส 3, 08/10/2569
 
 เพิ่ม UI จอง/คืน/log/cancel, ปฏิทินเดือน/สัปดาห์/วันพร้อม privacy projection, รถ/config/GPS สำหรับแอดมิน, หน้าไม่มีสิทธิ์ และจัด use/admin รายบุคคลผ่าน Core grants โดยคง non-car scopes และ session เดิม; migration 0026 เพิ่ม settings และ guarded access editor role ไม่มี user assignment อัตโนมัติ รายละเอียด/ข้อจำกัดใน [รายงานเฟส 3](plans/car-booking-phase-3.md)
