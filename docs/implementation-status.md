@@ -1,5 +1,11 @@
 # Implementation status
 
+## โมดูลจองรถ — เปิด local UAT บนฐานหลัก, 08/10/2569
+
+เจ้าของอนุญาตสิทธิ์ที่จำเป็นเฉพาะเฟสนี้ สำรอง/restore53ตารางตรงกันและซ้อม cloneก่อนติดตั้ง0024–0027บน permission_superapp_dev แยก car runtime pool จำกัดสิทธิ์จริงจาก Core ให้ car use/adminแก่ผู้ดูแลเดิม1บัญชีพร้อม audit/activity/outbox ไม่ reset password ไม่แจกผู้ใช้อื่นและไม่ย้าย CSV Main runtime preflight readyForUat=true/readyForCutover=false; main material journey rollbackผ่านและ browser/APIจริงผ่าน ดู [รายงาน](plans/car-booking-local-uat.md)
+
+Fresh baselineee54378และ final lint/typecheck/build/documentsผ่าน unit233ผ่าน28skipped schema10/services16/preflight6/Chromium8ผ่าน Human UAT/Google credentials+connection/CSVและlegacy cutoverยังไม่เกิดขึ้น PostgreSQL5432/เว็บ3000เปิดใช้งาน local; Core/Work schema gapsเดิมอยู่นอกขอบเขต ไม่ถือ checkpointนี้เป็นproduction readinessทั้งSuper App
+
 ## โมดูลจองรถ — เฟส 6, 08/10/2569
 
 เจ้าของเลื่อน CSV จริงไปย้ายครั้งเดียวหลังระบบเสร็จ งานพัฒนา/automated rehearsal เฟส6เสร็จ: server intake pauseโดยยังคืน/log/cancelได้, parallel workspace refresh, read-only runtime preflight, reviewed future import target, fixture backup/restore และ [UAT/cutover/rollback checklist](operations/car-booking-cutover.md) ไม่ขอ CSV ระหว่างงาน ดู [รายงานเฟส6](plans/car-booking-phase-6.md)

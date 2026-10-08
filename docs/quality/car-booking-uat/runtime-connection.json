@@ -1,0 +1,11 @@
+{
+  "privateStateMatchesRuntime": true,
+  "runtimeConnection": true,
+  "role": {
+    "rolcanlogin": true,
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "password_set": true
+  },
+  "expectedCluster": true
+}

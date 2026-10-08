@@ -2,6 +2,8 @@
 
 วันที่ 08/10/2569; เฟส6เพิ่ม intake pause/preflight/cutover plan และผ่าน automated journey/browser8+recovery; เจ้าของเลื่อน CSVจริงไปย้ายครั้งเดียวภายหลัง ยังไม่ยืนยัน human UAT/real migration/Sheets/cutover
 
+หลังเจ้าของอนุญาตติดตั้ง local UAT: ฐานหลักในเครื่องติดตั้ง0024–0027และ car poolจำกัดสิทธิ์แล้ว readyForUat=true; main rollback material journey และ browser/APIผ่าน ผู้ดูแลเดิม1บัญชีได้รับ car use/admin ไม่มี CSV/legacy cutover/Google writes/human sign-off ดู [รายงานเปิด UAT](../../plans/car-booking-local-uat.md)
+
 Source ที่ผู้ใช้ระบุ: `D:/WebApp/จองรถ/New Vertion/Code.gs` SHA256 `B22674C71B0905C8A9623880D0D02F28F3DB473FE9F9489E73A3C8CDBB618156`; `Index.html` SHA256 `A705578D72F9D33CD3A31162A65260957B451993710A5FF610854D6BADF6FECA` ไม่มี Git SHA ที่ยืนยันได้
 
 | ฟีเจอร์/หลักฐานต้นทาง | การจัดประเภท | สถานะ target | หลักฐานที่จะต้องมี |

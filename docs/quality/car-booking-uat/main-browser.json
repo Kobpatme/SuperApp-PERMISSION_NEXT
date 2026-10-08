@@ -1,0 +1,51 @@
+{
+  "localMain": true,
+  "temporarySession": true,
+  "domainWrites": false,
+  "apiChecks": [
+    {
+      "case": "anonymous",
+      "status": 401
+    },
+    {
+      "route": "/api/car-booking/cars",
+      "status": 200
+    },
+    {
+      "route": "/api/car-booking/settings",
+      "status": 200
+    },
+    {
+      "route": "/api/car-booking/bookings",
+      "status": 200
+    },
+    {
+      "route": "/api/car-booking/calendar",
+      "status": 200
+    },
+    {
+      "route": "/api/car-booking/reports",
+      "status": 200
+    },
+    {
+      "route": "/api/car-booking/dashboard",
+      "status": 200
+    },
+    {
+      "route": "/api/car-booking/osp-sync",
+      "status": 200
+    },
+    {
+      "case": "invalid_origin",
+      "status": 403
+    }
+  ],
+  "browserChecks": [
+    "main_car_admin_ui",
+    "settings_reports_dashboard",
+    "main_car_access_editor",
+    "mobile_no_page_overflow"
+  ],
+  "sessionRevoked": true,
+  "pageErrors": 0
+}

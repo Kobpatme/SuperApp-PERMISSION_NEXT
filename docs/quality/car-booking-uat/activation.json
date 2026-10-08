@@ -1,0 +1,16 @@
+{
+  "applied": [
+    "0024_car_booking.sql",
+    "0025_car_booking_services.sql",
+    "0026_car_booking_ui.sql",
+    "0027_car_booking_osp.sql"
+  ],
+  "carRuntimeRole": "permission_car_booking_runtime",
+  "carPoolSeparate": true,
+  "existingAdminGranted": 1,
+  "noPasswordReset": true,
+  "existingDomainFingerprintsPreserved": true,
+  "csvImported": false,
+  "legacyCutover": false,
+  "googleConfigured": false
+}
