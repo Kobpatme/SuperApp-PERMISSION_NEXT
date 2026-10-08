@@ -1,5 +1,11 @@
 # Implementation status
 
+## โมดูลจองรถ — เฟส 5, 08/10/2569
+
+เพิ่ม offline CSV importer ทั้ง5ชีต: reviewed employee_code crosswalk, per-row rejections/overlap preservation, legacy-id idempotency, source-bound dry-run approval, additive reviewed access และ atomic audit/activity/outbox พร้อม counts/monthly reconciliation รวม fuel logs ทั้งหมดในฐาน BookingsOSP ใช้เปรียบเทียบ/สร้างใหม่เท่านั้น apply จำกัด loopback fixture ไม่มี main DB/external writes คู่มือ [นำเข้า](operations/car-booking-import.md) และ [รายงานเฟส5](plans/car-booking-phase-5.md)
+
+Fresh baseline75c24af/final lint/typecheck/Vitest229ผ่าน27skipped/documents1/buildNext16.3.8/audit0 ผ่าน Parser13/importSQL9/schema10/services15 ผ่าน fresh27 migrations/rerun0 ไม่มี migration ใหม่ Synthetic planner5000bookings10000logs3,530ms; browser ไม่ได้รันใหม่เพราะไม่มี UI changes JEV evidence supported.47/needs_more_evidence.83 ใช้ deterministic checks เป็นหลัก Implementation พร้อม แต่ยังไม่ได้รับ CSV จริงทั้ง5ชีต จึงยังไม่ปิด migration/reconciliation จริง และยังไม่เริ่มเฟส6 Main dev3000/PostgreSQL5432 คงทำงาน fixture55439 หยุดแล้ว
+
 ## โมดูลจองรถ — เฟส 4, 08/10/2569
 
 เจ้าของเลือก A: native OSP 19 คอลัมน์/CSV + dashboard และส่ง Google Sheets เดิมเบื้องหลัง เพิ่ม durable return queue/retry/serialized lease, Sheets JWT adapter/backup/SAP/manual-row preservation/idempotent merge และ guarded scheduler endpoint ค่าเงินใช้ numeric/Decimal; report read RLS ตรวจสิทธิ์ once per statement พร้อม OWN/fresh grants ตามเดิม คู่มือ [OSP](operations/car-booking-osp.md) และ [รายงานเฟส 4](plans/car-booking-phase-4.md)
