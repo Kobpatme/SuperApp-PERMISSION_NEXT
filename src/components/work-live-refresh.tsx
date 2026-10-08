@@ -11,6 +11,7 @@ export function WorkLiveRefresh({ initialUpdatedAt }: { initialUpdatedAt: string
   const [updatedAt, setUpdatedAt] = useState(initialUpdatedAt);
   const completion = useRef<{ resolve: () => void; reject: () => void } | null>(null);
   const transitionPending = useRef(false);
+  const coordinator = useRef<ReturnType<typeof createLiveRefreshLoop> | null>(null);
   const enabled = ["/work", "/work/mine", "/work/team", "/work/assign", "/work/people", "/work/tracker", "/work/kpi", "/work/reports"].includes(pathname);
   useEffect(() => {
     transitionPending.current = pending;
@@ -35,6 +36,7 @@ export function WorkLiveRefresh({ initialUpdatedAt }: { initialUpdatedAt: string
       });
       setUpdatedAt(new Date().toISOString());
     } });
+    coordinator.current = loop;
     const input = (event: Event) => { const target = event.target; if (target instanceof HTMLElement) { const form = target.closest("form"); if (form) dirty.add(form); } };
     const reset = (event: Event) => { if (event.target instanceof HTMLFormElement) { dirty.delete(event.target); loop.resume(); } };
     const resume = () => loop.resume();
@@ -47,12 +49,12 @@ export function WorkLiveRefresh({ initialUpdatedAt }: { initialUpdatedAt: string
     document.addEventListener("reset", reset); document.addEventListener("close", closed, true);
     document.addEventListener("visibilitychange", resume); window.addEventListener("online", resume);
     window.addEventListener(workMutationEvent, mutation);
-    return () => { loop.stop(); completion.current?.reject(); completion.current = null; channel?.close();
+    return () => { loop.stop(); coordinator.current = null; completion.current?.reject(); completion.current = null; channel?.close();
       document.removeEventListener("input", input); document.removeEventListener("change", input); document.removeEventListener("reset", reset);
       document.removeEventListener("close", closed, true); document.removeEventListener("visibilitychange", resume);
       window.removeEventListener("online", resume); window.removeEventListener(workMutationEvent, mutation); };
   }, [enabled, pathname, router]);
   if (!enabled) return null;
   const latestUpdatedAt = initialUpdatedAt > updatedAt ? initialUpdatedAt : updatedAt;
-  return <div className="work-live-refresh"><small>อัปเดตล่าสุด <time dateTime={latestUpdatedAt}>{new Date(latestUpdatedAt).toLocaleTimeString("th-TH", { timeZone: "Asia/Bangkok", hour: "2-digit", minute: "2-digit" })}</time></small><RefreshButton /></div>;
+  return <div className="work-live-refresh"><small>อัปเดตล่าสุด <time dateTime={latestUpdatedAt}>{new Date(latestUpdatedAt).toLocaleTimeString("th-TH", { timeZone: "Asia/Bangkok", hour: "2-digit", minute: "2-digit" })}</time></small><RefreshButton onRefresh={() => coordinator.current?.request()} refreshPending={pending} /></div>;
 }

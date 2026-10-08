@@ -16,11 +16,12 @@ export function PreviewNotice({ preview, developmentMode }: { preview: boolean; 
   </div>;
 }
 
-export function RefreshButton() {
+export function RefreshButton({ onRefresh, refreshPending = false }: { onRefresh?: () => void; refreshPending?: boolean } = {}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  return <button type="button" className="secondary-action" disabled={pending} onClick={() => startTransition(() => router.refresh())}>
-    <WorkspaceIcon name="refresh" size={17}/><span>{pending ? "กำลังอัปเดต…" : "อัปเดตข้อมูล"}</span>
+  const busy = pending || refreshPending;
+  return <button type="button" className="secondary-action" disabled={busy} onClick={() => onRefresh ? onRefresh() : startTransition(() => router.refresh())}>
+    <WorkspaceIcon name="refresh" size={17}/><span>{busy ? "กำลังอัปเดต…" : "อัปเดตข้อมูล"}</span>
   </button>;
 }
 

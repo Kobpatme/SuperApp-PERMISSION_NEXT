@@ -50,6 +50,7 @@ test("three-job UI batch and completion update another tab with one audit per mu
   expect(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(completed.completed_at)).toBe(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Bangkok" }).format(new Date()));
   expect((await db`select count(*)::int as n from task_transitions where task_id=${completed.id}`)[0].n).toBe(1);
   expect((await db`select count(*)::int as n from audit_logs where action='task.transition' and entity_id=${completed.id}`)[0].n).toBe(1);
+  await expect(b.getByRole("button", { name: "อัปเดตข้อมูล", exact: true })).toBeEnabled();
   await context.close();
 });
 test("another account sees assignment on its refresh cycle and draft/modal pauses keep input", async ({ browser }) => {
@@ -69,7 +70,8 @@ test("another account sees assignment on its refresh cycle and draft/modal pause
   await receiver.evaluate(() => { (document.querySelector("#synthetic-draft") as HTMLFormElement).reset(); const modal = document.createElement("dialog"); modal.id = "synthetic-modal"; document.body.append(modal); modal.showModal(); });
   const previous = refreshes; await receiver.clock.runFor(66001); expect(refreshes).toBe(previous);
   await receiver.evaluate(() => (document.querySelector("#synthetic-modal") as HTMLDialogElement).close());
-  await expect.poll(() => refreshes).toBeGreaterThan(previous); await staff.close(); await manager.close();
+  await expect.poll(() => refreshes).toBeGreaterThan(previous);
+  await expect(receiver.getByRole("button", { name: "อัปเดตข้อมูล", exact: true })).toBeEnabled(); await staff.close(); await manager.close();
 });
 
 test("refresh keeps the personal list capped at 500 rows and retains scroll and an expanded note draft", async ({ browser }) => {
@@ -89,4 +91,32 @@ test("refresh keeps the personal list capped at 500 rows and retains scroll and 
   const note = page.getByRole("textbox", { name: "เพิ่มบันทึก", exact: true }); await note.fill("Keep actual note draft");
   await page.clock.runFor(66001); await expect(note).toHaveValue("Keep actual note draft");
   await context.close();
+});
+
+test("UI audit failure rolls back work and a repeated action does not touch the session twice", async ({ browser }) => {
+  const owner = "00000000-0000-4000-8000-000000001101", taskId = crypto.randomUUID();
+  await db`insert into tasks(id,owner_id,title,status) values(${taskId},${owner},'Synthetic audit failure','in_progress')`;
+  await db.unsafe(`create or replace function public.sync_fixture_audit_failure() returns trigger language plpgsql as $$ begin if new.entity_id='${taskId}' and new.action='task.transition' then raise exception 'SYNTHETIC_AUDIT_FAILURE'; end if; return new; end $$`);
+  await db.unsafe('create trigger sync_fixture_audit_failure before insert on public.audit_logs for each row execute function public.sync_fixture_audit_failure()');
+  const context = await browser.newContext();
+  try {
+    const page = await context.newPage(); await login(page); await page.goto(`/work?record=${taskId}`);
+    await page.getByRole("button", { name: "เสร็จสิ้น", exact: true }).click();
+    await page.getByRole("dialog").getByLabel("เหตุผล / ความคืบหน้า").fill("Fixture audit failure");
+    await db`update auth_sessions set last_seen_at=now()-interval '65 seconds' where user_id=${owner} and revoked_at is null`;
+    await page.getByRole("dialog").getByRole("button", { name: "ยืนยัน", exact: true }).click();
+    await expect(page.getByText("ไม่สามารถบันทึกงานได้", { exact: true })).toBeVisible();
+    const [first] = await db`select last_seen_at from auth_sessions where user_id=${owner} and revoked_at is null`;
+    await page.getByRole("dialog").getByRole("button", { name: "ยืนยัน", exact: true }).click();
+    await expect(page.getByRole("dialog").getByRole("button", { name: "ยืนยัน", exact: true })).toBeEnabled();
+    const [after] = await db`select last_seen_at from auth_sessions where user_id=${owner} and revoked_at is null`;
+    expect(after.last_seen_at).toEqual(first.last_seen_at);
+    const [task] = await db`select status,version,completed_at from tasks where id=${taskId}`;
+    expect(task).toMatchObject({ status: "in_progress", version: 1, completed_at: null });
+    expect((await db`select count(*)::int as n from task_transitions where task_id=${taskId}`)[0].n).toBe(0);
+    expect((await db`select count(*)::int as n from audit_logs where entity_id=${taskId}`)[0].n).toBe(0);
+  } finally {
+    await context.close(); await db.unsafe('drop trigger if exists sync_fixture_audit_failure on public.audit_logs');
+    await db.unsafe('drop function if exists public.sync_fixture_audit_failure()');
+  }
 });
