@@ -52,6 +52,7 @@ export async function initializeCarBookingTestDb() {
       grant insert on public.audit_logs,public.activity_events,public.outbox_messages to car_booking_test_runtime;`);
     await db.unsafe(`grant select,update on public.car_booking_settings to car_booking_test_runtime;
       grant execute on function public.car_booking_can_manage_access(),public.car_booking_access_users(),public.car_booking_set_user_access(uuid,boolean,boolean) to car_booking_test_runtime;`);
+    await db.unsafe(`grant select,insert,update on public.car_booking_osp_jobs to car_booking_test_runtime; grant select,update on public.car_booking_osp_state to car_booking_test_runtime;`);
     const [{ count }] = await db`select count(*)::int as count from public.schema_migrations`;
     console.log(JSON.stringify({ database: testDatabaseName, applied, migrations: count, role: 'non-owner/non-superuser/NOBYPASSRLS' }));
   } finally { await db.end(); }

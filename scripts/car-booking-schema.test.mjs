@@ -36,14 +36,17 @@ async function booking(tx, userId, carId, start = '2030-01-01T01:00:00Z', end = 
 }
 const denied = { code: '42501' }, conflict = { code: '23P01' };
 
-test('all three tables FORCE RLS and runtime is non-owner/non-superuser', async () => {
+test('domain and OSP tables FORCE RLS and runtime is non-owner/non-superuser', async () => {
   const tables = await db`select c.relrowsecurity,c.relforcerowsecurity,pg_get_userbyid(c.relowner) as owner from pg_class c
-    where c.oid in ('car_booking_cars'::regclass,'car_booking_bookings'::regclass,'car_booking_logs'::regclass)`;
-  assert.equal(tables.length, 3);
+    where c.oid in ('car_booking_cars'::regclass,'car_booking_bookings'::regclass,'car_booking_logs'::regclass,'car_booking_osp_jobs'::regclass,'car_booking_osp_state'::regclass)`;
+  assert.equal(tables.length, 5);
   for (const table of tables) { assert.equal(table.relrowsecurity, true); assert.equal(table.relforcerowsecurity, true); assert.notEqual(table.owner, 'car_booking_test_runtime'); }
   const [role] = await db`select rolsuper,rolbypassrls from pg_roles where rolname='car_booking_test_runtime'`;
   assert.deepEqual(role, { rolsuper: false, rolbypassrls: false });
   await runtime('', async tx => { assert.equal((await tx`select * from car_booking_cars`).length, 0); });
+  const staff=await user('car_booking.module.use');
+  await runtime(staff,async tx=>{assert.equal((await tx`select * from car_booking_osp_jobs`).length,0);assert.equal((await tx`select * from car_booking_osp_state`).length,0);});
+  await assert.rejects(runtime(staff,tx=>tx`insert into car_booking_osp_jobs(kind) values('rebuild')`),denied);
 });
 test('no automatic grants to existing system roles; no permission and forced-password/suspended accounts denied', async () => {
   const [auto] = await db`select count(*)::int as count from role_permissions rp join roles r on r.id=rp.role_id
