@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, type DatabaseTransaction } from "@/db";
+import type { DatabaseTransaction } from "@/db";
+import { getCarBookingDb as getDb } from "./car-booking-db";
 import { runMaterialChange } from "./material-change";
 import { CarBookingError } from "./car-booking-input";
 import type { CarBookingContext } from "./car-booking-service";

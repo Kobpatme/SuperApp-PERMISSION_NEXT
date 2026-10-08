@@ -3,7 +3,8 @@ import { acceptsNewCarBookings,carBookingPausedMessage } from "./car-booking-mai
 import Decimal from "decimal.js";
 import { and, eq, gte, lt, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { getDb, type DatabaseTransaction } from "@/db";
+import type { DatabaseTransaction } from "@/db";
+import { getCarBookingDb as getDb } from "./car-booking-db";
 import { carBookingBookings as bookings, carBookingCars as cars, carBookingLogs as logs } from "@/db/schema";
 import { runMaterialChange } from "@/lib/material-change";
 import { assertBatchIntervals, bookingInputSchema, CarBookingError, carInputSchema, intervalSchema, logInputSchema, returnInputSchema } from "@/lib/car-booking-input";
