@@ -44,6 +44,15 @@ describe.skipIf(process.env.CAR_BOOKING_SERVICE_INTEGRATION!=="1")("car services
   const range=(start="2030-01-01T01:00:00Z",end="2030-01-01T02:00:00Z")=>({startTime:start,endTime:end});
   async function book(carId:string,context:CarBookingContext,interval=range()) {return (await createCarBookings({carId,destination:"ทดสอบ",intervals:[interval]},context)).ids[0];}
   const returned=(mileage="120",actualReturnTime="2030-01-01T02:00:00Z")=>({mileage,actualReturnTime,parkingFloor:"3B",refueled:false});
+  it("maintenance blocks new service bookings but lets an existing trip log and return",async()=>{
+    const actor=await user(),id=await car();
+    try{
+      vi.stubEnv("CAR_BOOKING_ACCEPT_NEW_BOOKINGS","false");await expect(book(id,actor)).rejects.toMatchObject({code:"BOOKING_PAUSED",status:503});expect(await operator`select id from car_booking_bookings where user_id=${actor.actorId}`).toHaveLength(0);
+      vi.stubEnv("CAR_BOOKING_ACCEPT_NEW_BOOKINGS","true");const bookingId=await book(id,actor);
+      vi.stubEnv("CAR_BOOKING_ACCEPT_NEW_BOOKINGS","false");await addCarBookingLog(bookingId,{logTime:"2030-01-01T01:30:00Z",logType:"checkpoint",location:"จุดแวะขณะพักรับจอง",mileage:"110",refueled:false,note:""},actor);await returnCarBooking(bookingId,returned(),actor);
+      expect((await operator`select status from car_booking_bookings where id=${bookingId}`)[0].status).toBe("completed");
+    }finally{vi.unstubAllEnvs();}
+  });
   it("books historical dates with server mileage/identity; batch self-conflict and all-or-nothing rollback",async()=>{
     const actor=await user(),id=await car("0");const bookingId=await book(id,actor,range("2020-01-01T01:00:00Z","2020-01-01T02:00:00Z"));
     const [row]=await operator`select * from car_booking_bookings where id=${bookingId}`;expect(row.user_id).toBe(actor.actorId);expect(row.start_mileage).toBe("0");
@@ -222,7 +231,18 @@ describe.skipIf(process.env.CAR_BOOKING_SERVICE_INTEGRATION!=="1")("car services
     const dashboardStart=performance.now(),dashboard=await readCarDashboard({month:"2050-03"},admin),dashboardMs=performance.now()-dashboardStart;
     expect(dashboard.totals).toMatchObject({total:744,completed:744,distance:"74400",liters:"744",amount:"29760"});expect(dashboard.bookings).toHaveLength(50);
     const exportStart=performance.now(),exported=await readOspReport({month:"all"},admin,true),exportMs=performance.now()-exportStart;expect(exported.csv).toContain(run);
-    const measurement={syntheticBookings:5000,syntheticLogs:10000,reportPageMs:Math.round(reportMs),dashboardMs:Math.round(dashboardMs),fullCsvMs:Math.round(exportMs),csvBytes:Buffer.byteLength(exported.csv || ""),productionBenchmark:false};
-    mkdirSync("docs/quality/car-booking-phase-4",{recursive:true});writeFileSync("docs/quality/car-booking-phase-4/performance.json",JSON.stringify(measurement,null,2)+"\n");
+    const visibleRange=range("2050-03-01T00:00:00+07:00","2050-04-01T00:00:00+07:00");
+    const moduleStart=performance.now(),[cars,calendar,visibleBookings]=await Promise.all([readCars(admin),readCarCalendar(visibleRange,admin),readCarBookings(visibleRange,admin)]);
+    const moduleReadsMs=Math.round(performance.now()-moduleStart);expect(cars.length).toBeGreaterThan(0);expect(calendar.length).toBe(744);expect(visibleBookings.length).toBe(744);
+    const commandCar=await car("0"),bookTimes:number[]=[],returnTimes:number[]=[];
+    for(let i=0;i<10;i++){
+      const start=new Date(Date.UTC(2060,0,1,i)).toISOString(),end=new Date(Date.UTC(2060,0,1,i,30)).toISOString();
+      const bookStart=performance.now(),bookingId=await book(commandCar,staff,range(start,end));bookTimes.push(Math.round(performance.now()-bookStart));
+      const returnStart=performance.now();await returnCarBooking(bookingId,{mileage:String((i+1)*100),actualReturnTime:end,parkingFloor:"2A",refueled:false},staff);returnTimes.push(Math.round(performance.now()-returnStart));
+    }
+    const sorted=(values:number[])=>[...values].sort((a,b)=>a-b);
+    const measurement={syntheticBookings:5000,syntheticLogs:10000,reportPageMs:Math.round(reportMs),dashboardMs:Math.round(dashboardMs),fullCsvMs:Math.round(exportMs),csvBytes:Buffer.byteLength(exported.csv || ""),moduleReadsMs,commandSamples:10,bookMs:{samples:bookTimes,p50:sorted(bookTimes)[4],max:Math.max(...bookTimes)},returnMs:{samples:returnTimes,p50:sorted(returnTimes)[4],max:Math.max(...returnTimes)},productionBenchmark:false};
+    const evidenceDirectory=process.env.CAR_BOOKING_EVIDENCE_DIR || "docs/quality/car-booking-phase-4";
+    mkdirSync(evidenceDirectory,{recursive:true});writeFileSync(`${evidenceDirectory}/performance.json`,JSON.stringify(measurement,null,2)+"\n");
   },60000);
 });
