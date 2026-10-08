@@ -1,5 +1,11 @@
 # Implementation status
 
+## Sync/session/health addendum A–D — 08/10/2569
+
+Branch `codex/sync-session-health`, baseline `5384287`, implementation through `4e6357c`. เพิ่ม single active session พร้อม row lock/revocation reason, ข้อความภาษาไทยเมื่อมีการเข้าสู่ระบบใหม่, refresh งาน/KPI ที่หยุดเมื่อมี draft/modal และใช้ตัวควบคุมร่วมกับปุ่ม refresh, permanent regressions และ health build identity/read-only deploy verifier. สูตร KPI/status เดิมคงอยู่; admin ใช้กฎ session เดียวกับทุกบัญชี.
+
+Unit 267 ผ่าน/41 opt-in skipped, PostgreSQL isolated 13 ผ่าน, browser 6 ผ่าน, verifier 3 ผ่าน, documents 1 ผ่าน; lint/typecheck/build/CSS/contrast ผ่าน. วัด authenticated RSC refresh: team 16 SELECTs, mine 13 เป็น local measurement. สำรองและ restore 68 ตารางตรงกันก่อนติดตั้ง additive migration 0028 บน local หลัก; ledger 28, ข้อมูลงาน/รถ/บัญชี/session เดิมคงอยู่, ไม่ recalculation และไม่ย้าย CSV. [หลักฐานและข้อจำกัด](quality/sync-session-health/README.md) / [คู่มือ rollout และ rollback](operations/sync-session-health.md). ไม่มี production deploy หรือ external Sheets writes.
+
 ## งานและ KPI — ซ่อมหน้าภาพรวมบนฐาน local หลัก, 08/10/2569
 
 Branch `codex/work-overview-repair`, baseline `249e174`. พบ migration 0019–0023 ค้างบน `permission_superapp_dev` ทำให้ read model โหลดคอลัมน์/ตารางงานไม่ได้ และพบยอดเกินกำหนด/ความคืบหน้าส่วนตัวใช้ aggregate ทุกเจ้าของที่มีสิทธิ์เห็น. สำรอง snapshot แล้วกู้คืน 59 ตารางบนฐานสำเนาด้วย fingerprints ตรงกันก่อนทดลอง migration จากนั้นติดตั้งห้าชุดบน local หลักใน transaction เดียว; เปรียบเทียบข้อมูลงาน/KPI/บัญชี/รถก่อนและหลังตรงกัน. Ledger ปัจจุบัน 27 migrations, งานเดิมหนึ่งรายการ, KPI facts ศูนย์; ไม่ recalculation และยังไม่ย้าย CSV.

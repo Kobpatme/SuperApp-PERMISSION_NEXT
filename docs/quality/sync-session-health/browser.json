@@ -1,0 +1,299 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\WebApp\\SuperApp PERMISSION_NEXT\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config",
+      "playwright.sync-session.config.ts"
+    ],
+    "configFile": "D:\\WebApp\\SuperApp PERMISSION_NEXT\\playwright.sync-session.config.ts",
+    "rootDir": "D:/WebApp/SuperApp PERMISSION_NEXT/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/WebApp/SuperApp PERMISSION_NEXT/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "D:/WebApp/SuperApp PERMISSION_NEXT/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "/sync-session\\.spec\\.ts$/"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "docs/quality/sync-session-health/browser.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node scripts/sync-session-test-db.mjs server",
+      "url": "http://localhost:3110/login",
+      "reuseExistingServer": false,
+      "timeout": 60000,
+      "env": {
+        "PARITY_QUERY_METRICS": "1"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "sync-session.spec.ts",
+      "file": "sync-session.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "new login displaces old context with friendly notice (light)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5413,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:16:33.365Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e05d7132e98804cc4fe0-ae7d5c8e6ef43bc134ef",
+          "file": "sync-session.spec.ts",
+          "line": 16,
+          "column": 59
+        },
+        {
+          "title": "new login displaces old context with friendly notice (dark)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4095,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:16:39.050Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e05d7132e98804cc4fe0-448402267a3f926122dc",
+          "file": "sync-session.spec.ts",
+          "line": 16,
+          "column": 59
+        },
+        {
+          "title": "three-job UI batch and completion update another tab with one audit per mutation",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10504,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:16:43.164Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e05d7132e98804cc4fe0-81d923118b8d15f5c098",
+          "file": "sync-session.spec.ts",
+          "line": 29,
+          "column": 5
+        },
+        {
+          "title": "another account sees assignment on its refresh cycle and draft/modal pauses keep input",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 5452,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:16:53.683Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e05d7132e98804cc4fe0-674d71200cb853db84c3",
+          "file": "sync-session.spec.ts",
+          "line": 56,
+          "column": 5
+        },
+        {
+          "title": "refresh keeps the personal list capped at 500 rows and retains scroll and an expanded note draft",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7344,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:16:59.149Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e05d7132e98804cc4fe0-a214a40f6676ddeafec6",
+          "file": "sync-session.spec.ts",
+          "line": 77,
+          "column": 5
+        },
+        {
+          "title": "UI audit failure rolls back work and a repeated action does not touch the session twice",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2616,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-08T16:17:06.506Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e05d7132e98804cc4fe0-35b087d1642a6c361dfe",
+          "file": "sync-session.spec.ts",
+          "line": 96,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-08T16:16:30.033Z",
+    "duration": 40585.251000000004,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

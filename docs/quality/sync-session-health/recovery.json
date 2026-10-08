@@ -1,0 +1,8 @@
+{
+  "restoredTables": 68,
+  "fingerprintsMatch": true,
+  "cloneApplied": [
+    "0028_auth_single_session.sql"
+  ],
+  "immutableBusinessHistoryPreserved": true
+}

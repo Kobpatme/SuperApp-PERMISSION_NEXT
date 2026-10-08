@@ -1,0 +1,14 @@
+{
+  "localMain": true,
+  "domainWrites": false,
+  "checks": [
+    "overview_ready",
+    "personal_task_count_matches_database",
+    "personal_list_ready",
+    "kpi_workspace_ready",
+    "car_api_still_ready",
+    "mobile_no_page_overflow"
+  ],
+  "sessionRevoked": true,
+  "pageErrors": 0
+}

@@ -28,3 +28,7 @@ These questions cannot be proven from the repositories. They do not block archit
 | D5 | Existing RBAC, no duplicate legacy roles; capability mapping in docs/modules/work/parity-2026-10-05.md | Configure actual users/scopes through Roles UI after review |
 
 Isolated local PostgreSQL fixtures were used for migrations/transactions/browser evidence. Production activation and least-privileged RLS assessment remain OQ-011; this work does not apply production migrations or grant real users new roles.
+
+## Single active session policy — 2026-10-08
+
+The addendum applies the same single-session rule to administrators and staff; no bypass was introduced. A new login displaces an older administrator session, so operators must account for this during shared-account troubleshooting. If unattended/service accounts are introduced later, their identity and session policy needs a separate owner decision. This does not block the current interactive-account implementation. The feature flag can disable future superseding; it does not restore tokens already revoked.
