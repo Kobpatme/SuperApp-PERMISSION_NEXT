@@ -1,5 +1,11 @@
 # Implementation status
 
+## งานและ KPI — ซ่อมหน้าภาพรวมบนฐาน local หลัก, 08/10/2569
+
+Branch `codex/work-overview-repair`, baseline `249e174`. พบ migration 0019–0023 ค้างบน `permission_superapp_dev` ทำให้ read model โหลดคอลัมน์/ตารางงานไม่ได้ และพบยอดเกินกำหนด/ความคืบหน้าส่วนตัวใช้ aggregate ทุกเจ้าของที่มีสิทธิ์เห็น. สำรอง snapshot แล้วกู้คืน 59 ตารางบนฐานสำเนาด้วย fingerprints ตรงกันก่อนทดลอง migration จากนั้นติดตั้งห้าชุดบน local หลักใน transaction เดียว; เปรียบเทียบข้อมูลงาน/KPI/บัญชี/รถก่อนและหลังตรงกัน. Ledger ปัจจุบัน 27 migrations, งานเดิมหนึ่งรายการ, KPI facts ศูนย์; ไม่ recalculation และยังไม่ย้าย CSV.
+
+แก้ `/work` personal views และ `/work/mine` ให้กรองเจ้าของก่อน limit 500 พร้อมคำนวณ counters จากรายการส่วนตัวและ snapshot clock; team scope เดิมคงอยู่. แจ้งขอบเขตเมื่อครบ 500 รายการ. ใช้ Decimal และ cancellation semantics เดิม. เพิ่ม 10 regressions; lint/typecheck/documents/build ผ่าน, unit 243 passed / 28 opt-in integration skipped. Browser บน local หลักยืนยัน overview/list/KPI โหลดสำเร็จ, จำนวนงานตรงฐาน, car API 200, mobile ไม่ล้น, page errors 0; session ทดสอบชั่วคราวถูกยกเลิก. แก้ lint ให้ไม่สแกน private operational caches `.data` ตาม Git ignore เดิม. [หลักฐานและแนวทางกู้คืน](quality/work-overview-repair/README.md). ไม่มี production deploy, external writes หรือ business UAT sign-off.
+
 ## โมดูลจองรถ — เปิด local UAT บนฐานหลัก, 08/10/2569
 
 เจ้าของอนุญาตสิทธิ์ที่จำเป็นเฉพาะเฟสนี้ สำรอง/restore53ตารางตรงกันและซ้อม cloneก่อนติดตั้ง0024–0027บน permission_superapp_dev แยก car runtime pool จำกัดสิทธิ์จริงจาก Core ให้ car use/adminแก่ผู้ดูแลเดิม1บัญชีพร้อม audit/activity/outbox ไม่ reset password ไม่แจกผู้ใช้อื่นและไม่ย้าย CSV Main runtime preflight readyForUat=true/readyForCutover=false; main material journey rollbackผ่านและ browser/APIจริงผ่าน ดู [รายงาน](plans/car-booking-local-uat.md)
