@@ -47,3 +47,12 @@ test('release attestation stays distinct from external connectivity verification
  const review={humanUatApproved:true,latestMigrationReconciled:true,backupRestoreVerified:true,hostingRegionVerified:true,legacyFreezeApproved:true,sheetsIntegrationVerified:true,schedulerVerified:true};
  const report=await inspect({env,review});assert.equal(report.readyForCutover,true);assert.equal(report.externalConnection,'owner_attested');assert.equal(report.externalRequestsMade,0);assert.equal(JSON.stringify(report).includes(key),false);
 });
+test('schema USAGE denial fails preflight and fixture privileges roll back',async()=>{
+ await assert.rejects(db.begin(async tx=>{
+  await tx.unsafe('revoke usage on schema public from public');await tx.unsafe(`revoke usage on schema public from ${runtime}`);
+  const report=await inspectReadiness({begin:(...args)=>args[1](tx)},{runtimeRole:runtime,actor,buildPresent:true});
+  assert.equal(report.readyForUat,false);assert.equal(report.checks.find(c=>c.id==='runtime_public_schema_usage').passed,false);
+  throw new Error('EXPECTED_FIXTURE_ROLLBACK');
+ }),/EXPECTED_FIXTURE_ROLLBACK/);
+ assert.equal((await inspect()).readyForUat,true);
+});

@@ -26,6 +26,8 @@ export async function inspectReadiness(db,{runtimeRole,actor,env={},review={},bu
   const checks=[],add=(id,passed)=>checks.push({id,passed:!!passed,category:'database'});
   const [role]=await tx`select oid,rolsuper,rolbypassrls from pg_roles where rolname=coalesce(${runtimeRole??null},current_user)`;
   add('runtime_role_exists',!!role);add('runtime_least_privilege',role&&!role.rolsuper&&!role.rolbypassrls);
+  const schemaUsage=role?(await tx`select has_schema_privilege(${role.oid}::oid,'public','USAGE') as allowed`)[0].allowed:false;
+  add('runtime_public_schema_usage',schemaUsage);
   const objects=await tx`select c.relname,c.relrowsecurity,c.relforcerowsecurity,c.relowner from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ${tx(tables)}`;
   add('six_car_tables_installed',objects.length===tables.length);
   add('all_car_tables_force_rls',objects.length===tables.length&&objects.every(o=>o.relrowsecurity&&o.relforcerowsecurity));
