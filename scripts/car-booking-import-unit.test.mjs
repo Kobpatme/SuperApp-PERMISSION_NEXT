@@ -65,3 +65,8 @@ test('trimmed booking IDs and numeric car IDs reject every duplicate row',()=>{
  assert.equal(plan(f).rejected.filter(r=>r.sheet==='Bookings'&&r.reason==='DUPLICATE_LEGACY_ID').length,2);
  f.data.Cars.push({...f.data.Cars[0],car_id:'001',license_plate:'OTHER'});f.files.Cars=csv('Cars',f.data.Cars);assert.equal(plan(f).rejected.filter(r=>r.sheet==='Cars'&&r.reason==='DUPLICATE_CAR').length,2);
 });
+test('a future cutover needs exact reviewed target and all operator attestations',()=>{
+ const review={version:1,approved:true,backupRestoreVerified:true,humanUatApproved:true,legacyFreezeApproved:true,latestCloneRehearsalPassed:true,sourceHash:'a'.repeat(64),approval:'b'.repeat(64),target:{hostname:'127.0.0.1',port:5432,database:'permission_superapp_dev'}};
+ assert.doesNotThrow(()=>checkTarget('postgres://127.0.0.1:5432/permission_superapp_dev',true,review));
+ for(const invalid of [{...review,approved:false},{...review,backupRestoreVerified:false},{...review,target:{...review.target,database:'wrong'}},{...review,target:{...review.target,port:55439}},{...review,sourceHash:'stale'}])assert.throws(()=>checkTarget('postgres://127.0.0.1:5432/permission_superapp_dev',true,invalid),/TARGET_REVIEW/);
+});

@@ -87,3 +87,10 @@ test('reconciliation includes every database fuel log, not just legacy IDs',asyn
   await executeImport({begin:(...args)=>args[1](tx)},f.files,{actor,apply:true,approval:initial.approval});
  }),/RECONCILIATION_TOTAL_MISMATCH/);
 });
+test('future target review is source-bound and mismatch cannot write',async()=>{
+ const review={version:1,approved:true,backupRestoreVerified:true,humanUatApproved:true,legacyFreezeApproved:true,latestCloneRehearsalPassed:true,sourceHash:'a'.repeat(64),approval:initial.approval,target:{hostname:'127.0.0.1',port:55439,database:'permission_next_car_booking_test'}};
+ await assert.rejects(executeImport(db,f.files,{actor,apply:true,approval:initial.approval,targetReview:review}),/TARGET_REVIEW_SOURCE/);
+ const wrong={...review,sourceHash:initial.sourceHash,target:{...review.target,database:'other_database'}};
+ await assert.rejects(executeImport(db,f.files,{actor,apply:true,approval:initial.approval,targetReview:wrong}),/TARGET_REVIEW_MISMATCH/);
+ const approved=await executeImport(db,f.files,{actor,apply:true,approval:initial.approval,targetReview:{...review,sourceHash:initial.sourceHash}});assert.equal(approved.inserted,0);
+});
