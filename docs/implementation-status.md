@@ -1,5 +1,11 @@
 # Implementation status
 
+## Repository cleanup — 08/10/2569
+
+ตามคำขอเจ้าของ นำ generated quality artifacts 1,315 ไฟล์และ completed source-transformation scripts 19 ไฟล์ออกจาก Git index โดยเก็บ local originals ไว้. เหลือ source/assets/licenses, lock/config, migrations, repeatable tests/fixtures, CI, operational tools และเอกสารที่ใช้พัฒนาต่อ; เพิ่ม ignore rules และ output-directory placeholders. ชุดไฟล์ที่ติดตามประมาณ 4 MB; ประวัติ Git เดิมไม่ถูก rewrite. [นโยบาย](operations/repository-policy.md).
+
+ตรวจจากสำเนา staged index ซึ่งไม่มี `.env`, build outputs หรือรายงานเดิม โดยใช้ dependencies ที่ติดตั้งตาม lockfileในเครื่อง: lint/typecheck/build ผ่าน, unit 267 ผ่าน/41 opt-in skipped, document mapping 1 ผ่าน และสร้าง error-render fixture ใหม่สำเร็จ. ไม่รัน business integration/browser ซ้ำเพราะไม่มี runtime changes; ผลล่าสุดอยู่ใน addendum report. ระบบ local ยังเปิดอยู่.
+
 ## Sync/session/health addendum A–D — 08/10/2569
 
 Branch `codex/sync-session-health`, baseline `5384287`, implementation through `4e6357c`. เพิ่ม single active session พร้อม row lock/revocation reason, ข้อความภาษาไทยเมื่อมีการเข้าสู่ระบบใหม่, refresh งาน/KPI ที่หยุดเมื่อมี draft/modal และใช้ตัวควบคุมร่วมกับปุ่ม refresh, permanent regressions และ health build identity/read-only deploy verifier. สูตร KPI/status เดิมคงอยู่; admin ใช้กฎ session เดียวกับทุกบัญชี.

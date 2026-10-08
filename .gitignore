@@ -16,10 +16,31 @@ _discovery_sources/
 test-results/
 playwright-report/
 
-# Intermediate UX diagnosis captures stay local; final checkpoint evidence is tracked.
-docs/quality/ux-login-evidence/cp5-*
-!docs/quality/ux-login-evidence/cp5-release-*
-!docs/quality/ux-login-evidence/cp5-final-security-gates.json
-docs/quality/ux-login-evidence/cp5-release-*.log
-
 # Legacy workflow references are kept under _discovery_sources/.
+
+# Generated quality evidence stays local or in CI artifacts.
+docs/quality/**/*
+!docs/quality/**/
+!docs/quality/**/*.md
+!docs/quality/**/.gitkeep
+
+# Completed one-time source transformations; retained locally for reference.
+scripts/migrate-workspace-styles.cjs
+scripts/ux-admin-table-focus.mjs
+scripts/ux-admin-table-repair.mjs
+scripts/ux-auth-presentation.mjs
+scripts/ux-centralize-metadata.mjs
+scripts/ux-copy-migration.mjs
+scripts/ux-cp2-finish.mjs
+scripts/ux-css-migrate.mjs
+scripts/ux-css-quality-fixes.mjs
+scripts/ux-empty-copy.mjs
+scripts/ux-final-copy.mjs
+scripts/ux-font-contrast-fix.mjs
+scripts/ux-metadata.mjs
+scripts/ux-motion-components.mjs
+scripts/ux-motion-focus-fix.mjs
+scripts/ux-motion-migration.mjs
+scripts/ux-overflow.mjs
+scripts/ux-presentation-fixes.mjs
+scripts/ux-remove-unused-aliases.mjs

@@ -1,9 +1,0 @@
-{
-  "syntheticBookings": 5000,
-  "syntheticLogs": 10000,
-  "reportPageMs": 75,
-  "dashboardMs": 44,
-  "fullCsvMs": 1067,
-  "csvBytes": 5104726,
-  "productionBenchmark": false
-}

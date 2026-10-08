@@ -1,4 +1,0 @@
-{
-  "scope": "JSX text and display attributes; dynamic state additionally checked through e2e; admin technical codes allowed; development-only legacy excluded",
-  "findings": []
-}

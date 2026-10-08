@@ -1,8 +1,0 @@
-{
-  "openMs": 1096,
-  "bookMs": 1010,
-  "returnMs": 220,
-  "samples": 1,
-  "includesBrowserAndRefresh": true,
-  "productionBenchmark": false
-}
