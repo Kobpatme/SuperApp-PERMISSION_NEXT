@@ -1,4 +1,4 @@
-param([string]$BinaryDirectory = '.data/car-booking-postgres/pgsql/bin', [switch]$ServiceTests, [switch]$BrowserTests, [switch]$ImportTests, [string]$ClusterName = 'cluster-verified')
+param([string]$BinaryDirectory = '.data/car-booking-postgres/pgsql/bin', [switch]$ServiceTests, [switch]$BrowserTests, [switch]$ImportTests, [switch]$ReadinessTests, [switch]$RecoveryTests, [string]$ClusterName = 'cluster-verified', [string]$EvidenceDirectory = 'docs/quality/car-booking-phase-4')
 $ErrorActionPreference = 'Stop'
 $carTestRoot = Join-Path (Get-Location) '.data/car-booking-postgres'
 if ($ClusterName -notmatch '^[a-z0-9-]+$') { throw 'Invalid fixture cluster name' }
@@ -21,6 +21,8 @@ if (!(Test-Path -LiteralPath (Join-Path $carCluster 'PG_VERSION'))) {
 }
 $carPassword = [System.IO.File]::ReadAllText($carPasswordFile).Trim()
 $carPreviousConnection = $env:CAR_BOOKING_TEST_DATABASE_URL
+$carPreviousEvidence = $env:CAR_BOOKING_EVIDENCE_DIR
+$carPreviousBinaries = $env:CAR_BOOKING_TEST_PG_BIN
 $carStarted = $false
 try {
   $carStartArguments = '-D "' + $carCluster + '" -l "' + (Join-Path $carTestRoot 'server.log') + '" -o "-h 127.0.0.1 -p 55439" -w start'
@@ -29,6 +31,8 @@ try {
   if ($carStartProcess.ExitCode -ne 0) { throw 'Isolated PostgreSQL startup failed' }
   $carStarted = $true
   $env:CAR_BOOKING_TEST_DATABASE_URL = 'postgres://car_test_operator:' + $carPassword + '@127.0.0.1:55439/permission_next_car_booking_test'
+  $env:CAR_BOOKING_EVIDENCE_DIR = $EvidenceDirectory
+  $env:CAR_BOOKING_TEST_PG_BIN = (Resolve-Path -LiteralPath $BinaryDirectory).Path
   & node scripts/car-booking-test-db.mjs
   if ($LASTEXITCODE -ne 0) { throw 'First migration run failed' }
   & node scripts/car-booking-test-db.mjs
@@ -49,7 +53,17 @@ try {
     & node --test scripts/car-booking-import.test.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Car import integration tests failed' }
   }
+  if ($ReadinessTests) {
+    & node --test scripts/car-booking-readiness.test.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Car release readiness tests failed' }
+  }
+  if ($RecoveryTests) {
+    & node scripts/car-booking-recovery-test.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Car fixture recovery verification failed' }
+  }
 } finally {
   $env:CAR_BOOKING_TEST_DATABASE_URL = $carPreviousConnection
+  $env:CAR_BOOKING_EVIDENCE_DIR = $carPreviousEvidence
+  $env:CAR_BOOKING_TEST_PG_BIN = $carPreviousBinaries
   if ($carStarted) { & $carPgControl -D $carCluster -m fast -w stop }
 }

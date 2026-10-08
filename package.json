@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "check:car:readiness": "node scripts/car-booking-readiness.mjs",
     "import:car": "node scripts/import-car-booking.mjs",
     "test:car:import:unit": "node --test scripts/car-booking-import-unit.test.mjs",
     "test:car:import": "node scripts/car-booking-test-db.mjs && node --test scripts/car-booking-import.test.mjs",
