@@ -4,7 +4,7 @@ import { safeNextPath } from "@/lib/safe-next-path";
 
 export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  const isPublicRoute = ["/login", "/api/health", "/icon.png", "/apple-icon.png", "/manifest.webmanifest", "/robots.txt"].includes(pathname);
+  const isPublicRoute = ["/login", "/api/health", "/api/internal/car-booking/osp", "/icon.png", "/apple-icon.png", "/manifest.webmanifest", "/robots.txt"].includes(pathname);
   const isApiRoute = pathname.startsWith("/api/");
   const hasSession = Boolean(request.cookies.get(sessionCookieName)?.value);
   if (!hasSession && isApiRoute && !isPublicRoute) {

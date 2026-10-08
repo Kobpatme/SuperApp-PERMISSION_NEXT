@@ -1,4 +1,5 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID,generateKeyPairSync } from "node:crypto";
+import { mkdirSync,writeFileSync } from "node:fs";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -9,6 +10,9 @@ vi.mock("@/db",()=>({getDb:mockDb}));
 import { addCarBookingLog, cancelCarBooking, createCarBookings, readCarBookingLogs, readCarBookings, readCarCalendar, readCars, returnCarBooking, saveCar, type CarBookingContext } from "./car-booking-service";
 import { readCarSettings,saveCarSettings } from "./car-booking-settings";
 import { readCarAccessUsers,saveCarUserAccess } from "./car-booking-access";
+import { readOspReport,readCarDashboard } from "./car-booking-report-service";
+import { readOspSync,requestOspSync,processOspJobs } from "./car-booking-osp-jobs";
+import { ospColumns } from "./car-booking-osp";
 describe.skipIf(process.env.CAR_BOOKING_SERVICE_INTEGRATION!=="1")("car services on isolated PostgreSQL with runtime RLS",()=>{
   let operator:ReturnType<typeof postgres>;
   const ctx=(id:string):CarBookingContext=>({actorId:id,displayName:"พนักงานทดสอบ",requestId:randomUUID()});
@@ -128,6 +132,7 @@ describe.skipIf(process.env.CAR_BOOKING_SERVICE_INTEGRATION!=="1")("car services
     finally {await operator.unsafe("grant insert on public.audit_logs to car_booking_test_runtime");}
     expect((await operator`select status from car_booking_bookings where id=${bookingId}`)[0].status).toBe("booked");
     expect((await operator`select latest_mileage from car_booking_cars where id=${id}`)[0].latest_mileage).toBe("100");
+    expect(await operator`select id from car_booking_osp_jobs where booking_id=${bookingId}`).toHaveLength(0);
     expect((await operator`select count(*)::int as count from outbox_messages where aggregate_id=${bookingId}`)[0].count).toBe(1);
   });
   it("requires admin-only grant for car edits and preserves booking references on deactivation",async()=>{
@@ -169,4 +174,55 @@ describe.skipIf(process.env.CAR_BOOKING_SERVICE_INTEGRATION!=="1")("car services
     const [role]=await operator`select rolsuper,rolbypassrls,rolcanlogin,rolinherit from pg_roles where rolname='car_booking_access_manager'`;expect(role).toEqual({rolsuper:false,rolbypassrls:false,rolcanlogin:false,rolinherit:false});
     expect((await operator`select pg_has_role('car_booking_test_runtime','car_booking_access_manager','MEMBER') as allowed`)[0].allowed).toBe(false);
   });
+  it("produces scoped OSP and dashboard totals with Bangkok month boundaries, zero miles and queued returns",async()=>{
+    const staff=await user(),admin=await user("car_booking.module.admin","ALL"),id=await car("0");
+    const bookingId=await book(id,staff,range("2041-01-01T00:00:00Z","2041-01-01T02:00:00Z"));
+    await addCarBookingLog(bookingId,{logTime:"2041-01-01T01:00:00Z",logType:"fuel",location:"ปั๊มทดสอบ",mileage:"10",fuelLiters:"10",fuelAmount:"400"},staff);
+    await returnCarBooking(bookingId,{...returned("100","2041-01-01T02:00:00Z"),refueled:true,fuelMileage:"80",fuelLiters:"30",fuelAmount:"1200"},staff);
+    await book(await car(),staff,range("2041-01-02T00:00:00Z","2041-01-02T02:00:00Z"));
+    const cancelled=await book(await car(),staff,range("2041-01-03T00:00:00Z","2041-01-03T02:00:00Z"));await cancelCarBooking(cancelled,staff);
+    await book(await car(),staff,range("2041-01-31T17:30:00Z","2041-01-31T18:30:00Z"));
+    for(const read of [readOspReport,readCarDashboard])await expect(read({month:"2041-01"},staff)).rejects.toMatchObject({status:403});
+    const report=await readOspReport({month:"2041-01"},admin);if(!report.rows)throw new Error("Report expected");
+    expect(report.rows).toHaveLength(1);expect(report.rows[0].slice(4,9)).toEqual(["0","01/01/2584","09:00","100","100"]);expect(report.rows[0].slice(16,18)).toEqual(["40","1600"]);
+    const dashboard=await readCarDashboard({month:"2041-01"},admin);expect(dashboard.totals).toMatchObject({total:2,completed:1,upcoming:1,distance:"100",liters:"40",amount:"1600"});
+    expect((await readCarDashboard({month:"2041-02"},admin)).totals.total).toBe(1);
+    const exported=await readOspReport({month:"2041-01"},admin,true);expect(exported.csv).toContain('"40","1600"');
+    expect((await operator`select kind,status from car_booking_osp_jobs where booking_id=${bookingId}`)[0]).toEqual({kind:"booking",status:"queued"});
+    await expect(readOspSync(staff)).rejects.toMatchObject({status:403});await expect(requestOspSync({action:"rebuild"},staff)).rejects.toMatchObject({status:403});
+  });
+  it("keeps successful returns independent from failed Sheets delivery and retries a serialized idempotent batch",async()=>{
+    const admin=await user("car_booking.module.admin","ALL");const key=generateKeyPairSync("rsa",{modulusLength:2048});
+    vi.stubEnv("CAR_BOOKING_OSP_SYNC_ENABLED","true");vi.stubEnv("CAR_BOOKING_OSP_SPREADSHEET_ID","synthetic");vi.stubEnv("CAR_BOOKING_GOOGLE_CLIENT_EMAIL","fixture@example.test");vi.stubEnv("CAR_BOOKING_GOOGLE_PRIVATE_KEY",key.privateKey.export({type:"pkcs8",format:"pem"}).toString());
+    try{
+      await requestOspSync({action:"rebuild"},admin);
+      const failed=await processOspJobs(admin,vi.fn(async()=>new Response("private provider response",{status:429})) as typeof fetch);expect(failed.status).toBe("failed");expect(failed.errorCode).toBe("RATE_LIMIT");
+      expect((await readOspSync(admin)).counts.some(row=>row.status==="failed"&&row.count>0)).toBe(true);
+      await requestOspSync({action:"retry"},admin);let writes=0;
+      const request=vi.fn(async(input:string|URL|Request)=>{
+        const url=String(input);if(url.includes("oauth2"))return Response.json({access_token:"synthetic"});
+        if(url.endsWith(":batchUpdate")){writes++;return Response.json({});}
+        if(url.includes("/values/"))return Response.json({values:[[...ospColumns]]});
+        return Response.json({sheets:[{properties:{sheetId:1,title:"BookingsOSP",gridProperties:{rowCount:1000,columnCount:19}}}]});
+      });
+      const results=await Promise.all([processOspJobs(admin,request as typeof fetch),processOspJobs(admin,request as typeof fetch)]);
+      expect(results.filter(result=>result.status==="sent")).toHaveLength(1);expect(writes).toBe(1);
+      expect((await readOspSync(admin)).counts.some(row=>row.status==="sent"&&row.count>0)).toBe(true);
+      expect((await processOspJobs(admin,request as typeof fetch)).status).toBe("idle_or_busy");
+    }finally{vi.unstubAllEnvs();}
+  });
+  it("measures bounded reports/dashboard/export on 5000 bookings and 10000 logs without N+1 queries",async()=>{
+    const admin=await user("car_booking.module.admin","ALL"),staff=await user(),id=await car("0"),run=randomUUID();
+    await operator`insert into car_booking_bookings(legacy_id,user_id,employee_name,car_id,destination,start_time,end_time,status,start_mileage,actual_return_time,mileage_on_return,parking_floor)
+    select ${run}||'-'||i,${staff.actorId}::uuid,'พนักงานข้อมูลจำลอง',${id}::uuid,'ข้อมูลทดสอบปริมาณสูง','2050-01-01T00:00:00+07:00'::timestamptz+i*interval '1 hour','2050-01-01T00:00:00+07:00'::timestamptz+i*interval '1 hour'+interval '30 minutes','completed',i*100,'2050-01-01T00:00:00+07:00'::timestamptz+i*interval '1 hour'+interval '30 minutes',i*100+100,'2A' from generate_series(0,4999) i`;
+    await operator`insert into car_booking_logs(booking_id,log_time,log_type,location,mileage,fuel_liters,fuel_amount,created_by)
+    select b.id,b.start_time+interval '15 minutes',case when n=1 then 'fuel' else 'checkpoint' end,'บันทึกจำลอง',b.start_mileage+10,case when n=1 then 1 else null end,case when n=1 then 40 else null end,${staff.actorId}::uuid from car_booking_bookings b cross join generate_series(1,2) n where b.user_id=${staff.actorId}::uuid`;
+    const start=performance.now(),report=await readOspReport({month:"2050-03"},admin),reportMs=performance.now()-start;
+    expect(report.rows).toHaveLength(50);expect(report.total).toBe(744);expect(report.nextOffset).toBe(50);
+    const dashboardStart=performance.now(),dashboard=await readCarDashboard({month:"2050-03"},admin),dashboardMs=performance.now()-dashboardStart;
+    expect(dashboard.totals).toMatchObject({total:744,completed:744,distance:"74400",liters:"744",amount:"29760"});expect(dashboard.bookings).toHaveLength(50);
+    const exportStart=performance.now(),exported=await readOspReport({month:"all"},admin,true),exportMs=performance.now()-exportStart;expect(exported.csv).toContain(run);
+    const measurement={syntheticBookings:5000,syntheticLogs:10000,reportPageMs:Math.round(reportMs),dashboardMs:Math.round(dashboardMs),fullCsvMs:Math.round(exportMs),csvBytes:Buffer.byteLength(exported.csv || ""),productionBenchmark:false};
+    mkdirSync("docs/quality/car-booking-phase-4",{recursive:true});writeFileSync("docs/quality/car-booking-phase-4/performance.json",JSON.stringify(measurement,null,2)+"\n");
+  },60000);
 });

@@ -3,10 +3,12 @@ import { getAccessContext } from "@/lib/access";
 import { logEvent } from "@/lib/logger";
 import { CarBookingError } from "@/lib/car-booking-input";
 import { readCarSettings,saveCarSettings } from "@/lib/car-booking-settings";
+import { readOspReport,readCarDashboard,reportFilterSchema } from "@/lib/car-booking-report-service";
+import { readOspSync,requestOspSync } from "@/lib/car-booking-osp-jobs";
 import { addCarBookingLog, cancelCarBooking, createCarBookings, readCarBookingLogs, readCarBookings, readCarCalendar, readCars, readCarOpenBookings, returnCarBooking, saveCar } from "@/lib/car-booking-service";
 
 const headers={"Cache-Control":"no-store"};
-type Operation="bookings"|"return"|"cancel"|"logs"|"gps"|"cars"|"calendar"|"settings";
+type Operation="bookings"|"return"|"cancel"|"logs"|"gps"|"cars"|"calendar"|"settings"|"reports"|"dashboard"|"osp-sync";
 export async function handleCarBookingRequest(request:Request,operation:Operation,id?:string) {
   const requestId=crypto.randomUUID();
   try {
@@ -19,6 +21,14 @@ export async function handleCarBookingRequest(request:Request,operation:Operatio
     const context={actorId:access.userId,displayName:access.displayName,requestId};
     const url=new URL(request.url),range={startTime:url.searchParams.get("start"),endTime:url.searchParams.get("end")};
     if(!write) {
+      if(operation==="reports"||operation==="dashboard"){
+        const filter=reportFilterSchema.parse({month:url.searchParams.get("month") ?? "all",offset:url.searchParams.get("offset") ?? 0});
+        if(operation==="dashboard")return Response.json({data:await readCarDashboard(filter,context)},{headers});
+        const download=url.searchParams.get("format")==="csv",result=await readOspReport(filter,context,download);
+        if(download&&"csv" in result)return new Response(result.csv,{headers:{...headers,"Content-Type":"text/csv; charset=utf-8","Content-Disposition":`attachment; filename="OSP-${filter.month}.csv"`}});
+        return Response.json({data:result},{headers});
+      }
+      if(operation==="osp-sync")return Response.json({data:await readOspSync(context)},{headers});
       const offset=z.coerce.number().int().min(0).max(1000000).parse(url.searchParams.get("offset") || "0");
       const data=operation==="bookings"?url.searchParams.get("view")==="active"?await readCarOpenBookings(context,offset):await readCarBookings(range,context,offset)
         :operation==="settings"?await readCarSettings(context)
@@ -36,6 +46,7 @@ export async function handleCarBookingRequest(request:Request,operation:Operatio
       try { raw=JSON.parse(text); }catch{throw new CarBookingError("PAYLOAD","คำขอไม่ถูกต้อง");}
     }
     const result=operation==="bookings"?await createCarBookings(raw,context)
+      :operation==="osp-sync"?await requestOspSync(raw,context)
       :operation==="settings"?await saveCarSettings(raw,context)
       :operation==="return"?await returnCarBooking(id!,raw,context)
       :operation==="cancel"?await cancelCarBooking(id!,context)
