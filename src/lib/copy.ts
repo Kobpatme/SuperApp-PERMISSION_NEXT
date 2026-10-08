@@ -82,6 +82,7 @@ export const copy = {
 } as const;
 
 export function loginReason(reason?: string) {
+  if (reason === "superseded") return "บัญชีนี้เพิ่งเข้าสู่ระบบจากอีกเครื่อง จึงออกจากระบบเครื่องนี้ให้ก่อน เข้าสู่ระบบอีกครั้งได้เลย";
   if (reason === "expired") return copy.auth.expired;
   if (reason === "signed-out") return copy.auth.signedOut;
   return undefined;

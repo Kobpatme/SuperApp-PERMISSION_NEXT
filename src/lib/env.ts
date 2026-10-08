@@ -12,6 +12,7 @@ const serverEnvSchema = z.object({
   TRUSTED_PROXY_COUNT: z.coerce.number().int().min(0).default(0),
   AUTH_IDLE_TIMEOUT_MINUTES: z.coerce.number().int().min(5).max(720).default(30),
   AUTH_ABSOLUTE_TIMEOUT_HOURS: z.coerce.number().int().min(1).max(72).default(12),
+  AUTH_SINGLE_SESSION: z.enum(["true", "false"]).default("true").transform(value => value === "true"),
 });
 
 export function requireDatabaseUrl() {
@@ -32,6 +33,7 @@ export function getServerEnv() {
     TRUSTED_PROXY_COUNT: process.env.TRUSTED_PROXY_COUNT,
     AUTH_IDLE_TIMEOUT_MINUTES: process.env.AUTH_IDLE_TIMEOUT_MINUTES,
     AUTH_ABSOLUTE_TIMEOUT_HOURS: process.env.AUTH_ABSOLUTE_TIMEOUT_HOURS,
+    AUTH_SINGLE_SESSION: process.env.AUTH_SINGLE_SESSION,
   });
   if (!result.success) throw new Error(`Invalid server environment: ${result.error.issues.map((issue) => issue.path.join(".")).join(", ")}`);
   return result.data;

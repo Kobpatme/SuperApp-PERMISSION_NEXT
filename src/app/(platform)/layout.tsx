@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { getAccessContext } from "@/lib/access";
 import { modules } from "@/lib/module-registry";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, getSessionFailureReason } from "@/lib/auth";
 import { getNotificationInbox } from "@/lib/notification-inbox";
 import { NotificationCenter } from "@/components/notification-center";
 import { isAuthorized } from "@/lib/authorization";
@@ -16,7 +16,7 @@ export default async function PlatformLayout({ children }: Readonly<{ children: 
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     const next = safeNextPath((await headers()).get("x-pn-request-path"));
-    redirect(`/login?next=${encodeURIComponent(next)}&reason=expired`);
+    redirect(`/login?next=${encodeURIComponent(next)}&reason=${await getSessionFailureReason()}`);
   }
   if (currentUser.mustChangePassword) redirect("/change-password");
   const access = await Promise.all(modules.map((module) => getAccessContext(module.id)));

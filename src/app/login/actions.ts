@@ -5,8 +5,9 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { hash, verify } from "@node-rs/argon2";
 import { getDb } from "@/db";
-import { authSessions, localCredentials, profiles } from "@/db/schema";
-import { createSession, destroySession, getCurrentUser } from "@/lib/auth";
+import { localCredentials, profiles } from "@/db/schema";
+import { revokeUserSessions } from "@/lib/auth-session-service";
+import { createSession, destroySession, getCurrentUser, getSessionFailureReason } from "@/lib/auth";
 import { clearLoginRateLimit, getLoginRateLimit, getTrustedClientIp, recordLoginFailure, type LoginRateLimitKey } from "@/lib/auth-rate-limit";
 import { writeAuditLog } from "@/lib/audit-log";
 import { runMaterialChange } from "@/lib/material-change";
@@ -107,7 +108,7 @@ export async function loginAction(_state: LoginState, form: FormData): Promise<L
 
 export async function changePasswordAction(_state: LoginState, form: FormData): Promise<LoginState> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(`/login?reason=${await getSessionFailureReason()}`);
   const password = String(form.get("password") || "");
   const confirm = String(form.get("confirm") || "");
   if (password !== confirm) return { error: copy.auth.passwordMismatch };
@@ -117,7 +118,7 @@ export async function changePasswordAction(_state: LoginState, form: FormData): 
   await runMaterialChange({ audit: { actorId: user.id, moduleId: "core", action: "password.change", entityType: "profile",
     entityId: user.id, requestId: crypto.randomUUID(), metadata: { sessionsRevoked: true } } }, async (tx) => {
     await tx.update(localCredentials).set({ passwordHash, mustChangePassword: false, failedAttempts: 0, lockedUntil: null, passwordChangedAt: new Date(), updatedAt: new Date() }).where(eq(localCredentials.userId, user.id));
-    await tx.delete(authSessions).where(eq(authSessions.userId, user.id));
+    await revokeUserSessions(tx, user.id, "password_changed");
   });
   await createSession(user.id);
   redirect("/");

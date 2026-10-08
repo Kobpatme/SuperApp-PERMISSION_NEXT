@@ -1,4 +1,5 @@
 "use client";
+import { sessionFetch } from "@/lib/session-fetch";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
@@ -67,7 +68,7 @@ export function BuildingEditorForm({ id, initial, apiKey, teams, canCreateWithou
     }
     setInvalid([]); setError(""); setBusy(true); setConflict(false);
     try {
-      const response = await fetch(id ? `/api/buildings/${id}` : "/api/buildings", { method: id ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
+      const response = await sessionFetch(id ? `/api/buildings/${id}` : "/api/buildings", { method: id ? "PATCH" : "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...raw, ...(candidate ? { location: { ...candidate, verified: true } } : {}) }) });
       const result = await response.json() as { id?: string; error?: string };
       if (!response.ok || !result.id) { setConflict(result.error === "building_changed"); setError(response.status === 403 ? c.forbidden : result.error === "building_duplicate" ? c.duplicate : result.error === "building_changed" ? c.conflict : response.status === 400 ? c.validation : c.unavailable); return; }

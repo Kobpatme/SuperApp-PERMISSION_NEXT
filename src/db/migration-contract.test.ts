@@ -5,6 +5,12 @@ import { describe, expect, it } from "vitest";
 const migration = readFileSync(join(process.cwd(), "supabase", "migrations", "0002_platform_foundation.sql"), "utf8").toLowerCase();
 const locationMigration = readFileSync(join(process.cwd(), "supabase", "migrations", "0018_building_location.sql"), "utf8").toLowerCase();
 
+it("adds session tombstones without revoking existing users during migration", () => {
+  const source = readFileSync(join(process.cwd(), "supabase/migrations/0028_auth_single_session.sql"), "utf8").toLowerCase();
+  for (const part of ["revoked_at timestamptz", "revoked_reason text", "'superseded'", "'admin_revoked'", "'password_changed'", "where revoked_at is null", "check ("]) expect(source).toContain(part);
+  expect(source).not.toContain("delete from"); expect(source).not.toContain("update public.auth_sessions");
+});
+
 describe("platform migration security contract", () => {
   it("creates normalized RBAC and all four data scopes", () => {
     for (const table of ["teams", "user_teams", "roles", "permissions", "role_permissions", "user_role_assignments", "data_scope_grants"]) {

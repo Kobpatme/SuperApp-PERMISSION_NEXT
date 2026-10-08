@@ -14,7 +14,7 @@ export async function handleCarBookingRequest(request:Request,operation:Operatio
   const requestId=crypto.randomUUID();
   try {
     const access=await getAccessContext("car-booking");
-    if(!access.userId)return Response.json({error:"AUTHENTICATION_REQUIRED",message:"กรุณาเข้าสู่ระบบ"},{status:401,headers});
+    if(!access.userId)return authenticationRequiredResponse({error:"AUTHENTICATION_REQUIRED",message:"กรุณาเข้าสู่ระบบ"});
     if(!access.allowed || access.passwordChangeRequired)return Response.json({error:"FORBIDDEN",message:"คุณไม่มีสิทธิ์ใช้งานระบบจองรถ"},{status:403,headers});
     const write=request.method!=="GET";
     if(write && request.headers.get("origin")!==new URL(request.url).origin)throw new CarBookingError("FORBIDDEN","คำขอไม่ถูกต้อง",403);
@@ -66,3 +66,4 @@ export async function handleCarBookingRequest(request:Request,operation:Operatio
     return Response.json({error:"SAVE_FAILED",message:"ไม่สามารถดำเนินการได้ กรุณาลองใหม่"},{status:500,headers});
   }
 }
+import { authenticationRequiredResponse } from "@/lib/request-context";

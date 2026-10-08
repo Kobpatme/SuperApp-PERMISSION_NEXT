@@ -1,4 +1,5 @@
 "use client";
+import { sessionFetch } from "@/lib/session-fetch";
 import { copy } from "@/lib/copy";
 
 
@@ -29,7 +30,7 @@ export function DeleteBuilding({ id, name, version }: { id: string; name: string
     pendingRef.current = true;
     setPending(true); setMessage("");
     try {
-      const response = await fetch(`/api/buildings/${id}`, { method: "DELETE", headers: { "Content-Type": "application/json" },
+      const response = await sessionFetch(`/api/buildings/${id}`, { method: "DELETE", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmationName: confirmation.trim(), version }) });
       const result = await response.json();
       if (!response.ok || result.deleted !== true) { setMessage(errors[result.error] ?? "ลบอาคารไม่สำเร็จ ข้อมูลยังไม่ถูกลบ กรุณาลองอีกครั้ง"); return; }

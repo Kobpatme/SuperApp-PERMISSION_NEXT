@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ access: vi.fn(), save: vi.fn() }));
 vi.mock("server-only", () => ({}));
+vi.mock("@/lib/auth", () => ({ getSessionFailureReason: async () => "expired" }));
 vi.mock("./access", () => ({ getAccessContext: mocks.access }));
 vi.mock("./building-editor-server", async importOriginal => {
   const original = await importOriginal<typeof import("./building-editor-server")>();

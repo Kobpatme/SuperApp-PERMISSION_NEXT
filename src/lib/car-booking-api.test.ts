@@ -44,3 +44,4 @@ describe("car booking direct API boundary",()=>{
     const response=await handleCarBookingRequest(request(),"bookings");expect(response.status).toBe(500);expect(await response.text()).not.toContain("private SQL");
   });
 });
+vi.mock("@/lib/auth", () => ({ getSessionFailureReason: async () => "expired" }));

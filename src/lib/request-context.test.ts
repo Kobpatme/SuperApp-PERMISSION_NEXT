@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { getCurrentUser } = vi.hoisted(() => ({ getCurrentUser: vi.fn() }));
 
-vi.mock("@/lib/auth", () => ({ getCurrentUser }));
+vi.mock("@/lib/auth", () => ({ getCurrentUser, getSessionFailureReason: async () => "expired" }));
 
 import { requireApiIdentity } from "@/lib/request-context";
 

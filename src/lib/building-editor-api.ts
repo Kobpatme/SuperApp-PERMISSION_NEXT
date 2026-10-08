@@ -3,10 +3,11 @@ import { z } from "zod";
 import { getAccessContext } from "./access";
 import { BuildingEditorError, buildingRecordSchema, saveBuildingRecord } from "./building-editor-server";
 import { logEvent } from "./logger";
+import { authenticationRequiredResponse } from "./request-context";
 
 export async function mutateBuildingRequest(request: Request, id?: string) {
   const access = await getAccessContext("buildings");
-  if (!access.userId) return NextResponse.json({ error: "authentication_required" }, { status: 401 });
+  if (!access.userId) return authenticationRequiredResponse({ error: "authentication_required" });
   if (!access.allowed || access.passwordChangeRequired) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   if (request.headers.get("origin") !== new URL(request.url).origin) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   if (id && !z.string().uuid().safeParse(id).success) return NextResponse.json({ error: "invalid_building" }, { status: 400 });

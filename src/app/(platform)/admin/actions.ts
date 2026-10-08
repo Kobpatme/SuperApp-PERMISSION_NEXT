@@ -4,7 +4,8 @@ import { hash } from "@node-rs/argon2";
 import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
-import { authSessions, dataScopeGrants, localCredentials, permissions, positions, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
+import { dataScopeGrants, localCredentials, permissions, positions, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
+import { revokeUserSessions } from "@/lib/auth-session-service";
 import { adminCapabilityCatalog, parseAssignmentScope, parseCatalogCapabilities } from "@/lib/admin-access-contract";
 import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
@@ -194,7 +195,7 @@ export async function updateRolePermissionsAction(_state: AdminActionState, form
       await tx.delete(rolePermissions).where(eq(rolePermissions.roleId, roleId));
       if (capabilityCodes.length) await tx.insert(rolePermissions).values(capabilityCodes.map((permissionCode) => ({ roleId, permissionCode })));
       const affectedUserIds = [...new Set(affected.map((item) => item.userId))];
-      if (affectedUserIds.length) await tx.delete(authSessions).where(inArray(authSessions.userId, affectedUserIds));
+      for (const userId of [...affectedUserIds].sort()) await revokeUserSessions(tx, userId, "admin_revoked");
     });
     revalidatePath("/admin");
     return { ok: true, message: `บันทึกสิทธิ์ของ ${name} แล้ว ผู้ใช้ที่ได้รับผลต้องเข้าสู่ระบบใหม่` };
@@ -329,7 +330,7 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
           await tx.insert(dataScopeGrants).values({ assignmentId: assignment.id, scopeType: requestedScope.scopeType });
         }
       }
-      if ((accessChanged || statusChanged) && userId !== access.userId) await tx.delete(authSessions).where(eq(authSessions.userId, userId));
+      if ((accessChanged || statusChanged) && userId !== access.userId) await revokeUserSessions(tx, userId, "admin_revoked");
     });
     revalidatePath("/admin");
     return { ok: true, message: `บันทึกข้อมูลและสิทธิ์ของ ${displayName} แล้ว` };
@@ -352,7 +353,7 @@ export async function resetPasswordAction(_state: AdminActionState, form: FormDa
   await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "user.password.reset", entityType: "profile",
     entityId: userId, requestId: crypto.randomUUID(), metadata: { sessionsRevoked: true } } }, async (tx) => {
     await tx.update(localCredentials).set({ passwordHash, failedAttempts: 0, lockedUntil: null, mustChangePassword: true, passwordChangedAt: new Date(), updatedAt: new Date() }).where(eq(localCredentials.userId, userId));
-    await tx.delete(authSessions).where(eq(authSessions.userId, userId));
+    await revokeUserSessions(tx, userId, "password_changed");
   });
   revalidatePath("/admin");
   return { ok: true, message: "รีเซ็ตรหัสผ่านและออกจากระบบทุกอุปกรณ์แล้ว" };
@@ -366,7 +367,7 @@ export async function revokeUserSessionsAction(_state: AdminActionState, form: F
   const [target] = await getDb().select({ id: profiles.id, email: profiles.email }).from(profiles).where(eq(profiles.id, userId)).limit(1);
   if (!target) return { ok: false, message: "ไม่พบบัญชีผู้ใช้" };
   await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "user.sessions.revoke", entityType: "profile", entityId: userId, requestId: crypto.randomUUID(), metadata: { allSessions: true } } }, async (tx) => {
-    await tx.delete(authSessions).where(eq(authSessions.userId, userId));
+    await revokeUserSessions(tx, userId, "admin_revoked");
   });
   revalidatePath("/admin");
   return { ok: true, message: `ยกเลิกเซสชันทั้งหมดของ ${target.email} แล้ว` };

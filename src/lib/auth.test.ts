@@ -9,11 +9,13 @@ vi.mock("@/db",()=>({getDb:()=>({
   select:()=>{if(mocks.fail)throw new Error("private_connection_detail");const q={from:()=>q,innerJoin:()=>q,where:(s:unknown)=>{mocks.selectWhere(s);return q;},limit:async()=>mocks.row?[mocks.row]:[]};return q;},
   update:()=>({set:(s:unknown)=>{mocks.set(s);return {where:async(s:unknown)=>{mocks.updateWhere(s);}};}}),
 })}));
-import {getCurrentUser} from "./auth";
+import {getCurrentUser,getSessionFailureReason} from "./auth";
 const now=new Date("2026-10-03T12:00:00Z");
 beforeEach(()=>{vi.clearAllMocks();vi.useFakeTimers();vi.setSystemTime(now);vi.stubEnv("DATABASE_URL","postgres://fixture/fixture");mocks.fail=false;mocks.token="x".repeat(43);mocks.row={sessionId:"fixture-session",id:"fixture-id",email:"fixture@example.test",displayName:"ผู้ใช้ทดสอบ",mustChangePassword:true,lastSeenAt:new Date(now.getTime()-10000)};});
 afterEach(()=>{vi.useRealTimers();vi.unstubAllEnvs();});
 describe("session validation and activity writes",()=>{
+  it("distinguishes superseded from expired without exposing session metadata",async()=>{mocks.row={reason:"superseded"};expect(await getSessionFailureReason()).toBe("superseded");mocks.row=undefined;expect(await getSessionFailureReason()).toBe("expired");});
+  it("rejects revoked rows at lookup and touch",async()=>{mocks.row!.lastSeenAt=new Date(now.getTime()-65000);await getCurrentUser();for(const condition of [mocks.selectWhere.mock.calls[0][0],mocks.updateWhere.mock.calls[0][0]])expect(new PgDialect().sqlToQuery(condition).sql).toContain('"revoked_at" is null');});
   it("does not write within the 60-second interval and preserves forced-password state",async()=>{expect(await getCurrentUser()).toMatchObject({id:"fixture-id",mustChangePassword:true});expect(mocks.set).not.toHaveBeenCalled();});
   it("writes an older valid session conditionally without changing absolute expiry",async()=>{mocks.row!.lastSeenAt=new Date(now.getTime()-65000);await getCurrentUser();expect(mocks.set).toHaveBeenCalledExactlyOnceWith({lastSeenAt:now});const q=new PgDialect().sqlToQuery(mocks.updateWhere.mock.calls[0][0]);expect(q.sql).toContain('"last_seen_at" <');expect(q.sql).toContain('"last_seen_at" >');expect(q.sql).toContain('"expires_at" >');expect(q.sql).toContain('"id" =');});
   it("keeps strict idle, absolute expiry and active profile predicates on every lookup",async()=>{await getCurrentUser();const q=new PgDialect().sqlToQuery(mocks.selectWhere.mock.calls[0][0]);expect(q.sql).toContain('"expires_at" >');expect(q.sql).toContain('"last_seen_at" >');expect(q.sql).toContain('"status" =');expect(q.params).toContain("active");expect(q.params).toContain(new Date(now.getTime()-30*60000).toISOString());});

@@ -1,12 +1,13 @@
 import "server-only";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { cache } from "react";
-import { and, eq, gt, lt } from "drizzle-orm";
+import { and, eq, gt, isNull, lt } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getDb } from "@/db";
 import { authSessions, localCredentials, profiles } from "@/db/schema";
 import { getIdleDurationMs, getSessionDurationMs } from "@/lib/session-duration";
 import { logEvent } from "@/lib/logger";
+import { persistSession } from "@/lib/auth-session-service";
 
 export const sessionCookieName = "pn_session";
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
@@ -22,13 +23,14 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     const now = new Date();
     const [row] = await getDb().select({ sessionId: authSessions.id, lastSeenAt: authSessions.lastSeenAt, id: profiles.id, email: profiles.email, displayName: profiles.displayName, mustChangePassword: localCredentials.mustChangePassword })
       .from(authSessions).innerJoin(profiles, eq(profiles.id, authSessions.userId)).innerJoin(localCredentials, eq(localCredentials.userId, profiles.id))
-      .where(and(eq(authSessions.tokenHash, hashToken(token)), gt(authSessions.expiresAt, now), gt(authSessions.lastSeenAt, new Date(now.getTime() - getIdleDurationMs())), eq(profiles.status, "active"))).limit(1);
+      .where(and(eq(authSessions.tokenHash, hashToken(token)), isNull(authSessions.revokedAt), gt(authSessions.expiresAt, now), gt(authSessions.lastSeenAt, new Date(now.getTime() - getIdleDurationMs())), eq(profiles.status, "active"))).limit(1);
     if (!row) return null;
     const activityThreshold = new Date(now.getTime() - 60_000);
     if (row.lastSeenAt < activityThreshold) {
       // Conditional write avoids duplicate touches and cannot refresh an expired row.
       await getDb().update(authSessions).set({ lastSeenAt: now }).where(and(
         eq(authSessions.id, row.sessionId), lt(authSessions.lastSeenAt, activityThreshold),
+        isNull(authSessions.revokedAt),
         gt(authSessions.expiresAt, now), gt(authSessions.lastSeenAt, new Date(now.getTime() - getIdleDurationMs())),
       ));
     }
@@ -39,14 +41,21 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   }
 });
 
+/** Only distinguish a known superseded cookie; no session details leave the server. */
+export const getSessionFailureReason = cache(async (): Promise<"superseded" | "expired"> => {
+  const token = (await cookies()).get(sessionCookieName)?.value;
+  if (!process.env.DATABASE_URL || !token || token.length < 40) return "expired";
+  try {
+    const [row] = await getDb().select({ reason: authSessions.revokedReason }).from(authSessions)
+      .where(and(eq(authSessions.tokenHash, hashToken(token)), eq(authSessions.revokedReason, "superseded"), gt(authSessions.expiresAt, new Date()))).limit(1);
+    return row?.reason === "superseded" ? "superseded" : "expired";
+  } catch { return "expired"; }
+});
+
 export async function createSession(userId: string, metadata?: { ipAddress?: string; userAgent?: string }) {
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(Date.now() + getSessionDurationMs());
-  await getDb().transaction(async (tx) => {
-    await tx.delete(authSessions).where(and(eq(authSessions.userId, userId), lt(authSessions.expiresAt, new Date())));
-    await tx.insert(authSessions).values({ userId, tokenHash: hashToken(token), expiresAt,
-      ipAddress: metadata?.ipAddress?.slice(0, 80), userAgent: metadata?.userAgent?.slice(0, 500) });
-  });
+  await persistSession(userId, hashToken(token), expiresAt, metadata);
   (await cookies()).set(sessionCookieName, token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", priority: "high", path: "/", expires: expiresAt });
 }
 

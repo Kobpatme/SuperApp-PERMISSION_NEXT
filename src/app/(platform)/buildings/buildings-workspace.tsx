@@ -1,4 +1,5 @@
 "use client";
+import { sessionFetch } from "@/lib/session-fetch";
 
 import { copy } from "@/lib/copy";
 
@@ -115,7 +116,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
     let timedOut = false;
     const timer = window.setTimeout(() => { timedOut = true; controller.abort(); }, 60000);
     const params = new URLSearchParams({ nameTh: building.nameTh, nameEng: building.nameEn || "", area: building.area });
-    fetch(`/api/nas/building-documents?${params}`, { signal: controller.signal, cache: "no-store" }).then(async (response) => {
+    sessionFetch(`/api/nas/building-documents?${params}`, { signal: controller.signal, cache: "no-store" }).then(async (response) => {
       if (response.status === 404) { setDocumentState({ key: building.id, status: "empty", files: [], message: copy.feedback.documentsEmpty }); return; }
       if (!response.ok) throw new Error(response.status === 403 ? "บัญชีนี้ไม่มีสิทธิ์ดูเอกสาร" : copy.feedback.documentsUnavailable);
       const raw: unknown = await response.json();

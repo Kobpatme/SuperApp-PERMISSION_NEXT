@@ -6,6 +6,9 @@ import { dataScopeTypes, type AuthorizationSubject, type DataScopeType, type Rol
 import { getModule, type ModuleId } from "@/lib/module-registry";
 import { isModuleEnabled } from "@/lib/module-contract";
 import { cache } from "react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { getSessionFailureReason } from "@/lib/auth";
 
 export type AccessContext = {
   userId: string;
@@ -58,6 +61,7 @@ async function loadSubject(userId: string) {
 
 export const getIdentityAccessContext = cache(async function getIdentityAccessContext() {
   const user = await getCurrentUser();
+  if (!user && (await headers()).has("next-action")) redirect(`/login?reason=${await getSessionFailureReason()}`);
   if (!user) return { userId: "", email: "", displayName: "", permissions: [] as string[], subject: undefined, role: undefined, passwordChangeRequired: false, isDevelopmentSession: false };
   const authorization = await loadSubject(user.id);
   const email = user.email || "";

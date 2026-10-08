@@ -1,4 +1,5 @@
 "use client";
+import { sessionFetch } from "@/lib/session-fetch";
 import Link from "next/link";
 import { useCallback,useEffect,useRef,useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -15,7 +16,7 @@ type CalendarEvent=CarCalendarEvent;
 type PageResponse<T>={data:T[];message?:string;page?:{nextOffset:number|null}};
 type Dialog={kind:"return"|"log"|"logs"|"gps"|"car"|"cancel";booking?:Reservation;car?:Vehicle};
 export async function carRequest<T>(path:string,method="GET",body?:unknown):Promise<T> {
-  const response=await fetch(path,{method,cache:"no-store",headers:body===undefined?undefined:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)});
+  const response=await sessionFetch(path,{method,cache:"no-store",headers:body===undefined?undefined:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)});
   const result=await response.json();if(!response.ok)throw new Error(result.message || "ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่");return result.data;
 }
 const tabs=[{id:"book",label:"จองรถ"},{id:"mine",label:"รายการของฉัน"},{id:"return",label:"คืนรถ"},{id:"calendar",label:"ปฏิทิน"},{id:"vehicles",label:"ข้อมูลรถ"}];
@@ -38,7 +39,7 @@ export function CarBookingWorkspace({userId,admin,canManageAccess}:{userId:strin
    const reservations=async(filter:string)=>{
     const rows:Reservation[]=[];let offset:number|null=0;
     while(offset!==null){
-     const response:Response=await fetch(`/api/car-booking/bookings?${filter}&offset=${offset}`,{cache:"no-store"});const result:PageResponse<Reservation>=await response.json();if(!response.ok)throw new Error(result.message || "โหลดการจองไม่สำเร็จ");
+     const response:Response=await sessionFetch(`/api/car-booking/bookings?${filter}&offset=${offset}`,{cache:"no-store"});const result:PageResponse<Reservation>=await response.json();if(!response.ok)throw new Error(result.message || "โหลดการจองไม่สำเร็จ");
      rows.push(...result.data);offset=result.page?.nextOffset ?? null;
     }
     return rows;
@@ -112,7 +113,7 @@ function LogForm({busy,onSave}:{busy:boolean;onSave:(body:unknown)=>Promise<bool
 function CarForm({vehicle,floors,busy,onSave}:{vehicle?:Vehicle;floors:string[];busy:boolean;onSave:(body:unknown)=>Promise<boolean>}) {return <form onSubmit={e=>{e.preventDefault();const data=new FormData(e.currentTarget);void onSave({licensePlate:String(data.get("plate")),parkingFloor:String(data.get("floor")) || null,latestMileage:String(data.get("mileage")),isActive:data.get("active")==="on"});}}><label>ทะเบียนรถ<input name="plate" required maxLength={80} defaultValue={vehicle?.license_plate}/></label><label>ชั้นที่จอด<select name="floor" defaultValue={returnParkingFloor(vehicle?.parking_floor || null,floors)}><option value="">ยังไม่ระบุ</option>{floors.map(f=><option key={f}>{f}</option>)}</select></label><label>เลขไมล์ล่าสุด<input name="mileage" type="number" min="0" step="any" required defaultValue={vehicle?.latest_mileage || "0"}/></label><label className="cb-check"><input name="active" type="checkbox" defaultChecked={vehicle?.is_active ?? true}/>เปิดใช้งานรถ</label><p className="cb-muted">ปิดใช้งานเพื่อหยุดรับจองใหม่ ประวัติยังอยู่</p><button className="cb-primary" disabled={busy} type="submit">บันทึกรถ</button></form>;}
 function JourneyLogs({bookingId,gps}:{bookingId:string;gps:boolean}) {
  const [rows,setRows]=useState<JourneyLog[]>([]),[error,setError]=useState(""),[loading,setLoading]=useState(true);
- useEffect(()=>{let live=true;async function load(){try{const all:JourneyLog[]=[];let offset:number|null=0;while(offset!==null){const response:Response=await fetch(`/api/car-booking/bookings/${bookingId}/${gps?"gps":"logs"}?offset=${offset}`,{cache:"no-store"});const result:PageResponse<JourneyLog>=await response.json();if(!response.ok)throw new Error(result.message);all.push(...result.data);offset=result.page?.nextOffset ?? null;}if(live)setRows(all);}catch(e){if(live)setError(e instanceof Error?e.message:"โหลดบันทึกไม่สำเร็จ");}finally{if(live)setLoading(false);}}void load();return()=>{live=false;};},[bookingId,gps]);
+ useEffect(()=>{let live=true;async function load(){try{const all:JourneyLog[]=[];let offset:number|null=0;while(offset!==null){const response:Response=await sessionFetch(`/api/car-booking/bookings/${bookingId}/${gps?"gps":"logs"}?offset=${offset}`,{cache:"no-store"});const result:PageResponse<JourneyLog>=await response.json();if(!response.ok)throw new Error(result.message);all.push(...result.data);offset=result.page?.nextOffset ?? null;}if(live)setRows(all);}catch(e){if(live)setError(e instanceof Error?e.message:"โหลดบันทึกไม่สำเร็จ");}finally{if(live)setLoading(false);}}void load();return()=>{live=false;};},[bookingId,gps]);
  const labels:Record<string,string>={fuel:"เติมน้ำมัน",overnight_stop:"จอดพัก",checkpoint:"จุดแวะ",other:"บันทึกระหว่างทาง"};
  return <>{loading&&<p role="status">กำลังโหลดบันทึก…</p>}{error&&<p role="alert">{error}</p>}{gps&&rows.length>0&&<CarJourneyMap logs={rows}/>}<ol className="cb-log-list">{rows.map(row=><li key={row.id}><strong>{labels[row.logType]} · {row.location}</strong><p>{thaiCarDate(row.logTime)} · ไมล์ {row.mileage}</p>{row.fuelLiters&&<p>น้ำมัน {row.fuelLiters} ลิตร · {row.fuelAmount} บาท</p>}{row.note&&<p>{row.note}</p>}{gps&&<p>พิกัด {row.gpsLatitude}, {row.gpsLongitude} · ความแม่นยำ {row.gpsAccuracyMeters || "ไม่ระบุ"} เมตร</p>}</li>)}</ol>{!loading&&!rows.length&&!error&&<p role="status">ยังไม่มี{gps?"บันทึกที่มีพิกัด":"บันทึกระหว่างทาง"}</p>}</>;
 }

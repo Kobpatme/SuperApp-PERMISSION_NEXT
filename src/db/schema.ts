@@ -53,7 +53,12 @@ export const authSessions = pgTable("auth_sessions", {
   tokenHash: text("token_hash").notNull(), expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(), ipAddress: text("ip_address"), userAgent: text("user_agent"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-}, (t) => [uniqueIndex("auth_sessions_token_hash_idx").on(t.tokenHash), index("auth_sessions_user_idx").on(t.userId, t.expiresAt)]);
+  revokedAt: timestamp("revoked_at", { withTimezone: true }), revokedReason: text("revoked_reason"),
+}, (t) => [uniqueIndex("auth_sessions_token_hash_idx").on(t.tokenHash), index("auth_sessions_user_idx").on(t.userId, t.expiresAt),
+  index("auth_sessions_active_user_idx").on(t.userId).where(sql`${t.revokedAt} is null`),
+  index("auth_sessions_revoked_at_idx").on(t.revokedAt).where(sql`${t.revokedAt} is not null`),
+  check("auth_sessions_revocation_check", sql`(${t.revokedAt} is null and ${t.revokedReason} is null) or (${t.revokedAt} is not null and ${t.revokedReason} is not null and ${t.revokedReason} in ('superseded', 'admin_revoked', 'password_changed'))`),
+]);
 
 export const authRateLimits = pgTable("auth_rate_limits", {
   id: uuid("id").defaultRandom().primaryKey(), subjectType: text("subject_type").notNull(), subjectKey: text("subject_key").notNull(),
