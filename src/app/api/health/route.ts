@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { getEnvironmentReadiness } from "@/lib/env";
+import { resolveBuildInfo } from "@/lib/build-info";
+import generatedBuildInfo from "@/generated/build-info.json";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +19,7 @@ export async function GET() {
   }
   const ready = readiness.productionReady && databaseReachable !== false;
   return Response.json(
-    { status: ready ? "ready" : "degraded", checks: { ...readiness, databaseReachable } },
+    { status: ready ? "ready" : "degraded", checks: { ...readiness, databaseReachable }, build: resolveBuildInfo(process.env, generatedBuildInfo) },
     { status: ready ? 200 : 503, headers: { "Cache-Control": "no-store" } },
   );
 }

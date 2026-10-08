@@ -6,6 +6,7 @@ out/
 .env.*.local
 .npm-cache/
 .data/
+src/generated/build-info.json
 _discovery_sources/
 **/.obsidian/
 .jev/logs/
