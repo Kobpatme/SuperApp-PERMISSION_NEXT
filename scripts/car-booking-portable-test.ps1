@@ -1,4 +1,4 @@
-param([string]$BinaryDirectory = '.data/car-booking-postgres/pgsql/bin', [switch]$ServiceTests, [switch]$BrowserTests, [string]$ClusterName = 'cluster-verified')
+param([string]$BinaryDirectory = '.data/car-booking-postgres/pgsql/bin', [switch]$ServiceTests, [switch]$BrowserTests, [switch]$ImportTests, [string]$ClusterName = 'cluster-verified')
 $ErrorActionPreference = 'Stop'
 $carTestRoot = Join-Path (Get-Location) '.data/car-booking-postgres'
 if ($ClusterName -notmatch '^[a-z0-9-]+$') { throw 'Invalid fixture cluster name' }
@@ -14,8 +14,10 @@ if (!(Test-Path -LiteralPath (Join-Path $carCluster 'PG_VERSION'))) {
   try { $carGenerator.GetBytes($carRandom) } finally { $carGenerator.Dispose() }
   $carPassword = [BitConverter]::ToString($carRandom).Replace('-', '')
   [System.IO.File]::WriteAllText($carPasswordFile, $carPassword)
-  & $carInitializer -D $carCluster -U car_test_operator --encoding=UTF8 --locale=C --auth=scram-sha-256 --pwfile=$carPasswordFile
-  if ($LASTEXITCODE -ne 0) { throw 'Isolated initdb failed' }
+  $carInitArguments = '-D "' + $carCluster + '" -U car_test_operator --encoding=UTF8 --locale=C --auth=scram-sha-256 --pwfile="' + $carPasswordFile + '"'
+  $carInitProcess = Start-Process -FilePath $carInitializer -ArgumentList $carInitArguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $carTestRoot ($ClusterName + '-init.log')) -RedirectStandardError (Join-Path $carTestRoot ($ClusterName + '-init-error.log'))
+  $carInitProcess.WaitForExit()
+  if ($carInitProcess.ExitCode -ne 0) { throw 'Isolated initdb failed; see cluster init log' }
 }
 $carPassword = [System.IO.File]::ReadAllText($carPasswordFile).Trim()
 $carPreviousConnection = $env:CAR_BOOKING_TEST_DATABASE_URL
@@ -42,6 +44,10 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Browser fixture initialization failed' }
     & node scripts/car-booking-browser-test.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Car browser tests failed' }
+  }
+  if ($ImportTests) {
+    & node --test scripts/car-booking-import.test.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Car import integration tests failed' }
   }
 } finally {
   $env:CAR_BOOKING_TEST_DATABASE_URL = $carPreviousConnection
