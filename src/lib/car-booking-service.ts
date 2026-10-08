@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { acceptsNewCarBookings,carBookingPausedMessage } from "./car-booking-maintenance";
 import Decimal from "decimal.js";
 import { and, eq, gte, lt, ne, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -64,6 +65,7 @@ export async function createCarBookings(raw:unknown,context:CarBookingContext) {
   const input=bookingInputSchema.parse(raw); assertBatchIntervals(input.intervals);
   let plate="ที่เลือก";
   return transaction(context,async tx=>{
+    if(!acceptsNewCarBookings())throw new CarBookingError("BOOKING_PAUSED",carBookingPausedMessage,503);
     const car=await lockCar(tx,input.carId);
     plate=car.licensePlate;
     if (!car.isActive) throw new CarBookingError("CAR_INACTIVE","รถคันนี้ถูกปิดใช้งาน",409);

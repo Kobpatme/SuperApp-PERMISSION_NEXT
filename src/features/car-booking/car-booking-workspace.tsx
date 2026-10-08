@@ -26,6 +26,7 @@ export function CarBookingWorkspace({userId,admin,canManageAccess}:{userId:strin
  const [now,setNow]=useState(()=>Date.now());
  useEffect(()=>{const timer=setInterval(()=>setNow(Date.now()),30000);return()=>clearInterval(timer);},[]);
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[message,setMessage]=useState(""),[error,setError]=useState(""),[dialog,setDialog]=useState<Dialog|null>(null),[query,setQuery]=useState(""),[status,setStatus]=useState("all"),[floorText,setFloorText]=useState("");
+ const [acceptNewBookings,setAcceptNewBookings]=useState(true);
  const refreshSequence=useRef({value:0});
  const range=useCallback(()=>{
   const [year,number]=month.split("-").map(Number);return `start=${encodeURIComponent(new Date(Date.UTC(year,number-1,1)-7*3600000).toISOString())}&end=${encodeURIComponent(new Date(Date.UTC(year,number,1)-7*3600000).toISOString())}`;
@@ -34,19 +35,18 @@ export function CarBookingWorkspace({userId,admin,canManageAccess}:{userId:strin
  const refresh=useCallback(async()=>{
   const sequence=++refreshSequence.current.value;setLoading(true);setError("");
   try {
-   const ownReservations:Reservation[]=[];let offset:number|null=0;
-   while(offset!==null){
-    const response:Response=await fetch(`/api/car-booking/bookings?${range()}&offset=${offset}`,{cache:"no-store"});const result:PageResponse<Reservation>=await response.json();if(!response.ok)throw new Error(result.message || "โหลดการจองไม่สำเร็จ");
-    ownReservations.push(...result.data);offset=result.page?.nextOffset ?? null;
-   }
-   offset=0;
-   while(offset!==null){
-    const response:Response=await fetch(`/api/car-booking/bookings?view=active&offset=${offset}`,{cache:"no-store"});const result:PageResponse<Reservation>=await response.json();if(!response.ok)throw new Error(result.message || "โหลดรายการที่ยังไม่คืนไม่สำเร็จ");
-    ownReservations.push(...result.data.filter((row:Reservation)=>!ownReservations.some(existing=>existing.id===row.id)));offset=result.page?.nextOffset ?? null;
-   }
-   const [vehicles,events,settings]=await Promise.all([carRequest<Vehicle[]>("/api/car-booking/cars"),carRequest<CalendarEvent[]>(`/api/car-booking/calendar?${calendarRange()}`),carRequest<{floors:string[];version:number}>("/api/car-booking/settings")]);
+   const reservations=async(filter:string)=>{
+    const rows:Reservation[]=[];let offset:number|null=0;
+    while(offset!==null){
+     const response:Response=await fetch(`/api/car-booking/bookings?${filter}&offset=${offset}`,{cache:"no-store"});const result:PageResponse<Reservation>=await response.json();if(!response.ok)throw new Error(result.message || "โหลดการจองไม่สำเร็จ");
+     rows.push(...result.data);offset=result.page?.nextOffset ?? null;
+    }
+    return rows;
+   };
+   const [monthly,active,vehicles,events,settings]=await Promise.all([reservations(range()),reservations("view=active"),carRequest<Vehicle[]>("/api/car-booking/cars"),carRequest<CalendarEvent[]>(`/api/car-booking/calendar?${calendarRange()}`),carRequest<{floors:string[];version:number;acceptNewBookings:boolean}>("/api/car-booking/settings")]);
+   const seen=new Set(monthly.map(row=>row.id)),ownReservations=[...monthly];for(const row of active)if(!seen.has(row.id)){seen.add(row.id);ownReservations.push(row);}
    if(sequence!==refreshSequence.current.value)return;
-   setCars(vehicles);setBookings(ownReservations);setCalendar(events);setFloors(settings.floors);setFloorVersion(settings.version);setFloorText(settings.floors.join("\n"));setAvailable(null);
+   setCars(vehicles);setBookings(ownReservations);setCalendar(events);setFloors(settings.floors);setFloorVersion(settings.version);setFloorText(settings.floors.join("\n"));setAcceptNewBookings(settings.acceptNewBookings);setAvailable(null);
   }catch(e){if(sequence===refreshSequence.current.value){setError(e instanceof Error?e.message:"โหลดข้อมูลไม่สำเร็จ");setCars([]);setBookings([]);setCalendar([]);}}
   finally{if(sequence===refreshSequence.current.value)setLoading(false);}
  },[range,calendarRange]);
@@ -74,11 +74,12 @@ export function CarBookingWorkspace({userId,admin,canManageAccess}:{userId:strin
   {!["reports","dashboard"].includes(tab)&&<div className="cb-filter"><label>เดือนที่แสดง<input type="month" value={month} onChange={e=>{if(e.target.value){setMonth(e.target.value);setCalendarDate(`${e.target.value}-01`);}}}/></label><button type="button" disabled={loading || busy} onClick={()=>void refresh()}>โหลดใหม่</button><span className="cb-muted">เวลาไทย (กรุงเทพฯ)</span></div>}
   {message&&<p role="status" className="cb-success">{message}</p>}{error&&<p role="alert" className="cb-error">{error}</p>}{loading&&<p role="status">กำลังโหลดข้อมูล…</p>}
   {tab==="book"&&<section className="cb-panel"><h2>จองรถ</h2><form onSubmit={async e=>{e.preventDefault();if(await mutate("/api/car-booking/bookings",{carId:selectedCar,destination,intervals:[{startTime:bangkokISO(start),endTime:bangkokISO(end)}]},"POST","จองรถเรียบร้อยแล้ว")){setDestination("");setSelectedCar("");}}}>
+   {!acceptNewBookings&&<p role="status">ระบบหยุดรับการจองใหม่ชั่วคราว ยังสามารถคืนรถ ยกเลิก และบันทึกการเดินทางได้</p>}
    <div className="cb-form-grid"><label>เวลาเริ่ม<input type="datetime-local" required value={start} onChange={e=>{setStart(e.target.value);setAvailable(null);}}/></label><label>เวลากลับ<input type="datetime-local" required value={end} onChange={e=>{setEnd(e.target.value);setAvailable(null);}}/></label></div>
-   <button type="button" disabled={busy || !start || !end} onClick={()=>void checkAvailable()}>ตรวจรถว่าง</button>
+   <button type="button" disabled={busy || loading || !acceptNewBookings || !start || !end} onClick={()=>void checkAvailable()}>ตรวจรถว่าง</button>
    {available!==null&&<><p role="status">พบรถว่าง {available.length} คัน</p><label>ทะเบียนรถ<select required value={selectedCar} onChange={e=>setSelectedCar(e.target.value)}><option value="">เลือกทะเบียนรถ</option>{available.map(c=><option value={c.car_id} key={c.car_id}>{c.license_plate} · ที่จอด {c.parking_floor || "ยังไม่ระบุ"} · ไมล์ {c.latest_mileage}</option>)}</select></label></>}
    <label>สถานที่ที่จะไป<input required maxLength={2000} value={destination} onChange={e=>setDestination(e.target.value)} placeholder="ระบุจุดหมายหรือภารกิจ"/></label>
-   <button className="cb-primary" disabled={busy || loading || !selectedCar || availableRange!==`${start}|${end}`} type="submit">{busy?"กำลังบันทึก…":"ยืนยันการจอง"}</button>
+   <button className="cb-primary" disabled={busy || loading || !acceptNewBookings || !selectedCar || availableRange!==`${start}|${end}`} type="submit">{busy?"กำลังบันทึก…":"ยืนยันการจอง"}</button>
   </form></section>}
   {["mine","return","all"].includes(tab)&&<section className="cb-panel"><h2>{tab==="return"?"รายการที่เริ่มแล้วและยังไม่คืน":tab==="all"?"การจองทั้งหมด":"รายการของฉัน"}</h2><div className="cb-filter"><label>ค้นหาการจอง<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ทะเบียน ปลายทาง หรือผู้จอง"/></label>{tab!=="return"&&<label>สถานะ<select value={status} onChange={e=>setStatus(e.target.value)}><option value="all">ทุกสถานะ</option><option value="booked">ยังไม่คืน</option><option value="completed">คืนแล้ว</option><option value="cancelled">ยกเลิก</option></select></label>}</div>
    {!filtered.length&&!loading&&<p role="status">ไม่มีรายการในเดือนและตัวกรองที่เลือก</p>}

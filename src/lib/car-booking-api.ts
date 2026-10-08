@@ -2,6 +2,7 @@ import { z } from "zod";
 import { getAccessContext } from "@/lib/access";
 import { logEvent } from "@/lib/logger";
 import { CarBookingError } from "@/lib/car-booking-input";
+import { acceptsNewCarBookings,carBookingPausedMessage } from "@/lib/car-booking-maintenance";
 import { readCarSettings,saveCarSettings } from "@/lib/car-booking-settings";
 import { readOspReport,readCarDashboard,reportFilterSchema } from "@/lib/car-booking-report-service";
 import { readOspSync,requestOspSync } from "@/lib/car-booking-osp-jobs";
@@ -31,7 +32,7 @@ export async function handleCarBookingRequest(request:Request,operation:Operatio
       if(operation==="osp-sync")return Response.json({data:await readOspSync(context)},{headers});
       const offset=z.coerce.number().int().min(0).max(1000000).parse(url.searchParams.get("offset") || "0");
       const data=operation==="bookings"?url.searchParams.get("view")==="active"?await readCarOpenBookings(context,offset):await readCarBookings(range,context,offset)
-        :operation==="settings"?await readCarSettings(context)
+        :operation==="settings"?{...await readCarSettings(context),acceptNewBookings:acceptsNewCarBookings()}
         :operation==="calendar"?await readCarCalendar(range,context)
         :operation==="cars"?await readCars(context,url.searchParams.has("start") || url.searchParams.has("end")?range:undefined)
         :operation==="logs" || operation==="gps"?await readCarBookingLogs(id!,context,operation==="gps",offset):undefined;
@@ -39,6 +40,7 @@ export async function handleCarBookingRequest(request:Request,operation:Operatio
       const page=["bookings","logs","gps"].includes(operation)&&Array.isArray(data)?{offset,limit:1000,nextOffset:data.length===1000?offset+1000:null}:undefined;
       return Response.json({data,page},{headers});
     }
+    if(operation==="bookings"&&!acceptsNewCarBookings())throw new CarBookingError("BOOKING_PAUSED",carBookingPausedMessage,503);
     let raw:unknown={};
     if(operation!=="cancel") {
       if(!request.headers.get("content-type")?.startsWith("application/json"))throw new CarBookingError("PAYLOAD","คำขอไม่ถูกต้อง");
