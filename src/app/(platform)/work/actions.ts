@@ -6,6 +6,8 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { profiles, userTeams } from "@/db/schema";
 import { getAccessContext } from "@/lib/access";
+import { getCurrentUser, getSessionFailureReason } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { isAuthorized } from "@/lib/authorization";
 import { createWorkBatch } from "@/lib/work-create-service";
 import { resolveTaskKpi } from "@/lib/work-kpi-catalog";
@@ -15,7 +17,12 @@ import { mutateWorkTask } from "@/lib/work-task-service";
 export type WorkActionState = { ok: boolean; message: string; id?: string; status?: number; code?: string };
 const invalid: WorkActionState = { ok: false, message: "ไม่สามารถบันทึกงานได้" };
 
+async function requireWorkSession() {
+  if (!await getCurrentUser()) redirect(`/login?next=%2Fwork&reason=${await getSessionFailureReason()}`);
+}
+
 async function runTaskCommand(form: FormData, kind: "transition" | "note" | "edit" | "delete" | "restore"): Promise<WorkActionState> {
+  await requireWorkSession();
   const access = await getAccessContext("work");
   if (access.passwordChangeRequired) return { ...invalid, status: 403, code: "PASSWORD_CHANGE_REQUIRED", message: "กรุณาเปลี่ยนรหัสผ่านก่อนดำเนินการ" };
   if (!access.allowed || !access.subject || access.isDevelopmentSession) return { ...invalid, status: 403 };
@@ -61,6 +68,7 @@ function humanWorkError(error: unknown) {
   return invalid.message;
 }
 async function createBatchAction(form:FormData,kind:"personal"|"assigned"):Promise<WorkActionState> {
+  await requireWorkSession();
   const access=await getAccessContext("work");
   if(access.passwordChangeRequired) return {...invalid,status:403,code:"PASSWORD_CHANGE_REQUIRED",message:"กรุณาเปลี่ยนรหัสผ่านก่อน"};
   if(!access.allowed||!access.subject) return {...invalid,status:403};
@@ -72,6 +80,7 @@ async function createBatchAction(form:FormData,kind:"personal"|"assigned"):Promi
 export async function createPersonalTaskAction(_previous:WorkActionState,form:FormData){return createBatchAction(form,"personal");}
 export async function assignWorkTasksAction(_previous:WorkActionState,form:FormData){return createBatchAction(form,"assigned");}
 export async function previewWorkDeadlineAction(_previous:WorkActionState,form:FormData):Promise<WorkActionState>{
+  await requireWorkSession();
   const access=await getAccessContext("work");
   if(!access.allowed||!access.subject||access.passwordChangeRequired)return {...invalid,status:403};
   const parsed=z.object({teamId:z.string().uuid(),assigneeId:z.string().uuid(),ruleVersionId:z.string().uuid()}).safeParse(Object.fromEntries(form));

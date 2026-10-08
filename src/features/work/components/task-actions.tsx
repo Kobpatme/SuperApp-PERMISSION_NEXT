@@ -3,6 +3,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { addWorkTaskNoteAction, deleteWorkTaskAction, editWorkTaskAction, transitionWorkTaskAction, type WorkActionState } from "@/app/(platform)/work/actions";
 import type { WorkTaskRecord } from "@/lib/work-read-model";
 import type { taskCapabilities } from "@/lib/work-task-policy";
+import { useWorkMutationSignal } from "@/lib/work-mutation-signal";
 type Caps = ReturnType<typeof taskCapabilities>;
 const initial: WorkActionState = { ok: false, message: "" };
 const nextStatuses: Record<string, Array<{ status: string; label: string }>> = {
@@ -18,6 +19,9 @@ export function TaskActionControls({ task, capabilities }: { task: WorkTaskRecor
   const [transitionState, transitionAction, transitioning] = useActionState(transitionWorkTaskAction, initial);
   const [editState, editAction, editing] = useActionState(editWorkTaskAction, initial);
   const [deleteState, deleteAction, deleting] = useActionState(deleteWorkTaskAction, initial);
+  useWorkMutationSignal(transitionState);
+  useWorkMutationSignal(editState);
+  useWorkMutationSignal(deleteState);
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLButtonElement | null>(null);
   const state = choice?.kind === "edit" ? editState : choice?.kind === "delete" ? deleteState : transitionState;
@@ -42,5 +46,7 @@ export function TaskActionControls({ task, capabilities }: { task: WorkTaskRecor
 }
 export function TaskNoteForm({ task }: { task: WorkTaskRecord }) {
   const [state, action, pending] = useActionState(addWorkTaskNoteAction, initial);
-  return <form action={action} className="work-note-form"><label htmlFor={`note-${task.id}`}>เพิ่มบันทึก<textarea id={`note-${task.id}`} name="note" rows={3} maxLength={4000} placeholder="เขียนความคืบหน้าเพิ่มเติม" required /></label><IdentityFields task={task} action="note"/><button className="secondary-action" disabled={pending}>{pending ? "กำลังบันทึก…" : "เพิ่มบันทึก"}</button>{state.message && <span role="status">{state.message}</span>}</form>;
+  const formRef = useRef<HTMLFormElement>(null);
+  useWorkMutationSignal(state, formRef);
+  return <form ref={formRef} action={action} className="work-note-form" aria-busy={pending}><label htmlFor={`note-${task.id}`}>เพิ่มบันทึก<textarea id={`note-${task.id}`} name="note" rows={3} maxLength={4000} placeholder="เขียนความคืบหน้าเพิ่มเติม" required /></label><IdentityFields task={task} action="note"/><button className="secondary-action" disabled={pending}>{pending ? "กำลังบันทึก…" : "เพิ่มบันทึก"}</button>{state.message && <span role="status">{state.message}</span>}</form>;
 }

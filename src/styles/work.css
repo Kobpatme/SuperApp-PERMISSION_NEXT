@@ -70,3 +70,4 @@
 .work-admin-form input:not([type="checkbox"]), .work-admin-form textarea, .work-admin-form select { width: 100%; min-width: 0; }
 .work-personal-kpi-row { display: grid; gap: 8px; }
 .work-home-announcement { padding: 16px; border-left: 4px solid var(--color-brand); background: var(--color-info-soft); color: var(--color-text); overflow-wrap: anywhere; white-space: pre-wrap; }
+.work-live-refresh { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); color: var(--color-text-muted); }

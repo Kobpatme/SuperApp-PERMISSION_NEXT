@@ -19,7 +19,11 @@ function getSqlClient() {
 }
 
 export function getDb() {
-  return drizzle(getSqlClient(), { schema });
+  const fixtureMetrics = process.env.PARITY_QUERY_METRICS === "1" && new URL(requireDatabaseUrl()).pathname === "/permission_next_sync_session_test";
+  return drizzle(getSqlClient(), { schema, logger: fixtureMetrics ? { logQuery(query: string) {
+    // Synthetic fixture only; never print query text, parameters, identities or credentials.
+    console.log(JSON.stringify({ event: "fixture.db.query", kind: query.trim().split(/\s/, 1)[0].toLowerCase() }));
+  } } : undefined });
 }
 
 export type Database = ReturnType<typeof getDb>;
