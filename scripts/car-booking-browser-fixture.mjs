@@ -40,6 +40,12 @@ try {
   const oldStart=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-2,1)).toISOString(),oldEnd=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-2,2)).toISOString();
   await tx`insert into car_booking_bookings(user_id,employee_name,car_id,destination,start_time,end_time,start_mileage)
    values(${users[0][0]},${users[0][2]},'00000000-0000-4000-8000-000000001203','รายการค้างจากเดือนก่อน',${oldStart},${oldEnd},100)`;
+  await tx`insert into car_booking_cars(id,license_plate,parking_floor,latest_mileage) values('00000000-0000-4000-8000-000000001401','ทดสอบ OSP','3B',100) on conflict(id) do nothing`;
+  const reportStart=new Date(now.getTime()-3*3600000).toISOString(),reportEnd=new Date(now.getTime()-2*3600000).toISOString();
+  await tx`insert into car_booking_bookings(id,user_id,employee_name,car_id,destination,start_time,end_time,status,start_mileage,actual_return_time,mileage_on_return,parking_floor,refueled,fuel_mileage,fuel_liters,fuel_amount)
+  values('00000000-0000-4000-8000-000000001411',${users[0][0]},${users[0][2]},'00000000-0000-4000-8000-000000001401','ภารกิจรายงาน OSP',${reportStart},${reportEnd},'completed',0,${reportEnd},100,'3B',true,80,30,1200)
+  on conflict(id) do update set start_time=excluded.start_time,end_time=excluded.end_time,actual_return_time=excluded.actual_return_time`;
+  await tx`insert into car_booking_logs(id,booking_id,log_time,log_type,location,mileage,fuel_liters,fuel_amount,created_by) values('00000000-0000-4000-8000-000000001511','00000000-0000-4000-8000-000000001411',${reportStart},'fuel','ปั๊ม OSP',10,10,400,${users[0][0]}) on conflict(id) do update set log_time=excluded.log_time`;
  });
  console.log('Synthetic car browser fixture ready (no existing application database writes)');
 }finally{await db.end();}
