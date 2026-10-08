@@ -1,5 +1,11 @@
 # Implementation status
 
+## โมดูลจองรถ — เฟส 6, 08/10/2569
+
+เจ้าของเลื่อน CSV จริงไปย้ายครั้งเดียวหลังระบบเสร็จ งานพัฒนา/automated rehearsal เฟส6เสร็จ: server intake pauseโดยยังคืน/log/cancelได้, parallel workspace refresh, read-only runtime preflight, reviewed future import target, fixture backup/restore และ [UAT/cutover/rollback checklist](operations/car-booking-cutover.md) ไม่ขอ CSV ระหว่างงาน ดู [รายงานเฟส6](plans/car-booking-phase-6.md)
+
+Baselinecca23f2/final lint/typecheck/buildNext16.3.8/documents1/audit0 ผ่าน; Vitest230ผ่าน28skipped, parser14/schema10/services16/import10/preflight6 และ Chromium8ผ่าน CSS241files0violations/contrast58pairs0failures Restore8tablefingerprintsตรงกัน/FORCERLS6/exclusions2/anonymousruntime0 Synthetic5000bookings10000logs service module reads289ms/bookp5014ms/returnp5023ms; browser opening1.61s/APIbook173ms/return104ms เป็นlocalsingle-sampleไม่ใช่productionperformance ไม่มี main DB/external writesหรือdeploy Main preflightรายงานไม่พร้อมตามจริง; human UAT/final real import/runtime-hosting/real Sheetsและcutoverยังเลื่อนไปขั้นเปิดใช้งานตามเจ้าของ ห้ามถือว่า software checkpoint คือผ่าน real release gatesแล้ว
+
 ## โมดูลจองรถ — เฟส 5, 08/10/2569
 
 เพิ่ม offline CSV importer ทั้ง5ชีต: reviewed employee_code crosswalk, per-row rejections/overlap preservation, legacy-id idempotency, source-bound dry-run approval, additive reviewed access และ atomic audit/activity/outbox พร้อม counts/monthly reconciliation รวม fuel logs ทั้งหมดในฐาน BookingsOSP ใช้เปรียบเทียบ/สร้างใหม่เท่านั้น apply จำกัด loopback fixture ไม่มี main DB/external writes คู่มือ [นำเข้า](operations/car-booking-import.md) และ [รายงานเฟส5](plans/car-booking-phase-5.md)

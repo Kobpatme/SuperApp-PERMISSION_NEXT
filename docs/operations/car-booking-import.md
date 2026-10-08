@@ -1,6 +1,6 @@
 # นำเข้าข้อมูลจองรถเดิม
 
-เครื่องมือเฟส 5 ใช้สำหรับ operator แบบ offline บน Node.js 24 และ PowerShell 7 ทดสอบกับฐาน `permission_next_car_booking_test` เท่านั้น ยังไม่เปิดทาง apply ฐานหลักหรือระบบภายนอก ต้องได้รับ CSV จริงและตรวจผลก่อนวางแผน cutover
+เครื่องมือใช้สำหรับ operator แบบ offline บน Node.js 24 และ PowerShell 7 ทดสอบกับฐาน `permission_next_car_booking_test` เท่านั้นในงานนี้ ค่าเริ่มต้นยังไม่ apply ฐานอื่น เฟส6เพิ่ม --target-review สำหรับวันที่เจ้าของอนุมัติการย้ายจริง ตาม [แผนตัดสลับ](car-booking-cutover.md) ยังไม่มีการเขียนฐานหลัก/ระบบภายนอก เจ้าของเลื่อน CSV จริงไปย้ายครั้งเดียวหลังระบบเสร็จ
 
 ## ไฟล์และการจับคู่
 
@@ -44,7 +44,7 @@ BookingsOSP ใช้เปรียบเทียบเท่านั้น �
 npm run import:car -- --input "D:/exports/car-booking" --actor "CORE-USER-UUID" --output ".data/car-booking-import/applied" --apply --approve "SHA256-FROM-DRY-RUN"
 ```
 
-apply ต้องใช้ loopback และฐานชื่อ `permission_next_car_booking_test` สคริปต์ตรวจชื่อฐานจริงอีกครั้งก่อนเขียน digest ผูก source files, actor, crosswalk, accepted rows, rejected rows และ access review หากข้อมูลเปลี่ยนต้อง dry-run ใหม่ apply ใช้ SERIALIZABLE + advisory lock; insert และ audit/activity/outbox อยู่ transaction เดียวกัน ความขัดแย้งหรือยอดไม่ตรงยกเลิกทั้ง transaction
+apply ค่าเริ่มต้นต้องใช้ loopback และฐานชื่อ `permission_next_car_booking_test` สคริปต์ตรวจชื่อฐานจริงอีกครั้งก่อนเขียน ฐานอื่นต้องมี reviewed target แบบ explicit ที่ตรวจ backup/UAT/freeze/clone rehearsal และ host/port/database/sourceHash/approval ตรงกัน ห้ามใช้ review fixture เป็นการอนุมัติฐานหลัก digest ผูก source files, actor, crosswalk, accepted rows, rejected rows และ access review หากข้อมูลเปลี่ยนต้อง dry-run ใหม่ apply ใช้ SERIALIZABLE + advisory lock; insert และ audit/activity/outbox อยู่ transaction เดียวกัน ความขัดแย้งหรือยอดไม่ตรงยกเลิกทั้ง transaction
 
 reconciliation ตรวจ accepted counts, ระยะทาง/น้ำมันตามเดือน Bangkok และ overlaps รวม fuel logs ทั้งหมดในฐานของ accepted bookings ด้วย ไม่จำกัดเฉพาะ legacy IDs หากมีข้อมูลเพิ่มใน target จนยอดต่างจะ abort การนำเข้า ไม่ลบข้อมูลเพื่อให้ยอดตรง เมื่อ commit สำเร็จแต่เขียนไฟล์รายงานไม่สำเร็จ ให้แก้ output แล้ว dry-run/rerun; legacy IDs ป้องกันการสร้างข้อมูลซ้ำ
 

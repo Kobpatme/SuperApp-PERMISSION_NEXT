@@ -1,0 +1,20 @@
+{
+  "syntheticOnly": true,
+  "backupMs": 1522,
+  "restoreMs": 10933,
+  "rowCounts": {
+    "car_booking_cars": 47,
+    "car_booking_bookings": 5061,
+    "car_booking_logs": 10012,
+    "audit_logs": 88,
+    "activity_events": 79,
+    "outbox_messages": 79,
+    "profiles": 80,
+    "user_role_assignments": 81
+  },
+  "allFingerprintsMatch": true,
+  "forceRlsTables": 6,
+  "exclusionConstraints": 2,
+  "anonymousRuntimeRows": 0,
+  "mainDatabaseWrites": false
+}

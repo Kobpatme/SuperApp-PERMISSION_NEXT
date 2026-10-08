@@ -1,6 +1,6 @@
 # Source parity — ระบบจองรถ
 
-วันที่ 08/10/2569; เฟส 5 เพิ่ม offline CSV importer ผ่าน synthetic unit/SQL; ยังไม่ครบ real CSV migration/real Sheets/UAT
+วันที่ 08/10/2569; เฟส6เพิ่ม intake pause/preflight/cutover plan และผ่าน automated journey/browser8+recovery; เจ้าของเลื่อน CSVจริงไปย้ายครั้งเดียวภายหลัง ยังไม่ยืนยัน human UAT/real migration/Sheets/cutover
 
 Source ที่ผู้ใช้ระบุ: `D:/WebApp/จองรถ/New Vertion/Code.gs` SHA256 `B22674C71B0905C8A9623880D0D02F28F3DB473FE9F9489E73A3C8CDBB618156`; `Index.html` SHA256 `A705578D72F9D33CD3A31162A65260957B451993710A5FF610854D6BADF6FECA` ไม่มี Git SHA ที่ยืนยันได้
 
@@ -18,7 +18,8 @@ Source ที่ผู้ใช้ระบุ: `D:/WebApp/จองรถ/New V
 | buildDashboardResponseFromOSP (2039)/downloadBookingsByMonth (2153) | REPLACE | partial — native aggregate/filter/stats/top5/CSV เพิ่มแล้ว; browser verification ในรายงานเฟส 4 | aggregate เดียวกับ OSP รวม trip fuel; filters/stats/top5; ดาวน์โหลดใช้ได้จริง |
 | login/logout/Employees admin/name fallback | REPLACE | partial — Core session/UI ใช้จริงใน browser; legacy employee mapping รอ import | ใช้ Core identity/user_id; employee_code normalized crosswalk; no duplicate identity/login |
 | Apps Script authContext/admin flags/Sheet access | REPLACE | partial — SQL/runtime roles และ live grants/browser/API ผ่าน local tests; production provisioning ยังไม่ทำ | server RBAC+scope+least privilege RLS ทั้งสามตาราง; direct API deny; live grant/revoke without re-login |
-| CSV import 5 sheets (ข้อกำหนดใหม่) | PORT | partial — importer/parser13 + PostgreSQL9 ผ่าน; CSV จริงยังไม่มี | dry-run, idempotency, counts/monthly totals/mapping/orphans/rejections ผ่าน synthetic; ต้องตรวจ real crosswalk/สิทธิ์/ยอดก่อนปิด migration |
+| CSV import 5 sheets (ข้อกำหนดใหม่) | PORT | partial — importer/parser14 + PostgreSQL10 ผ่าน รวม reviewed target สำหรับวันย้าย; CSVจริงเจ้าของเลื่อน | dry-run/idempotency/counts/monthly totals/mapping/orphans/rejections ผ่าน synthetic; ตรวจ real crosswalk/สิทธิ์/ยอดก่อนเปิดใช้งานจริง |
+| UAT/cutover/rollback (ข้อกำหนดใหม่) | ADAPT | partial — automated browser8/preflight6/recoveryผ่าน และ checklist พร้อม | human UAT/one-time final export/import/runtime/Sheets connection/legacy freeze/real cutover ตาม [เฟส6](../../plans/car-booking-phase-6.md) |
 
 เฟส 1 เพิ่มฐาน/schema/exclusion/RLS/calendar projection/OSP numeric aggregation และผ่าน SQL integration 10 กรณีบน PostgreSQL 16.15 แล้ว ([รายงาน](../../plans/car-booking-phase-1.md)); เฟส 2 เพิ่ม service/API booking/return/cancel/log/cars/calendar/GPS พร้อม integration 10 กรณี ([รายงาน](../../plans/car-booking-phase-2.md)) เฟส 3 เพิ่ม native UI, versioned parking config และ Core access editor พร้อม SQL 22/browser 5 กรณี ([รายงาน](../../plans/car-booking-phase-3.md)); สถานะ partial ยืนยัน local UI/service/API ส่วน missing ยังเป็นช่องว่างจริง import/real Sheets/UAT ยังไม่ครบ ไม่ถือว่า foundation/service ทำให้ source parity complete เจ้าของยืนยัน calendar privacy, late-return cap, zero mileage และ parking config แล้ว เฟส 4 เพิ่มรายงาน/แดชบอร์ด/CSV และ Sheets adapter พร้อม SAP preservation ที่ผ่าน local mock/SQL/browser 7 กรณีแล้ว ([รายงาน](../../plans/car-booking-phase-4.md)); real Sheets/import/UAT ยังไม่ยืนยัน
 

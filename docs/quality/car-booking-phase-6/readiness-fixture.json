@@ -1,0 +1,172 @@
+{
+  "version": 1,
+  "scope": "car-booking",
+  "checkedAt": "2026-10-08T13:44:12.243Z",
+  "readOnly": true,
+  "readyForUat": true,
+  "readyForCutover": false,
+  "checks": [
+    {
+      "id": "runtime_role_exists",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "runtime_least_privilege",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "runtime_public_schema_usage",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "six_car_tables_installed",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "all_car_tables_force_rls",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "runtime_is_not_table_owner",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "four_car_migrations_recorded",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "helper_roles_safe",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "runtime_cannot_assume_helper_role",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "both_exclusion_constraints",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "osp_view_security_invoker",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "runtime_required_table_grants",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "runtime_has_no_domain_delete",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "runtime_cannot_rewrite_logs",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "runtime_required_function_grants",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "helper_functions_not_public",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "uat_admin_actor_verified",
+      "passed": true,
+      "category": "database"
+    },
+    {
+      "id": "production_build_available",
+      "passed": true,
+      "category": "application"
+    },
+    {
+      "id": "sheets_enabled",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "sheets_spreadsheet_configured",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "sheets_account_configured",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "sheets_rsa_key_valid",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "worker_secret_configured",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "worker_principal_configured",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "humanUatApproved",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "latestMigrationReconciled",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "backupRestoreVerified",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "hostingRegionVerified",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "legacyFreezeApproved",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "sheetsIntegrationVerified",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "schedulerVerified",
+      "passed": false,
+      "category": "release"
+    },
+    {
+      "id": "worker_active_car_admin_verified",
+      "passed": false,
+      "category": "release"
+    }
+  ],
+  "externalConnection": "not_verified",
+  "externalRequestsMade": 0
+}

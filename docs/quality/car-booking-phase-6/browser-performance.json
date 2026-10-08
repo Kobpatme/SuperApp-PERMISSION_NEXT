@@ -1,0 +1,10 @@
+{
+  "openMs": 1609,
+  "bookMs": 326,
+  "returnMs": 218,
+  "bookApiMs": 173,
+  "returnApiMs": 104,
+  "samples": 1,
+  "includesBrowserAndRefresh": true,
+  "productionBenchmark": false
+}

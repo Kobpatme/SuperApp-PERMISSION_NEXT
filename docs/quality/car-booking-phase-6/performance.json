@@ -1,0 +1,43 @@
+{
+  "syntheticBookings": 5000,
+  "syntheticLogs": 10000,
+  "reportPageMs": 24,
+  "dashboardMs": 14,
+  "fullCsvMs": 389,
+  "csvBytes": 5105330,
+  "moduleReadsMs": 289,
+  "commandSamples": 10,
+  "bookMs": {
+    "samples": [
+      17,
+      15,
+      14,
+      12,
+      14,
+      12,
+      15,
+      14,
+      15,
+      17
+    ],
+    "p50": 14,
+    "max": 17
+  },
+  "returnMs": {
+    "samples": [
+      83,
+      24,
+      20,
+      24,
+      21,
+      20,
+      23,
+      25,
+      22,
+      31
+    ],
+    "p50": 23,
+    "max": 83
+  },
+  "productionBenchmark": false
+}

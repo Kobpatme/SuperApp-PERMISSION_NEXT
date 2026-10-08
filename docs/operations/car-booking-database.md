@@ -1,6 +1,6 @@
 # ฐานทดสอบและสิทธิ์ runtime ของระบบจองรถ
 
-โมดูลเฟส 2 ยัง development/disabled ไม่เปิดให้ผู้ใช้ทำรายการ ไม่มีการ apply ลง production บริการ/API มีแล้วแต่ยังไม่ผ่าน browser UAT/activation
+โค้ดบริการ/API/UI/รายงานและเครื่องมือนำเข้า/ตรวจความพร้อมมีแล้ว ผ่าน automated fixture tests ถึงเฟส6 แต่ยังไม่มีการ apply ลงฐานหลักหรือ production และยังไม่ใช่ UAT โดยผู้ใช้จริง เจ้าของเลื่อน CSV ไปย้ายครั้งเดียวภายหลัง ขั้นตอน provisioning/cutover อยู่ [คู่มือเฟส6](car-booking-cutover.md)
 
 ## แยกฐานทดสอบ
 
@@ -33,7 +33,7 @@ migration `0024_car_booking.sql` เพิ่มตารางและสอ�
 - Migration 0025 สร้าง `car_booking_service_worker` NOLOGIN/NOINHERIT/NOSUPERUSER/NOBYPASSRLS เป็นเจ้าของ functions ข้างต้น มี SELECT/UPDATE เฉพาะ cars/bookings เพื่อ lock/sync และ policies เฉพาะ role ทุก function ตรวจ permission ก่อนทำงาน; runtime ไม่ได้ SELECT การจองคนอื่นหรือ UPDATE รถผ่าน use grant โดยตรง
 - `car_booking_calendar_reader` เป็น NOLOGIN/NOINHERIT/NOBYPASSRLS มี SELECT เพียง cars/bookings ไม่มี logs/เขียนข้อมูล มี policies เฉพาะ projection; function ตรวจ grant+active+mustChangePassword ก่อน SELECT และคืนเพียง car_id/license_plate/start_time/end_time ภายในช่วงไม่เกิน 93 วัน ห้ามเพิ่ม raw owner/destination/GPS fields
 - Tables ใช้ FORCE RLS และไม่มี delete policy; log ไม่มี update policy เจ้าของการจองหรือ admin อ่านได้; use แม้ถูกกำหนด ALL ผิดพลาดก็ไม่อ่านข้ามเจ้าของ; admin ต้องเป็น ALL
-- OSP view เป็น security_invoker และ admin-only numeric projection; 19-column display/export และ dashboard ยังเป็นงานเฟส 4
+- OSP view เป็น security_invoker และ admin-only numeric projection; 19-column display/export/dashboard และ queue ทำแล้วในเฟส4 สิทธิ์ jobs/state ตามคู่มือ OSP ต้อง provision ให้ runtime ที่อนุมัติ
 
 การมี SQL policy ไม่เท่ากับการรับรอง deployment: ต้องตรวจ runtime grants, verified-context binding, endpoints และ concurrent revocation จริงก่อนเปิดโมดูล
 
