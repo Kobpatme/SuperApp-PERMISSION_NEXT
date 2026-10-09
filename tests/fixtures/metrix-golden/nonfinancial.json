@@ -1,0 +1,631 @@
+{
+  "sourceRepository": "Kobpatme/METRIX",
+  "sourceSha": "f87220bf94b765e4896388632c3dbeabb5286510",
+  "timezone": "Asia/Bangkok",
+  "sourceHashes": {
+    "schemas/ductRentalSchema.ts": "b769e883effa151f3b1fee56f8cc807e4086368027ca7c30db4c6e321ae8fe7f",
+    "lib/utils.ts": "ff2ea87580d054978f4d5ed259a6d87f1e071d179c94f3d9276d0c6677b0d68b",
+    "app/(dashboard)/dashboard/duct-rental/page.tsx": "f594fb5a2b37057d08064dbfec9624ba45303a78b35b72ae8cb1897ab897b984",
+    "app/(dashboard)/dashboard/duct-rental/[id]/draftsman/page.tsx": "d515454c7e0a4363c635754ce583d3d035138a8a31115c32f0cc5fce8b652868",
+    "app/(dashboard)/dashboard/duct-rental/cancellation/[id]/page.tsx": "3c9968e3d16377ea1b7bc713af6afd8ff997dd2e336a3bab3f221407a26cb7ff",
+    "lib/processTracking.ts": "7398f2625779dc0ca86c7c8f212aee705375922bdef05ee256ede69401d5cf58"
+  },
+  "method": "TypeScript AST extraction of original pure expressions, transpile + VM with frozen Date; no production services",
+  "fixtures": [
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "Drop OFC",
+        "2 Core"
+      ],
+      "expected": 6.5
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "12 Core"
+      ],
+      "expected": 8.7
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "24 Core"
+      ],
+      "expected": 8.7
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "48 Core"
+      ],
+      "expected": 8.7
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "60 Core"
+      ],
+      "expected": 8.7
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "72 Core"
+      ],
+      "expected": 10.5
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "96 Core"
+      ],
+      "expected": 12
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "120 Core"
+      ],
+      "expected": 13.5
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "144 Core"
+      ],
+      "expected": 15
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "312 Core"
+      ],
+      "expected": 18
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ARSS",
+        "12 Core"
+      ],
+      "expected": 11
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ARSS",
+        "24 Core"
+      ],
+      "expected": 11
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ARSS",
+        "48 Core"
+      ],
+      "expected": 12
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ARSS",
+        "60 Core"
+      ],
+      "expected": 12
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ARSS",
+        "120 Core"
+      ],
+      "expected": 15
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ARSS",
+        "144 Core"
+      ],
+      "expected": 17
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ARSS",
+        "216 Core"
+      ],
+      "expected": 17
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ARSS",
+        "312 Core"
+      ],
+      "expected": 18.7
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "ADSS",
+        "2 Core"
+      ],
+      "expected": null
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        "unknown",
+        "12 Core"
+      ],
+      "expected": null
+    },
+    {
+      "rule": "RULE-003",
+      "operation": "diameter",
+      "input": [
+        null,
+        null
+      ],
+      "expected": null
+    },
+    {
+      "rule": "RULE-004",
+      "operation": "documents",
+      "input": [
+        {
+          "currentPhase": "DESIGN",
+          "files": []
+        }
+      ],
+      "expected": {
+        "memoMissing": false,
+        "completionBlocked": false,
+        "listIncomplete": false
+      }
+    },
+    {
+      "rule": "RULE-004",
+      "operation": "documents",
+      "input": [
+        {
+          "currentPhase": "COMPLETE",
+          "files": [
+            {
+              "name": "MEMO.pdf"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "memoMissing": false,
+        "completionBlocked": false,
+        "listIncomplete": false
+      }
+    },
+    {
+      "rule": "RULE-004",
+      "operation": "documents",
+      "input": [
+        {
+          "currentPhase": "COMPLETE",
+          "files": [
+            {
+              "name": "x.pdf",
+              "fileType": "memo"
+            }
+          ],
+          "missingDocs": " "
+        }
+      ],
+      "expected": {
+        "memoMissing": false,
+        "completionBlocked": false,
+        "listIncomplete": true
+      }
+    },
+    {
+      "rule": "RULE-004",
+      "operation": "documents",
+      "input": [
+        {
+          "currentPhase": "COMPLETE",
+          "files": [
+            {
+              "name": "drawing.pdf"
+            }
+          ]
+        }
+      ],
+      "expected": {
+        "memoMissing": true,
+        "completionBlocked": true,
+        "listIncomplete": true
+      }
+    },
+    {
+      "rule": "RULE-004",
+      "operation": "documents",
+      "input": [
+        {
+          "currentPhase": "COMPLETE",
+          "files": [
+            {
+              "name": "memo.pdf"
+            }
+          ],
+          "missingDocs": "ขาดเอกสาร"
+        }
+      ],
+      "expected": {
+        "memoMissing": false,
+        "completionBlocked": true,
+        "listIncomplete": true
+      }
+    },
+    {
+      "rule": "RULE-007",
+      "operation": "draftsmanNext",
+      "input": [
+        "NT"
+      ],
+      "expected": "PERMISSION_1"
+    },
+    {
+      "rule": "RULE-007",
+      "operation": "draftsmanNext",
+      "input": [
+        " nt "
+      ],
+      "expected": "PERMISSION_1"
+    },
+    {
+      "rule": "RULE-007",
+      "operation": "draftsmanNext",
+      "input": [
+        "TRUE"
+      ],
+      "expected": "3RD_PARTY_1"
+    },
+    {
+      "rule": "RULE-007",
+      "operation": "draftsmanNext",
+      "input": [
+        ""
+      ],
+      "expected": "PERMISSION_1"
+    },
+    {
+      "rule": "RULE-007",
+      "operation": "draftsmanNext",
+      "input": [
+        null
+      ],
+      "expected": "PERMISSION_1"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelStatus",
+      "input": [
+        "pending"
+      ],
+      "expected": "cancel_initiated"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelStatus",
+      "input": [
+        "approved"
+      ],
+      "expected": "completed"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelStatus",
+      "input": [
+        "tracking"
+      ],
+      "expected": "tracking"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelStatus",
+      "input": [
+        "rejected"
+      ],
+      "expected": "rejected"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelStatus",
+      "input": [
+        "completed"
+      ],
+      "expected": "completed"
+    },
+    {
+      "rule": "RULE-012",
+      "operation": "renewOwner",
+      "input": [
+        "draft"
+      ],
+      "expected": "Team Design"
+    },
+    {
+      "rule": "RULE-012",
+      "operation": "renewOwner",
+      "input": [
+        "sent_to_3rdparty"
+      ],
+      "expected": "3rd Party"
+    },
+    {
+      "rule": "RULE-012",
+      "operation": "renewOwner",
+      "input": [
+        "memo_preparing"
+      ],
+      "expected": "Team Permission"
+    },
+    {
+      "rule": "RULE-012",
+      "operation": "renewOwner",
+      "input": [
+        "provider_confirmed"
+      ],
+      "expected": "3rd Party"
+    },
+    {
+      "rule": "RULE-012",
+      "operation": "renewOwner",
+      "input": [
+        "contracted"
+      ],
+      "expected": "Completed"
+    },
+    {
+      "rule": "RULE-012",
+      "operation": "renewOwner",
+      "input": [
+        "unknown"
+      ],
+      "expected": "Team Design"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelOwner",
+      "input": [
+        "pending"
+      ],
+      "expected": "Team Permission"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelOwner",
+      "input": [
+        "tracking"
+      ],
+      "expected": "Team Permission"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelOwner",
+      "input": [
+        "rejected"
+      ],
+      "expected": "Team Design"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelOwner",
+      "input": [
+        "completed"
+      ],
+      "expected": "Completed"
+    },
+    {
+      "rule": "RULE-013",
+      "operation": "cancelOwner",
+      "input": [
+        "approved"
+      ],
+      "expected": "Completed"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "sla",
+      "input": [
+        "2026-10-10T12:00:00+07:00",
+        7,
+        null,
+        "2026-10-10T12:00:00+07:00"
+      ],
+      "expected": "On Track"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "sla",
+      "input": [
+        "2026-10-10T12:00:00+07:00",
+        7,
+        null,
+        "2026-10-16T12:00:00+07:00"
+      ],
+      "expected": "Near Due"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "sla",
+      "input": [
+        "2026-10-10T12:00:00+07:00",
+        7,
+        null,
+        "2026-10-17T13:00:00+07:00"
+      ],
+      "expected": "Near Due"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "sla",
+      "input": [
+        "2026-10-10T12:00:00+07:00",
+        7,
+        null,
+        "2026-10-18T12:00:00+07:00"
+      ],
+      "expected": "Overdue"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "sla",
+      "input": [
+        "invalid",
+        5,
+        null,
+        "2026-10-10T12:00:00+07:00"
+      ],
+      "expected": "On Track"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "sla",
+      "input": [
+        "invalid",
+        5,
+        "anything",
+        "2026-10-10T12:00:00+07:00"
+      ],
+      "expected": "Completed"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "dueDate",
+      "input": [
+        "2026-10-30T23:00:00+07:00",
+        5
+      ],
+      "expected": "2026-11-04T16:00:00.000Z"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "dueDate",
+      "input": [
+        "2026-12-30T12:00:00+07:00",
+        7
+      ],
+      "expected": "2027-01-06T05:00:00.000Z"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "dueDate",
+      "input": [
+        "invalid",
+        7
+      ],
+      "expected": ""
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "dateLabel",
+      "input": [
+        null
+      ],
+      "expected": "-"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "dateLabel",
+      "input": [
+        "invalid"
+      ],
+      "expected": "-"
+    },
+    {
+      "rule": "RULE-014",
+      "operation": "dateLabel",
+      "input": [
+        "2026-10-10T00:00:00+07:00"
+      ],
+      "expected": "10 ต.ค. 2569"
+    },
+    {
+      "rule": "RULE-020",
+      "operation": "workflowStatus",
+      "input": [
+        {
+          "currentPhase": "COMPLETE",
+          "cancelledAt": "x",
+          "phaseStatuses": {}
+        }
+      ],
+      "expected": "CANCELLED"
+    },
+    {
+      "rule": "RULE-020",
+      "operation": "workflowStatus",
+      "input": [
+        {
+          "currentPhase": "COMPLETE",
+          "phaseStatuses": {}
+        }
+      ],
+      "expected": "ACTIVE"
+    },
+    {
+      "rule": "RULE-020",
+      "operation": "workflowStatus",
+      "input": [
+        {
+          "currentPhase": "DESIGN",
+          "phaseStatuses": {}
+        }
+      ],
+      "expected": "PENDING"
+    },
+    {
+      "rule": "RULE-020",
+      "operation": "workflowStatus",
+      "input": [
+        {
+          "currentPhase": "INSTALL",
+          "phaseStatuses": {
+            "INSTALL": "accepted"
+          }
+        }
+      ],
+      "expected": "ACCEPTED"
+    }
+  ]
+}

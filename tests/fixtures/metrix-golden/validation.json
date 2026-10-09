@@ -1,0 +1,556 @@
+{
+  "sourceSha": "f87220bf94b765e4896388632c3dbeabb5286510",
+  "sourceFile": "schemas/ductRentalSchema.ts",
+  "sourceZodVersion": "4.3.6",
+  "method": "Original frozen source schema executed with source Zod 4 and synthetic inputs; target uses Zod 3",
+  "fixtures": [
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "requestType": "NEW",
+          "projectName": "โครงการทดสอบ",
+          "routeName": "เส้นทางทดสอบ",
+          "ownerDuct": "NT",
+          "routeDetail": "เส้นทาง",
+          "jobType": "Network",
+          "serviceCenter": "BKK 1",
+          "cableType": "ADSS",
+          "fiberType": "12 Core",
+          "diameter": 8.7,
+          "distance": 1,
+          "startCoords": "13,100",
+          "endCoords": "14,101",
+          "district": "เขตทดสอบ",
+          "province": "จังหวัดทดสอบ"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ",
+        "cableCount": ""
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "requestType": "NEW",
+          "projectName": "โครงการทดสอบ",
+          "routeName": "เส้นทางทดสอบ",
+          "ownerDuct": "NT",
+          "routeDetail": "เส้นทาง",
+          "jobType": "Network",
+          "serviceCenter": "BKK 1",
+          "cableType": "ADSS",
+          "fiberType": "12 Core",
+          "diameter": 8.7,
+          "distance": 1,
+          "startCoords": "13,100",
+          "endCoords": "14,101",
+          "district": "เขตทดสอบ",
+          "province": "จังหวัดทดสอบ"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ",
+        "cableCount": null
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "requestType": "NEW",
+          "projectName": "โครงการทดสอบ",
+          "routeName": "เส้นทางทดสอบ",
+          "ownerDuct": "NT",
+          "routeDetail": "เส้นทาง",
+          "jobType": "Network",
+          "serviceCenter": "BKK 1",
+          "cableType": "ADSS",
+          "fiberType": "12 Core",
+          "diameter": 8.7,
+          "distance": 1,
+          "startCoords": "13,100",
+          "endCoords": "14,101",
+          "district": "เขตทดสอบ",
+          "province": "จังหวัดทดสอบ"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ",
+        "cableCount": 1
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "requestType": "NEW",
+          "projectName": "โครงการทดสอบ",
+          "routeName": "เส้นทางทดสอบ",
+          "ownerDuct": "NT",
+          "routeDetail": "เส้นทาง",
+          "jobType": "Network",
+          "serviceCenter": "BKK 1",
+          "cableType": "ADSS",
+          "fiberType": "12 Core",
+          "cableCount": 1,
+          "diameter": 8.7,
+          "distance": 1,
+          "startCoords": "13,100",
+          "endCoords": "14,101",
+          "district": "เขตทดสอบ",
+          "province": "จังหวัดทดสอบ"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ",
+        "cableCount": 0
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "cableCount"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ",
+        "cableCount": 1.5
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "cableCount"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 0.01,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "requestType": "NEW",
+          "projectName": "โครงการทดสอบ",
+          "routeName": "เส้นทางทดสอบ",
+          "ownerDuct": "NT",
+          "routeDetail": "เส้นทาง",
+          "jobType": "Network",
+          "serviceCenter": "BKK 1",
+          "cableType": "ADSS",
+          "fiberType": "12 Core",
+          "diameter": 8.7,
+          "distance": 0.01,
+          "startCoords": "13,100",
+          "endCoords": "14,101",
+          "district": "เขตทดสอบ",
+          "province": "จังหวัดทดสอบ"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 0.009,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "distance"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.701,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "diameter"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.702,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "diameter"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "2 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "fiberType"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": "",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "projectName"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "design",
+      "input": {
+        "projectName": " ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "requestType": "NEW",
+          "projectName": " ",
+          "routeName": "เส้นทางทดสอบ",
+          "ownerDuct": "NT",
+          "routeDetail": "เส้นทาง",
+          "jobType": "Network",
+          "serviceCenter": "BKK 1",
+          "cableType": "ADSS",
+          "fiberType": "12 Core",
+          "diameter": 8.7,
+          "distance": 1,
+          "startCoords": "13,100",
+          "endCoords": "14,101",
+          "district": "เขตทดสอบ",
+          "province": "จังหวัดทดสอบ"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "install",
+      "input": {
+        "actualStartCoords": "13,100",
+        "actualEndCoords": "14,101",
+        "actualDistance": 1,
+        "markLength": "ML",
+        "installDate": "2026-10-10"
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "actualStartCoords": "13,100",
+          "actualEndCoords": "14,101",
+          "actualDistance": 1,
+          "markLength": "ML",
+          "installDate": "2026-10-10"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "install",
+      "input": {
+        "actualStartCoords": "13,100",
+        "actualEndCoords": "14,101",
+        "actualDistance": 0.01,
+        "markLength": "ML",
+        "installDate": "2026-10-10"
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "actualStartCoords": "13,100",
+          "actualEndCoords": "14,101",
+          "actualDistance": 0.01,
+          "markLength": "ML",
+          "installDate": "2026-10-10"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "install",
+      "input": {
+        "actualStartCoords": "13,100",
+        "actualEndCoords": "14,101",
+        "actualDistance": 0.009,
+        "markLength": "ML",
+        "installDate": "2026-10-10"
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "actualDistance"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "install",
+      "input": {
+        "actualStartCoords": "13,100",
+        "actualEndCoords": "14,101",
+        "actualDistance": 1,
+        "markLength": "",
+        "installDate": "2026-10-10"
+      },
+      "expected": {
+        "success": false,
+        "paths": [
+          "markLength"
+        ]
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "install",
+      "input": {
+        "actualStartCoords": "13,100",
+        "actualEndCoords": "14,101",
+        "actualDistance": 1,
+        "markLength": "ML",
+        "installDate": "2026-10-10",
+        "pipeCount": -1
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "actualStartCoords": "13,100",
+          "actualEndCoords": "14,101",
+          "actualDistance": 1,
+          "markLength": "ML",
+          "pipeCount": -1,
+          "installDate": "2026-10-10"
+        }
+      }
+    },
+    {
+      "rule": "RULE-002",
+      "operation": "install",
+      "input": {
+        "actualStartCoords": "13,100",
+        "actualEndCoords": "14,101",
+        "actualDistance": 1,
+        "markLength": "ML",
+        "installDate": "invalid"
+      },
+      "expected": {
+        "success": true,
+        "data": {
+          "actualStartCoords": "13,100",
+          "actualEndCoords": "14,101",
+          "actualDistance": 1,
+          "markLength": "ML",
+          "installDate": "invalid"
+        }
+      }
+    }
+  ]
+}
