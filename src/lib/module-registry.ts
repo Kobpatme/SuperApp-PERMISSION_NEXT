@@ -1,7 +1,9 @@
 import { defineModuleRegistry, capabilityCatalog } from "@/lib/module-contract";
 import { buildingCapabilities, carBookingCapabilities, coreCapabilities, guaranteeCapabilities, workCapabilities } from "@/lib/capabilities";
+import { ductRentalManifest } from "@/modules/duct-rental/manifest";
 
 export const modules = defineModuleRegistry([
+  ductRentalManifest,
   {
     id: "car-booking", version: "1.0.0", owner: "Operations", icon: "car", group: "operations", order: 40,
     lifecycle: "active", enabledByDefault: true, capabilities: carBookingCapabilities,
