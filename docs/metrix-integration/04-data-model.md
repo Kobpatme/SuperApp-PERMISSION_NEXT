@@ -1,0 +1,20 @@
+# สัญญาข้อมูลและ mapping
+
+Source schema: initial 20260416 + migrations ต่อถึง20260809 + `lib/supabase/types.ts` เปรียบเทียบ blobs ใน useRequestStore; ไม่ได้อ่าน deployed database ตารางจริง/row counts/duplicate quality ยังไม่ได้ยืนยัน
+
+| Source | Source fields/types/constraints | Target mapping ที่วางไว้ |
+|---|---|---|
+| profiles | auth UUID/username unique/role enum/permissions text[]/is_active/install_service_centers text[] | Core profiles/user_roles/team/scope + reviewed source crosswalk; ไม่คัด password/session/role flags |
+| requests | text PK RQ; created_at date; updated_at timestamptz; current_phase enum10; phase_statuses jsonb; owner_id text/name; design/install/as_built/rate_notice/guarantee jsonb; signoff jsonb; missing_docs; cancelled_at; cancellation_id; last_activity index | duct_requests UUID+source_id unique; owner/team FK; date/phase/status/version; searchable canonical project/route/center/ownerDuct/distance/cable fields; phasepayload schemas; financial columns numeric; snapshot legacypayload retained; รอDQ01/02/05ก่อนfinalDDL |
+| request_files | text PK; request_id FK cascade; name/size text/url text; phase/type; uploaded_at; request+phase index | duct_request_attachments FK private Core attachment; storage key/checksum/byte size/version; preserve source_id/display name/type/phase; ห้าม public URLตรง |
+| cancellations | text PK CAN; requestFK; route/project/owner/center/province/district snapshot; monthly/yearly numeric(12,2); contract/effective dates; enumstatuses7; reason/requestedBy text/id/approved/rejected timestamps/notes | duct_cancellations UUID+source_id; canonical owner/team/actor FKs; snapshot immutable; numeric/date/status/version/archived; completion+request cancellation atomic |
+| annual_renewals | textPK year string; year integer unique; statuses7; total numeric(14,2); creator/reviewer/approver/contracted actor text; timestamps; contractnumber/file/notes | duct_annual_renewals UUID+yearunique/source_id; owner/team/version; reviewed actor mapping; numeric total computed server; contract private attachment |
+| annual_renewal_routes | UUID PK; renewalFK cascade; route_id text; snapshotfields; fees numeric(12,2); dates; review enum pending/keep/drop; notes; unique renewal+route; renewal/status index | duct_renewal_routes FKrenewal/request; snapshot/review/version/notes; preserve precision afterDQ02 |
+| notifications | textPK; user UUID/authFK; requestFK; title/message/type; general/signature+pending/acknowledged/completed/cancelled; href/due/read/completed/assignedby; metadata; open signature unique | Core notifications+outbox; module-local duct_signature_tasks for assignment/document-version FK and immutable signoff evidence; no duplicate global notification inbox |
+| signature assets | localStorage id/ownerUserId/label/dataUrl/mime/default/create/update | moduleprivate attachment owner linkage; retention/storage decisionDQ08; ไม่ย้าย browserassetโดยพลการ |
+
+design_data fieldsทั้งหมดตาม schema RULE002–003 (requestType/projectName/routeName/ownerDuct/memoNumber/routeDetail/jobType/serviceCenter/supportInfo/cableType/fiberType/cableCount/diameter/distance/startCoords/endCoords/subDistrict/district/province/postalCode/uihArea/permissionRequestNumber/contacts/memoUrl/ductDrawingUrl) เก็บ mapping/validationรายช่อง ไม่แทนด้วย generic records
+
+install_data actualStartCoords/actualEndCoords/actualDistance/markLength/pipeCount/installDate/installNotes/supervisorName; as_built cadFile/pdfFile/kmzFile/notes; rate_notice rateNoticeFile/serviceInvoiceFile/signedFile/monthlyFee/yearlyFee/start/end/notes; guarantee contractNumber/fullAmount/paymentType/venderCode/receiptNumber/notes; signoff assigned/signed/revoked/asset/file/timestamps ต้องรักษา source spelling venderCode ใน crosswalk
+
+RLS targetต้องใช้ current_platform_user_id+active profile/password state+capability grant+OWN/TEAM/SELECTED_TEAMS/ALL; no browser role/auth.uid() dependency. Index deriveจากphase/center/owner/team/last_activity/id cursors; ใช้FK restrict/soft archiveแทน sourcecascadeharddelete ไม่มี migrationข้อมูลจริงใน milestoneนี้
