@@ -7,6 +7,7 @@ Start with [current status](implementation-status.md), [open decisions](open-que
 - [Architecture decisions](adr/0003-current-runtime-and-rebuild.md), [data model](architecture/data-model.md), [module boundaries](architecture/module-boundaries.md), [event catalog](architecture/event-catalog.md).
 - [Admin](modules/admin.md), [Work/KPI](modules/work/parity-2026-10-05.md), [Buildings](modules/buildings.md), [Guarantees](modules/guarantees.md), [Car booking specification](plans/car-booking-module-spec.md).
 - [Source parity acceptance](modules/parity-gates.md), [technical debt](repository-audit/technical-debt-register.md), [migration risks](repository-audit/migration-risk-register.md). These registers describe source/target risks; verify current code before treating old entries as unresolved target defects.
+- [METRIX / เช่าท่อร้อยสาย: discovery และสถานะล่าสุด](metrix-integration/99-final-report.md), [กฎธุรกิจ](metrix-integration/03-business-logic-catalog.md), [parity matrix](metrix-integration/07-parity-matrix.md).
 - [Design system](product/design-system.md), [navigation model](product/information-architecture.md), [quality checks](quality/README.md).
 
 ## Deployment and maintenance
