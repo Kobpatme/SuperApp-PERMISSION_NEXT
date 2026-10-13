@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import golden from "../../../../tests/fixtures/metrix-golden/nonfinancial.json";
 import { getDiameterForCable } from "../domain/cables";
+import { preferredPhase, visibleFile, visibleForPhases } from "../domain/visibility";
 import { isMemoMissing, hasIncompleteRequiredDocuments, listDocumentsIncomplete, draftsmanNextPhase, normalizeCancellationStatus, getRenewOwner, getCancelOwner, getSlaStatus, addDays, formatDate, workflowStatus, type DocumentGate } from "../domain/source-policy";
 
 describe("frozen METRIX source golden parity", () => {
@@ -12,6 +13,8 @@ describe("frozen METRIX source golden parity", () => {
     const input = fixture.input as unknown[];
     let actual: unknown;
     switch (fixture.operation) {
+      case "visibility": actual = { visible: visibleForPhases(input[0] as string[], input[1] as Parameters<typeof visibleForPhases>[1], input[2] as boolean), preferred: preferredPhase(input[0] as string[], input[1] as Parameters<typeof preferredPhase>[1], input[2] as boolean) }; break;
+      case "fileVisibility": actual = visibleFile(input[0] as string[], input[1] as string, input[2] as string); break;
       case "diameter": actual = getDiameterForCable(input[0] as string, input[1] as string) ?? null; break;
       case "documents": {
         const request = input[0] as DocumentGate;

@@ -52,8 +52,18 @@ const cancel = evaluate(`function normalize(status) { const record={status}; ${d
 const trackingSource = source("lib/processTracking.ts");
 const trackingNames = ["DAY_MS", "PROCESS_SLA_DAYS", "getRenewOwner", "getCancelOwner", "addDays", "getSlaStatus", "formatDate"];
 const tracking = evaluate(declarations(trackingSource, trackingNames), trackingNames);
+const renewalSource = source("store/useRenewalStore.ts");
+const renewal = evaluate(declarations(renewalSource, ["calcEstimatedCost"]), ["calcEstimatedCost"]);
+const pdfSource = source("components/pdf/ntFormFiller.ts");
+const pdf = evaluate(declarations(pdfSource, ["buildFieldValues"]), ["buildFieldValues"]);
 const fixtures = [];
 function add(rule, operation, input, expected) { fixtures.push({ rule, operation, input, expected: expected === undefined ? null : expected }); }
+for (const role of ["design", "draftsman", "permission", "install", "3rdparty", "viewer", "sr_manager"]) {
+ for (const request of [{ currentPhase: "DESIGN", phaseStatuses: {} }, { currentPhase: "DRAFTSMAN", phaseStatuses: { DESIGN: "done" } }, { currentPhase: "COMPLETE", phaseStatuses: { DRAFTSMAN: "done", INSTALL: "done" } }])
+  add("RULE-005", "visibility", [utils.getOwnedPhasesForRole(role), request, utils.canRoleViewAllRequests(role)], { visible: utils.canRoleSeeRequest(role, request), preferred: utils.getPreferredPhaseForRole(role, request) });
+ for (const file of [["DESIGN", "memo"], ["DRAFTSMAN", "drawing"], ["PERMISSION_1", "invoice"]])
+  add("RULE-006", "fileVisibility", [[utils.canRoleViewAllRequests(role) ? "global" : role === "3rdparty" ? "thirdparty" : role], ...file], utils.canViewFile(role, ...file));
+}
 for (const [type, fibers] of Object.entries(cable.FIBER_TYPE_OPTIONS_BY_CABLE)) for (const fiber of fibers) add("RULE-003", "diameter", [type, fiber.fiberType], cable.getDiameterForCable(type, fiber.fiberType));
 for (const pair of [["ADSS", "2 Core"], ["unknown", "12 Core"], [null, null]]) add("RULE-003", "diameter", pair, cable.getDiameterForCable(...pair));
 const documents = [
@@ -83,3 +93,17 @@ const output = { sourceRepository: "Kobpatme/METRIX", sourceSha: sha, timezone: 
 mkdirSync("tests/fixtures/metrix-golden", { recursive: true });
 writeFileSync("tests/fixtures/metrix-golden/nonfinancial.json", JSON.stringify(output, null, 2) + "\n");
 console.log(JSON.stringify({ sourceSha: sha, fixtures: fixtures.length, rules: [...new Set(fixtures.map(f => f.rule))] }));
+const financePdf = [];
+for (const routes of [
+ [{ reviewStatus: "keep", yearlyFee: 0.1 }, { reviewStatus: "keep", yearlyFee: 0.2 }, { reviewStatus: "drop", yearlyFee: 90 }],
+ [{ reviewStatus: "pending", yearlyFee: 1200 }, { reviewStatus: "drop", yearlyFee: 900 }],
+ [{ reviewStatus: "keep", yearlyFee: -1.005 }, { reviewStatus: "keep", yearlyFee: 10.105 }],
+]) financePdf.push({ rule: "RULE-011", operation: "renewalTotal", input: routes, sourceExpected: renewal.calcEstimatedCost(routes), approvedExpected: routes[0].yearlyFee === 0.1 ? "0.30" : routes[0].reviewStatus === "pending" ? "0.00" : "9.10", decision: "DQ02: snapshot each numeric(*,2) before summing, ROUND_HALF_UP" });
+const designBase = { requestType: "NEW", projectName: "โครงการทดสอบ", routeName: "เส้นทางทดสอบ", ownerDuct: "NT", routeDetail: "เส้นทาง", jobType: "Network", serviceCenter: "BKK 1", cableType: "ADSS", fiberType: "12 Core", diameter: 8.7, distance: 1, startCoords: "13,100", endCoords: "14,101", district: "เขตทดสอบ", province: "จังหวัดทดสอบ" };
+for (const count of [undefined, 2, 12]) {
+ const designData = { ...designBase, ...(count ? { cableCount: count } : {}), designContactName: "ผู้ประสานงานทดสอบ" };
+ const expected = pdf.buildFieldValues({ designData });
+ financePdf.push({ rule: "RULE-017", operation: "ntFieldValues", input: designData, sourceExpected: expected, approvedExpected: { ...expected, "จำนวนเส้น (3)": String(count ?? 1) }, decision: "DQ03: owner approved entered cable count; source fallback 1 when omitted" });
+}
+writeFileSync("tests/fixtures/metrix-golden/finance-pdf.json", JSON.stringify({ sourceSha: sha, sourceHashes: hashes, method: output.method, fixtures: financePdf }, null, 2) + "\n");
+console.log(JSON.stringify({ financePdfFixtures: financePdf.length, approvedDecisions: ["DQ02", "DQ03"] }));

@@ -1,0 +1,292 @@
+{
+  "sourceSha": "f87220bf94b765e4896388632c3dbeabb5286510",
+  "sourceHashes": {
+    "schemas/ductRentalSchema.ts": "b769e883effa151f3b1fee56f8cc807e4086368027ca7c30db4c6e321ae8fe7f",
+    "lib/utils.ts": "ff2ea87580d054978f4d5ed259a6d87f1e071d179c94f3d9276d0c6677b0d68b",
+    "app/(dashboard)/dashboard/duct-rental/page.tsx": "f594fb5a2b37057d08064dbfec9624ba45303a78b35b72ae8cb1897ab897b984",
+    "app/(dashboard)/dashboard/duct-rental/[id]/draftsman/page.tsx": "d515454c7e0a4363c635754ce583d3d035138a8a31115c32f0cc5fce8b652868",
+    "app/(dashboard)/dashboard/duct-rental/cancellation/[id]/page.tsx": "3c9968e3d16377ea1b7bc713af6afd8ff997dd2e336a3bab3f221407a26cb7ff",
+    "lib/processTracking.ts": "7398f2625779dc0ca86c7c8f212aee705375922bdef05ee256ede69401d5cf58",
+    "store/useRenewalStore.ts": "57ef7d5b7e42de763718bdf2c9062a6c4c190bb0af947966959e9b9a168b6b19",
+    "components/pdf/ntFormFiller.ts": "caac9401103d0756677e7ea18f0f20e14ce3798a643390fd2bae10b12db2dc0f"
+  },
+  "method": "TypeScript AST extraction of original pure expressions, transpile + VM with frozen Date; no production services",
+  "fixtures": [
+    {
+      "rule": "RULE-011",
+      "operation": "renewalTotal",
+      "input": [
+        {
+          "reviewStatus": "keep",
+          "yearlyFee": 0.1
+        },
+        {
+          "reviewStatus": "keep",
+          "yearlyFee": 0.2
+        },
+        {
+          "reviewStatus": "drop",
+          "yearlyFee": 90
+        }
+      ],
+      "sourceExpected": 0.30000000000000004,
+      "approvedExpected": "0.30",
+      "decision": "DQ02: snapshot each numeric(*,2) before summing, ROUND_HALF_UP"
+    },
+    {
+      "rule": "RULE-011",
+      "operation": "renewalTotal",
+      "input": [
+        {
+          "reviewStatus": "pending",
+          "yearlyFee": 1200
+        },
+        {
+          "reviewStatus": "drop",
+          "yearlyFee": 900
+        }
+      ],
+      "sourceExpected": 0,
+      "approvedExpected": "0.00",
+      "decision": "DQ02: snapshot each numeric(*,2) before summing, ROUND_HALF_UP"
+    },
+    {
+      "rule": "RULE-011",
+      "operation": "renewalTotal",
+      "input": [
+        {
+          "reviewStatus": "keep",
+          "yearlyFee": -1.005
+        },
+        {
+          "reviewStatus": "keep",
+          "yearlyFee": 10.105
+        }
+      ],
+      "sourceExpected": 9.100000000000001,
+      "approvedExpected": "9.10",
+      "decision": "DQ02: snapshot each numeric(*,2) before summing, ROUND_HALF_UP"
+    },
+    {
+      "rule": "RULE-017",
+      "operation": "ntFieldValues",
+      "input": {
+        "requestType": "NEW",
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ",
+        "designContactName": "ผู้ประสานงานทดสอบ"
+      },
+      "sourceExpected": {
+        "เลขที่คำขอ": "",
+        "ชื่อถนน (3)": "เส้นทาง",
+        "Start (3)": "13,100",
+        "End (3)": "14,101",
+        "Latitude (3)": "13,100",
+        "Longitude (3)": "14,101",
+        "แขวง/ตำบล (3)": "",
+        "เขต/อำเภอ (3)": "เขตทดสอบ",
+        "จังหวัด (3)": "จังหวัดทดสอบ",
+        "รหัสไปรษณีย์ (3)": "",
+        "จำนวนเส้น (3)": "1",
+        "ชนิดของสายสื่อสาร (3)": "ADSS",
+        "ขนาด (3)": "12 Core",
+        "เส้นผ่านศูนย์กลาง (3)": "8.7",
+        "ระยะทาง (3)": "1",
+        "ชื่อ/นามสกุลผู้ประสานงาน (4)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (4)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (4)": "",
+        "อีเมล์ผู้ประสานงาน (4)": "",
+        "ชื่อ/นามสกุลผู้ประสานงาน (5)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (5)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (5)": "",
+        "อีเมล์ผู้ประสานงาน (5)": ""
+      },
+      "approvedExpected": {
+        "เลขที่คำขอ": "",
+        "ชื่อถนน (3)": "เส้นทาง",
+        "Start (3)": "13,100",
+        "End (3)": "14,101",
+        "Latitude (3)": "13,100",
+        "Longitude (3)": "14,101",
+        "แขวง/ตำบล (3)": "",
+        "เขต/อำเภอ (3)": "เขตทดสอบ",
+        "จังหวัด (3)": "จังหวัดทดสอบ",
+        "รหัสไปรษณีย์ (3)": "",
+        "จำนวนเส้น (3)": "1",
+        "ชนิดของสายสื่อสาร (3)": "ADSS",
+        "ขนาด (3)": "12 Core",
+        "เส้นผ่านศูนย์กลาง (3)": "8.7",
+        "ระยะทาง (3)": "1",
+        "ชื่อ/นามสกุลผู้ประสานงาน (4)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (4)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (4)": "",
+        "อีเมล์ผู้ประสานงาน (4)": "",
+        "ชื่อ/นามสกุลผู้ประสานงาน (5)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (5)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (5)": "",
+        "อีเมล์ผู้ประสานงาน (5)": ""
+      },
+      "decision": "DQ03: owner approved entered cable count; source fallback 1 when omitted"
+    },
+    {
+      "rule": "RULE-017",
+      "operation": "ntFieldValues",
+      "input": {
+        "requestType": "NEW",
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ",
+        "cableCount": 2,
+        "designContactName": "ผู้ประสานงานทดสอบ"
+      },
+      "sourceExpected": {
+        "เลขที่คำขอ": "",
+        "ชื่อถนน (3)": "เส้นทาง",
+        "Start (3)": "13,100",
+        "End (3)": "14,101",
+        "Latitude (3)": "13,100",
+        "Longitude (3)": "14,101",
+        "แขวง/ตำบล (3)": "",
+        "เขต/อำเภอ (3)": "เขตทดสอบ",
+        "จังหวัด (3)": "จังหวัดทดสอบ",
+        "รหัสไปรษณีย์ (3)": "",
+        "จำนวนเส้น (3)": "1",
+        "ชนิดของสายสื่อสาร (3)": "ADSS",
+        "ขนาด (3)": "12 Core",
+        "เส้นผ่านศูนย์กลาง (3)": "8.7",
+        "ระยะทาง (3)": "1",
+        "ชื่อ/นามสกุลผู้ประสานงาน (4)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (4)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (4)": "",
+        "อีเมล์ผู้ประสานงาน (4)": "",
+        "ชื่อ/นามสกุลผู้ประสานงาน (5)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (5)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (5)": "",
+        "อีเมล์ผู้ประสานงาน (5)": ""
+      },
+      "approvedExpected": {
+        "เลขที่คำขอ": "",
+        "ชื่อถนน (3)": "เส้นทาง",
+        "Start (3)": "13,100",
+        "End (3)": "14,101",
+        "Latitude (3)": "13,100",
+        "Longitude (3)": "14,101",
+        "แขวง/ตำบล (3)": "",
+        "เขต/อำเภอ (3)": "เขตทดสอบ",
+        "จังหวัด (3)": "จังหวัดทดสอบ",
+        "รหัสไปรษณีย์ (3)": "",
+        "จำนวนเส้น (3)": "2",
+        "ชนิดของสายสื่อสาร (3)": "ADSS",
+        "ขนาด (3)": "12 Core",
+        "เส้นผ่านศูนย์กลาง (3)": "8.7",
+        "ระยะทาง (3)": "1",
+        "ชื่อ/นามสกุลผู้ประสานงาน (4)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (4)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (4)": "",
+        "อีเมล์ผู้ประสานงาน (4)": "",
+        "ชื่อ/นามสกุลผู้ประสานงาน (5)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (5)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (5)": "",
+        "อีเมล์ผู้ประสานงาน (5)": ""
+      },
+      "decision": "DQ03: owner approved entered cable count; source fallback 1 when omitted"
+    },
+    {
+      "rule": "RULE-017",
+      "operation": "ntFieldValues",
+      "input": {
+        "requestType": "NEW",
+        "projectName": "โครงการทดสอบ",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ",
+        "cableCount": 12,
+        "designContactName": "ผู้ประสานงานทดสอบ"
+      },
+      "sourceExpected": {
+        "เลขที่คำขอ": "",
+        "ชื่อถนน (3)": "เส้นทาง",
+        "Start (3)": "13,100",
+        "End (3)": "14,101",
+        "Latitude (3)": "13,100",
+        "Longitude (3)": "14,101",
+        "แขวง/ตำบล (3)": "",
+        "เขต/อำเภอ (3)": "เขตทดสอบ",
+        "จังหวัด (3)": "จังหวัดทดสอบ",
+        "รหัสไปรษณีย์ (3)": "",
+        "จำนวนเส้น (3)": "1",
+        "ชนิดของสายสื่อสาร (3)": "ADSS",
+        "ขนาด (3)": "12 Core",
+        "เส้นผ่านศูนย์กลาง (3)": "8.7",
+        "ระยะทาง (3)": "1",
+        "ชื่อ/นามสกุลผู้ประสานงาน (4)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (4)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (4)": "",
+        "อีเมล์ผู้ประสานงาน (4)": "",
+        "ชื่อ/นามสกุลผู้ประสานงาน (5)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (5)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (5)": "",
+        "อีเมล์ผู้ประสานงาน (5)": ""
+      },
+      "approvedExpected": {
+        "เลขที่คำขอ": "",
+        "ชื่อถนน (3)": "เส้นทาง",
+        "Start (3)": "13,100",
+        "End (3)": "14,101",
+        "Latitude (3)": "13,100",
+        "Longitude (3)": "14,101",
+        "แขวง/ตำบล (3)": "",
+        "เขต/อำเภอ (3)": "เขตทดสอบ",
+        "จังหวัด (3)": "จังหวัดทดสอบ",
+        "รหัสไปรษณีย์ (3)": "",
+        "จำนวนเส้น (3)": "12",
+        "ชนิดของสายสื่อสาร (3)": "ADSS",
+        "ขนาด (3)": "12 Core",
+        "เส้นผ่านศูนย์กลาง (3)": "8.7",
+        "ระยะทาง (3)": "1",
+        "ชื่อ/นามสกุลผู้ประสานงาน (4)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (4)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (4)": "",
+        "อีเมล์ผู้ประสานงาน (4)": "",
+        "ชื่อ/นามสกุลผู้ประสานงาน (5)": "ผู้ประสานงานทดสอบ",
+        "โทรศัพท์ผู้ประสานงาน (5)": "",
+        "โทรศัพท์มือถือผู้ประสานงาน (5)": "",
+        "อีเมล์ผู้ประสานงาน (5)": ""
+      },
+      "decision": "DQ03: owner approved entered cable count; source fallback 1 when omitted"
+    }
+  ]
+}

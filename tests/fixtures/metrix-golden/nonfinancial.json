@@ -8,10 +8,677 @@
     "app/(dashboard)/dashboard/duct-rental/page.tsx": "f594fb5a2b37057d08064dbfec9624ba45303a78b35b72ae8cb1897ab897b984",
     "app/(dashboard)/dashboard/duct-rental/[id]/draftsman/page.tsx": "d515454c7e0a4363c635754ce583d3d035138a8a31115c32f0cc5fce8b652868",
     "app/(dashboard)/dashboard/duct-rental/cancellation/[id]/page.tsx": "3c9968e3d16377ea1b7bc713af6afd8ff997dd2e336a3bab3f221407a26cb7ff",
-    "lib/processTracking.ts": "7398f2625779dc0ca86c7c8f212aee705375922bdef05ee256ede69401d5cf58"
+    "lib/processTracking.ts": "7398f2625779dc0ca86c7c8f212aee705375922bdef05ee256ede69401d5cf58",
+    "store/useRenewalStore.ts": "57ef7d5b7e42de763718bdf2c9062a6c4c190bb0af947966959e9b9a168b6b19",
+    "components/pdf/ntFormFiller.ts": "caac9401103d0756677e7ea18f0f20e14ce3798a643390fd2bae10b12db2dc0f"
   },
   "method": "TypeScript AST extraction of original pure expressions, transpile + VM with frozen Date; no production services",
   "fixtures": [
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "DESIGN"
+        ],
+        {
+          "currentPhase": "DESIGN",
+          "phaseStatuses": {}
+        },
+        false
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "DESIGN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "DESIGN"
+        ],
+        {
+          "currentPhase": "DRAFTSMAN",
+          "phaseStatuses": {
+            "DESIGN": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "DESIGN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "DESIGN"
+        ],
+        {
+          "currentPhase": "COMPLETE",
+          "phaseStatuses": {
+            "DRAFTSMAN": "done",
+            "INSTALL": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "COMPLETE"
+      }
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "design"
+        ],
+        "DESIGN",
+        "memo"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "design"
+        ],
+        "DRAFTSMAN",
+        "drawing"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "design"
+        ],
+        "PERMISSION_1",
+        "invoice"
+      ],
+      "expected": false
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "DRAFTSMAN",
+          "DRAFTSMAN_2"
+        ],
+        {
+          "currentPhase": "DESIGN",
+          "phaseStatuses": {}
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "DESIGN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "DRAFTSMAN",
+          "DRAFTSMAN_2"
+        ],
+        {
+          "currentPhase": "DRAFTSMAN",
+          "phaseStatuses": {
+            "DESIGN": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "DRAFTSMAN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "DRAFTSMAN",
+          "DRAFTSMAN_2"
+        ],
+        {
+          "currentPhase": "COMPLETE",
+          "phaseStatuses": {
+            "DRAFTSMAN": "done",
+            "INSTALL": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "DRAFTSMAN"
+      }
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "draftsman"
+        ],
+        "DESIGN",
+        "memo"
+      ],
+      "expected": false
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "draftsman"
+        ],
+        "DRAFTSMAN",
+        "drawing"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "draftsman"
+        ],
+        "PERMISSION_1",
+        "invoice"
+      ],
+      "expected": false
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "PERMISSION_1",
+          "PERMISSION_2",
+          "PERMISSION_3"
+        ],
+        {
+          "currentPhase": "DESIGN",
+          "phaseStatuses": {}
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "DESIGN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "PERMISSION_1",
+          "PERMISSION_2",
+          "PERMISSION_3"
+        ],
+        {
+          "currentPhase": "DRAFTSMAN",
+          "phaseStatuses": {
+            "DESIGN": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "DRAFTSMAN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "PERMISSION_1",
+          "PERMISSION_2",
+          "PERMISSION_3"
+        ],
+        {
+          "currentPhase": "COMPLETE",
+          "phaseStatuses": {
+            "DRAFTSMAN": "done",
+            "INSTALL": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "COMPLETE"
+      }
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "permission"
+        ],
+        "DESIGN",
+        "memo"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "permission"
+        ],
+        "DRAFTSMAN",
+        "drawing"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "permission"
+        ],
+        "PERMISSION_1",
+        "invoice"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "INSTALL"
+        ],
+        {
+          "currentPhase": "DESIGN",
+          "phaseStatuses": {}
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "DESIGN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "INSTALL"
+        ],
+        {
+          "currentPhase": "DRAFTSMAN",
+          "phaseStatuses": {
+            "DESIGN": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "DRAFTSMAN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "INSTALL"
+        ],
+        {
+          "currentPhase": "COMPLETE",
+          "phaseStatuses": {
+            "DRAFTSMAN": "done",
+            "INSTALL": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "INSTALL"
+      }
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "install"
+        ],
+        "DESIGN",
+        "memo"
+      ],
+      "expected": false
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "install"
+        ],
+        "DRAFTSMAN",
+        "drawing"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "install"
+        ],
+        "PERMISSION_1",
+        "invoice"
+      ],
+      "expected": false
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "3RD_PARTY_1",
+          "3RD_PARTY_2"
+        ],
+        {
+          "currentPhase": "DESIGN",
+          "phaseStatuses": {}
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "DESIGN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "3RD_PARTY_1",
+          "3RD_PARTY_2"
+        ],
+        {
+          "currentPhase": "DRAFTSMAN",
+          "phaseStatuses": {
+            "DESIGN": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "DRAFTSMAN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [
+          "3RD_PARTY_1",
+          "3RD_PARTY_2"
+        ],
+        {
+          "currentPhase": "COMPLETE",
+          "phaseStatuses": {
+            "DRAFTSMAN": "done",
+            "INSTALL": "done"
+          }
+        },
+        false
+      ],
+      "expected": {
+        "visible": false,
+        "preferred": "COMPLETE"
+      }
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "thirdparty"
+        ],
+        "DESIGN",
+        "memo"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "thirdparty"
+        ],
+        "DRAFTSMAN",
+        "drawing"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "thirdparty"
+        ],
+        "PERMISSION_1",
+        "invoice"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [],
+        {
+          "currentPhase": "DESIGN",
+          "phaseStatuses": {}
+        },
+        true
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "DESIGN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [],
+        {
+          "currentPhase": "DRAFTSMAN",
+          "phaseStatuses": {
+            "DESIGN": "done"
+          }
+        },
+        true
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "DRAFTSMAN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [],
+        {
+          "currentPhase": "COMPLETE",
+          "phaseStatuses": {
+            "DRAFTSMAN": "done",
+            "INSTALL": "done"
+          }
+        },
+        true
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "COMPLETE"
+      }
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "global"
+        ],
+        "DESIGN",
+        "memo"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "global"
+        ],
+        "DRAFTSMAN",
+        "drawing"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "global"
+        ],
+        "PERMISSION_1",
+        "invoice"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [],
+        {
+          "currentPhase": "DESIGN",
+          "phaseStatuses": {}
+        },
+        true
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "DESIGN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [],
+        {
+          "currentPhase": "DRAFTSMAN",
+          "phaseStatuses": {
+            "DESIGN": "done"
+          }
+        },
+        true
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "DRAFTSMAN"
+      }
+    },
+    {
+      "rule": "RULE-005",
+      "operation": "visibility",
+      "input": [
+        [],
+        {
+          "currentPhase": "COMPLETE",
+          "phaseStatuses": {
+            "DRAFTSMAN": "done",
+            "INSTALL": "done"
+          }
+        },
+        true
+      ],
+      "expected": {
+        "visible": true,
+        "preferred": "COMPLETE"
+      }
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "global"
+        ],
+        "DESIGN",
+        "memo"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "global"
+        ],
+        "DRAFTSMAN",
+        "drawing"
+      ],
+      "expected": true
+    },
+    {
+      "rule": "RULE-006",
+      "operation": "fileVisibility",
+      "input": [
+        [
+          "global"
+        ],
+        "PERMISSION_1",
+        "invoice"
+      ],
+      "expected": true
+    },
     {
       "rule": "RULE-003",
       "operation": "diameter",
