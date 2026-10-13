@@ -1,0 +1,12 @@
+import { config } from "dotenv";
+import { spawn } from "node:child_process";
+config({ path: ".env.local", quiet: true });
+const configured = process.env.DUCT_RENTAL_TEST_DATABASE_URL || process.env.DATABASE_URL;
+if (!configured) throw new Error("Local fixture connection required (not printed)");
+const target = new URL(configured);
+if (!["localhost", "127.0.0.1", "[::1]"].includes(target.hostname)) throw new Error("Loopback database required");
+if (process.env.DUCT_RENTAL_TEST_DATABASE_URL && target.pathname !== "/permission_next_duct_rental_test") throw new Error("Unexpected test database");
+target.pathname = "/permission_next_duct_rental_test";
+const child = spawn(process.execPath, ["node_modules/vitest/vitest.mjs", "run", "src/modules/duct-rental/tests/services.integration.test.ts"], { stdio: "inherit", env: { ...process.env, DUCT_RENTAL_TEST_DATABASE_URL: target.href, DUCT_RENTAL_DATABASE_URL: "", DUCT_RENTAL_INTEGRATION: "1" } });
+child.on("error", () => { console.error("Unable to start isolated duct service tests"); process.exitCode = 1; });
+child.on("exit", code => { process.exitCode = code ?? 1; });
