@@ -22,7 +22,7 @@ export default async function PlatformLayout({ children }: Readonly<{ children: 
   const access = await Promise.all(modules.map((module) => getAccessContext(module.id)));
   const identity = access.find((item) => item.userId);
   const allowedModuleIds = modules.filter((_, index) => access[index].allowed).map((module) => module.id);
-  const canAdmin = ["core.profile.read", "core.user.manage", "core.role.manage", "core.audit.read", "core.holiday.manage", "core.system_link.manage", "core.announcement.manage", "kpi.rule.manage"].some(permission => isAuthorized(identity?.subject, permission));
+  const canAdmin = ["core.profile.read", "core.user.manage", "core.role.manage", "core.audit.read", "core.holiday.manage", "core.system_link.manage", "core.announcement.manage", "kpi.rule.manage", "core.module.manage"].some(permission => isAuthorized(identity?.subject, permission));
   const workGrants = identity?.subject?.grants ?? [];
   const hasWorkPermission = (permission: string) => workGrants.some((grant) => grant.permission === permission);
   const workNavigation = [

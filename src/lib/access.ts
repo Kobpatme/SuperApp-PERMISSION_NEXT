@@ -4,7 +4,7 @@ import { dataScopeGrants, profiles, rolePermissions, roles as rolesTable, userRo
 import { getCurrentUser } from "@/lib/auth";
 import { dataScopeTypes, type AuthorizationSubject, type DataScopeType, type Role } from "@/lib/authorization";
 import { getModule, type ModuleId } from "@/lib/module-registry";
-import { isModuleEnabled } from "@/lib/module-contract";
+import { moduleEnabled } from "@/lib/module-lifecycle";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -77,6 +77,6 @@ export const getAccessContext = cache(async function getAccessContext(moduleId: 
   return {
     ...identity,
     // Module visibility requires the action grant; row queries still enforce its data scope.
-    allowed: Boolean(manifest && isModuleEnabled(manifest) && identity.subject?.grants.some((grant) => manifest.entryPermissions.includes(grant.permission))),
+    allowed: Boolean(manifest && await moduleEnabled(manifest) && identity.subject?.grants.some((grant) => manifest.entryPermissions.includes(grant.permission))),
   };
 });

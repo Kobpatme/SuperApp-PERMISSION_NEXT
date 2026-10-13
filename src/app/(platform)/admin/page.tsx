@@ -16,6 +16,10 @@ import { WorkAdminPanels } from "@/features/work/components/admin-panels";
 import { businessDateSchema } from "@/lib/work-admin-domain";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
+import { AdminModuleSettings } from "@/components/admin-module-settings";
+import { readModuleSettings } from "@/lib/module-lifecycle";
+import { modules } from "@/lib/module-registry";
+import { effectiveModuleEnabled } from "@/lib/module-lifecycle-contract";
 
 export default async function AdminPage({ searchParams }: { searchParams: Promise<Record<string,string|string[]|undefined>> }) {
   const access = await getIdentityAccessContext();
@@ -24,7 +28,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const permissionsGranted = {
     users: isAuthorized(access.subject, "core.user.manage"), profiles: isAuthorized(access.subject, "core.profile.read"),
     positions: isAuthorized(access.subject, "core.position.manage"), teams: isAuthorized(access.subject, "core.team.manage"),
-    roles: isAuthorized(access.subject, "core.role.manage"), audit: isAuthorized(access.subject, "core.audit.read"),
+    roles: isAuthorized(access.subject, "core.role.manage"), audit: isAuthorized(access.subject, "core.audit.read"), modules: isAuthorized(access.subject, "core.module.manage"),
   };
   if (access.passwordChangeRequired || (!Object.values(permissionsGranted).some(Boolean) && !Object.values(workAdmin.granted).some(Boolean))) redirect("/");
   const auditFilter=and(
@@ -55,6 +59,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       entityType: auditLogs.entityType, entityId: auditLogs.entityId, createdAt: auditLogs.createdAt }).from(auditLogs).where(auditFilter).orderBy(desc(auditLogs.createdAt)).limit(100) : Promise.resolve([]),
   ]);
   const diagnostics = permissionsGranted.audit ? (await getWorkspaceData()).snapshot.sources : [];
+  const moduleState = permissionsGranted.modules ? await readModuleSettings() : { available: false, rows: [] };
   const sections = [
     { id:"overview", label:"ภาพรวม", group:"ภาพรวม", allowed:true, description:"เลือกส่วนที่ต้องการจัดการ หรือตรวจสถานะข้อมูล", count:null },
     { id:"users", label:"ผู้ใช้", group:"บัญชีและองค์กร", allowed:canReadUsers, description:"จัดการบัญชีและทบทวนสิทธิ์ของผู้ใช้", count:userRows.length },
@@ -66,6 +71,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     { id:"calendar", label:"วันหยุด", group:"งานและ KPI", allowed:workAdmin.granted.calendar, description:"จัดการวันหยุดที่ใช้คำนวณกำหนดส่งงาน", count:workAdmin.calendar.length },
     { id:"recalculate", label:"คำนวณงานใหม่", group:"งานและ KPI", allowed:workAdmin.granted.kpi, description:"ตรวจผลกระทบก่อนคำนวณกำหนดส่ง หรือดูตัวอย่าง KPI งานเก่า", count:null },
     { id:"systems", label:"ลิงก์ระบบ", group:"พื้นที่ทำงาน", allowed:workAdmin.granted.systems, description:"จัดการทางลัดและผู้ที่มองเห็นแต่ละระบบ", count:workAdmin.links.length },
+    { id:"modules", label:"เปิดหรือปิดโมดูล", group:"พื้นที่ทำงาน", allowed:permissionsGranted.modules, description:"ควบคุมการเปิดใช้งาน โดยเก็บสิทธิ์และประวัติข้อมูลไว้", count:modules.length },
     { id:"announcement", label:"ประกาศ", group:"พื้นที่ทำงาน", allowed:workAdmin.granted.announcement, description:"จัดการข้อความประกาศบนหน้าแรก", count:workAdmin.announcements.length },
     { id:"audit", label:"ประวัติการเปลี่ยนแปลง", group:"ตรวจสอบ", allowed:permissionsGranted.audit, description:"ค้นหาและตรวจการเปลี่ยนแปลงในระบบ", count:null },
     { id:"restore", label:"กู้คืนงาน", group:"ตรวจสอบ", allowed:access.permissions.includes("work.task.delete") && access.permissions.includes("work.task.manage"), description:"ตรวจและกู้คืนงานที่ถูกซ่อนจากรายการ", count:workAdmin.deleted.length },
@@ -77,6 +83,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     {current.id==="overview" ? <><section className="admin-overview"><h2>ภาพรวมผู้ดูแล</h2><p>เลือกส่วนที่ต้องการจัดการ</p><div className="admin-overview-grid">{sections.filter(item=>item.id!=="overview").map(item=><Link key={item.id} href={`/admin?section=${item.id}`} className="admin-overview-link"><span><strong>{item.label}</strong><small>{item.description}</small></span>{item.count!==null&&<b>{item.count}<span className="sr-only"> รายการ</span></b>}<span aria-hidden="true">→</span></Link>)}</div></section>{permissionsGranted.audit&&<details className="admin-panel"><summary>สถานะการเชื่อมต่อข้อมูล</summary><ul>{diagnostics.map(source=><li key={source.moduleId}><code>{source.moduleId}</code> · {source.status==="ready"?"พร้อมใช้งาน":"ยังไม่พร้อมใช้งาน"}</li>)}</ul></details>}</> : <>
     <div className="admin-section-heading"><h2>{current.label}</h2><p>{current.description}</p></div>
     {current.id==="audit"&&permissionsGranted.audit&&<form method="get" className="admin-filter-form" aria-label="ตัวกรองประวัติ"><input type="hidden" name="section" value="audit"/><label>ส่วนงาน<input name="auditModule" defaultValue={typeof params.auditModule==="string"?params.auditModule:""}/></label><label>ค้นหาการเปลี่ยนแปลง<input name="auditAction" defaultValue={typeof params.auditAction==="string"?params.auditAction:""}/></label><label>ผู้ดำเนินการ<select name="auditActor" defaultValue={typeof params.auditActor==="string"?params.auditActor:""}><option value="">ทั้งหมด</option>{userRows.map(user=><option key={user.id} value={user.id}>{user.displayName}</option>)}</select></label><label>ตั้งแต่<input type="date" name="auditFrom" defaultValue={typeof params.auditFrom==="string"?params.auditFrom:""}/></label><label>ถึง<input type="date" name="auditTo" defaultValue={typeof params.auditTo==="string"?params.auditTo:""}/></label><div className="admin-filter-actions"><button className="secondary-action">ใช้ตัวกรอง</button><Link href="/admin?section=audit">ล้างตัวกรอง</Link></div></form>}
+    {current.id==="modules"&&<AdminModuleSettings available={moduleState.available} items={modules.map(module=>{const row=moduleState.rows.find(item=>item.moduleId===module.id);return {id:module.id,name:module.name,ready:module.lifecycle==="active",enabled:effectiveModuleEnabled(module,row?.enabled),version:row?.version??0};})}/>}
     <AdminWorkspace section={current.id} users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
     userScopes={userScopeRows} sessions={sessionRows} auditRows={auditRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))}
     capabilities={adminCapabilityCatalog} permissionsGranted={permissionsGranted}/><WorkAdminPanels section={current.id} data={workAdmin}/></>}

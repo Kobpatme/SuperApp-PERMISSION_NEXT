@@ -1,6 +1,7 @@
 import { defineModuleRegistry, capabilityCatalog } from "@/lib/module-contract";
 import { buildingCapabilities, carBookingCapabilities, coreCapabilities, guaranteeCapabilities, workCapabilities } from "@/lib/capabilities";
 import { ductRentalManifest } from "@/modules/duct-rental/manifest";
+import { moduleLifecycleCapability } from "@/lib/module-lifecycle-contract";
 
 export const modules = defineModuleRegistry([
   ductRentalManifest,
@@ -60,7 +61,7 @@ export const modules = defineModuleRegistry([
   },
 ]);
 
-export const capabilities = [...coreCapabilities.map(capability => ({ ...capability, moduleId: "core", moduleName: "ระบบกลาง" })), ...capabilityCatalog(modules)];
+export const capabilities = [...[...coreCapabilities, moduleLifecycleCapability].map(capability => ({ ...capability, moduleId: "core", moduleName: "ระบบกลาง" })), ...capabilityCatalog(modules)];
 
 export const overviewDestination = {
   id: "overview",
