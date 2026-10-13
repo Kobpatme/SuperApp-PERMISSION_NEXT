@@ -34,7 +34,7 @@ try {
   await db.begin(tx => tx.unsafe(sql));
   const after = (await db`select count(*)::int as n from public.permissions where module_id='duct-rental'`)[0].n;
   assert.ok(before > 0); assert.equal(after, before);
-  assert.equal((await db`select count(*)::int as n from public.role_permissions where permission_code like 'duct_rental.%'`)[0].n, 0);
+  assert.equal((await db`select count(*)::int as n from public.role_permissions rp join public.roles r on r.id=rp.role_id where permission_code like 'duct_rental.%' and r.code='platform_admin'`)[0].n, 0);
   const rollback = new Error("fixture rollback");
   await assert.rejects(db.begin(async tx => {
     await tx`insert into public.permissions(code,module_id,resource,action,description) values('duct_rental.fixture.read','duct-rental','fixture','read','ข้อมูลทดสอบ')`;

@@ -125,6 +125,9 @@ export const DuctRentalSchema = z.object({
 });
 
 export type DuctRentalFormData = z.infer<typeof DuctRentalSchema>;
+const omitEmptyDraftFields = (raw: unknown) => raw && typeof raw === "object" && !Array.isArray(raw)
+  ? Object.fromEntries(Object.entries(raw).filter(([, value]) => value !== "")) : raw;
+export const DuctRentalDraftSchema = z.preprocess(omitEmptyDraftFields, DuctRentalSchema.innerType().partial());
 
 export const InstallDetailSchema = z.object({
   actualStartCoords: z.string().min(1, "กรุณากรอกพิกัดจริงต้นทาง"),
@@ -138,3 +141,4 @@ export const InstallDetailSchema = z.object({
 });
 
 export type InstallDetailData = z.infer<typeof InstallDetailSchema>;
+export const InstallDraftSchema = z.preprocess(omitEmptyDraftFields, InstallDetailSchema.partial());
