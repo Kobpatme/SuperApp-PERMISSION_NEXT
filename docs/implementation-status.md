@@ -9,17 +9,14 @@ Updated 2026-10-10. This handoff records the latest local checkpoint; it does no
 - Latest application verification: unit 267 passed / 41 opt-in skipped; dedicated sync/session PostgreSQL 13 passed; browser 6 passed; lint/typecheck/build and document mapping passed. These are local results, not production evidence.
 - Repository cleanup was checked from staged source without environment files or generated evidence: lint/typecheck/build passed, unit 267 passed and document mapping 1 passed, using installed locked dependencies. Markdown cleanup changes documentation and Git tracking only.
 
-## เช่าท่อร้อยสาย / METRIX — checkpoint 10/10/2569
+## เช่าท่อร้อยสาย / ## METRIX / เช่าท่อร้อยสาย
 
-Source `Kobpatme/METRIX@f87220bf94b765e4896388632c3dbeabb5286510` ตรงกับ remote HEAD และ target baseline `5f32a111` ตรวจ source 102 TS/TSX/SQL files, 24 screen/component files, 403 control attributes พร้อม catalog 20 RULE, data/UX mapping, parity matrix และ ADR native integration
+ตรวจ13/10/2569บนbranch codex/metrix-duct-rental-foundation: sourcef87220bยังอ่านอย่างเดียว M0 discovery/capabilities40/catalogและserverfoundation M2–M4เพิ่มแล้ว tables/RLS/runtimeแยก/privatefiles/Decimal/canonicalworkflows/assignedsigning/Core notifications/evidence/idempotency/version พร้อมCoreเปิดปิดตามคำอนุมัติโดยคงดีไซน์เดิม
 
-เพิ่ม module manifest, 40 capabilities ใน Admin catalog และหน้า `/duct-rental` ที่ใช้ Core guard อยู่ development/default-disabled จึงยังไม่เพิ่มเมนูหรือเปิดรับข้อมูล migration `0029_duct_rental_catalog.sql` ทดสอบเฉพาะ `permission_next_duct_rental_test` ในเครื่อง: migration/replay/idempotency/no automatic grants/existing grants/rollback ผ่าน ไม่มี main/production migration หรือสิทธิ์ผู้ใช้จริง
+Freshgates lint/typecheck/unit439ผ่าน55ข้าม/document1/buildผ่าน isolatedPostgreSQL permission_next_duct_rental_test migrationsถึง0043และ14service testsผ่าน รวมfullNT/non-NT/signerไม่มีสิทธิ์แก้คำขอ/revocation/annual/cancel/rollback PDFrenderตรวจThai/จำนวนสายจริง/ลายเซ็นจำลอง คำตอบDQ01/02/03/07/09นำไปใช้แล้ว
 
-พอร์ต nonfinancial pure rules และ Zod 4→3 validation พร้อม golden 82 fixtures ที่สร้างจาก source functions/schema จริง (source Zod 4.3.6) โมดูล 89 tests ผ่าน; final full gates lint/typecheck/build/document 1/CSS 0 violations/contrast 58 pairs ผ่าน; unit 356 ผ่าน /41 opt-in skipped (73 files) integration ที่ skipped ไม่ถือว่าผ่าน
-
-ยังไม่เสร็จ M2 business tables/repositories, M3 ทุกกฎและ state machine, M4 services/API/audit, M5–6 UI/PDF/signing/notification, M7 real migration และ M8 browser/visual/axe/UAT รอเจ้าของตัดสิน Sr.Manager readonly vs assigned signer และ float vs decimal monetary result ก่อน finalize data/workflow contracts รายละเอียด [รายงาน checkpoint](metrix-integration/99-final-report.md) ไม่อ้างว่าโมดูล migrated หรือพร้อม production
-
-## Work and KPI
+ยังdevelopment/default-disabled ไม่มีmain/productionmigration/grants/realimport/deployment M5–6 nativeUI/PDFeditor/refresh/sourcevisualparity, M7importfixtures, M8browser/axe/performance/existing-pagescreenshotsและgoldenครบทุกRULEยังต้องทำ ไม่อ้างพร้อมproduction ดู [รายงานปัจจุบัน](metrix-integration/99-final-report.md)
+Work and KPI
 
 Native overview, personal/team lists, assignment, people, tracker, reports and KPI workflows are implemented. Personal ownership is filtered before the 500-row limit, and personal counters use the same scoped task set. Exact-decimal calculations, versioned rules and existing status/SLA semantics remain intact. Mutation state, receipts, audit/activity/outbox commit atomically.
 

@@ -1,84 +1,63 @@
-# รายงาน checkpoint — METRIX / เช่าท่อร้อยสาย
+# รายงานความคืบหน้า — METRIX / เช่าท่อร้อยสาย
 
-วันที่ 10/10/2569 งานทั้งแผนยังไม่เสร็จและยังไม่เปิดใช้จริง Source `Kobpatme/METRIX@f87220bf94b765e4896388632c3dbeabb5286510` ตรงกับ remote HEAD; target ก่อนแก้ `5f32a111ebeeb3fea8918db7e702d95bc7302bdf` ไม่มี uncommitted user work ไม่แก้ source repo
+ตรวจล่าสุด 13/10/2569: งานทั้งแผนยังไม่เสร็จ โมดูลยัง development/default-disabled ไม่มี migration ฐานหลัก/production ไม่แก้ source Kobpatme/METRIX@f87220bf94b765e4896388632c3dbeabb5286510 target เริ่ม5f32a111บน branch codex/metrix-duct-rental-foundation
 
 ## Milestones
 
-| Milestone | ส่งมอบแล้ว | ยังขาด / สิ่งที่ขวาง |
+| งาน | ส่งมอบ/พิสูจน์แล้ว | ยังต้องทำ |
 |---|---|---|
-| M0 | เอกสาร 01–06 + ADR, 07 matrix, 08 source index 102 TS/TSX/SQL files และ 09 controls 403 attributes/24 screen files; 20 RULE | รายละเอียด runtime/legacy HTML/PDF binary ที่ยังไม่ได้ตรวจระบุใน08; DQ01–05 ไม่เลือกกฎที่ขัดกันเอง; ไม่อ้าง exhaustive runtime audit |
-| M1 | module-local manifest/capabilities40; existing registry/Admin catalog; guarded `/duct-rental`; permission seed0029; tests และ test DB | ยัง development/default-disabled; ยังไม่มี admin DB lifecycle toggle ใน Core ต้องกำหนด scope shared ก่อนเพิ่ม; existing UI จัด role grants ได้แต่ยังไม่ใช่ UAT ของโมดูล |
-| M2 | field mapping/source constraints/target proposal ใน04 | ยังไม่สร้าง business tables/RLS/repositories; finalize signing/monetary contracts หลัง DQ01/02 ก่อน schema ลงข้อมูล |
-| M3 | source pure nonfinancial rules และ validation; golden82; module89tests | ยังไม่ครบ20 RULE; state machine allowed/denied ทุกtransitionและ financeยังไม่ผ่าน |
-| M4 | ใช้ Core guard/session ที่มีอยู่บนหน้า module | business services/API/mutations/audit/idempotency/concurrency ยังไม่ทำ |
-| M5–6 | UI/controls inventoryและnative ADR | native business screens/complex flows/PDF/signing/export/notification ยังไม่ทำ |
-| M7 | ระบุ source mapping/data decisions | ไม่มี dataset/export/import/reconciliation จริง; รอ DQ06/07 |
-| M8 | full application gates และ catalog migration isolated checks | browser/e2e/visual regression/axe/load/source PDF render/security workflow/UAT ยังไม่ทำ |
+| M0 | เอกสาร01–09/ADR/20RULE/source index102files/403controls24screens | source deployed drift/browser/legacy HTMLยังไม่ยืนยัน |
+| M1 | manifest/capabilities40/Core guard/Admin catalog; CoreเปิดปิดตามDQ09/version/audit | Admin browser/grants/UAT |
+| M2 | 9business tables/FORCE RLS/immutable/version/transition guards/runtimeNOBYPASSRLS/private storage | complete source-field/import mapping/production provisioning |
+| M3 | original pure-rule105 + original Zod19 + finance/PDF decision6fixtures/Decimal/canonicalworkflow | ยังไม่ครบgolden3casesทุกoperationทุกRULE |
+| M4 | server API/Core session/scope/Zod/idempotency/concurrency/audit/activity/outbox; annual/cancel/signing/files | browser/allAPInegative paths/export audit/query measurement |
+| M5–6 | serverNT/summary/privateassets/assignedsigning/revoke/version/Core notification/PDF render | native UI/signature editor/live refresh/source visual acceptance |
+| M7 | เจ้าของยืนยันเครื่องมือและfixtureเท่านั้น | importer dry run/crosswalk/reconciliation/fixtures |
+| M8 | full gates/PostgreSQL fixture tests | e2e/axe/performance/screenshots login/home/2modules/UAT |
 
-## หลักฐานที่รันจริง
+## หลักฐานล่าสุด
 
-- Baseline ก่อนแก้: lint/typecheck/unit267ผ่าน41ข้าม/document1/buildผ่านบนNext16.3.8
-- Final checkpoint: `npm run lint`, `npm run typecheck`, `npm test`, `npm run test:documents`, `npm run check:css`, `npm run check:contrast`, `npm run build` ผ่าน; unit356ผ่าน41ข้าม (69ผ่าน/4ข้ามใน73files); document1; CSS257files0violations; contrast58pairs0failures; buildรวม `/duct-rental`
-- `node scripts/metrix-golden.mjs`: 63 source-function fixtures โดย AST extraction/transpile/VM/frozen clock Bangkok; ตรวจsourceSHAและhashเทียบgitblobก่อนรัน ไม่เรียกnetwork/Auth/DB
-- `node scripts/metrix-validation-golden.mjs _discovery_sources/METRIX <source-dependency-checkout>`: 19 fixtures ใช้ source schemaจริงกับZod4.3.6 (targetZod3); stored JSONไม่ต้องมีsource/dependenciesเพื่อรัน `npm test`
-- `npm test -- src/modules/duct-rental/tests`: 89 testsผ่าน มี finite geometry negative paths, registry/visibility/Admin catalog/SQL catalog checks
-- `node scripts/duct-rental-catalog-test.mjs`: เฉพาะloopback/database `permission_next_duct_rental_test`; initial migrations0001–0029/replaycatalog/idempotency/no automatic duct role grants/existing work auto-grants preserved/transaction rollback ผ่าน ไม่มีการเปลี่ยนข้อมูลหลัก
-- source original และ discovery clone `git status --short` ว่าง; shared design paths `git diff --name-only` ว่าง
+- npm run lint/typecheck/test/test:documents/build ผ่าน: unit439ผ่าน55opt-inข้าม (74ผ่าน/5ข้ามใน79files), document1; Next16.3.8 production buildผ่าน
+- scripts/duct-rental-catalog-test.mjs: migrationsถึง0043/replay/idempotency/no automatic platform_admin duct grants/preservedworkgrants/rollback ผ่านเฉพาะ loopback permission_next_duct_rental_test
+- scripts/duct-rental-service-test.mjs: 14ผ่าน ใช้ PostgreSQLจริง SET LOCAL ROLE duct_rental_runtime; ไม่mockRLS/audit; syntheticusers/roles/hashใช้fixtureเท่านั้น
+- ทดสอบOWN/TEAM/SELECTED_TEAMS/livegrant/accountrevocation/concurrentaccept/version/immutableowner/deniedskip/partialdraftvalidation/DESIGNdirectsubmit/non-NTและNTครบphases/Decimalrates&price-redaction/globalannualyear&review&contractmetadata/atomiccancellation/auditfailure rollback/moduleswitch/memoupload/phasevisibility/assigned-onlysigning/revoke/regeneration/ownassets/defaultfallback
+- API6tests: anonymous/disabled/password-change/cross-origin/UUIDidempotency/streamlimit/forgedactor/invalidJSON; ใช้Coreidentityเท่านั้น
+- PDF6testsผ่าน source template5pages/164terminalfields/195namednodes/mappingsครบ/flattenไม่มีAcroForm/Annots; renderตรวจThai/จำนวนสาย3/ลายเซ็นจำลอง/ชื่อ/วันที่หน้า4 ยังไม่ทำsource screenshotpixelcomparison
+- goldenrunnerตรวจSHAและhashเทียบgitblobก่อนAST/VM; validationrunnerใช้sourceZod4.3.6จริง ไม่รันsourceauth/network/storewrites
 
-41 opt-in integration testsที่ข้ามไม่ได้ถูกอ้างว่าผ่าน Test DB นี้ยืนยันเฉพาะcatalog ไม่ใช่duct business RLS/concurrency/auth/application flows หน้า Admin รับ capability ใหม่ใน unit contract แล้ว แต่การบันทึก grants ใน environment จริงต้องมี migration0029 ที่ได้รับอนุมัติติดตั้งใน environment นั้นก่อน ยังไม่ติดตั้งฐานหลักและยังไม่ทดสอบ Admin browser flow ของโมดูลนี้
+55testsที่ npm testข้ามไม่ถือว่าผ่าน แยก14duct integrationที่รันผ่านจริง ไม่ได้พิสูจน์production load/sessionbrowser/realfilemigration
 
-## RULE → test coverage
+## RULE → test
 
-| RULE | หลักฐาน target | ขอบเขตที่ยังไม่ครบ |
+| RULE | หลักฐาน | ยังขาด |
 |---|---|---|
-| 001 | ไม่มี | draft/accept server/negative/concurrency |
-| 002 | schema.test.ts; 19 originalZod4fixtures+finiteguard | server mutation validationยังไม่ต่อ |
-| 003 | source-policy.test.ts; 24 cablelookupsรวมunknown | form integrationยังไม่ต่อ |
-| 004 | source-policy.test.ts; 5cases × list/helper/memo | COMPLETE serverguard/UIยังไม่ต่อ |
-| 005–006 | ไม่มี | Corecapability/scope mapping และ authorizedprivatefilequeries; ไม่พอร์ตunknown-roleallow |
-| 007 | source-policy.test.ts; 5 next-phasebranchcases | state machineallowed/deniedทุกtransitionยังไม่ทำ |
-| 008–009 | ไม่มี | finance/signing/contractvalidationรอdecision |
-| 010–011 | ไม่มี | active-route snapshot/annualyear/decimal sum |
-| 012 | source-policy.test.ts; 6 ownerlabelcases | renewal state mutationsยังไม่ทำ |
-| 013 | source-policy.test.ts; 5 aliasstatus+5 ownercases | cancellation workflowtransactionยังไม่ทำ |
-| 014 | source-policy.test.ts; 6SLA+3datearithmetic+3datelabelcases | livequery/listยังไม่ต่อ; legacy late<24h behavior preserved |
-| 015–019 | ไม่มี | assignedsigning/asset/PDF/files/notifications/refresh |
-| 020 | source-policy.test.ts; 4workflowstatuscases | search/filter/counters/paginationquery/UIยังไม่ต่อ |
+| 001–002 | service create/partialdraft/submit/accept/version/idempotency/negative + originalZod19 | UI/coordinatorlookup |
+| 003 | originalcablelookup24+invalid | browserselects |
+| 004 | memo/note/listwhitespacegolden + COMPLETEgate | UIclear/marker |
+| 005–006 | originalvisibility42 + capability-derivedtouched-phaseRLS/privatefiles | roleunion/remainingfiletypes/browser |
+| 007 | branchgolden + NT/non-NTfullDBflow/deniedskip/stale | fullactionpositive/negative matrix |
+| 008–009 | independentmanualrates/ROUND_HALF_UP2dp/guaranteeredaction/docgates | drafts/autosave/UIedges |
+| 010–011 | active snapshot/globalyear/ALLscope/noenddatefilter/keep-onlyexacttotal | historicyear importreconciliation |
+| 012–014 | owner/status/SLA/dategoldens/annual&canceltransactions | tracking/filter/urgentUI |
+| 015–016 | assignedcurrentoriginal/revoke/regenerate/Core notifications/privatePNG/default | draw/upload/editor/nudge/rotation/scale/acknowledge |
+| 017 | original23maps + approvedactualcount + renderedPDF | source summarylayout/printacceptance |
+| 018 | checksum/MIME/size/privateauthorizedread/memoclear/ambiguouscommitprobe | uploadpreview/MIMEedges/retention |
+| 019–020 | Core tasknotifications/scopedlistfilters/counts/pagination | refresh/draftpreservation/offline/querytimings |
 
-7 rule IDs ใน nonfinancialfixtures + RULE002validation = 8 IDs มีบางส่วนที่พิสูจน์แล้ว ไม่ใช่ 8 RULE ครบทั้งหมด อย่างน้อย3ตัวอย่างต่อoperationที่พอร์ต ไม่อ้างgoldenครบทั้งcatalog
+## Owner decisions / security adaptations
 
-## Shared diff / ดีไซน์เดิม
+DQ01 assigned-onlysigning/readonlyelsewhere; DQ02 decimal2dp; DQ03 countตามคำขอ/omittedfallback1; DQ07 tools&fixturesไม่มีrealmigration; DQ09 Coretoggleโดยคงdesign ไม่ต้องถามซ้ำ
+CanonicalgraphตามsourceUIและmasterserverworkflow: DESIGNส่งตรงได้/phaseถัดไปรับก่อนส่ง/non-NTbypass; annualcreationต้องALLเพื่อไม่สร้างpartialsnapshotที่uniqueทั่วระบบต่อปี; defaultsignaturefallbackจำกัดownerเดียวกันแก้crossownerbugตามprivateassets
 
-นอก `src/modules/duct-rental` เพิ่ม/แก้เฉพาะ:
+## Shared diff / design
 
-| ไฟล์ | เหตุผล |
-|---|---|
-| src/lib/module-registry.ts | import+register manifest2บรรทัด; sourceactive4modulesยังเรียงเหมือนเดิม |
-| src/app/(platform)/duct-rental/page.tsx | route ใหม่และ Coreguard; ใช้ existing PageHeader/EmptyState/AccessDenied ไม่มีCSSใหม่ |
-| supabase/migrations/0029_duct_rental_catalog.sql | seedcatalog40และยกเว้นauto-grantเฉพาะduct; preservecar/othermodules |
-| scripts/metrix-golden.mjs, metrix-validation-golden.mjs | reproducible frozen-sourceexpectedfixtures ไม่ทำexternal writes |
-| scripts/duct-rental-catalog-test.mjs | isolatedDBguardและcatalogreplay/rollback |
-| tests/fixtures/metrix-golden/*.json | source-derivedsyntheticexpectedresults ไม่มีข้อมูลจริง |
-| docs/metrix-integration/*, docs/README.md, docs/implementation-status.md | contracts/evidence/handoff |
+นอกโมดูล: registry/access/module-lifecycle/dashboard-serverเพื่อregister/liveflag/Corecapability; Adminpage/actions/componentใช้existingclasses; platformlayoutเพิ่มcore.module.manageในAdminvisibilitypredicateเท่านั้น; newmodule/APIroutes; package/lockpinnedlocalPDFdependencies; migrations0029–0043; envexample/scripts/fixtures/docs ไม่มีtokens/globalCSS/Corefonts/sidebar/topbar/theme/sharedcomponentimplementationเปลี่ยน ยังไม่มีbefore-afterscreenshotslogin/home/2modulesจึงไม่อ้างvisualregressionผ่าน next-env.d.tsที่buildสร้างคืนก่อนcommit
 
-ไม่แก้tokens/globalCSS/fonts/mainlayout/sidebar/topbar/theme/sharedcomponent implementation เมนูใหม่ถูกปิดตามmanifest; registrytestยืนยันactiveorderเดิม ไม่ได้ถ่ายscreenshotก่อน/หลังlogin/dashboard/สองโมดูล จึงไม่อ้างvisualregressionผ่าน การเปลี่ยนไฟล์ `next-env.d.ts` โดยbuildถูกคืนเป็นรูปแบบเดิมหลังตรวจ ไม่รวมในcommit
+## Environment / handoff
 
-## Test DB / production / rollback
+ไม่applymain/production ไม่grantผู้ใช้จริง ไม่เชื่อมMETRIXSupabase/storage ไม่export/importrealdata ไม่deploy โมดูลปิดระหว่างพัฒนา
+Operatorต้องสร้างconstrainedloginสมาชิกduct_rental_runtimeแยกmigrationlogin/privateStorage/migrationsที่อนุมัติ แล้วAdminจัดrealroles/scopes/teamsและUAT sourceowners ต้องยืนยันtemplate rights/signatureretention/cutoverpolicy rollbackปิดโมดูล/ถอนgrantsโดยเก็บข้อมูล/auditไม่hard-delete
 
-0029 applyเฉพาะฐานทดสอบชื่อด้านบน ยังไม่applyฐานหลักหรือproduction ไม่grantสิทธิ์จริง ไม่ใช้credentialsMETRIXหรือเชื่อมsourceSupabase/storage ไม่มี business table/import
+## JEV advisory
 
-Code rollback: revert foundation commits โดยไม่แตะexistingmodules; keepmanifestdisabledเพื่อหยุดentryทันที DBcatalogเป็นadditive: ถอนmodule grantsผ่านAdminเมื่อมีจริง เก็บpermissionrowsไว้เพื่อรักษาประวัติ ก่อนคืนtriggerfunctionต้องreviewร่วมกับcatalogmigrationถัดไป; testfixturerollbackพิสูจน์transactionไม่ทิ้งfixturepermissions ห้ามลบrole/history/ข้อมูลจริงเพื่อrollback
-
-## JEV และข้อจำกัด
-
-ใช้ `jev-orchestrator` metadata-only: health networkใช้ได้; route .47fallback; evidence .59supported/.87needs-more → ไม่claimครบ; riskdeterministichardgateตรวจคำmigration/production (Jevไม่ได้อนุญาตการดำเนินการ); continueเลือกescalate .62fallback มีbusinessdecisionต้องเจ้าของตอบจริง ไม่ส่งsourcebodies/secrets/env/productiondataให้JEV
-
-ไม่ได้เปิดsourceproductionruntime ไม่อ่านข้อมูลจริง ไม่ยืนยันPDFfontlicense/renderทั้งหมด/legacyHTML/ทุกUIข้อความ/keyboard-mobile-a11y/performance/realusers; sourceindex/controlsเป็นstaticevidence ไม่ใช้แทนe2e
-
-## การตัดสินใจที่ต้องใช้เพื่อเดินต่อ
-
-1. DQ01: ให้ “ลงนาม” เป็น capability แยก เฉพาะ assigned user/documentversion โดยคงSr.Managerอ่านอย่างเดียวในส่วนอื่น หรือคงอ่านอย่างเดียวและเลื่อนลงนาม? SourceUIกับSQLขัดกัน จึงไม่เลือกเอง
-2. DQ02: ใช้decimal/2dpตามstoredmoneyและไม่จำลองfloatdrift หรือเก็บlegacyผลfloatสำหรับreconciliationก่อนตัดสิน? แผนบังคับdecimalแต่sourceผลต่างได้ จึงยังไม่เปิดfinancialpersistence/calculation
-3. ก่อนM6: DQ03 PDFcableCount='1' vsformจำนวนจริง; DQ08signasset/license/retention และก่อนM7 DQ06/07 reviewedusers/data/cutover; ownerUAT/grantsจริง/productionapplyต้องสั่งแยกภายหลัง
-
-คำถาม1–2ส่งเจ้าของไว้ระหว่างทำงานแล้ว ยังไม่ได้รับคำตอบ ไม่ถือว่าเวลาผ่านไปคือapproval ส่วนที่ไม่ขึ้นกับคำตอบทำเป็นcheckpointและทดสอบแล้ว ส่วนbusinessservices/UIต้องต่อจากdata/workflowcontractsที่ยืนยัน ไม่อ้างว่าจบM0–M8ทั้งแผน
+ใช้health/routing/risk/evidence sanitizedmetadataเท่านั้น ไม่มีsourcebodies/env/credentials/customerdata JEVไม่อนุมัติproduction evidence-checkก่อนUI supported0.67/needs_more_evidence0.85/gather_more_evidence สอดคล้องbrowser/visual/load/remaining-rule gaps ใช้compiler/tests/DBจริงเป็นหลักฐาน ไม่อ้างsourceparityครบ
