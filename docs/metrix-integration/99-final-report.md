@@ -1,5 +1,7 @@
 # รายงานส่งมอบ METRIX — เช่าท่อร้อยสาย
 
+> **ผลตรวจซ้ำ 14/10/2569: ยังไม่ครบตามไฟล์แนบ 100% และไม่ได้เหลือเพียง UAT** พบ role bundles ที่ยังไม่ seed, exhaustive golden/constant tests ที่ขาด, created success banner ที่ไม่แสดง, ความต่างวันที่/ช่วงเลื่อนลายเซ็นที่ยังไม่มี decision และ template inventory ที่ไม่ครบ ดู [ผลตรวจซ้ำ RC-01–07](11-requirement-recheck.md) สถานะ M1/M3/M5/M6 และคำอ้าง parity ในรายงานเดิมด้านล่างต้องอ่านร่วมกับผลแก้ไขนี้ ตัวเลข QA เป็นหลักฐานของกรณีที่ทดสอบแล้ว
+
 ตรวจล่าสุด 14/10/2569 บน branch `codex/metrix-duct-rental-foundation` Native implementation พร้อมตรวจ UAT ใน fixture แล้ว ไม่มีการย้ายข้อมูลจริง apply ฐานหลัก/production grant ผู้ใช้จริง หรือ deployment โมดูลหลักยัง development/default-disabled ตาม release gate ที่ต้องบันทึก human UAT ก่อนประกาศ migrated
 
 Source freeze: `Kobpatme/METRIX@f87220bf94b765e4896388632c3dbeabb5286510` Target before-module baseline: `5f32a111ebeeb3fea8918db7e702d95bc7302bdf` Source ใช้อ่านอย่างเดียว ไม่คัด auth/stores/env มาเป็น runtime
