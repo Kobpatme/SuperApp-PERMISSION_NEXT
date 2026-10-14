@@ -1,6 +1,6 @@
 # Current implementation status
 
-Updated 2026-10-10. This handoff records the latest local checkpoint; it does not claim production release, real-data reconciliation or human UAT approval. Application source and repeatable tests take precedence over historical reports.
+Updated 2026-10-14. Earlier Core-only counts below are historical checkpoints. This handoff records the latest local checkpoint; it does not claim production release, real-data reconciliation or human UAT approval. Application source and repeatable tests take precedence over historical reports.
 
 ## Runtime and verification
 
@@ -9,20 +9,13 @@ Updated 2026-10-10. This handoff records the latest local checkpoint; it does no
 - Latest application verification: unit 267 passed / 41 opt-in skipped; dedicated sync/session PostgreSQL 13 passed; browser 6 passed; lint/typecheck/build and document mapping passed. These are local results, not production evidence.
 - Repository cleanup was checked from staged source without environment files or generated evidence: lint/typecheck/build passed, unit 267 passed and document mapping 1 passed, using installed locked dependencies. Markdown cleanup changes documentation and Git tracking only.
 
-## เช่าท่อร้อยสาย / ## METRIX / เช่าท่อร้อยสาย
+## เช่าท่อร้อยสาย / METRIX — 14/10/2569
 
-ตรวจ13/10/2569บนbranch codex/metrix-duct-rental-foundation: sourcef87220bยังอ่านอย่างเดียว M0 discovery/capabilities40/catalogและserverfoundation M2–M4เพิ่มแล้ว tables/RLS/runtimeแยก/privatefiles/Decimal/canonicalworkflows/assignedsigning/Core notifications/evidence/idempotency/version พร้อมCoreเปิดปิดตามคำอนุมัติโดยคงดีไซน์เดิม
+Native module implementation M0–M9 ส่งมอบสำหรับ local UAT: 40 capabilities/scopes, Core Admin enable/disable ตาม DQ09, server workflow/private PDF/assigned signing, 10-phase NT/non-NT, annual/cancel/SLA/realtime และ offline importer tools/fixtures ไม่มี real data migration
 
-Freshgates lint/typecheck/unit439ผ่าน55ข้าม/document1/buildผ่าน isolatedPostgreSQL permission_next_duct_rental_test migrationsถึง0043และ14service testsผ่าน รวมfullNT/non-NT/signerไม่มีสิทธิ์แก้คำขอ/revocation/annual/cancel/rollback PDFrenderตรวจThai/จำนวนสายจริง/ลายเซ็นจำลอง คำตอบDQ01/02/03/07/09นำไปใช้แล้ว
+Latest verification: lint/typecheck/build ผ่าน, unit450ผ่าน62opt-inข้าม/document1/CSS312files0violations; constrained PostgreSQL21ผ่าน/catalogถึง0052/empty52-migration DDL rollback; import CLI5+planner7; browser7ผ่าน/Core13คู่0pixelchange/axe13views0violations; 1000-row page50ใช้4SQLต่อcall/localmax2.26sec (ไม่ใช่ production SLA)
 
-ยังdevelopment/default-disabled ไม่มีmain/productionmigration/grants/realimport/deployment M5–6 nativeUI/PDFeditor/refresh/sourcevisualparity, M7importfixtures, M8browser/axe/performance/existing-pagescreenshotsและgoldenครบทุกRULEยังต้องทำ ไม่อ้างพร้อมproduction ดู [รายงานปัจจุบัน](metrix-integration/99-final-report.md)
-Work and KPI
-
-Native overview, personal/team lists, assignment, people, tracker, reports and KPI workflows are implemented. Personal ownership is filtered before the 500-row limit, and personal counters use the same scoped task set. Exact-decimal calculations, versioned rules and existing status/SLA semantics remain intact. Mutation state, receipts, audit/activity/outbox commit atomically.
-
-Visible/online refresh uses one coordinator for manual and automatic requests, pauses for drafts/modals/pending forms, and signals changes across tabs. Session creation serializes per account and displaces prior active sessions; administrators follow the same rule. Password/admin invalidation and Thai login feedback are preserved. Public health exposes build identity; deployment verification is read-only.
-
-Local query measurements were 16 SELECTs for team and 13 for personal RSC refresh. The 500-row synthetic browser test emitted a Next Gzip drain-listener warning; it has not been established as a memory leak and no listener limit was raised. Representative production load remains unverified. See [Work contract](modules/work/parity-2026-10-05.md) and [session/refresh operations](operations/sync-session-health.md).
+Main manifest ยังdevelopment/default-disabled ตาม human UAT gate ไม่มีmain/productionapply/grants/deploy Owner decisionsDQ01/02/03/07/09ใช้แล้ว การเปิดจริงต้อง real identities/teams/scopes/coordinator map/template&retention review และบันทึกUAT รายงานเก่า267/439testsข้างต้นเป็น historicalCorecheckpoint ไม่ใช่ผลล่าสุด ดู [รายงาน](metrix-integration/99-final-report.md) และ [QA](quality/duct-rental/README.md)
 
 ## Car booking
 

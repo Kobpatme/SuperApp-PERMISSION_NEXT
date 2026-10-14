@@ -1,5 +1,8 @@
 # ADR-001 — โมดูล native พร้อม source freeze
 
+> Implementation update 14/10/2569: directory ใช้ `components/` สำหรับ module UI และ tables ใช้ prefix `duct_rental_` ตาม convention Core PostgreSQL แยก constrained runtime + private server storage แทน Source Supabase stores Core Admin toggle ตาม DQ09 ผ่าน server tests; production release ยังรอ UAT Original native choice ด้านล่างคงไว้เป็น ADR history
+
+
 วันที่ 10/10/2569 สถานะ: เลือกสำหรับ implementation ที่ไม่มี business conflict; release ยังไม่อนุมัติ
 
 เลือก A: native Next.js TypeScript module `src/modules/duct-rental/{domain,schemas,server,ui,tests}` ตาม source Next/React/TS ไม่มี backend ภาษาอื่นที่จำเป็นต้องเก็บไว้ Source Supabase stores เป็น persistence adapters ไม่ใช่เหตุผลคง backend เดิม

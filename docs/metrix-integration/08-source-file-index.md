@@ -1,5 +1,8 @@
 # บัญชีไฟล์ต้นทางและหลักฐานเชิงโครงสร้าง
 
+> Final implementation ใช้ Source commit เดิม ไม่อัปเดต branch ต้นทาง Reference PDF รันเฉพาะ frozen ntFormFiller ด้วยข้อมูลจำลองใน offline sandbox; ไม่รัน Source app/auth/stores หรืออ่าน .env Source index และ provenance ข้างล่างเก็บไว้สำหรับตรวจซ้ำ
+
+
 ต้นทาง `Kobpatme/METRIX@f87220bf94b765e4896388632c3dbeabb5286510` ตรงกับ remote HEAD ที่ตรวจ 10/10/2569 สำเนา `_discovery_sources/METRIX` อ่านอย่างเดียว
 
 ตรวจทุก TS/TSX/SQL ผ่าน TypeScript AST/รายการไฟล์ Git ด้านล่าง การมีชื่อฟังก์ชันในดัชนีไม่ได้พิสูจน์ว่า runtime ใช้งานได้ ทุก handler ต้องผ่าน golden/integration/browser ใน milestone ที่เกี่ยวข้อง ไม่มีการอ่าน `.env` หรือข้อมูลจริง

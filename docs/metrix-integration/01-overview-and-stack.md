@@ -1,5 +1,8 @@
 # ภาพรวม METRIX และการ freeze ต้นทาง
 
+> สถานะล่าสุด 14/10/2569: native implementation และ local QA ส่งมอบแล้ว ดู [99](99-final-report.md) ตัวเลข baseline ด้านล่างเป็นประวัติ 10/10 ไม่ใช่ผลล่าสุด Core module toggle แบบ version/audit เพิ่มแล้วตาม DQ09 โมดูลหลักยัง development/default-disabled จน human UAT ไม่ได้ deploy หรือย้ายข้อมูลจริง
+
+
 ตรวจวันที่ 10/10/2569; target ก่อนแก้ `5f32a111ebeeb3fea8918db7e702d95bc7302bdf` working tree สะอาด ต้นทาง `Kobpatme/METRIX@f87220bf94b765e4896388632c3dbeabb5286510` local `D:/WebApp/METRIX Request` และ remote HEAD ตรงกัน สำเนาอ่านอย่างเดียว `_discovery_sources/METRIX` ไม่มีการ fetch/แก้ repo ต้นทาง
 
 ต้นทางเป็น Next.js 16.1.7 / React 19.2.3 / TypeScript / Zustand 5 / React Query 5 / React Hook Form 7 / Zod 4 / Tailwind 4 / lucide-react; ใช้ Supabase JS 2.103.2 และ SSR 0.10.2 สำหรับ Auth, PostgreSQL, RLS, Realtime และ Storage (`package.json`, `lib/supabase/*`, `store/*`) PDF ใช้ react-pdf 4, pdf-lib 1.17, pdfjs-dist 5 และ Sarabun ผ่านไฟล์ local; ไม่มี test script ต้นทาง

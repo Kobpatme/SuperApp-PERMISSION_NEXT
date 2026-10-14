@@ -1,5 +1,8 @@
 # บัญชีฟีเจอร์
 
+> ปรับสถานะ 14/10/2569: F01–F19 มี native implementation/server guards และหลักฐาน local ตาม [parity matrix](07-parity-matrix.md) F19 เป็น archive เพื่อเก็บประวัติ; F20 ใช้ Core; F21–F22 อยู่นอก Duct Rental ยังไม่พอร์ต ข้างล่างเป็นข้อเท็จจริงจาก Source ไม่ใช่คำกล่าวว่า UAT/production ผ่าน
+
+
 สถานะ “มีโค้ด” แปลว่าพบ reachable Next/store handler ไม่ใช่การยืนยัน deployment/ข้อมูลจริง ทุก path อ้างจาก source SHA ใน 01 รายการ controls รายละเอียดอยู่ 09
 
 | ID | ฟีเจอร์ | ผู้ใช้ | ไฟล์ต้นทาง | อ่าน/เขียน | สถานะต้นทาง |
