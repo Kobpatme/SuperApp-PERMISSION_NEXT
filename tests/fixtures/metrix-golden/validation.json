@@ -4,553 +4,129 @@
   "sourceZodVersion": "4.3.6",
   "method": "Original frozen source schema executed with source Zod 4 and synthetic inputs; target uses Zod 3",
   "fixtures": [
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ"
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "requestType": "NEW",
-          "projectName": "โครงการทดสอบ",
-          "routeName": "เส้นทางทดสอบ",
-          "ownerDuct": "NT",
-          "routeDetail": "เส้นทาง",
-          "jobType": "Network",
-          "serviceCenter": "BKK 1",
-          "cableType": "ADSS",
-          "fiberType": "12 Core",
-          "diameter": 8.7,
-          "distance": 1,
-          "startCoords": "13,100",
-          "endCoords": "14,101",
-          "district": "เขตทดสอบ",
-          "province": "จังหวัดทดสอบ"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ",
-        "cableCount": ""
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "requestType": "NEW",
-          "projectName": "โครงการทดสอบ",
-          "routeName": "เส้นทางทดสอบ",
-          "ownerDuct": "NT",
-          "routeDetail": "เส้นทาง",
-          "jobType": "Network",
-          "serviceCenter": "BKK 1",
-          "cableType": "ADSS",
-          "fiberType": "12 Core",
-          "diameter": 8.7,
-          "distance": 1,
-          "startCoords": "13,100",
-          "endCoords": "14,101",
-          "district": "เขตทดสอบ",
-          "province": "จังหวัดทดสอบ"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ",
-        "cableCount": null
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "requestType": "NEW",
-          "projectName": "โครงการทดสอบ",
-          "routeName": "เส้นทางทดสอบ",
-          "ownerDuct": "NT",
-          "routeDetail": "เส้นทาง",
-          "jobType": "Network",
-          "serviceCenter": "BKK 1",
-          "cableType": "ADSS",
-          "fiberType": "12 Core",
-          "diameter": 8.7,
-          "distance": 1,
-          "startCoords": "13,100",
-          "endCoords": "14,101",
-          "district": "เขตทดสอบ",
-          "province": "จังหวัดทดสอบ"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ",
-        "cableCount": 1
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "requestType": "NEW",
-          "projectName": "โครงการทดสอบ",
-          "routeName": "เส้นทางทดสอบ",
-          "ownerDuct": "NT",
-          "routeDetail": "เส้นทาง",
-          "jobType": "Network",
-          "serviceCenter": "BKK 1",
-          "cableType": "ADSS",
-          "fiberType": "12 Core",
-          "cableCount": 1,
-          "diameter": 8.7,
-          "distance": 1,
-          "startCoords": "13,100",
-          "endCoords": "14,101",
-          "district": "เขตทดสอบ",
-          "province": "จังหวัดทดสอบ"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ",
-        "cableCount": 0
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "cableCount"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ",
-        "cableCount": 1.5
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "cableCount"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 0.01,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ"
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "requestType": "NEW",
-          "projectName": "โครงการทดสอบ",
-          "routeName": "เส้นทางทดสอบ",
-          "ownerDuct": "NT",
-          "routeDetail": "เส้นทาง",
-          "jobType": "Network",
-          "serviceCenter": "BKK 1",
-          "cableType": "ADSS",
-          "fiberType": "12 Core",
-          "diameter": 8.7,
-          "distance": 0.01,
-          "startCoords": "13,100",
-          "endCoords": "14,101",
-          "district": "เขตทดสอบ",
-          "province": "จังหวัดทดสอบ"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 0.009,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ"
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "distance"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.701,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ"
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "diameter"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.702,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ"
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "diameter"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "โครงการทดสอบ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "2 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ"
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "fiberType"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": "",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ"
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "projectName"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "design",
-      "input": {
-        "projectName": " ",
-        "routeName": "เส้นทางทดสอบ",
-        "ownerDuct": "NT",
-        "routeDetail": "เส้นทาง",
-        "jobType": "Network",
-        "serviceCenter": "BKK 1",
-        "cableType": "ADSS",
-        "fiberType": "12 Core",
-        "diameter": 8.7,
-        "distance": 1,
-        "startCoords": "13,100",
-        "endCoords": "14,101",
-        "district": "เขตทดสอบ",
-        "province": "จังหวัดทดสอบ"
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "requestType": "NEW",
-          "projectName": " ",
-          "routeName": "เส้นทางทดสอบ",
-          "ownerDuct": "NT",
-          "routeDetail": "เส้นทาง",
-          "jobType": "Network",
-          "serviceCenter": "BKK 1",
-          "cableType": "ADSS",
-          "fiberType": "12 Core",
-          "diameter": 8.7,
-          "distance": 1,
-          "startCoords": "13,100",
-          "endCoords": "14,101",
-          "district": "เขตทดสอบ",
-          "province": "จังหวัดทดสอบ"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "install",
-      "input": {
-        "actualStartCoords": "13,100",
-        "actualEndCoords": "14,101",
-        "actualDistance": 1,
-        "markLength": "ML",
-        "installDate": "2026-10-10"
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "actualStartCoords": "13,100",
-          "actualEndCoords": "14,101",
-          "actualDistance": 1,
-          "markLength": "ML",
-          "installDate": "2026-10-10"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "install",
-      "input": {
-        "actualStartCoords": "13,100",
-        "actualEndCoords": "14,101",
-        "actualDistance": 0.01,
-        "markLength": "ML",
-        "installDate": "2026-10-10"
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "actualStartCoords": "13,100",
-          "actualEndCoords": "14,101",
-          "actualDistance": 0.01,
-          "markLength": "ML",
-          "installDate": "2026-10-10"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "install",
-      "input": {
-        "actualStartCoords": "13,100",
-        "actualEndCoords": "14,101",
-        "actualDistance": 0.009,
-        "markLength": "ML",
-        "installDate": "2026-10-10"
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "actualDistance"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "install",
-      "input": {
-        "actualStartCoords": "13,100",
-        "actualEndCoords": "14,101",
-        "actualDistance": 1,
-        "markLength": "",
-        "installDate": "2026-10-10"
-      },
-      "expected": {
-        "success": false,
-        "paths": [
-          "markLength"
-        ]
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "install",
-      "input": {
-        "actualStartCoords": "13,100",
-        "actualEndCoords": "14,101",
-        "actualDistance": 1,
-        "markLength": "ML",
-        "installDate": "2026-10-10",
-        "pipeCount": -1
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "actualStartCoords": "13,100",
-          "actualEndCoords": "14,101",
-          "actualDistance": 1,
-          "markLength": "ML",
-          "pipeCount": -1,
-          "installDate": "2026-10-10"
-        }
-      }
-    },
-    {
-      "rule": "RULE-002",
-      "operation": "install",
-      "input": {
-        "actualStartCoords": "13,100",
-        "actualEndCoords": "14,101",
-        "actualDistance": 1,
-        "markLength": "ML",
-        "installDate": "invalid"
-      },
-      "expected": {
-        "success": true,
-        "data": {
-          "actualStartCoords": "13,100",
-          "actualEndCoords": "14,101",
-          "actualDistance": 1,
-          "markLength": "ML",
-          "installDate": "invalid"
-        }
-      }
-    }
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ","cableCount":""},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ","cableCount":null},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ","cableCount":1},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","cableCount":1,"diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ","cableCount":0},"expected":{"success":false,"paths":["cableCount"]}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ","cableCount":1.5},"expected":{"success":false,"paths":["cableCount"]}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":0.01,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":0.01,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":0.009,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["distance"]}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.701,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.702,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"2 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":"","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["projectName"]}},
+    {"rule":"RULE-002","operation":"design","input":{"projectName":" ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":" ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-002","operation":"install","input":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":1,"markLength":"ML","installDate":"2026-10-10"},"expected":{"success":true,"data":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":1,"markLength":"ML","installDate":"2026-10-10"}}},
+    {"rule":"RULE-002","operation":"install","input":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":0.01,"markLength":"ML","installDate":"2026-10-10"},"expected":{"success":true,"data":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":0.01,"markLength":"ML","installDate":"2026-10-10"}}},
+    {"rule":"RULE-002","operation":"install","input":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":0.009,"markLength":"ML","installDate":"2026-10-10"},"expected":{"success":false,"paths":["actualDistance"]}},
+    {"rule":"RULE-002","operation":"install","input":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":1,"markLength":"","installDate":"2026-10-10"},"expected":{"success":false,"paths":["markLength"]}},
+    {"rule":"RULE-002","operation":"install","input":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":1,"markLength":"ML","installDate":"2026-10-10","pipeCount":-1},"expected":{"success":true,"data":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":1,"markLength":"ML","pipeCount":-1,"installDate":"2026-10-10"}}},
+    {"rule":"RULE-002","operation":"install","input":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":1,"markLength":"ML","installDate":"invalid"},"expected":{"success":true,"data":{"actualStartCoords":"13,100","actualEndCoords":"14,101","actualDistance":1,"markLength":"ML","installDate":"invalid"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"2 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"2 Core","diameter":6.498,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"2 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"2 Core","diameter":6.499,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"2 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"2 Core","diameter":6.5,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"2 Core","diameter":6.5,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"2 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"2 Core","diameter":6.501,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"2 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"2 Core","diameter":6.502,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"12 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"24 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"24 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"48 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"48 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"60 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"60 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"72 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"72 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"96 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"96 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"120 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"120 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"144 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"144 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"312 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"312 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"Drop OFC","fiberType":"216 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"Drop OFC","fiberType":"216 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"2 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"2 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"12 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.697999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"12 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.699,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.699,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"12 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"12 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.700999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.700999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"12 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"12 Core","diameter":8.702,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"24 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"24 Core","diameter":8.697999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"24 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"24 Core","diameter":8.699,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"24 Core","diameter":8.699,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"24 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"24 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"24 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"24 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"24 Core","diameter":8.700999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"24 Core","diameter":8.700999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"24 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"24 Core","diameter":8.702,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"48 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"48 Core","diameter":8.697999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"48 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"48 Core","diameter":8.699,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"48 Core","diameter":8.699,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"48 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"48 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"48 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"48 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"48 Core","diameter":8.700999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"48 Core","diameter":8.700999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"48 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"48 Core","diameter":8.702,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"60 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"60 Core","diameter":8.697999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"60 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"60 Core","diameter":8.699,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"60 Core","diameter":8.699,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"60 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"60 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"60 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"60 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"60 Core","diameter":8.700999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"60 Core","diameter":8.700999999999999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"60 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"60 Core","diameter":8.702,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"72 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"72 Core","diameter":10.498,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"72 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"72 Core","diameter":10.499,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"72 Core","diameter":10.499,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"72 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"72 Core","diameter":10.5,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"72 Core","diameter":10.5,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"72 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"72 Core","diameter":10.501,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"72 Core","diameter":10.501,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"72 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"72 Core","diameter":10.502,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"96 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"96 Core","diameter":11.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"96 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"96 Core","diameter":11.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"96 Core","diameter":11.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"96 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"96 Core","diameter":12,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"96 Core","diameter":12,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"96 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"96 Core","diameter":12.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"96 Core","diameter":12.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"96 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"96 Core","diameter":12.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"120 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"120 Core","diameter":13.498,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"120 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"120 Core","diameter":13.499,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"120 Core","diameter":13.499,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"120 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"120 Core","diameter":13.5,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"120 Core","diameter":13.5,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"120 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"120 Core","diameter":13.501,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"120 Core","diameter":13.501,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"120 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"120 Core","diameter":13.502,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"144 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"144 Core","diameter":14.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"144 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"144 Core","diameter":14.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"144 Core","diameter":14.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"144 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"144 Core","diameter":15,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"144 Core","diameter":15,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"144 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"144 Core","diameter":15.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"144 Core","diameter":15.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"144 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"144 Core","diameter":15.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"312 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"312 Core","diameter":17.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"312 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"312 Core","diameter":17.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"312 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"312 Core","diameter":18,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"312 Core","diameter":18,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"312 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"312 Core","diameter":18.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"312 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"312 Core","diameter":18.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ADSS","fiberType":"216 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ADSS","fiberType":"216 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"2 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"2 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"12 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"12 Core","diameter":10.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"12 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"12 Core","diameter":10.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"12 Core","diameter":10.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"12 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"12 Core","diameter":11,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"12 Core","diameter":11,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"12 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"12 Core","diameter":11.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"12 Core","diameter":11.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"12 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"12 Core","diameter":11.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"24 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"24 Core","diameter":10.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"24 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"24 Core","diameter":10.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"24 Core","diameter":10.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"24 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"24 Core","diameter":11,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"24 Core","diameter":11,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"24 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"24 Core","diameter":11.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"24 Core","diameter":11.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"24 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"24 Core","diameter":11.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"48 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"48 Core","diameter":11.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"48 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"48 Core","diameter":11.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"48 Core","diameter":11.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"48 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"48 Core","diameter":12,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"48 Core","diameter":12,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"48 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"48 Core","diameter":12.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"48 Core","diameter":12.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"48 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"48 Core","diameter":12.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"60 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"60 Core","diameter":11.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"60 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"60 Core","diameter":11.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"60 Core","diameter":11.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"60 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"60 Core","diameter":12,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"60 Core","diameter":12,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"60 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"60 Core","diameter":12.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"60 Core","diameter":12.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"60 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"60 Core","diameter":12.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"72 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"72 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"96 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"96 Core","diameter":8.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["fiberType"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"120 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"120 Core","diameter":14.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"120 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"120 Core","diameter":14.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"120 Core","diameter":14.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"120 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"120 Core","diameter":15,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"120 Core","diameter":15,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"120 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"120 Core","diameter":15.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"120 Core","diameter":15.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"120 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"120 Core","diameter":15.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"144 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"144 Core","diameter":16.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"144 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"144 Core","diameter":16.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"144 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"144 Core","diameter":17,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"144 Core","diameter":17,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"144 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"144 Core","diameter":17.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"144 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"144 Core","diameter":17.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"312 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"312 Core","diameter":18.698,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"312 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"312 Core","diameter":18.698999999999998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"312 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"312 Core","diameter":18.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"312 Core","diameter":18.7,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"312 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"312 Core","diameter":18.701,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"312 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"312 Core","diameter":18.701999999999998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"216 Core","delta":-0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"216 Core","diameter":16.998,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"216 Core","delta":-0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"216 Core","diameter":16.999,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"216 Core","delta":0},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"216 Core","diameter":17,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":true,"data":{"requestType":"NEW","projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"216 Core","diameter":17,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"}}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"216 Core","delta":0.001},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"216 Core","diameter":17.001,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}},
+    {"rule":"RULE-003","operation":"design","matrix":{"cableType":"ARSS","fiberType":"216 Core","delta":0.002},"input":{"projectName":"โครงการทดสอบ","routeName":"เส้นทางทดสอบ","ownerDuct":"NT","routeDetail":"เส้นทาง","jobType":"Network","serviceCenter":"BKK 1","cableType":"ARSS","fiberType":"216 Core","diameter":17.002,"distance":1,"startCoords":"13,100","endCoords":"14,101","district":"เขตทดสอบ","province":"จังหวัดทดสอบ"},"expected":{"success":false,"paths":["diameter"]}}
   ]
 }

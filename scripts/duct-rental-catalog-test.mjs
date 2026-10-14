@@ -35,6 +35,24 @@ try {
   const after = (await db`select count(*)::int as n from public.permissions where module_id='duct-rental'`)[0].n;
   assert.ok(before > 0); assert.equal(after, before);
   assert.equal((await db`select count(*)::int as n from public.role_permissions rp join public.roles r on r.id=rp.role_id where permission_code like 'duct_rental.%' and r.code='platform_admin'`)[0].n, 0);
+  const presetsSql = await readFile("supabase/migrations/0053_duct_rental_role_presets.sql", "utf8");
+  const presets = JSON.parse(presetsSql.match(/jsonb_array_elements\('(.+)'::jsonb\)/)[1].replaceAll("''", "'"));
+  for (const preset of presets) {
+    const [role] = await db`select id,is_system from roles where code=${preset.code}`;
+    assert.equal(role.is_system, false);
+    assert.deepEqual((await db`select permission_code from role_permissions where role_id=${role.id} order by permission_code`).map(row => row.permission_code), [...preset.permissions].sort());
+    assert.equal((await db`select count(*)::int n from user_role_assignments where role_id=${role.id}`)[0].n, 0);
+  }
+  const presetRollback = new Error("preset customization rollback");
+  await assert.rejects(db.begin(async tx => {
+    const [role] = await tx`select id from roles where code='duct_rental_design'`;
+    await tx`delete from role_permissions where role_id=${role.id} and permission_code='duct_rental.rate.read'`;
+    await tx`update roles set name='Fixture customized role' where id=${role.id}`;
+    await tx.unsafe(presetsSql);
+    assert.equal((await tx`select name from roles where id=${role.id}`)[0].name, 'Fixture customized role');
+    assert.equal((await tx`select count(*)::int n from role_permissions where role_id=${role.id} and permission_code='duct_rental.rate.read'`)[0].n, 0);
+    throw presetRollback;
+  }), error => error === presetRollback);
   const rollback = new Error("fixture rollback");
   await assert.rejects(db.begin(async tx => {
     await tx`insert into public.permissions(code,module_id,resource,action,description) values('duct_rental.fixture.read','duct-rental','fixture','read','ข้อมูลทดสอบ')`;
@@ -44,7 +62,7 @@ try {
     throw rollback;
   }), error => error === rollback);
   assert.equal((await db`select count(*)::int as n from public.permissions where code in ('duct_rental.fixture.read','work.fixture.read')`)[0].n, 0);
-  console.log(JSON.stringify({ database: name, capabilities: after, passed: ["fresh migrations", "catalog replay idempotent", "no automatic duct grants", "existing work grants preserved", "transaction rollback"] }));
+  console.log(JSON.stringify({ database: name, capabilities: after, rolePresets: presets.length, passed: ["fresh migrations", "catalog replay idempotent", "editable role presets exact permissions", "preset replay preserves customization", "no automatic duct grants or assignments", "existing work grants preserved", "transaction rollback"] }));
 } catch (error) {
   console.error(JSON.stringify({ error: "Isolated duct catalog check failed", code: error.code || error.name })); process.exitCode = 1;
 } finally { await db.end(); }

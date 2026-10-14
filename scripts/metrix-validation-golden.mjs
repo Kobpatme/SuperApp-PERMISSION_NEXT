@@ -1,4 +1,5 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { writeGolden } from "./write-metrix-golden.mjs";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { createRequire } from "node:module";
@@ -31,5 +32,14 @@ for (const [operation, schema, base, overrides] of [
   const input = { ...base, ...patch }, result = schema.safeParse(input);
   fixtures.push({ rule: "RULE-002", operation, input, expected: result.success ? { success: true, data: result.data } : { success: false, paths: result.error.issues.map(issue => issue.path.join(".")) } });
 }
-writeFileSync("tests/fixtures/metrix-golden/validation.json", JSON.stringify({ sourceSha: sha, sourceFile: file, sourceZodVersion: zodVersion, method: "Original frozen source schema executed with source Zod 4 and synthetic inputs; target uses Zod 3", fixtures }, null, 2) + "\n");
+const cableTypes = context.exports.CABLE_TYPE_OPTIONS;
+const fibers = [...new Set(cableTypes.flatMap(type => context.exports.getFiberTypeOptions(type).map(item => item.fiberType)))];
+for (const cableType of cableTypes) for (const fiberType of fibers) {
+ const diameter = context.exports.getDiameterForCable(cableType,fiberType);
+ for (const delta of diameter === undefined ? [0] : [-0.002,-0.001,0,0.001,0.002]) {
+  const input={...design,cableType,fiberType,diameter:(diameter ?? 8.7)+delta},result=DuctRentalSchema.safeParse(input);
+  fixtures.push({rule:"RULE-003",operation:"design",matrix:{cableType,fiberType,delta},input,expected:result.success?{success:true,data:result.data}:{success:false,paths:result.error.issues.map(issue=>issue.path.join("."))}});
+ }
+}
+writeGolden("tests/fixtures/metrix-golden/validation.json", { sourceSha: sha, sourceFile: file, sourceZodVersion: zodVersion, method: "Original frozen source schema executed with source Zod 4 and synthetic inputs; target uses Zod 3", fixtures });
 console.log(JSON.stringify({ sourceSha: sha, sourceZodVersion: zodVersion, fixtures: fixtures.length }));

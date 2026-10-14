@@ -1,5 +1,6 @@
 // Run only pure source expressions in a VM. No source auth, stores, network or .env evaluation.
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, mkdirSync } from "node:fs";
+import { writeGolden } from "./write-metrix-golden.mjs";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
@@ -58,11 +59,13 @@ const pdfSource = source("components/pdf/ntFormFiller.ts");
 const pdf = evaluate(declarations(pdfSource, ["buildFieldValues"]), ["buildFieldValues"]);
 const fixtures = [];
 function add(rule, operation, input, expected) { fixtures.push({ rule, operation, input, expected: expected === undefined ? null : expected }); }
-for (const role of ["design", "draftsman", "permission", "install", "3rdparty", "viewer", "sr_manager"]) {
- for (const request of [{ currentPhase: "DESIGN", phaseStatuses: {} }, { currentPhase: "DRAFTSMAN", phaseStatuses: { DESIGN: "done" } }, { currentPhase: "COMPLETE", phaseStatuses: { DRAFTSMAN: "done", INSTALL: "done" } }])
+for (const role of ["admin", "design", "draftsman", "permission", "install", "3rdparty", "viewer", "sr_manager", "director", "division_manager"]) {
+ for (const currentPhase of ["DESIGN","DRAFTSMAN","PERMISSION_1","INSTALL","DRAFTSMAN_2","PERMISSION_2","3RD_PARTY_1","PERMISSION_3","3RD_PARTY_2","COMPLETE"]) for (const touchedPhase of ["DESIGN","DRAFTSMAN","PERMISSION_1","INSTALL","DRAFTSMAN_2","PERMISSION_2","3RD_PARTY_1","PERMISSION_3","3RD_PARTY_2","COMPLETE"]) for (const status of [undefined,"pending","accepted","done"]) { const request={currentPhase,phaseStatuses:status?{[touchedPhase]:status}:{}};
   add("RULE-005", "visibility", [utils.getOwnedPhasesForRole(role), request, utils.canRoleViewAllRequests(role)], { visible: utils.canRoleSeeRequest(role, request), preferred: utils.getPreferredPhaseForRole(role, request) });
- for (const file of [["DESIGN", "memo"], ["DRAFTSMAN", "drawing"], ["PERMISSION_1", "invoice"]])
+ }
+ for (const phase of ["DESIGN","DRAFTSMAN","PERMISSION_1","INSTALL","DRAFTSMAN_2","PERMISSION_2","3RD_PARTY_1","PERMISSION_3","3RD_PARTY_2","COMPLETE"]) for (const kind of [undefined,"memo","drawing","permission_letter","confirmation_form","invoice","rate_notice","signed_copy","nt_form","signed_nt_form","contract","receipt","other","cad","kmz","renewal_contract"]) { const file=[phase,kind];
   add("RULE-006", "fileVisibility", [[utils.canRoleViewAllRequests(role) ? "global" : role === "3rdparty" ? "thirdparty" : role], ...file], utils.canViewFile(role, ...file));
+ }
 }
 for (const [type, fibers] of Object.entries(cable.FIBER_TYPE_OPTIONS_BY_CABLE)) for (const fiber of fibers) add("RULE-003", "diameter", [type, fiber.fiberType], cable.getDiameterForCable(type, fiber.fiberType));
 for (const pair of [["ADSS", "2 Core"], ["unknown", "12 Core"], [null, null]]) add("RULE-003", "diameter", pair, cable.getDiameterForCable(...pair));
@@ -86,12 +89,17 @@ for (const [start, days, completedAt, at] of [
  ["invalid", 5, null, "2026-10-10T12:00:00+07:00"],
  ["invalid", 5, "anything", "2026-10-10T12:00:00+07:00"],
 ]) { clock = Date.parse(at); add("RULE-014", "sla", [start, days, completedAt, at], tracking.getSlaStatus(start, days, completedAt)); }
+for (const days of [5,7]) for(const start of ["2026-10-10T12:00:00+07:00","2026-10-10T05:00:00Z","2026-10-10T00:00:00-05:00"]) for(const delta of [-1,0,1]) {
+ const at=new Date(Date.parse(start)+days*86400000+delta).toISOString();clock=Date.parse(at);
+ add("RULE-014","sla",[start,days,null,at],tracking.getSlaStatus(start,days,null));
+ const completed=new Date(Date.parse(start)+days*86400000-1).toISOString();add("RULE-014","sla",[start,days,completed,at],tracking.getSlaStatus(start,days,completed));
+}
 for (const [start, days] of [["2026-10-30T23:00:00+07:00", 5], ["2026-12-30T12:00:00+07:00", 7], ["invalid", 7]]) add("RULE-014", "dueDate", [start, days], tracking.addDays(start, days));
 for (const date of [null, "invalid", "2026-10-10T00:00:00+07:00"]) add("RULE-014", "dateLabel", [date], tracking.formatDate(date));
 for (const request of [{ currentPhase: "COMPLETE", cancelledAt: "x", phaseStatuses: {} }, { currentPhase: "COMPLETE", phaseStatuses: {} }, { currentPhase: "DESIGN", phaseStatuses: {} }, { currentPhase: "INSTALL", phaseStatuses: { INSTALL: "accepted" } }]) add("RULE-020", "workflowStatus", [request], list.getWorkflowStatus(request));
 const output = { sourceRepository: "Kobpatme/METRIX", sourceSha: sha, timezone: "Asia/Bangkok", sourceHashes: hashes, method: "TypeScript AST extraction of original pure expressions, transpile + VM with frozen Date; no production services", fixtures };
 mkdirSync("tests/fixtures/metrix-golden", { recursive: true });
-writeFileSync("tests/fixtures/metrix-golden/nonfinancial.json", JSON.stringify(output, null, 2) + "\n");
+writeGolden("tests/fixtures/metrix-golden/nonfinancial.json", output);
 console.log(JSON.stringify({ sourceSha: sha, fixtures: fixtures.length, rules: [...new Set(fixtures.map(f => f.rule))] }));
 const financePdf = [];
 for (const routes of [
@@ -105,5 +113,5 @@ for (const count of [undefined, 2, 12]) {
  const expected = pdf.buildFieldValues({ designData });
  financePdf.push({ rule: "RULE-017", operation: "ntFieldValues", input: designData, sourceExpected: expected, approvedExpected: { ...expected, "จำนวนเส้น (3)": String(count ?? 1) }, decision: "DQ03: owner approved entered cable count; source fallback 1 when omitted" });
 }
-writeFileSync("tests/fixtures/metrix-golden/finance-pdf.json", JSON.stringify({ sourceSha: sha, sourceHashes: hashes, method: output.method, fixtures: financePdf }, null, 2) + "\n");
+writeGolden("tests/fixtures/metrix-golden/finance-pdf.json", { sourceSha: sha, sourceHashes: hashes, method: output.method, fixtures: financePdf });
 console.log(JSON.stringify({ financePdfFixtures: financePdf.length, approvedDecisions: ["DQ02", "DQ03"] }));
