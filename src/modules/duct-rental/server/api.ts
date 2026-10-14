@@ -3,11 +3,14 @@ import { getAccessContext } from "@/lib/access";
 import { authenticationRequiredResponse } from "@/lib/request-context";
 import { logEvent } from "@/lib/logger";
 import { createRequest, changeRequest, listRequests, readRequest } from "./requests";
-import { advanceRenewal, changeCancellation, createCancellation, createRenewal, readProcesses, readRenewal, reviewRenewal } from "./processes";
-import { downloadDocument, generateNtDocument, previewNtDocument, summaryDocument, uploadDocument } from "./files";
-import { assignSignature, changeSignatureAsset, readSignatureAsset, readSigning, revokeSignature, saveSignatureAsset, signDocument } from "./signing";
+import { advanceRenewal, changeCancellation, createCancellation, createRenewal, readProcesses, readRenewal, readCancellation, reviewRenewal } from "./processes";
+import { downloadDocument, generateNtDocument, previewNtDocument, summaryDocument, uploadDocument, uploadAnnualDocument } from "./files";
+import { assignSignature, changeSignatureAsset, readSignatureAsset, readSigning, revokeSignature, saveSignatureAsset, signDocument, previewSignature } from "./signing";
 import { DuctError, type DuctContext } from "./transaction";
 import { id as idSchema } from "../schemas/operations";
+import { readOptions, readSettings, saveSettings } from "./options";
+import { changeSignals } from "./events";
+import { readTracking } from "./tracking";
 
 const noStore = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
 async function limitedBody(request: Request, max: number) {
@@ -41,14 +44,20 @@ export async function handleDuctRentalRequest(request: Request, path: string[]) 
     const [resource, id, operation] = path, url = new URL(request.url);
     if (id) idSchema.parse(id);
     if (request.method === "GET") {
+      if (resource === "events" && !id && !operation) return changeSignals(request, context);
+      if (operation && !(resource === "requests" && ["summary", "nt-preview"].includes(operation)) || ["documents", "assets"].includes(resource) && !id || ["options", "settings", "processes", "signatures"].includes(resource) && !!id) throw new DuctError("NOT_FOUND", "ไม่พบคำสั่งที่ต้องการ", 404);
       if (resource === "documents" && id) return binary(await downloadDocument(id, context, url.searchParams.get("download") === "1"), url.searchParams.get("download") === "1");
       if (resource === "assets" && id) return binary(await readSignatureAsset(id, context), false);
       if (resource === "requests" && id && operation === "summary") return binary(await summaryDocument(id, context), true);
       if (resource === "requests" && id && operation === "nt-preview") return binary(await previewNtDocument(id, context, url.searchParams.get("reference") ?? undefined, url.searchParams.get("download") === "1"), url.searchParams.get("download") === "1");
       const data = resource === "requests" ? id ? await readRequest(id, context) : await listRequests(Object.fromEntries(url.searchParams), context)
-        : resource === "processes" ? await readProcesses(context, z.coerce.number().int().min(0).parse(url.searchParams.get("offset") ?? 0))
+        : resource === "options" && !id ? await readOptions(context, url.searchParams.get("center") ?? "")
+        : resource === "settings" && !id ? await readSettings(context)
+        : resource === "tracking" && !id ? await readTracking(Object.fromEntries(url.searchParams), context)
+        : resource === "processes" ? await readProcesses(context, z.coerce.number().int().min(0).parse(url.searchParams.get("offset") ?? 0), { query: url.searchParams.get("query") ?? "", status: url.searchParams.get("status") ?? "" })
         : resource === "renewals" && id ? await readRenewal(id, context)
-        : resource === "signatures" ? await readSigning(context) : undefined;
+        : resource === "cancellations" && id ? await readCancellation(id, context)
+        : resource === "signatures" ? await readSigning(context, url.searchParams.get("task") || undefined, z.coerce.number().int().min(0).max(1000000).parse(url.searchParams.get("offset") ?? 0), url.searchParams.get("query") ?? "") : undefined;
       if (data === undefined) throw new DuctError("NOT_FOUND", "ไม่พบคำสั่งที่ต้องการ", 404);
       return Response.json({ data }, { headers: noStore });
     }
@@ -60,6 +69,7 @@ export async function handleDuctRentalRequest(request: Request, path: string[]) 
       const file = form.get("file"); if (!(file instanceof File)) throw new DuctError("FILE", "กรุณาเลือกไฟล์");
       const bytes = new Uint8Array(await file.arrayBuffer());
       const data = resource === "requests" && id && operation === "documents" ? await uploadDocument(id, { version: form.get("version"), fileType: form.get("fileType"), ...(form.get("supersedesId") ? { supersedesId: form.get("supersedesId") } : {}) }, { name: file.name, bytes }, key, context)
+        : resource === "renewals" && id && operation === "documents" ? await uploadAnnualDocument(id, z.coerce.number().int().positive().parse(form.get("version")), { name: file.name, bytes }, key, context)
         : resource === "assets" && !id ? await saveSignatureAsset(z.string().parse(form.get("name")), bytes, z.enum(["true", "false"]).parse(form.get("setDefault") ?? "false") === "true", key, context) : undefined;
       if (data === undefined) throw new DuctError("NOT_FOUND", "ไม่พบคำสั่งอัปโหลด", 404);
       return Response.json({ data }, { headers: noStore, status: 201 });
@@ -69,6 +79,7 @@ export async function handleDuctRentalRequest(request: Request, path: string[]) 
     try { raw = JSON.parse(new TextDecoder().decode(await limitedBody(request, 65536))); }
     catch (error) { if (error instanceof DuctError) throw error; throw new DuctError("PAYLOAD", "ข้อมูลคำขอไม่ถูกต้อง"); }
     const object = z.record(z.unknown()).parse(raw);
+    if (resource === "signatures" && id && operation === "preview") return binary(await previewSignature(id, raw, context), false);
     const version = () => z.number().int().positive().parse(object.version);
     const data = resource === "requests" ? !id ? await createRequest(object.design, object.teamId == null ? null : idSchema.parse(object.teamId), key, context, z.boolean().parse(object.draft ?? false))
       : operation === "nt-form" ? await generateNtDocument(id, version(), key, context, object.reference === undefined ? undefined : z.string().parse(object.reference))
@@ -78,6 +89,7 @@ export async function handleDuctRentalRequest(request: Request, path: string[]) 
       : resource === "cancellations" ? !id ? await createCancellation(raw, key, context) : ["advance", "reject", "archive"].includes(operation) ? await changeCancellation(id, operation as "advance" | "reject" | "archive", raw, key, context) : undefined
       : resource === "signatures" && id ? operation === "sign" ? await signDocument(id, raw, key, context) : operation === "revoke" ? await revokeSignature(id, version(), key, context) : undefined
       : resource === "assets" && id && ["default", "archive"].includes(operation) ? await changeSignatureAsset(id, operation as "default" | "archive", key, context) : undefined;
+    if (resource === "settings" && !id) return Response.json({ data: await saveSettings(raw, key, context) }, { headers: noStore });
     if (data === undefined) throw new DuctError("NOT_FOUND", "ไม่พบคำสั่งที่ต้องการ", 404);
     return Response.json({ data }, { headers: noStore });
   } catch (error) {

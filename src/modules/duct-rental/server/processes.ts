@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { renewalTotal } from "../domain/money";
 import { cancellationTransitions, renewalTransitions } from "../domain/workflow";
+import { ductRentalCapabilities } from "../capabilities";
 import { advanceInput, cancelInput, id as idSchema, reviewInput } from "../schemas/operations";
 import { cancellations, documents, rates, renewalRoutes, renewals, requests } from "./schema";
 import { lockRequest, snapshot } from "./requests";
@@ -59,7 +60,7 @@ export async function advanceRenewal(id: string, raw: unknown, key: string, cont
     if (!archive && row.status === "draft" && routes.some(route => route.reviewStatus === "pending")) throw new DuctError("REVIEW_REQUIRED", "กรุณาตรวจทุกเส้นทางก่อนส่งต่อ");
     if (!archive && transition.next === "contracted") {
       const [doc] = input.contractDocumentId ? await tx.select().from(documents).where(and(eq(documents.id, input.contractDocumentId), eq(documents.fileType, "renewal_contract"), isNull(documents.archivedAt))) : [];
-      if (!doc || !routes.some(route => route.requestId === doc.requestId)) throw new DuctError("DOCUMENT_REQUIRED", "กรุณาแนบสัญญารายปีให้ตรงกับเส้นทางในงานนี้");
+      if (!doc || doc.renewalId !== id && !routes.some(route => route.requestId === doc.requestId)) throw new DuctError("DOCUMENT_REQUIRED", "กรุณาแนบสัญญารายปีให้ตรงกับงานนี้");
     }
     const change = archive ? { archivedAt: new Date() } : { status: transition.next, totalYearlyCost: renewalTotal(routes), contractDocumentId: input.contractDocumentId ?? row.contractDocumentId,
       contractNumber: input.contractNumber ?? row.contractNumber, thirdPartyNotes: input.thirdPartyNotes ?? row.thirdPartyNotes,
@@ -81,7 +82,7 @@ export async function createCancellation(raw: unknown, key: string, context: Duc
     const [rate] = await tx.select().from(rates).where(eq(rates.requestId, row.id));
     const id = randomUUID();
     await material(tx, context, "cancellation.created", id, context.actorId, async () => {
-      await tx.insert(cancellations).values({ id, requestId: row.id, ownerId: context.actorId, teamId: row.teamId, snapshot: snapshot(row), reason: input.reason, effectiveDate: input.effectiveDate, monthlyFee: rate?.monthlyFee ?? "0.00", yearlyFee: rate?.yearlyFee ?? "0.00", contractStart: rate?.contractStart, contractEnd: rate?.contractEnd });
+      await tx.insert(cancellations).values({ id, requestId: row.id, ownerId: context.actorId, teamId: row.teamId, snapshot: snapshot(row), reason: input.reason, notes: input.notes, effectiveDate: input.effectiveDate, monthlyFee: rate?.monthlyFee ?? "0.00", yearlyFee: rate?.yearlyFee ?? "0.00", contractStart: rate?.contractStart, contractEnd: rate?.contractEnd });
     }, undefined, { requestId: row.id, reason: input.reason, effectiveDate: input.effectiveDate, status: "cancel_initiated" }, row.teamId);
     return { id, version: 1 };
   });
@@ -109,11 +110,17 @@ export async function changeCancellation(id: string, action: "advance" | "reject
     return { id, version: row.version + 1, status };
   });
 }
-export async function readProcesses(context: DuctContext, offset = 0) {
+export async function readProcesses(context: DuctContext, offset = 0, rawFilters: unknown = {}) {
   z.number().int().min(0).max(1000000).parse(offset);
+  const filter = z.object({ query: z.string().max(200).default(""), status: z.string().max(40).default("") }).strict().parse(rawFilters);
+  const pattern = `%${filter.query.replace(/[\\%_]/g, value => `\\${value}`)}%`;
+  const renewalWhere = and(isNull(renewals.archivedAt), filter.status ? eq(renewals.status, filter.status) : undefined, filter.query ? sql`${renewals.year}::text ilike ${pattern}` : undefined);
+  const cancelWhere = and(isNull(cancellations.archivedAt), filter.status ? eq(cancellations.status, filter.status) : undefined, filter.query ? sql`concat_ws(' ',${cancellations.snapshot}->>'code',${cancellations.snapshot}->>'projectName',${cancellations.snapshot}->>'routeName') ilike ${pattern}` : undefined);
   return transaction(context, async tx => ({
-    renewals: await tx.select().from(renewals).where(isNull(renewals.archivedAt)).orderBy(desc(renewals.createdAt)).limit(100).offset(offset),
-    cancellations: await tx.select().from(cancellations).where(isNull(cancellations.archivedAt)).orderBy(desc(cancellations.createdAt)).limit(100).offset(offset),
+    renewals: await tx.select().from(renewals).where(renewalWhere).orderBy(desc(renewals.createdAt), renewals.id).limit(100).offset(offset),
+    cancellations: await tx.select().from(cancellations).where(cancelWhere).orderBy(desc(cancellations.createdAt), cancellations.id).limit(100).offset(offset),
+    renewalCount: (await tx.select({ count: sql<number>`count(*)::int` }).from(renewals).where(renewalWhere))[0].count,
+    cancellationCount: (await tx.select({ count: sql<number>`count(*)::int` }).from(cancellations).where(cancelWhere))[0].count,
   }));
 }
 export async function readRenewal(id: string, context: DuctContext) {
@@ -121,6 +128,10 @@ export async function readRenewal(id: string, context: DuctContext) {
   return transaction(context, async tx => {
     const [row] = await tx.select().from(renewals).where(eq(renewals.id, id));
     if (!row) throw new DuctError("NOT_FOUND", "ไม่พบงานต่อสัญญา", 404);
-    return { ...row, routes: await tx.select().from(renewalRoutes).where(eq(renewalRoutes.renewalId, id)) };
+    const [capabilities] = await tx.execute<{ codes: string[] }>(sql`select coalesce(array_agg(code),'{}'::text[]) as codes from jsonb_array_elements_text(${JSON.stringify(ductRentalCapabilities.map(cap => cap.code))}::jsonb) as p(code) where public.duct_rental_has_access(code,${row.ownerId}::uuid,${row.teamId}::uuid)`);
+    return { ...row, capabilities: capabilities?.codes ?? [], routes: await tx.select().from(renewalRoutes).where(eq(renewalRoutes.renewalId, id)), documents: await tx.select({ id: documents.id, name: documents.name, createdAt: documents.createdAt }).from(documents).where(and(eq(documents.renewalId, id), isNull(documents.archivedAt))).orderBy(desc(documents.createdAt)) };
   });
+}
+export async function readCancellation(id: string, context: DuctContext) {
+  idSchema.parse(id); return transaction(context, async tx => { const [row] = await tx.select().from(cancellations).where(eq(cancellations.id, id)); if (!row) throw new DuctError("NOT_FOUND", "ไม่พบงานยกเลิก", 404); const [capabilities] = await tx.execute<{ codes: string[] }>(sql`select coalesce(array_agg(code),'{}'::text[]) as codes from jsonb_array_elements_text(${JSON.stringify(ductRentalCapabilities.map(cap => cap.code))}::jsonb) as p(code) where public.duct_rental_has_access(code,${row.ownerId}::uuid,${row.teamId}::uuid)`); return { ...row, capabilities: capabilities?.codes ?? [] }; });
 }

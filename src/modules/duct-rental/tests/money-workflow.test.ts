@@ -11,13 +11,18 @@ describe("owner-approved money contract DQ02 / RULE008,011", () => {
   it.each(["Infinity", "NaN", "10000000000", "9999999999.999"])("rejects overflow/nonfinite %s", value => expect(() => money(value)).toThrow());
 });
 describe("intended source UI transitions RULE001,007,012,013", () => {
-  it.each(requestPhases.filter(phase => phase !== "COMPLETE"))("requires acceptance before submitting %s", phase => {
+  it.each(requestPhases.filter(phase => phase !== "COMPLETE" && phase !== "DESIGN"))("requires acceptance before submitting %s", phase => {
     expect(phasePermission(phase, "accept")).toMatch(/^duct_rental\..+\.accept$/);
     expect(() => assertPhaseAction("pending", "accept")).not.toThrow();
     expect(() => assertPhaseAction("accepted", "submit")).not.toThrow();
     for (const status of ["pending", "done"] as const) expect(() => assertPhaseAction(status, "submit")).toThrow();
     for (const status of ["accepted", "done"] as const) expect(() => assertPhaseAction(status, "accept")).toThrow();
     expect(nextPhase(phase, "NT")).toBe(requestPhases[requestPhases.indexOf(phase) + 1]);
+  });
+  it("source DESIGN submits directly; acceptance stays optional", () => {
+    expect(() => assertPhaseAction("pending", "submit", "DESIGN")).not.toThrow();
+    expect(() => assertPhaseAction("accepted", "submit", "DESIGN")).not.toThrow();
+    expect(() => assertPhaseAction("done", "submit", "DESIGN")).toThrow();
   });
   it("keeps the source non-NT branch and terminal denial", () => {
     expect(nextPhase("DRAFTSMAN", " TRUE ")).toBe("3RD_PARTY_1");

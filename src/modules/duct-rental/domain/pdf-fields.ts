@@ -1,6 +1,6 @@
 import type { DuctRentalFormData } from "../schemas/design";
 // METRIX ntFormFiller.ts buildFieldValues; DQ03 approved exception: actual cable count.
-export function ntFieldValues(data?: DuctRentalFormData): Record<string, string> {
+export function ntFieldValues(data?: Partial<DuctRentalFormData>): Record<string, string> {
   if (!data) return {};
   return {
     "เลขที่คำขอ": data.permissionRequestNumber || "", "ชื่อถนน (3)": data.routeDetail || data.routeName || "",

@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import type { DatabaseTransaction } from "@/db";
 import { DuctRentalDraftSchema, DuctRentalSchema, InstallDetailSchema, InstallDraftSchema } from "../schemas/design";
-import { guaranteeInput, id as idSchema, listInput, rateInput, version as versionSchema } from "../schemas/operations";
+import { guaranteeDraftInput, guaranteeInput, id as idSchema, listInput, rateInput, version as versionSchema } from "../schemas/operations";
 import { hasIncompleteRequiredDocuments, requestPhases } from "../domain/source-policy";
 import { assertPhaseAction, nextPhase, phasePermission } from "../domain/workflow";
 import { documents, rates, requests } from "./schema";
@@ -10,6 +10,7 @@ import { DuctError, material, mutation, requirePermission, transaction, type Duc
 
 export async function lockRequest(tx: DatabaseTransaction, id: string, version?: number) {
   idSchema.parse(id); if (version !== undefined) versionSchema.parse(version);
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${'duct-request:' + id},0))`);
   const [row] = await tx.select().from(requests).where(eq(requests.id, id)).for("update");
   if (!row) throw new DuctError("NOT_FOUND", "ไม่พบรายการหรือคุณไม่มีสิทธิ์เข้าถึง", 404);
   if (version !== undefined && row.version !== version) throw new DuctError("STALE_VERSION", "ข้อมูลถูกแก้ไขแล้ว กรุณาโหลดข้อมูลใหม่", 409);
@@ -70,9 +71,9 @@ export async function changeRequest(id: string, action: "accept" | "submit" | "s
       }
       if (row.phase === "3RD_PARTY_2" && input.guarantee) {
         await requirePermission(tx, "duct_rental.rate.read", row.ownerId, row.teamId);
-        const guarantee = guaranteeInput.parse(input.guarantee);
+        const guarantee = action === "save" ? guaranteeDraftInput.parse(input.guarantee) : guaranteeInput.parse(input.guarantee);
         [beforeRate] = await tx.select().from(rates).where(eq(rates.requestId, id)); afterRate = { ...beforeRate, guaranteeAmount: guarantee.fullAmount };
-        change.guarantee = { ...guarantee, fullAmount: guarantee.fullAmount };
+        change.guarantee = Object.fromEntries(Object.entries(guarantee).filter(([name, value]) => name !== "fullAmount" && typeof value === "string")) as Record<string, string>;
         // Amount is available only via rates; redact it from universally visible request JSON.
         delete change.guarantee.fullAmount;
         await tx.insert(rates).values({ requestId: id, monthlyFee: "0.00", yearlyFee: "0.00", guaranteeAmount: guarantee.fullAmount })
@@ -80,7 +81,7 @@ export async function changeRequest(id: string, action: "accept" | "submit" | "s
       }
       if (action === "submit") {
         // Source DESIGN creation submits directly; only later phases require acceptance.
-        if (row.phase !== "DESIGN") try { assertPhaseAction(row.phaseStatuses[row.phase], "submit"); } catch (e) { throw new DuctError("STATE", (e as Error).message, 409); }
+        try { assertPhaseAction(row.phaseStatuses[row.phase], "submit", row.phase); } catch (e) { throw new DuctError("STATE", (e as Error).message, 409); }
         await assertSubmission(tx, row, change);
         const phase = nextPhase(row.phase, row.ownerDuct);
         change.phase = phase; change.phaseStatuses = { ...row.phaseStatuses, [row.phase]: "done", [phase]: "pending" };
@@ -97,6 +98,7 @@ async function assertSubmission(tx: DatabaseTransaction, row: typeof requests.$i
   const need = (allowed: boolean, message: string) => { if (!allowed) throw new DuctError("DOCUMENT_REQUIRED", message); };
   if (row.phase === "DRAFTSMAN") need(has("drawing", "DRAFTSMAN"), "กรุณาแนบแบบท่อก่อนส่งงาน");
   if (row.phase === "DRAFTSMAN_2") need(has("drawing", "DRAFTSMAN_2"), "กรุณาแนบ PDF แบบหลังติดตั้ง");
+  if (row.phase === "INSTALL") need(has("confirmation_form", "INSTALL"), "กรุณาแนบแบบยืนยันการใช้งานหลังติดตั้ง");
   if (row.phase === "PERMISSION_1") {
     need(has("nt_form"), "กรุณาจัดทำ NT Form");
     const [signed] = await tx.execute<{ signed: boolean }>(sql`select public.duct_rental_request_signed(${row.id}::uuid) as signed`);
@@ -121,21 +123,43 @@ export async function readRequest(id: string, context: DuctContext) {
     const [rate, files] = await Promise.all([tx.select().from(rates).where(eq(rates.requestId, id)), tx.select({ id: documents.id, requestId: documents.requestId, phase: documents.phase, fileType: documents.fileType, name: documents.name, mediaType: documents.mediaType, sizeBytes: documents.sizeBytes, documentVersion: documents.documentVersion, supersedesId: documents.supersedesId, createdAt: documents.createdAt }).from(documents).where(and(eq(documents.requestId, id), isNull(documents.archivedAt)))]);
     const [capabilities] = await tx.execute<{ codes: string[] }>(sql`select public.duct_rental_request_capabilities(${id}::uuid) as codes`);
     const signers = await tx.execute<{ id: string; display_name: string }>(sql`select * from public.duct_rental_signers(${id}::uuid)`);
-    return { ...row, rate: rate[0] ?? null, files, capabilities: capabilities?.codes ?? [], signers: Array.from(signers) };
+    const [signoff] = await tx.execute<{ id: string; status: string; assignee_id: string; assignee_name: string; document_id: string; version: number }>(sql`select * from public.duct_rental_request_signoff(${id}::uuid)`);
+    const [signed] = await tx.execute<{ signed: boolean }>(sql`select public.duct_rental_request_signed(${id}::uuid) as signed`);
+    const [config] = await tx.execute<{ assignee_id: string }>(sql`select assignee_id from public.duct_rental_signoff_configs where request_id=${id}::uuid`);
+    return { ...row, rate: rate[0] ?? null, files, capabilities: capabilities?.codes ?? [], signers: Array.from(signers), assignedSignerId: config?.assignee_id ?? null, signoff: signoff ?? null, isSigned: signed?.signed ?? false };
   });
 }
 export async function listRequests(raw: unknown, context: DuctContext) {
   const input = listInput.parse(raw);
   return transaction(context, async tx => {
     const query = input.query.trim().toLowerCase();
-    const incomplete = sql`(${requests.missingDocs}<>'' or (${requests.phase}<>'DESIGN' and not public.duct_rental_memo_present(${requests.id})))`;
-    const workflow = sql`case when ${requests.cancelledAt} is not null then 'CANCELLED' when ${requests.phase}='COMPLETE' then 'ACTIVE' else upper(coalesce(${requests.phaseStatuses}->>${requests.phase},'pending')) end`;
-    const where = and(isNull(requests.archivedAt), query ? sql`strpos(lower(concat_ws(' ',${requests.code},${requests.projectName},${requests.routeName},${requests.ownerDuct},${requests.province},${requests.serviceCenter})),${query})>0` : undefined,
-      input.phase ? eq(requests.phase, input.phase as typeof requests.$inferSelect.phase) : undefined, input.serviceCenter ? eq(requests.serviceCenter, input.serviceCenter) : undefined, input.requestType ? eq(requests.requestType, input.requestType) : undefined,
-      input.workflow ? sql`${workflow}=${input.workflow}` : undefined, input.documents ? input.documents === "incomplete" ? incomplete : sql`not ${incomplete}` : undefined);
-    const rows = await tx.select({ id: requests.id, code: requests.code, projectName: requests.projectName, routeName: requests.routeName, phase: requests.phase, phaseStatuses: requests.phaseStatuses, ownerDuct: requests.ownerDuct, serviceCenter: requests.serviceCenter, province: requests.province, requestType: requests.requestType, missingDocs: requests.missingDocs, cancelledAt: requests.cancelledAt, version: requests.version, updatedAt: requests.updatedAt, documentsIncomplete: sql<boolean>`${incomplete}` }).from(requests).where(where).orderBy(desc(requests.updatedAt), desc(requests.id)).limit(input.limit).offset(input.offset);
-    const [counts] = await tx.select({ total: sql<number>`count(*)::int`, pending: sql<number>`count(*) filter(where ${workflow}='PENDING')::int`, active: sql<number>`count(*) filter(where ${workflow}='ACTIVE')::int` }).from(requests).where(where);
-    const [queues] = await tx.select({ waiting: sql<number>`count(*) filter(where ${workflow}='PENDING')::int`, missing: sql<number>`count(*) filter(where ${incomplete})::int` }).from(requests).where(isNull(requests.archivedAt));
-    return { rows, counts, queues, offset: input.offset, limit: input.limit, nextOffset: input.offset + rows.length < counts.total ? input.offset + rows.length : null };
+    type Row = Pick<typeof requests.$inferSelect, "id" | "code" | "projectName" | "routeName" | "phase" | "phaseStatuses" | "ownerDuct" | "serviceCenter" | "province" | "requestType" | "missingDocs" | "cancelledAt" | "version"> & { updatedAt: string; documentsIncomplete: boolean };
+    // RLS runs on the base table once. Materialized rows stay inside PostgreSQL;
+    // only the requested page and aggregates leave the database, at one snapshot.
+    const [result] = await tx.execute<{ rows: Row[]; counts: { total: number; pending: number; active: number }; queues: { waiting: number; missing: number }; pipeline: { phase: typeof requests.$inferSelect.phase; count: number }[] }>(sql`
+      with visible as materialized (
+        select id,code,owner_id,team_id,project_name as "projectName",route_name as "routeName",phase,phase_statuses as "phaseStatuses",
+          owner_duct as "ownerDuct",service_center as "serviceCenter",province,request_type as "requestType",missing_docs as "missingDocs",
+          cancelled_at as "cancelledAt",version,updated_at as "updatedAt",
+          (missing_docs<>'' or (phase<>'DESIGN' and not public.duct_rental_memo_present(id))) as "documentsIncomplete",
+          case when cancelled_at is not null then 'CANCELLED' when phase='COMPLETE' then 'ACTIVE' else upper(coalesce(phase_statuses->>phase,'pending')) end as workflow
+        from public.duct_rental_requests where archived_at is null
+      ), filtered as materialized (
+        select * from visible where (${query}='' or strpos(lower(concat_ws(' ',code,"projectName","routeName","ownerDuct",province,"serviceCenter")),${query})>0)
+          and (${input.phase}='' or phase=${input.phase}) and (${input.serviceCenter}='' or "serviceCenter"=${input.serviceCenter})
+          and (${input.requestType}='' or "requestType"=${input.requestType}) and (${input.workflow}='' or workflow=${input.workflow})
+          and (${input.documents}='' or "documentsIncomplete"=(${input.documents}='incomplete'))
+      ), queue_access as materialized (
+        select owner_id,team_id,phase,public.duct_rental_has_access(public.duct_rental_phase_permission(phase,'accept'),owner_id,team_id) as allowed
+        from (select distinct owner_id,team_id,phase from visible where workflow='PENDING' and phase<>'COMPLETE' and "cancelledAt" is null) pairs
+      )
+      select coalesce((select jsonb_agg(to_jsonb(page)-'workflow'-'owner_id'-'team_id') from (select * from filtered order by "updatedAt" desc,id desc limit ${input.limit} offset ${input.offset}) page),'[]'::jsonb) as rows,
+        (select jsonb_build_object('total',count(*),'pending',count(*) filter(where workflow='PENDING'),'active',count(*) filter(where workflow='ACTIVE')) from filtered) as counts,
+        (select jsonb_build_object('waiting',count(*) filter(where v.workflow='PENDING' and v.phase<>'COMPLETE' and v."cancelledAt" is null and exists(select 1 from queue_access q where q.owner_id=v.owner_id and q.team_id is not distinct from v.team_id and q.phase=v.phase and q.allowed)),
+          'missing',count(*) filter(where v."documentsIncomplete" and v."cancelledAt" is null)) from visible v) as queues,
+        coalesce((select jsonb_agg(jsonb_build_object('phase',phase,'count',n)) from (select phase,count(*) n from visible where "cancelledAt" is null group by phase) phases),'[]'::jsonb) as pipeline
+    `);
+    const rows = result.rows.map(row => ({ ...row, updatedAt: new Date(row.updatedAt) }));
+    return { ...result, rows, offset: input.offset, limit: input.limit, nextOffset: input.offset + rows.length < result.counts.total ? input.offset + rows.length : null };
   });
 }

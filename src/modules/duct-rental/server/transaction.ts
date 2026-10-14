@@ -14,7 +14,7 @@ export class DuctError extends Error {
 export async function transaction<T>(context: DuctContext, run: (tx: DatabaseTransaction) => Promise<T>): Promise<T> {
   z.string().uuid().parse(context.actorId); z.string().uuid().parse(context.requestId);
   try {
-    return await getDuctRentalDb().transaction(async tx => {
+    return await getDuctRentalDb(context.requestId).transaction(async tx => {
       const [role] = await tx.execute<{ unsafe: boolean }>(sql`select r.rolsuper or r.rolbypassrls or exists(select 1 from pg_class c where c.relname='duct_rental_requests' and c.relowner=r.oid) as unsafe from pg_roles r where r.rolname=current_user`);
       if (!role || role.unsafe) throw new DuctError("UNSAFE_RUNTIME_ROLE", "การเชื่อมต่อโมดูลยังไม่ได้กำหนดสิทธิ์ฐานข้อมูลที่จำกัด", 503);
       await tx.execute(sql`select set_config('app.user_id',${context.actorId},true)`);

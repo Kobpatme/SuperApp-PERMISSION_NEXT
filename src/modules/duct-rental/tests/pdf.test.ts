@@ -18,13 +18,18 @@ describe("RULE017 NT template and owner-approved DQ03", () => {
   it("preserves undefined-design and omitted-count source fallback", () => {
     expect(ntFieldValues()).toEqual({}); expect(ntFieldValues(data)["จำนวนเส้น (3)"]).toBe("1");
   });
+  it("renders read-only partial draft previews with missing values instead of losing the source export action", async () => {
+    const nt = await PDFDocument.load(await generateNtPdf({ projectName: "ร่างข้อมูลจำลอง" }));
+    const summary = await PDFDocument.load(await generateSummaryPdf({ projectName: "ร่างข้อมูลจำลอง" }, "RQ-DRAFT"));
+    expect(nt.getPageCount()).toBe(5); expect(summary.getPageCount()).toBeGreaterThan(0);
+  });
   it("creates a five-page flattened NT form with Thai and valid assigned stamp", async () => {
     const input = { ...data, cableCount: 3, designContactName: "ผู้ประสานงานทดสอบ", routeDetail: "ถนนทดสอบในกรุงเทพมหานคร" };
     const base = await generateNtPdf(input), pdf = await PDFDocument.load(base);
     expect(pdf.getPageCount()).toBe(5); expect(pdf.catalog.has(PDFName.of("AcroForm"))).toBe(false);
     expect(pdf.getPages().every(page => !page.node.Annots())).toBe(true);
     const png = await readFile("tests/fixtures/metrix-golden/signature.png");
-    const placement = { page: 4, x: 255, y: 640, width: 85, height: 32, rotation: 0, scale: 1 };
+    const placement = { page: 4, x: 0, y: 0, width: 60.7, height: 35.36, rotation: 0, scale: 1 };
     const signed = await stampSignature(base, png, placement, "ผู้ลงนามทดสอบ", new Date("2031-01-01T01:00:00Z"));
     expect((await PDFDocument.load(signed)).getPageCount()).toBe(5);
     await expect(stampSignature(base, png, { ...placement, x: 99999 }, "ทดสอบ", new Date())).rejects.toMatchObject({ code: "SIGN_BOUNDS" });

@@ -18,7 +18,8 @@ export function nextPhase(phase: RequestPhase, ownerDuct: string): RequestPhase 
   if (!next[phase]) throw new Error("ไม่มีขั้นตอนถัดไป");
   return next[phase]!;
 }
-export function assertPhaseAction(status: PhaseStatus, action: "accept" | "submit") {
+export function assertPhaseAction(status: PhaseStatus, action: "accept" | "submit", phase?: RequestPhase) {
+  if (phase === "DESIGN" && action === "submit" && status === "pending") return;
   if (status !== (action === "accept" ? "pending" : "accepted")) throw new Error("สถานะงานไม่ตรงกับคำสั่ง กรุณาโหลดข้อมูลใหม่");
 }
 export const renewalTransitions = {

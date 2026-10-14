@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { PDFDocument } from "pdf-lib";
 import { id as idSchema, signAssignmentInput, signaturePlacementInput } from "../schemas/operations";
 import { lockRequest, snapshot } from "./requests";
-import { documents, signTasks, signatureAssets } from "./schema";
+import { documents, signTasks, signoffConfigs, signatureAssets } from "./schema";
 import { stampSignature } from "./pdf";
 import { checksum, putPrivateFile, readPrivateFile, removeOrphanFile } from "./storage";
 import { DuctError, material, mutation, requirePermission, transaction, type DuctContext } from "./transaction";
@@ -15,27 +15,33 @@ export async function assignSignature(id: string, raw: unknown, key: string, con
     const row = await lockRequest(tx, id, input.version);
     await requirePermission(tx, "duct_rental.signoff.assign", row.ownerId, row.teamId);
     if (row.phase !== "PERMISSION_1" || row.archivedAt || row.cancelledAt) throw new DuctError("STATE", "มอบหมายลงนามได้ในขั้นตอนขออนุญาตครั้งที่ 1", 409);
-    const [doc] = await tx.select().from(documents).where(and(eq(documents.id, input.documentId), eq(documents.requestId, id), eq(documents.fileType, "nt_form"), isNull(documents.archivedAt))).for("update");
-    if (!doc) throw new DuctError("NOT_FOUND", "ไม่พบ NT Form รุ่นที่เลือก", 404);
-    const tasks = await tx.select().from(signTasks).where(and(eq(signTasks.requestId, id), eq(signTasks.assigneeId, input.assigneeId), eq(signTasks.status, "pending"))).for("update");
+    const tasks = await tx.select().from(signTasks).where(and(eq(signTasks.requestId, id), ne(signTasks.status, "revoked"))).orderBy(signTasks.id).for("update");
+    const [latestDoc] = await tx.select().from(documents).where(and(input.documentId ? eq(documents.id, input.documentId) : undefined, eq(documents.requestId, id), eq(documents.fileType, "nt_form"), isNull(documents.archivedAt))).orderBy(desc(documents.documentVersion)).limit(1).for("update");
+    const [current] = latestDoc ? await tx.execute<{ valid: boolean }>(sql`select public.duct_rental_nt_current(${latestDoc.id}::uuid) as valid`) : [];
+    const doc = current?.valid ? latestDoc : undefined;
+    if (input.documentId && latestDoc && !doc) throw new DuctError("STALE_DOCUMENT", "ข้อมูลออกแบบเปลี่ยนแล้ว กรุณาสร้าง NT Form ใหม่", 409);
+    if (input.documentId && !doc) throw new DuctError("NOT_FOUND", "ไม่พบ NT Form รุ่นที่เลือก", 404);
+    const [config] = await tx.select().from(signoffConfigs).where(eq(signoffConfigs.requestId, id));
     const taskId = randomUUID(), dueAt = input.dueAt ? new Date(input.dueAt) : new Date(Date.now() + 3 * 86400000);
     await material(tx, context, "signoff.assigned", taskId, row.ownerId, async () => {
+      await tx.insert(signoffConfigs).values({ requestId: id, assigneeId: input.assigneeId, configuredBy: context.actorId }).onConflictDoUpdate({ target: signoffConfigs.requestId, set: { assigneeId: input.assigneeId, configuredBy: context.actorId, version: (config?.version ?? 0) + 1, updatedAt: new Date() } });
       for (const task of tasks) {
         await tx.update(signTasks).set({ status: "revoked", version: task.version + 1 }).where(eq(signTasks.id, task.id));
         await tx.execute(sql`select public.duct_rental_notify_task(${task.id}::uuid)`);
       }
-      await tx.insert(signTasks).values({ id: taskId, requestId: id, documentId: doc.id, documentVersion: doc.documentVersion, assigneeId: input.assigneeId, assignedBy: context.actorId, dueAt, snapshot: snapshot(row) });
-      await tx.execute(sql`select public.duct_rental_notify_task(${taskId}::uuid)`);
-    }, { replacedTasks: tasks.map(task => task.id) }, { requestId: id, assigneeId: input.assigneeId, documentId: doc.id, documentVersion: doc.documentVersion, dueAt: dueAt.toISOString() }, row.teamId);
-    return { id: taskId, version: 1 };
+      if (doc) { await tx.insert(signTasks).values({ id: taskId, requestId: id, documentId: doc.id, documentVersion: doc.documentVersion, assigneeId: input.assigneeId, assignedBy: context.actorId, dueAt, snapshot: snapshot(row) }); await tx.execute(sql`select public.duct_rental_notify_task(${taskId}::uuid)`); }
+    }, { replacedTasks: tasks.map(task => task.id), assigneeId: config?.assigneeId }, { requestId: id, assigneeId: input.assigneeId, documentId: doc?.id, documentVersion: doc?.documentVersion, dueAt: dueAt.toISOString() }, row.teamId);
+    return { id: doc ? taskId : id, version: 1, taskCreated: !!doc };
   });
 }
 export async function revokeSignature(id: string, version: number, key: string, context: DuctContext) {
   idSchema.parse(id); z.number().int().positive().parse(version);
   return mutation(context, key, "signoff.revoked", { id, version }, async tx => {
+    const [reference] = await tx.select().from(signTasks).where(eq(signTasks.id, id));
+    if (!reference) throw new DuctError("NOT_FOUND", "ไม่พบงานลงนาม", 404);
+    const row = await lockRequest(tx, reference.requestId);
+    if (row.phase !== "PERMISSION_1" || row.archivedAt || row.cancelledAt) throw new DuctError("STATE", "คำขอนี้ปิดขั้นลงนามแล้ว", 409);
     const [task] = await tx.select().from(signTasks).where(eq(signTasks.id, id)).for("update");
-    if (!task) throw new DuctError("NOT_FOUND", "ไม่พบงานลงนาม", 404);
-    const row = await lockRequest(tx, task.requestId);
     await requirePermission(tx, "duct_rental.signoff.revoke", row.ownerId, row.teamId);
     if (task.version !== version || task.status === "revoked") throw new DuctError("STATE", "งานลงนามเปลี่ยนแปลงแล้ว", 409);
     await material(tx, context, "signoff.revoked", id, row.ownerId, async () => {
@@ -50,13 +56,20 @@ export async function signDocument(id: string, raw: unknown, key: string, contex
   let createdKey: string | undefined;
   try {
     return await mutation(context, key, "signoff.signed", { id, input }, async tx => {
+      const [reference] = await tx.select().from(signTasks).where(eq(signTasks.id, id));
+      if (!reference || reference.assigneeId !== context.actorId) throw new DuctError("FORBIDDEN", "ลงนามได้เฉพาะเอกสารที่มอบหมายให้คุณ", 403);
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${'duct-request:' + reference.requestId},0))`);
       const [task] = await tx.select().from(signTasks).where(eq(signTasks.id, id)).for("update");
       if (!task || task.assigneeId !== context.actorId) throw new DuctError("FORBIDDEN", "ลงนามได้เฉพาะเอกสารที่มอบหมายให้คุณ", 403);
       await requirePermission(tx, "duct_rental.signoff.sign", context.actorId);
+      const [open] = await tx.execute<{ valid: boolean }>(sql`select public.duct_rental_task_actionable(${id}::uuid) as valid`);
+      if (!open?.valid) throw new DuctError("STATE", "คำขอนี้ปิดขั้นลงนามแล้ว", 409);
       if (task.status !== "pending" || task.version !== input.version) throw new DuctError("STATE", "งานลงนามเปลี่ยนแปลงแล้ว กรุณาโหลดใหม่", 409);
       // Originals are immutable. Locking them FOR UPDATE would require document-upload rights.
-      // The task lock serializes regeneration/revocation; the DB task guard checks the current original.
+      // The request advisory lock serializes regeneration, closure and revocation without request UPDATE rights.
       const [doc] = await tx.select().from(documents).where(eq(documents.id, task.documentId));
+      const [current] = await tx.execute<{ valid: boolean }>(sql`select public.duct_rental_nt_current(${task.documentId}::uuid) as valid`);
+      if (!current?.valid) throw new DuctError("STALE_DOCUMENT", "ข้อมูลออกแบบเปลี่ยนแล้ว กรุณาสร้าง NT Form ใหม่", 409);
       const [asset] = await tx.select().from(signatureAssets).where(and(eq(signatureAssets.id, input.assetId), eq(signatureAssets.ownerId, context.actorId), isNull(signatureAssets.archivedAt))).for("share");
       if (!doc || doc.documentVersion !== task.documentVersion || doc.archivedAt || !asset) throw new DuctError("STALE_DOCUMENT", "เอกสารหรือลายเซ็นเปลี่ยนแปลงแล้ว", 409);
       // Sign original assigned bytes. Never accept signed PDF, actor, name or date from client.
@@ -66,7 +79,7 @@ export async function signDocument(id: string, raw: unknown, key: string, contex
       const docId = randomUUID(), storageKey = `documents/${docId}.pdf`;
       await material(tx, context, "signoff.signed", id, context.actorId, async () => {
         await putPrivateFile(storageKey, bytes); createdKey = storageKey;
-        await tx.insert(documents).values({ id: docId, requestId: task.requestId, phase: "PERMISSION_1", fileType: "signed_nt_form", name: `NT-Form-Signed-${task.snapshot.code}.pdf`, mediaType: "application/pdf", sizeBytes: bytes.length, checksumSha256: checksum(bytes), storageKey, signedTaskId: id, createdBy: context.actorId });
+        await tx.insert(documents).values({ id: docId, requestId: task.requestId, phase: "PERMISSION_1", fileType: "signed_nt_form", designSnapshot: doc.designSnapshot, name: `NT-Form-Signed-${task.snapshot.code}.pdf`, mediaType: "application/pdf", sizeBytes: bytes.length, checksumSha256: checksum(bytes), storageKey, signedTaskId: id, createdBy: context.actorId });
         await tx.update(signTasks).set({ status: "signed", signedDocumentId: docId, signedAt: at, version: task.version + 1 }).where(eq(signTasks.id, id));
         await tx.execute(sql`select public.duct_rental_notify_task(${id}::uuid)`);
       }, { status: task.status, documentId: doc.id, documentVersion: doc.documentVersion, checksum: doc.checksumSha256 }, { status: "signed", signedDocumentId: docId, checksum: checksum(bytes), placement: input, signedAt: at.toISOString() });
@@ -113,11 +126,17 @@ export async function changeSignatureAsset(id: string, action: "default" | "arch
     return { id };
   });
 }
-export async function readSigning(context: DuctContext) {
-  return transaction(context, async tx => ({
-    tasks: await tx.select().from(signTasks).orderBy(desc(signTasks.createdAt)).limit(100),
-    assets: await tx.select({ id: signatureAssets.id, name: signatureAssets.name, isDefault: signatureAssets.isDefault, createdAt: signatureAssets.createdAt }).from(signatureAssets).where(isNull(signatureAssets.archivedAt)).orderBy(desc(signatureAssets.isDefault), desc(signatureAssets.createdAt)).limit(100),
-  }));
+export async function readSigning(context: DuctContext, selected?: string, offset = 0, query = "") {
+  if (selected) idSchema.parse(selected);
+  z.number().int().min(0).max(1000000).parse(offset); z.string().max(200).parse(query);
+  return transaction(context, async tx => {
+    const [access] = await tx.execute<{ manage: boolean }>(sql`select public.duct_rental_may_manage_sign_tasks() as manage`);
+    const filter = and(access.manage ? undefined : eq(signTasks.assigneeId, context.actorId), sql`(${query}='' or strpos(lower(concat_ws(' ',${signTasks.snapshot}->>'code',${signTasks.snapshot}->>'projectName')),lower(${query}))>0 or ${signTasks.id}=${selected ?? null}::uuid)`)!;
+    const tasks = await tx.select({ ...getTableColumns(signTasks), canSignNow: sql<boolean>`case when ${signTasks.status}='pending' and ${signTasks.assigneeId}=${context.actorId}::uuid then public.duct_rental_task_actionable(${signTasks.id}) else false end` }).from(signTasks).where(filter).orderBy(sql`case when ${signTasks.id}=${selected ?? null}::uuid then 0 else 1 end`, desc(signTasks.createdAt), signTasks.id).limit(100).offset(offset);
+    const [count] = await tx.execute<{ total: number }>(sql`select count(*)::int as total from ${signTasks} where ${filter}`);
+    const assets = await tx.select({ id: signatureAssets.id, name: signatureAssets.name, isDefault: signatureAssets.isDefault, createdAt: signatureAssets.createdAt }).from(signatureAssets).where(isNull(signatureAssets.archivedAt)).orderBy(desc(signatureAssets.isDefault), desc(signatureAssets.createdAt));
+    return { tasks, assets, total: count.total, nextOffset: offset + tasks.length < count.total ? offset + tasks.length : null };
+  });
 }
 export async function readSignatureAsset(id: string, context: DuctContext) {
   idSchema.parse(id);
@@ -125,5 +144,22 @@ export async function readSignatureAsset(id: string, context: DuctContext) {
     const [asset] = await tx.select().from(signatureAssets).where(and(eq(signatureAssets.id, id), eq(signatureAssets.ownerId, context.actorId), isNull(signatureAssets.archivedAt)));
     if (!asset) throw new DuctError("NOT_FOUND", "ไม่พบลายเซ็นของคุณ", 404);
     return { bytes: await readPrivateFile(asset.storageKey, asset.checksumSha256), name: `${asset.name}.png`, mediaType: "image/png" };
+  });
+}
+export async function previewSignature(id: string, raw: unknown, context: DuctContext) {
+  idSchema.parse(id); const input = signaturePlacementInput.parse(raw);
+  return transaction(context, async tx => {
+    const [task] = await tx.select().from(signTasks).where(and(eq(signTasks.id, id), eq(signTasks.assigneeId, context.actorId)));
+    await requirePermission(tx, "duct_rental.signoff.sign", context.actorId);
+    if (!task || task.status !== "pending" || task.version !== input.version) throw new DuctError("STATE", "งานลงนามเปลี่ยนแปลงแล้ว กรุณาโหลดใหม่", 409);
+    const [open] = await tx.execute<{ valid: boolean }>(sql`select public.duct_rental_task_actionable(${id}::uuid) as valid`);
+    if (!open?.valid) throw new DuctError("STATE", "คำขอนี้ปิดขั้นลงนามแล้ว", 409);
+    const [doc] = await tx.select().from(documents).where(eq(documents.id, task.documentId));
+    const [current] = await tx.execute<{ valid: boolean }>(sql`select public.duct_rental_nt_current(${task.documentId}::uuid) as valid`);
+    if (!current?.valid) throw new DuctError("STALE_DOCUMENT", "ข้อมูลออกแบบเปลี่ยนแล้ว กรุณาสร้าง NT Form ใหม่", 409);
+    const [asset] = await tx.select().from(signatureAssets).where(and(eq(signatureAssets.id, input.assetId), eq(signatureAssets.ownerId, context.actorId), isNull(signatureAssets.archivedAt)));
+    const [identity] = await tx.execute<{ display_name: string; active: boolean }>(sql`select * from public.duct_rental_signer_identity()`);
+    if (!doc || doc.archivedAt || doc.documentVersion !== task.documentVersion || !asset || !identity?.active) throw new DuctError("FORBIDDEN", "เอกสารหรือลายเซ็นไม่พร้อมใช้งาน", 403);
+    return { bytes: await stampSignature(await readPrivateFile(doc.storageKey, doc.checksumSha256), await readPrivateFile(asset.storageKey, asset.checksumSha256), input, identity.display_name, new Date()), name: `NT-Form-Preview-${task.snapshot.code}.pdf`, mediaType: "application/pdf" };
   });
 }
