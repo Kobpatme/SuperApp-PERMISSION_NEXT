@@ -1,6 +1,6 @@
 # Current implementation status
 
-Updated 2026-10-14. Earlier Core-only counts below are historical checkpoints. This handoff records the latest local checkpoint; it does not claim production release, real-data reconciliation or human UAT approval. Application source and repeatable tests take precedence over historical reports.
+Updated 2026-10-15. Earlier Core-only counts below are historical checkpoints. This handoff records the latest local checkpoint; it does not claim production release, real-data reconciliation or human UAT approval. Application source and repeatable tests take precedence over historical reports.
 
 ## Runtime and verification
 
@@ -9,13 +9,13 @@ Updated 2026-10-14. Earlier Core-only counts below are historical checkpoints. T
 - Latest application verification: unit 267 passed / 41 opt-in skipped; dedicated sync/session PostgreSQL 13 passed; browser 6 passed; lint/typecheck/build and document mapping passed. These are local results, not production evidence.
 - Repository cleanup was checked from staged source without environment files or generated evidence: lint/typecheck/build passed, unit 267 passed and document mapping 1 passed, using installed locked dependencies. Markdown cleanup changes documentation and Git tracking only.
 
-## เช่าท่อร้อยสาย / METRIX — 14/10/2569
+## เช่าท่อร้อยสาย / METRIX — 15/10/2569
 
-**ผลตรวจซ้ำกับไฟล์แนบ:** ยังไม่ครบ100% M1 role bundles, M3 exhaustive golden/constant tests, M5 created banner และ M6 signature controls/template inventory ยังต้องเติม พร้อมชี้แจง schema adaptation RC-07 ไม่ใช่เหลือเพียง human UAT ดู [ข้อค้นพบ RC-01–07](metrix-integration/11-requirement-recheck.md) รันทดสอบโมดูลซ้ำ181ผ่าน21opt-inข้าม รายงาน QA เดิมเป็นหลักฐาน main paths ที่ผ่านแล้ว
+**ปิดข้อพบตามไฟล์แนบ:** RC-01–07 implementation/local verification ครบแล้ว รวม 10 editable role bundles/exhaustive Source goldens/constants/created banner/date+offset signature controls/templates3/private lossless financial JSON และ active metadata edits ดู [หลักฐานปิดข้อ](metrix-integration/12-parity-closure.md) ไม่มี real migration หรือ human UAT/production-ready claim
 
 Native module implementation M0–M9 ส่งมอบสำหรับ local UAT: 40 capabilities/scopes, Core Admin enable/disable ตาม DQ09, server workflow/private PDF/assigned signing, 10-phase NT/non-NT, annual/cancel/SLA/realtime และ offline importer tools/fixtures ไม่มี real data migration
 
-Latest verification: lint/typecheck/build ผ่าน, unit450ผ่าน62opt-inข้าม/document1/CSS312files0violations; constrained PostgreSQL21ผ่าน/catalogถึง0052/empty52-migration DDL rollback; import CLI5+planner7; browser7ผ่าน/Core13คู่0pixelchange/axe13views0violations; 1000-row page50ใช้4SQLต่อcall/localmax2.26sec (ไม่ใช่ production SLA)
+Latest verification: lint/typecheck/build ผ่าน, unit6164ผ่าน65opt-inข้าม/document1; constrained PostgreSQL24ผ่าน/catalogถึง0056/empty56-migration DDL rollback; import CLI5+planner7/financial3; browser8ผ่าน/Core13คู่0pixelchange/axe13views0violations; 1000-row page50ใช้4SQLต่อcall15calls (ไม่ใช่ production SLA)
 
 Main manifest ยังdevelopment/default-disabled ตาม human UAT gate ไม่มีmain/productionapply/grants/deploy Owner decisionsDQ01/02/03/07/09ใช้แล้ว การเปิดจริงต้อง real identities/teams/scopes/coordinator map/template&retention review และบันทึกUAT รายงานเก่า267/439testsข้างต้นเป็น historicalCorecheckpoint ไม่ใช่ผลล่าสุด ดู [รายงาน](metrix-integration/99-final-report.md) และ [QA](quality/duct-rental/README.md)
 

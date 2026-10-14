@@ -1,4 +1,4 @@
-# METRIX native local QA — 14/10/2569
+# METRIX native local QA — 15/10/2569
 
 Branch `codex/metrix-duct-rental-foundation`; Source `f87220bf94b765e4896388632c3dbeabb5286510`; immutable Core baseline `5f32a111ebeeb3fea8918db7e702d95bc7302bdf` ดู [รายงาน](../../metrix-integration/99-final-report.md)
 
@@ -7,13 +7,13 @@ Branch `codex/metrix-duct-rental-foundation`; Source `f87220bf94b765e4896388632c
 | Check | ผล |
 |---|---|
 | lint / typecheck / production build | ผ่าน |
-| npm test | 450 ผ่าน / 62 opt-in ข้าม; 76 files ผ่าน / 5 ข้าม |
-| document mapping / CSS | 1 ผ่าน / 312 files, 0 violations |
-| constrained PostgreSQL services | 21 ผ่าน (เวลาสูงสุดต่อ test 30s; multi-operation integration ไม่ใช่ latency assertion) |
-| migration catalog/replay/grants | ผ่านถึง 0052; 40 capabilities; ไม่มี auto grants; Work grants คงเดิม |
-| empty transaction DDL rollback | 52 migrations → abort → 0 public tables / 0 duct functions |
-| import planner / CLI | 7 / 5 ผ่าน; fixture writes 0 |
-| browser | 7 ผ่านใน 2.9 นาที |
+| npm test | 6,164 ผ่าน / 65 opt-in ข้าม; 78 files ผ่าน / 5 ข้าม |
+| document mapping / CSS | 1 ผ่าน / 316 files, 0 violations |
+| constrained PostgreSQL services | 24 ผ่าน (แยกรันด้วย opt-in; multi-operation integration ไม่ใช่ latency assertion) |
+| migration catalog/replay/grants | ผ่านถึง 0056; 40 capabilities/10 editable presets; no auto assigns/grants; preset customization และ Work grants คงเดิม |
+| empty transaction DDL rollback | 56 migrations → abort → 0 public tables / 0 duct functions |
+| import planner / financial / CLI | 7 / 3 / 5 ผ่าน; fixture writes 0 |
+| browser | 8 ผ่านใน 179.7 วินาที |
 | Core screenshot comparison | 13 คู่; changedPixels 0 ทุกคู่ |
 | axe | 13 views, 0 violations; tags WCAG 2/2.1/2.2 AA |
 | 1000-row list | คืน 50/count 1000/next 50; 14 measured calls × 4 SQL |
@@ -72,3 +72,13 @@ Timing เป็น local synthetic dataset และ server-side scoped materia
 รอบเก่าที่เครื่องถูก suspend หลายชั่วโมงไม่ใช้เป็น evidence รอบสุดท้าย rerun ผ่านครบ ส่วน integration role-scope case เกิน default 5s เมื่อ dataset fixture โต จึงใช้ explicit integration timeout 30s และ rerun 21 ผ่าน ไม่ลด assertion/ข้าม test
 
 Human UAT/real user mappings/template rights/retention/production storage/load/cutover ยังไม่ได้ตรวจ ไม่สรุป migrated หรือ production-ready
+
+## รอบปิดข้อพบ RC-01–07
+
+[12-parity-closure.md](../../metrix-integration/12-parity-closure.md) เป็น requirement evidence ปัจจุบัน Logs ใช้ closure-{unit,services,catalog,rollback,lint,typecheck,build,css,document-mapping,pdf,import-cli}.log และ browser.log/results; golden generation Sourcevalidation124/Sourcepure5699/financePDF6/parity matrices; Source SHA/blob/SourceZod4 verified
+
+Portable fixture cluster ใหม่ loopback55447 แยกจาก main5432 ใช้ scripts/duct-rental-local-check.mjs; ไม่มี .env/application connection หรือ Source credentials ส่งออก main manifest development/default false การเปิดactiveทำเฉพาะcopied browser project ภาพ Core13คู่0differences, axe13views0violations, list15calls×4SQL/max513.6msในfixture (ไม่ใช่ production SLA)
+
+PDFtests10; closure-pdf-render/contact-sheet.png และchosen-date4 ตรวจ10pagesรวมall5NT/signed4/chosen-date4/summary1/blank1/copy1 วันที่31/12/2030ตรง ส่วนserver auditเป็นเวลาจริง Referencetemplatesทั้ง3คงhash/bytes/fields มีPoppler Symbol-font warning จากSource templateแต่ภาพที่ตรวจไม่มีclipping/tofu
+
+คำว่า main paths/21tests/7browser และเวลารอบ14/10ในคำอธิบายเดิมเป็น historical evidence ก่อนclosure ผลปัจจุบันอยู่ในตารางบนและreport12 ไม่มี skipped/humanUATนับเป็นผ่าน

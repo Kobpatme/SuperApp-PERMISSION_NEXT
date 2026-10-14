@@ -1,5 +1,7 @@
 # หลักฐาน control และ handler ต้นทาง
 
+> Closure 15/10/2569: คืน created banner/continue, active edit, Source display date/offset±180/nudge6/scale/live preview และ template references ครบแล้ว พร้อม 8browser flows ดู [12](12-parity-closure.md) บัญชี403attributesด้านล่างเป็น Source inventory; browserassertionsตรวจพฤติกรรมหลักและcontrolsที่เคยขาด ไม่ได้อ้างpixel equalityของSource UIหรือhumanUAT
+
 > Native coverage 14/10/2569: source controls 403 attributes/24 files ใช้เป็นบัญชีเทียบฟอร์ม/handler Native mappings คือ RequestForm (new/edit/design), RequestWorkspace (9 action phases/missing docs), FileList/AttachmentPicker/PdfViewer (private previews), SignatureWorkspace (assets/position/sign), ProcessWorkspace (annual/cancel), TrackingWorkspace และ Core inbox รายละเอียด [05](05-screen-and-ux-map.md) / [07](07-parity-matrix.md)
 >
 > Browser ตรวจ full NT/non-NT, signature page 4, annual keep/drop/stages/private contract, cancellation, notes draft preservation, keyboard modal, mobile/dark, offline และ permissions/session Module disable ยังไม่ยืนยันทุก attribute ด้วย browser assertion แยก ไม่มี Source app screenshot comparison; มี actual frozen PDF reference และ Core before/after 13 คู่

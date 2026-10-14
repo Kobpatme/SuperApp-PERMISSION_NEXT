@@ -1,5 +1,7 @@
 # ผลตรวจซ้ำกับไฟล์ CODEX-METRIX-DUCT-RENTAL-MODULE.md
 
+> **สถานะปัจจุบัน 15/10/2569:** หลังเจ้าของสั่ง “ทำให้ 100% แต่ไม่ย้ายข้อมูล” ปิด RC-01–07 ใน implementation/local verification แล้ว ดู [รายงานปิดข้อพบ](12-parity-closure.md) เอกสารด้านล่างเก็บผลตรวจ **ก่อนแก้** เพื่อ audit history ไม่ใช่รายการค้างปัจจุบัน
+
 ตรวจ 14/10/2569 ที่ commit `1e833a1` เทียบไฟล์ใน Downloads, frozen METRIX `f87220bf94b765e4896388632c3dbeabb5286510`, โค้ด native, golden fixtures และหลักฐาน QA
 
 **ผล: ยังไม่ครบตามไฟล์ 100% มีทั้งงาน implementation และ test coverage ที่ต้องเติม จึงไม่ใช่เหลือเพียง human UAT** รายงาน 99 และ parity matrix ก่อนตรวจซ้ำสรุปความครบของกลุ่ม UI/สิทธิ์กว้างเกินหลักฐาน ต้องอ่านข้อแก้ไขนี้ประกอบ

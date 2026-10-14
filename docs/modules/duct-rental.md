@@ -10,11 +10,13 @@ Manifest ยัง `lifecycle: development`, `enabledByDefault: false` จน hu
 
 ## Persistence และ mutations
 
-ใช้ `DUCT_RENTAL_DATABASE_URL` เป็น constrained PostgreSQL runtime login สมาชิก `duct_rental_runtime` ไม่เป็น owner/NOSUPERUSER/NOBYPASSRLS ไม่มี fallback ไป migration/admin login Migrations 0029–0052 มี FORCE RLS, live Core scopes, workflow/document/version/immutable guards
+ใช้ `DUCT_RENTAL_DATABASE_URL` เป็น constrained PostgreSQL runtime login สมาชิก `duct_rental_runtime` ไม่เป็น owner/NOSUPERUSER/NOBYPASSRLS ไม่มี fallback ไป migration/admin login Migrations 0029–0056 มี FORCE RLS, live Core scopes, workflow/document/version/immutable guards และ private Source financial JSON/projection checks
 
 Mutation: Core session → capability/scope → Zod → canonical business rule → version/UUID idempotency/fingerprint → business+audit+activity+outbox+receipt transaction เดียว Request/sign ใช้ advisory lock ร่วมก่อน row locks ป้องกัน sign/archive races Partial draft บันทึกได้แต่ submit ต้อง full schema เอกสารและรับงานครบ Source non-NT bypass คงเดิม งาน terminal/archived เป็นอ่านอย่างเดียว
 
-Private storage อ่านผ่าน authenticated API เท่านั้น ห้าม serve directory เป็น public เอกสารสูงสุด 25 MB / PNG ลายเซ็น 2 MB ตรวจ MIME/checksum/path และ parent ที่มีสิทธิ์ Document ผูก request หรือ annual year เพียงหนึ่ง parent NT original ต้อง server generated และ immutable design snapshot; signed PDF สร้างจาก original ปัจจุบัน+own PNG+verified Core name+server date ไม่รับ forged signed PDF upload
+Private storage อ่านผ่าน authenticated API เท่านั้น ห้าม serve directory เป็น public เอกสารสูงสุด 25 MB / PNG ลายเซ็น 2 MB ตรวจ MIME/checksum/path และ parent ที่มีสิทธิ์ Document ผูก request หรือ annual year เพียงหนึ่ง parent NT original ต้อง server generated และ immutable design snapshot; signed PDF สร้างจาก original ปัจจุบัน+own PNG+verified Core name+editable Source display date ส่วน audit/signedAt ใช้เวลาจริงของ server ไม่รับ forged signed PDF upload
+
+มี 10 editable business role presets สำหรับเลือก/คัดลอกใน Core Admin ไม่มีการมอบแก่ผู้ใช้จริงอัตโนมัติ Working/Viewer request.update บังคับ owner exception; management readonly ส่วน Sr. Manager ลงนาม assigned current original ตาม DQ01 Active metadata edits ไม่เปลี่ยนขั้นตอน/scope และทำให้ NT snapshot เก่าใช้ลงนามไม่ได้ templates ทั้ง3มี hash/field inventory และ scoped preview/export ดู [ปิดข้อพบ](../metrix-integration/12-parity-closure.md)
 
 Fees ใช้ Decimal ROUND_HALF_UP 2dp และ PostgreSQL numeric ค่าต่อเดือน/ปีกรอกแยก ไม่มีภาษี/prorata/x12 Annual snapshots เฉพาะ COMPLETE และไม่ cancelled; global year unique, sum keep only Final annual contract PDF mandatory Cancellation completion เขียน request.cancelledAt กับสถานะเดียวกันแบบ atomic
 
