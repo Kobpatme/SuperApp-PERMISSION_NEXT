@@ -103,6 +103,8 @@ Rollback ใช้ปิดโมดูล/ถอน grants โดยเก็�
 
 JEV ใช้ sanitized metadata เท่านั้น เป็น advisory ไม่เป็น proof หรือ production authorization รายงานนี้ยึด Source/compiler/tests/PostgreSQL/browser/render เป็นหลัก Risk wrapper ที่เคย hard-gate local migration summary ไม่ใช่ human approval rejection และไม่ได้ใช้เพื่ออนุญาต production Final evidence assessment แยกจาก deterministic gates ไม่มี .env/credential/customer data/source bodies ส่งไป
 
-Final JEV evidence-check: supported 0.75 / needs_more_evidence 0.87 / gather_more_evidence (advisory only) ข้อที่ต้องเพิ่มคือ owner UAT และหลักฐาน environment จริงที่รายงานระบุว่าไม่ได้ตรวจ ไม่ทำ production ต่อเพื่อปิดคะแนน JEV ส่วน local assertions ยืนยันด้วย deterministic results ข้างต้น
+Final JEV evidence-check: supported 0.75 / needs_more_evidence 0.87 / gather_more_evidence (advisory only) ผล advisory ไม่แจกแจงว่าขาดหลักฐานใด รายงานจึงยังแยก owner UAT และ environment จริงที่ไม่ได้ตรวจไว้อย่างชัดเจน ไม่ทำ production ต่อเพื่อปิดคะแนน JEV ส่วน local assertions ยืนยันด้วย deterministic results ข้างต้น
 
 Final source attestation: git status ของ original METRIX Request และ frozen discovery copy ว่าง ตรวจ 14/10/2569 Protected Core tokens/global CSS/fonts/sidebar/topbar ไม่เปลี่ยน มีเฉพาะ layout Admin visibility predicate ตาม DQ09 การวัดล่าสุด 14 list calls × 4 SQL และ latency 1.99–2.26 sec ใน fixture
+
+Implementation commits แยกส่วน: fb7c109 service/schema, c3eb481 request workflow/PDF, 35bd03e signature editor, 8efb721 annual/cancel/SLA, 3f75fa3 offline import, 88402e5 reproducible QA ไม่มี push/deploy
