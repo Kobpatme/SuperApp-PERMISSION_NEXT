@@ -18,14 +18,14 @@ export function RequestForm({ request, user, permissions, pause }: { request?: R
   const [version, setVersion] = useState(request?.version ?? 1), [savedId, setSavedId] = useState(request?.id), [teamId, setTeamId] = useState(request?.teamId ?? "");
   const [memo, setMemo] = useState<File | null>(null), [drawing, setDrawing] = useState<File | null>(null), [coordinatorId, setCoordinatorId] = useState("");
   const [busy, setBusy] = useState(false), [dirty, setDirty] = useState(false), [error, setError] = useState(""), [message, setMessage] = useState(""), [errors, setErrors] = useState<Record<string, string>>({}), [confirm, setConfirm] = useState(false);
-  const readonly = !!request && (request.phase !== "DESIGN" || request.archivedAt != null || request.cancelledAt != null);
+  const readonly = !!request && (request.phase === "COMPLETE" || request.archivedAt != null || request.cancelledAt != null);
   const autoCoordinator = useRef("");
   const options = useResource<FormOptions>(`options?center=${encodeURIComponent(String(values.serviceCenter ?? ""))}`);
   useEffect(() => {
     const people = options.data?.coordinators;
-    if (people?.length !== 1 || !values.serviceCenter || readonly || autoCoordinator.current === `${values.serviceCenter}:${people[0].id}`) return;
+    if (!people?.length || !values.serviceCenter || readonly || autoCoordinator.current === `${values.serviceCenter}:${people[0].id}`) return;
     let active = true;
-    // Source auto-selects a sole coordinator. Core supplies the reviewed mapping.
+    // Source auto-selects the first mapped coordinator. Core supplies the reviewed mapping.
     void Promise.resolve().then(() => {
       if (!active) return;
       const person = people[0];
@@ -37,7 +37,7 @@ export function RequestForm({ request, user, permissions, pause }: { request?: R
   }, [options.data, values.serviceCenter, readonly]);
   const caps = request?.capabilities ?? permissions;
   const canSave = !readonly && caps.includes(savedId ? "duct_rental.request.update" : "duct_rental.request.create");
-  const canSubmit = !readonly && caps.includes("duct_rental.design.submit") && (savedId ? true : caps.includes("duct_rental.request.create"));
+  const canSubmit = !readonly && (!request || request.phase === "DESIGN") && caps.includes("duct_rental.design.submit") && (savedId ? true : caps.includes("duct_rental.request.create"));
   const change = (next: DesignValues) => { if (next.serviceCenter !== values.serviceCenter) { autoCoordinator.current = ""; setCoordinatorId(""); } setValues(next); setDirty(true); pause?.(true); setMessage(""); };
   const save = async (submit: boolean) => {
     setError(""); setErrors({}); setMessage("");
@@ -65,14 +65,14 @@ export function RequestForm({ request, user, permissions, pause }: { request?: R
   return <div className={styles.workspace}>
     <PageHeader title={request ? `แก้ไขคำขอ ${request.code}` : "สร้างคำขอเช่าท่อร้อยสาย"} parent={{ label: "เช่าท่อร้อยสาย", href: "/duct-rental" }} description="บันทึกร่างได้ และกรอกข้อมูลให้ครบก่อนส่งให้ทีมเขียนแบบ" />
     <ModuleNav /><Notice text={error} error /><Notice text={message} />
-    {readonly && <Notice text="คำขอนี้ผ่านขั้นออกแบบแล้ว ข้อมูลออกแบบแสดงแบบอ่านอย่างเดียว" />}
+    {readonly && <Notice text="คำขอนี้สิ้นสุดแล้ว ข้อมูลออกแบบแสดงแบบอ่านอย่างเดียว" />}
     <form noValidate onSubmit={event => { event.preventDefault(); setConfirm(true); }} className={styles.workspace}>
       {!request && <section className={styles.panel}><Field label="ทีมเจ้าของคำขอ"><select value={teamId} disabled={busy || !canSave} onChange={event => setTeamId(event.target.value)}><option value="">ไม่ระบุทีม</option>{options.data?.teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></Field></section>}
       <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className={styles.workspace}><DesignEditor values={values} change={change} errors={errors} readonly={!canSave && !canSubmit} />
       {!readonly && <section className={styles.panel}><h2>เลือกผู้ประสานหน้างาน</h2><Field label="ผู้ประสานงานตามศูนย์บริการ"><select value={coordinatorId} disabled={!canSave && !canSubmit} onChange={event => { const person = options.data?.coordinators.find(item => item.id === event.target.value); setCoordinatorId(event.target.value); if (person) change({ ...values, installContactName: person.display_name, installContactEmail: person.email, installContactPhone: person.phone }); }}><option value="">กรอกข้อมูลผู้ประสานงานเอง</option>{options.data?.coordinators.map(person => <option key={person.id} value={person.id}>{person.display_name}</option>)}</select></Field>{!options.data?.coordinators.length && <p className={styles.muted}>ไม่พบผู้ประสานงานในศูนย์นี้ สามารถกรอกชื่อและข้อมูลติดต่อเองได้</p>}<Notice text={options.error} error /></section>}
       {caps.includes("duct_rental.document.upload") && !readonly && <section className={styles.panel}><h2>เอกสารจากทีมออกแบบ</h2><div className={styles.grid}><AttachmentPicker label="Memo (ถ้ามี)" file={memo} change={file => { setMemo(file); setDirty(true); pause?.(true); }} /><AttachmentPicker label="แบบท่อจากทีมออกแบบ (ถ้ามี)" file={drawing} change={file => { setDrawing(file); setDirty(true); pause?.(true); }} /></div></section>}
       </div></fieldset>
-      <div className={`${styles.toolbar} ${styles.sticky}`}><span className={styles.muted}>กรอกแล้ว {required.filter(name => !!values[name]).length}/{required.length} ช่องที่จำเป็น · {busy ? "กำลังบันทึก…" : dirty ? "ยังไม่ได้บันทึก" : message || "พร้อมดำเนินการ"}</span><div className={styles.actions}><Link className={styles.button} href={savedId ? `/duct-rental/${savedId}` : "/duct-rental"}>กลับ</Link><button className={styles.button} type="button" disabled={busy || !canSave} onClick={() => void save(false)}>บันทึกร่าง</button><button className={styles.primary} type="submit" disabled={busy || !canSubmit}>ส่งให้ทีมเขียนแบบ</button></div></div>
+      <div className={`${styles.toolbar} ${styles.sticky}`}><span className={styles.muted}>กรอกแล้ว {required.filter(name => !!values[name]).length}/{required.length} ช่องที่จำเป็น · {busy ? "กำลังบันทึก…" : dirty ? "ยังไม่ได้บันทึก" : message || "พร้อมดำเนินการ"}</span><div className={styles.actions}><Link className={styles.button} href={savedId ? `/duct-rental/${savedId}` : "/duct-rental"}>กลับ</Link><button className={styles.button} type="button" disabled={busy || !canSave} onClick={() => void save(false)}>บันทึกร่าง</button><button className={styles.primary} type="submit" disabled={busy || !canSubmit}>{request && request.phase !== "DESIGN" ? "ส่งต่อได้จากขั้นตอนปัจจุบัน" : "ส่งให้ทีมเขียนแบบ"}</button></div></div>
     </form>
     {confirm && <Modal title="ยืนยันส่งคำขอ" close={() => setConfirm(false)}><p>ตรวจสอบข้อมูลและไฟล์แนบก่อนส่งให้ทีมเขียนแบบ เมื่อส่งแล้วข้อมูลออกแบบจะเป็นอ่านอย่างเดียว</p><div className={styles.actions}><button className={styles.button} type="button" onClick={() => setConfirm(false)}>กลับไปตรวจข้อมูล</button><button className={styles.primary} type="button" onClick={() => { setConfirm(false); void save(true); }}>ยืนยันส่งคำขอ</button></div></Modal>}
   </div>;

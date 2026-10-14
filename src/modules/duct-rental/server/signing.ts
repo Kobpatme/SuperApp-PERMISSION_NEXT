@@ -14,7 +14,7 @@ export async function assignSignature(id: string, raw: unknown, key: string, con
   return mutation(context, key, "signoff.assigned", { id, input }, async tx => {
     const row = await lockRequest(tx, id, input.version);
     await requirePermission(tx, "duct_rental.signoff.assign", row.ownerId, row.teamId);
-    if (row.phase !== "PERMISSION_1" || row.archivedAt || row.cancelledAt) throw new DuctError("STATE", "มอบหมายลงนามได้ในขั้นตอนขออนุญาตครั้งที่ 1", 409);
+    if (row.phase !== "PERMISSION_1" || row.archivedAt || row.cancelledAt || row.ownerDuct.trim().toUpperCase() !== "NT") throw new DuctError("STATE", "มอบหมายลงนามได้ในขั้นตอนขออนุญาตครั้งที่ 1 ของ NT", 409);
     const tasks = await tx.select().from(signTasks).where(and(eq(signTasks.requestId, id), ne(signTasks.status, "revoked"))).orderBy(signTasks.id).for("update");
     const [latestDoc] = await tx.select().from(documents).where(and(input.documentId ? eq(documents.id, input.documentId) : undefined, eq(documents.requestId, id), eq(documents.fileType, "nt_form"), isNull(documents.archivedAt))).orderBy(desc(documents.documentVersion)).limit(1).for("update");
     const [current] = latestDoc ? await tx.execute<{ valid: boolean }>(sql`select public.duct_rental_nt_current(${latestDoc.id}::uuid) as valid`) : [];
@@ -72,10 +72,11 @@ export async function signDocument(id: string, raw: unknown, key: string, contex
       if (!current?.valid) throw new DuctError("STALE_DOCUMENT", "ข้อมูลออกแบบเปลี่ยนแล้ว กรุณาสร้าง NT Form ใหม่", 409);
       const [asset] = await tx.select().from(signatureAssets).where(and(eq(signatureAssets.id, input.assetId), eq(signatureAssets.ownerId, context.actorId), isNull(signatureAssets.archivedAt))).for("share");
       if (!doc || doc.documentVersion !== task.documentVersion || doc.archivedAt || !asset) throw new DuctError("STALE_DOCUMENT", "เอกสารหรือลายเซ็นเปลี่ยนแปลงแล้ว", 409);
-      // Sign original assigned bytes. Never accept signed PDF, actor, name or date from client.
+      // Sign original assigned bytes. Never accept signed PDF, actor, name or audit time from client.
+      // Source display date is editable; audit/signedAt remain server-generated.
       const [identity] = await tx.execute<{ display_name: string; active: boolean }>(sql`select * from public.duct_rental_signer_identity()`);
       if (!identity?.active) throw new DuctError("FORBIDDEN", "บัญชีนี้ไม่พร้อมลงนาม", 403);
-      const at = new Date(), bytes = await stampSignature(await readPrivateFile(doc.storageKey, doc.checksumSha256), await readPrivateFile(asset.storageKey, asset.checksumSha256), input, identity.display_name, at);
+      const at = new Date(), bytes = await stampSignature(await readPrivateFile(doc.storageKey, doc.checksumSha256), await readPrivateFile(asset.storageKey, asset.checksumSha256), input, identity.display_name, at, input.displayDate);
       const docId = randomUUID(), storageKey = `documents/${docId}.pdf`;
       await material(tx, context, "signoff.signed", id, context.actorId, async () => {
         await putPrivateFile(storageKey, bytes); createdKey = storageKey;
@@ -132,7 +133,7 @@ export async function readSigning(context: DuctContext, selected?: string, offse
   return transaction(context, async tx => {
     const [access] = await tx.execute<{ manage: boolean }>(sql`select public.duct_rental_may_manage_sign_tasks() as manage`);
     const filter = and(access.manage ? undefined : eq(signTasks.assigneeId, context.actorId), sql`(${query}='' or strpos(lower(concat_ws(' ',${signTasks.snapshot}->>'code',${signTasks.snapshot}->>'projectName')),lower(${query}))>0 or ${signTasks.id}=${selected ?? null}::uuid)`)!;
-    const tasks = await tx.select({ ...getTableColumns(signTasks), canSignNow: sql<boolean>`case when ${signTasks.status}='pending' and ${signTasks.assigneeId}=${context.actorId}::uuid then public.duct_rental_task_actionable(${signTasks.id}) else false end` }).from(signTasks).where(filter).orderBy(sql`case when ${signTasks.id}=${selected ?? null}::uuid then 0 else 1 end`, desc(signTasks.createdAt), signTasks.id).limit(100).offset(offset);
+    const tasks = await tx.select({ ...getTableColumns(signTasks), canSignNow: sql<boolean>`case when ${signTasks.status}='pending' and ${signTasks.assigneeId}=${context.actorId}::uuid then public.duct_rental_task_actionable(${signTasks.id}) and public.duct_rental_nt_current(${signTasks.documentId}) else false end` }).from(signTasks).where(filter).orderBy(sql`case when ${signTasks.id}=${selected ?? null}::uuid then 0 else 1 end`, desc(signTasks.createdAt), signTasks.id).limit(100).offset(offset);
     const [count] = await tx.execute<{ total: number }>(sql`select count(*)::int as total from ${signTasks} where ${filter}`);
     const assets = await tx.select({ id: signatureAssets.id, name: signatureAssets.name, isDefault: signatureAssets.isDefault, createdAt: signatureAssets.createdAt }).from(signatureAssets).where(isNull(signatureAssets.archivedAt)).orderBy(desc(signatureAssets.isDefault), desc(signatureAssets.createdAt));
     return { tasks, assets, total: count.total, nextOffset: offset + tasks.length < count.total ? offset + tasks.length : null };
@@ -160,6 +161,6 @@ export async function previewSignature(id: string, raw: unknown, context: DuctCo
     const [asset] = await tx.select().from(signatureAssets).where(and(eq(signatureAssets.id, input.assetId), eq(signatureAssets.ownerId, context.actorId), isNull(signatureAssets.archivedAt)));
     const [identity] = await tx.execute<{ display_name: string; active: boolean }>(sql`select * from public.duct_rental_signer_identity()`);
     if (!doc || doc.archivedAt || doc.documentVersion !== task.documentVersion || !asset || !identity?.active) throw new DuctError("FORBIDDEN", "เอกสารหรือลายเซ็นไม่พร้อมใช้งาน", 403);
-    return { bytes: await stampSignature(await readPrivateFile(doc.storageKey, doc.checksumSha256), await readPrivateFile(asset.storageKey, asset.checksumSha256), input, identity.display_name, new Date()), name: `NT-Form-Preview-${task.snapshot.code}.pdf`, mediaType: "application/pdf" };
+    return { bytes: await stampSignature(await readPrivateFile(doc.storageKey, doc.checksumSha256), await readPrivateFile(asset.storageKey, asset.checksumSha256), input, identity.display_name, new Date(), input.displayDate), name: `NT-Form-Preview-${task.snapshot.code}.pdf`, mediaType: "application/pdf" };
   });
 }

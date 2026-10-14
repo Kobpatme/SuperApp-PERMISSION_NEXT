@@ -11,7 +11,7 @@ import { ductRentalCapabilities } from "../capabilities";
 import { createRequest, changeRequest, readRequest, listRequests } from "../server/requests";
 import type { DuctContext } from "../server/transaction";
 import { createRenewal, reviewRenewal, advanceRenewal, readRenewal, createCancellation, changeCancellation } from "../server/processes";
-import { generateNtDocument, downloadDocument, uploadDocument, uploadAnnualDocument } from "../server/files";
+import { generateNtDocument, downloadDocument, uploadDocument, uploadAnnualDocument, ntTemplate } from "../server/files";
 import { assignSignature, revokeSignature, signDocument, previewSignature, saveSignatureAsset, changeSignatureAsset, readSigning, readSignatureAsset } from "../server/signing";
 import { readTracking } from "../server/tracking";
 
@@ -70,6 +70,37 @@ describe.skipIf(process.env.DUCT_RENTAL_INTEGRATION !== "1")("duct services: rea
     result = await advance(draft.id, result.version, "3RD_PARTY_2", actor, { guarantee: { contractNumber: "TEST", fullAmount: "1.005", paymentType: "เงินสด", venderCode: "1129267", receiptNumber: "TEST" } });
     expect(result.phase).toBe("COMPLETE"); return result;
   }
+  it("preserves active owner edits and invalidates signing without changing workflow or scopes", async () => {
+    const actor = await user(), signer = await user(["duct_rental.module.view", "duct_rental.signoff.sign"], "OWN"), stranger = await user(["duct_rental.module.view", "duct_rental.document.read", "duct_rental.request.update"]);
+    const row = await permissionOne(actor), doc = await generateNtDocument(row.id, row.version, randomUUID(), actor);
+    const task = await assignSignature(row.id, {version:row.version,documentId:doc.id,assigneeId:signer.actorId}, randomUUID(), actor);
+    const asset = await saveSignatureAsset("จำลอง",await readFile("tests/fixtures/metrix-golden/signature.png"),true,randomUUID(),signer);
+    const placement={version:1,assetId:asset.id,page:4,x:0,y:0,width:60.7,height:35.36,rotation:0,scale:1};
+    await expect(changeRequest(row.id,"save",row.version,{design:{...design,projectName:"ผู้ไม่มีสิทธิ์"}},randomUUID(),stranger)).rejects.toMatchObject({status:403});
+    const before = await readRequest(row.id,actor), changed=await changeRequest(row.id,"save",row.version,{design:{...design,projectName:"แก้คำขอที่กำลังดำเนินการ"}},randomUUID(),actor);
+    expect(changed.phase).toBe("PERMISSION_1"); expect(changed.version).toBe(row.version+1);
+    const after=await readRequest(row.id,actor); expect(after.phaseStatuses).toEqual(before.phaseStatuses);expect(after.ownerId).toBe(before.ownerId);expect(after.teamId).toBe(before.teamId);
+    expect((await readSigning(signer)).tasks.find(t=>t.id===task.id)?.canSignNow).toBe(false);
+    await expect(previewSignature(task.id,placement,signer)).rejects.toMatchObject({code:"STALE_DOCUMENT"});
+    await expect(signDocument(task.id,placement,randomUUID(),signer)).rejects.toMatchObject({code:"STALE_DOCUMENT"});
+    const updated=await changeRequest(row.id,"save",changed.version,{design:{...design,ownerDuct:"TRUE"}},randomUUID(),actor);
+    await expect(assignSignature(row.id,{version:updated.version,assigneeId:signer.actorId},randomUUID(),actor)).rejects.toMatchObject({code:"STATE"});
+  });
+  it("serves all frozen templates through scoped read/export authorization", async () => {
+    const actor=await user(), other=await user(["duct_rental.module.view","duct_rental.document.read"],"OWN"), row=await createRequest(design,null,randomUUID(),actor);
+    for(const variant of ["original","blank","copy"]){const output=await ntTemplate(row.id,actor,variant,true);expect((await PDFDocument.load(output.bytes)).getPageCount()).toBe(5);}
+    await expect(ntTemplate(row.id,other,"blank",false)).rejects.toMatchObject({status:404});
+    await expect(ntTemplate(row.id,actor,"../../secret",false)).rejects.toThrow();
+  });
+  it("keeps financial JSON and numeric projections consistent and private", async () => {
+    const actor=await user(), draft=await createRequest({...design,ownerDuct:"TRUE"},null,randomUUID(),actor);
+    let row=await advance(draft.id,1,"DESIGN",actor);await files(row.id,actor,"DRAFTSMAN","drawing");row=await advance(row.id,row.version,"DRAFTSMAN",actor);row=await changeRequest(row.id,"accept",row.version,{},randomUUID(),actor);
+    row=await changeRequest(row.id,"save",row.version,{rate:{monthlyFee:"1.005",yearlyFee:"9.995",contractStart:"2031-01-01",contractEnd:"2031-12-31"},notes:"หมายเหตุการแจ้งอัตรา"},randomUUID(),actor);
+    expect((await readRequest(row.id,actor)).rate).toMatchObject({monthlyFee:"1.01",yearlyFee:"10.00",rateNoticeData:{monthlyFee:"1.01",yearlyFee:"10.00",contractStartDate:"2031-01-01",contractEndDate:"2031-12-31",notes:"หมายเหตุการแจ้งอัตรา"}});
+    row=await changeRequest(row.id,"save",row.version,{notes:"บันทึกเฉพาะหมายเหตุ"},randomUUID(),actor);expect((await readRequest(row.id,actor)).rate?.rateNoticeData).toMatchObject({monthlyFee:"1.01",yearlyFee:"10.00",notes:"บันทึกเฉพาะหมายเหตุ"});
+    await expect(runtime(actor,tx=>tx`update duct_rental_rates set rate_notice_data=rate_notice_data||'{"monthlyFee":"99.99"}'::jsonb where request_id=${row.id}`)).rejects.toMatchObject({code:"23514"});
+    const reader=await user(["duct_rental.module.view","duct_rental.document.read"]);expect((await readRequest(row.id,reader)).rate).toBeNull();expect(await runtime(reader,tx=>tx`select rate_notice_data,guarantee_data from duct_rental_rates where request_id=${row.id}`)).toHaveLength(0);
+  });
   it("creates verified-owner drafts and exactly one evidence set on idempotent replay", async () => {
     const actor = await user(), key = randomUUID();
     const [a, b] = await Promise.all([createRequest(design, null, key, actor), createRequest(design, null, key, actor)]);
@@ -150,7 +181,7 @@ describe.skipIf(process.env.DUCT_RENTAL_INTEGRATION !== "1")("duct services: rea
     const task = await assignSignature(row.id, { version: row.version, documentId: doc.id, assigneeId: signer.actorId }, randomUUID(), actor);
     const png = await readFile("tests/fixtures/metrix-golden/signature.png");
     const asset = await saveSignatureAsset("ลายเซ็นจำลอง", png, true, randomUUID(), signer);
-    const placement = { version: 1, assetId: asset.id, page: 4, x: 0, y: 0, width: 60.7, height: 35.36, rotation: 0, scale: 1 };
+    const placement = { version: 1, assetId: asset.id, page: 4, x: 0, y: 0, width: 60.7, height: 35.36, rotation: 0, scale: 1, displayDate: "2030-12-31" };
     await expect(changeRequest(row.id, "save", row.version, {}, randomUUID(), signer)).rejects.toMatchObject({ status: 404 });
     await expect(signDocument(task.id, placement, randomUUID(), other)).rejects.toMatchObject({ status: 403 });
     await expect(readSignatureAsset(asset.id, other)).rejects.toMatchObject({ status: 404 });
@@ -161,6 +192,9 @@ describe.skipIf(process.env.DUCT_RENTAL_INTEGRATION !== "1")("duct services: rea
     expect((await PDFDocument.load(output.bytes)).getPageCount()).toBe(5);
     await expect(signDocument(task.id, placement, randomUUID(), signer)).rejects.toMatchObject({ code: "STATE" });
     expect((await operator`select status from duct_rental_sign_tasks where id=${task.id}`)[0].status).toBe("signed");
+    const signedAt = (await operator`select signed_at from duct_rental_sign_tasks where id=${task.id}`)[0].signed_at;
+    expect(Math.abs(Date.now()-new Date(signedAt).getTime())).toBeLessThan(30000);
+    expect((await operator`select "after" from audit_logs where module_id='duct-rental' and action='signoff.signed' and entity_id=${task.id} order by created_at desc limit 1`)[0].after.placement.displayDate).toBe("2030-12-31");
     expect((await operator`select count(*)::int n from notifications where recipient_id=${signer.actorId}`)[0].n).toBeGreaterThanOrEqual(1);
     const firstAsset = await saveSignatureAsset("ลายเซ็นที่สอง", png, false, randomUUID(), signer);
     await changeSignatureAsset(asset.id, "archive", randomUUID(), signer);

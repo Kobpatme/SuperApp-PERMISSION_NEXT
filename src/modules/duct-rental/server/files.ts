@@ -132,3 +132,15 @@ export async function summaryDocument(id: string, context: DuctContext) {
     return { bytes: await generateSummaryPdf(DuctRentalDraftSchema.parse(row.design), row.code), name: `Duct-Rental-${row.code}.pdf`, mediaType: "application/pdf" };
   });
 }
+
+export async function ntTemplate(id: string, context: DuctContext, variant: string, download: boolean) {
+  idSchema.parse(id); const name = z.enum(["original","blank","copy"]).parse(variant);
+  return transaction(context,async tx => {
+    const [row] = await tx.select().from(requests).where(eq(requests.id,id));
+    if(!row) throw new DuctError("NOT_FOUND","ไม่พบคำขอที่เข้าถึงได้",404);
+    await requirePermission(tx,download?"duct_rental.document.export":"duct_rental.document.read",row.ownerId,row.teamId);
+    const files={original:"nt-duct-rental.pdf",blank:"nt-duct-rental-blank.pdf",copy:"nt-duct-rental-example-copy.pdf"};
+    const {readFile}=await import("node:fs/promises"),{join}=await import("node:path");
+    return {bytes:new Uint8Array(await readFile(join(process.cwd(),"src/modules/duct-rental/assets",files[name]))),name:files[name],mediaType:"application/pdf"};
+  });
+}

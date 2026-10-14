@@ -1,5 +1,7 @@
+import { sourceFinancialPayload } from "../domain/source-financial";
+import { submissionDocumentsReady } from "../domain/submission-gates";
 import { randomUUID } from "node:crypto";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { DatabaseTransaction } from "@/db";
 import { DuctRentalDraftSchema, DuctRentalSchema, InstallDetailSchema, InstallDraftSchema } from "../schemas/design";
 import { guaranteeDraftInput, guaranteeInput, id as idSchema, listInput, rateInput, version as versionSchema } from "../schemas/operations";
@@ -37,6 +39,15 @@ export async function changeRequest(id: string, action: "accept" | "submit" | "s
   return mutation(context, key, `request.${action}`, { id, version, raw }, async tx => {
     const row = await lockRequest(tx, id, version);
     if (action !== "archive" && (row.archivedAt || row.cancelledAt || row.phase === "COMPLETE")) throw new DuctError("CLOSED", "รายการนี้สิ้นสุดแล้ว", 409);
+    if(action === "save" && raw && typeof raw === "object" && "design" in raw) {
+      await requirePermission(tx,"duct_rental.request.update",row.ownerId,row.teamId);
+      const [access] = await tx.execute<{allowed:boolean}>(sql`select public.duct_rental_can_edit_design(${id}::uuid) as allowed`);
+      if(!access?.allowed)throw new DuctError("FORBIDDEN","ไม่มีสิทธิ์แก้ข้อมูลออกแบบคำขอนี้",403);
+      const design = (row.phase === "DESIGN" ? DuctRentalDraftSchema : DuctRentalSchema).parse((raw as {design:unknown}).design); delete design.memoUrl;delete design.ductDrawingUrl;
+      const after={design,projectName:design.projectName??"",routeName:design.routeName??"",ownerDuct:design.ownerDuct??"",serviceCenter:design.serviceCenter??"",province:design.province??"",district:design.district??"",requestType:design.requestType??"NEW",version:row.version+1,updatedAt:new Date()};
+      await material(tx,context,"request.save",id,row.ownerId,async()=>{await tx.update(requests).set(after).where(eq(requests.id,id));},{design:row.design,version:row.version},{design,version:after.version},row.teamId);
+      return {id,version:after.version,phase:row.phase};
+    }
     const permission = action === "archive" ? "duct_rental.request.archive" : action === "save" && row.phase === "DESIGN" ? "duct_rental.request.update" : phasePermission(row.phase, action === "accept" ? "accept" : "submit");
     await requirePermission(tx, permission, row.ownerId, row.teamId);
     const change: Partial<typeof requests.$inferInsert> = { version: row.version + 1, updatedAt: new Date() };
@@ -65,19 +76,30 @@ export async function changeRequest(id: string, action: "accept" | "submit" | "s
       if (row.phase === "3RD_PARTY_1" && input.rate) {
         await requirePermission(tx, "duct_rental.rate.read", row.ownerId, row.teamId);
         const rate = rateInput.parse(input.rate);
-        [beforeRate] = await tx.select().from(rates).where(eq(rates.requestId, id)); afterRate = rate;
+        [beforeRate] = await tx.select().from(rates).where(eq(rates.requestId, id));
+        const sourceDocuments = await tx.select({ id: documents.id, fileType: documents.fileType }).from(documents).where(and(eq(documents.requestId,id),eq(documents.phase,"3RD_PARTY_1"),isNull(documents.archivedAt))).orderBy(desc(documents.createdAt));
+        const pointers: Record<string,string> = {}; const pointerFields: Record<string,string> = {rate_notice:"rateNoticeFile",invoice:"serviceInvoiceFile",signed_copy:"signedFile"};
+        for (const doc of sourceDocuments) if (pointerFields[doc.fileType] && !pointers[pointerFields[doc.fileType]]) pointers[pointerFields[doc.fileType]]=doc.id;
+        const sourceJson = sourceFinancialPayload({ ...beforeRate?.rateNoticeData, ...pointers, monthlyFee: rate.monthlyFee, yearlyFee: rate.yearlyFee, ...(rate.contractStart !== undefined ? {contractStartDate:rate.contractStart} : {}), ...(rate.contractEnd !== undefined ? {contractEndDate:rate.contractEnd} : {}), notes: input.notes ?? row.phaseNotes[row.phase] ?? "" }, beforeRate?.guaranteeData ?? {}); afterRate = { ...rate, ...sourceJson };
         // Rate mutation and request audit share this transaction; never client-computed totals.
-        await tx.insert(rates).values({ requestId: id, ...rate }).onConflictDoUpdate({ target: rates.requestId, set: { ...rate, updatedAt: new Date() } });
+        await tx.insert(rates).values({ requestId: id, ...rate, ...sourceJson }).onConflictDoUpdate({ target: rates.requestId, set: { ...rate, ...sourceJson, updatedAt: new Date() } });
       }
       if (row.phase === "3RD_PARTY_2" && input.guarantee) {
         await requirePermission(tx, "duct_rental.rate.read", row.ownerId, row.teamId);
         const guarantee = action === "save" ? guaranteeDraftInput.parse(input.guarantee) : guaranteeInput.parse(input.guarantee);
-        [beforeRate] = await tx.select().from(rates).where(eq(rates.requestId, id)); afterRate = { ...beforeRate, guaranteeAmount: guarantee.fullAmount };
-        change.guarantee = Object.fromEntries(Object.entries(guarantee).filter(([name, value]) => name !== "fullAmount" && typeof value === "string")) as Record<string, string>;
+        [beforeRate] = await tx.select().from(rates).where(eq(rates.requestId, id)); const guaranteeAmount = guarantee.fullAmount === undefined ? beforeRate?.guaranteeAmount ?? null : guarantee.fullAmount; const sourceJson = sourceFinancialPayload(beforeRate?.rateNoticeData ?? {}, { ...beforeRate?.guaranteeData, ...guarantee, notes: input.notes ?? row.phaseNotes[row.phase] ?? "" }); afterRate = { ...beforeRate, guaranteeAmount, ...sourceJson };
+        change.guarantee = { ...row.guarantee, ...Object.fromEntries(Object.entries(guarantee).filter(([name, value]) => name !== "fullAmount" && typeof value === "string")) } as Record<string, string>;
         // Amount is available only via rates; redact it from universally visible request JSON.
         delete change.guarantee.fullAmount;
-        await tx.insert(rates).values({ requestId: id, monthlyFee: "0.00", yearlyFee: "0.00", guaranteeAmount: guarantee.fullAmount })
-          .onConflictDoUpdate({ target: rates.requestId, set: { guaranteeAmount: guarantee.fullAmount, updatedAt: new Date() } });
+        await tx.insert(rates).values({ requestId: id, monthlyFee: beforeRate?.monthlyFee ?? "0.00", yearlyFee: beforeRate?.yearlyFee ?? "0.00", guaranteeAmount, ...sourceJson })
+          .onConflictDoUpdate({ target: rates.requestId, set: { guaranteeAmount, ...sourceJson, updatedAt: new Date() } });
+      }
+      if (input.notes !== undefined && ["3RD_PARTY_1","3RD_PARTY_2"].includes(row.phase) && !input.rate && !input.guarantee) {
+        await requirePermission(tx,"duct_rental.rate.read",row.ownerId,row.teamId);
+        [beforeRate] = await tx.select().from(rates).where(eq(rates.requestId,id));
+        const sourceJson = sourceFinancialPayload({ ...beforeRate?.rateNoticeData, ...(row.phase === "3RD_PARTY_1" ? {notes:input.notes} : {}) }, { ...beforeRate?.guaranteeData, ...(row.phase === "3RD_PARTY_2" ? {notes:input.notes} : {}) });
+        afterRate = { ...beforeRate, ...sourceJson };
+        await tx.insert(rates).values({requestId:id,monthlyFee:beforeRate?.monthlyFee ?? "0.00",yearlyFee:beforeRate?.yearlyFee ?? "0.00",guaranteeAmount:beforeRate?.guaranteeAmount ?? null,...sourceJson}).onConflictDoUpdate({target:rates.requestId,set:{...sourceJson,updatedAt:new Date()}});
       }
       if (action === "submit") {
         // Source DESIGN creation submits directly; only later phases require acceptance.
@@ -94,20 +116,11 @@ export async function changeRequest(id: string, action: "accept" | "submit" | "s
 async function assertSubmission(tx: DatabaseTransaction, row: typeof requests.$inferSelect, change: Partial<typeof requests.$inferInsert>) {
   await requirePermission(tx, "duct_rental.document.read", row.ownerId, row.teamId);
   const files = await tx.select().from(documents).where(and(eq(documents.requestId, row.id), isNull(documents.archivedAt)));
-  const has = (kind: string, phase?: string) => files.some(file => file.fileType === kind && (!phase || file.phase === phase));
   const need = (allowed: boolean, message: string) => { if (!allowed) throw new DuctError("DOCUMENT_REQUIRED", message); };
-  if (row.phase === "DRAFTSMAN") need(has("drawing", "DRAFTSMAN"), "กรุณาแนบแบบท่อก่อนส่งงาน");
-  if (row.phase === "DRAFTSMAN_2") need(has("drawing", "DRAFTSMAN_2"), "กรุณาแนบ PDF แบบหลังติดตั้ง");
-  if (row.phase === "INSTALL") need(has("confirmation_form", "INSTALL"), "กรุณาแนบแบบยืนยันการใช้งานหลังติดตั้ง");
-  if (row.phase === "PERMISSION_1") {
-    need(has("nt_form"), "กรุณาจัดทำ NT Form");
-    const [signed] = await tx.execute<{ signed: boolean }>(sql`select public.duct_rental_request_signed(${row.id}::uuid) as signed`);
-    need(Boolean(signed?.signed), "กรุณารอผู้รับมอบหมายลงนาม NT Form");
-    need(has("permission_letter") && has("confirmation_form"), "กรุณาแนบหนังสืออนุญาตและแบบยืนยัน");
-  }
-  if (row.phase === "3RD_PARTY_1") need(has("rate_notice") && has("invoice"), "กรุณาแนบเอกสารแจ้งอัตราและใบแจ้งหนี้");
+  let signed = false;
+  if (row.phase === "PERMISSION_1") { const [result] = await tx.execute<{ signed: boolean }>(sql`select public.duct_rental_request_signed(${row.id}::uuid) as signed`); signed = Boolean(result?.signed); }
+  need(submissionDocumentsReady(row.phase,files,signed), "กรุณาตรวจเอกสารที่จำเป็นและสถานะลงนามก่อนส่งงาน");
   if (row.phase === "3RD_PARTY_2") {
-    need(has("contract") && has("receipt"), "กรุณาแนบสัญญาและใบเสร็จรับเงิน");
     const guarantee = change.guarantee ?? row.guarantee;
     need(Boolean(guarantee && ["contractNumber", "paymentType", "venderCode", "receiptNumber"].every(field => guarantee[field])), "กรุณากรอกข้อมูลหนังสือค้ำประกันให้ครบ");
     const [rate] = await tx.select().from(rates).where(eq(rates.requestId, row.id));
@@ -126,7 +139,8 @@ export async function readRequest(id: string, context: DuctContext) {
     const [signoff] = await tx.execute<{ id: string; status: string; assignee_id: string; assignee_name: string; document_id: string; version: number }>(sql`select * from public.duct_rental_request_signoff(${id}::uuid)`);
     const [signed] = await tx.execute<{ signed: boolean }>(sql`select public.duct_rental_request_signed(${id}::uuid) as signed`);
     const [config] = await tx.execute<{ assignee_id: string }>(sql`select assignee_id from public.duct_rental_signoff_configs where request_id=${id}::uuid`);
-    return { ...row, rate: rate[0] ?? null, files, capabilities: capabilities?.codes ?? [], signers: Array.from(signers), assignedSignerId: config?.assignee_id ?? null, signoff: signoff ?? null, isSigned: signed?.signed ?? false };
+    const [edit] = await tx.execute<{allowed:boolean}>(sql`select public.duct_rental_can_edit_design(${id}::uuid) as allowed`);
+    return { ...row, rate: rate[0] ?? null, files, capabilities: (capabilities?.codes ?? []).filter(code=>code!=="duct_rental.request.update" || edit.allowed), signers: Array.from(signers), assignedSignerId: config?.assignee_id ?? null, signoff: signoff ?? null, isSigned: signed?.signed ?? false };
   });
 }
 export async function listRequests(raw: unknown, context: DuctContext) {

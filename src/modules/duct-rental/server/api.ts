@@ -4,7 +4,7 @@ import { authenticationRequiredResponse } from "@/lib/request-context";
 import { logEvent } from "@/lib/logger";
 import { createRequest, changeRequest, listRequests, readRequest } from "./requests";
 import { advanceRenewal, changeCancellation, createCancellation, createRenewal, readProcesses, readRenewal, readCancellation, reviewRenewal } from "./processes";
-import { downloadDocument, generateNtDocument, previewNtDocument, summaryDocument, uploadDocument, uploadAnnualDocument } from "./files";
+import { downloadDocument, generateNtDocument, previewNtDocument, summaryDocument, uploadDocument, uploadAnnualDocument, ntTemplate } from "./files";
 import { assignSignature, changeSignatureAsset, readSignatureAsset, readSigning, revokeSignature, saveSignatureAsset, signDocument, previewSignature } from "./signing";
 import { DuctError, type DuctContext } from "./transaction";
 import { id as idSchema } from "../schemas/operations";
@@ -45,10 +45,11 @@ export async function handleDuctRentalRequest(request: Request, path: string[]) 
     if (id) idSchema.parse(id);
     if (request.method === "GET") {
       if (resource === "events" && !id && !operation) return changeSignals(request, context);
-      if (operation && !(resource === "requests" && ["summary", "nt-preview"].includes(operation)) || ["documents", "assets"].includes(resource) && !id || ["options", "settings", "processes", "signatures"].includes(resource) && !!id) throw new DuctError("NOT_FOUND", "ไม่พบคำสั่งที่ต้องการ", 404);
+      if (operation && !(resource === "requests" && ["summary", "nt-preview", "nt-template"].includes(operation)) || ["documents", "assets"].includes(resource) && !id || ["options", "settings", "processes", "signatures"].includes(resource) && !!id) throw new DuctError("NOT_FOUND", "ไม่พบคำสั่งที่ต้องการ", 404);
       if (resource === "documents" && id) return binary(await downloadDocument(id, context, url.searchParams.get("download") === "1"), url.searchParams.get("download") === "1");
       if (resource === "assets" && id) return binary(await readSignatureAsset(id, context), false);
       if (resource === "requests" && id && operation === "summary") return binary(await summaryDocument(id, context), true);
+      if (resource === "requests" && id && operation === "nt-template") return binary(await ntTemplate(id, context, url.searchParams.get("variant") || "original", url.searchParams.get("download") === "1"), url.searchParams.get("download") === "1");
       if (resource === "requests" && id && operation === "nt-preview") return binary(await previewNtDocument(id, context, url.searchParams.get("reference") ?? undefined, url.searchParams.get("download") === "1"), url.searchParams.get("download") === "1");
       const data = resource === "requests" ? id ? await readRequest(id, context) : await listRequests(Object.fromEntries(url.searchParams), context)
         : resource === "options" && !id ? await readOptions(context, url.searchParams.get("center") ?? "")

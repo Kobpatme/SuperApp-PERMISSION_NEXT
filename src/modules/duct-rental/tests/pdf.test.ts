@@ -1,6 +1,8 @@
 import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import inventory from "../assets/templates.json";
 import { describe, expect, it } from "vitest";
-import { PDFDocument, PDFName } from "pdf-lib";
+import { PDFDocument, PDFName, PDFDict } from "pdf-lib";
 import golden from "../../../../tests/fixtures/metrix-golden/validation.json";
 import { DuctRentalSchema } from "../schemas/design";
 import { ntFieldValues } from "../domain/pdf-fields";
@@ -38,12 +40,19 @@ describe("RULE017 NT template and owner-approved DQ03", () => {
       const path = "docs/quality/duct-rental"; await mkdir(path, { recursive: true });
       await writeFile(`${path}/nt-form.pdf`, base); await writeFile(`${path}/nt-form-signed.pdf`, signed);
       await writeFile(`${path}/summary.pdf`, await generateSummaryPdf(input, "RQ-TEST"));
+      await writeFile(`${path}/nt-form-chosen-date.pdf`, await stampSignature(base,png,placement,"ผู้ลงนามทดสอบ",new Date("2031-01-01T01:00:00Z"),"2030-12-31"));
     }
   }, 30000);
   it("has all mapped canonical fields in the original unmodified template", async () => {
     const pdf = await PDFDocument.load(await readFile("src/modules/duct-rental/assets/nt-duct-rental.pdf"));
     const names = pdf.getForm().getFields().map(field => field.getName());
-    // 195 named nodes includes parents; 164 terminal fields/widgets are fillable.
+    // The active Source file has 196 named field dictionaries; 164 terminal fields are fillable.
     expect(names).toHaveLength(164); expect(Object.keys(ntFieldValues(data)).every(name => names.includes(name))).toBe(true);
+  });
+  it.each(inventory.templates)("keeps frozen $variant template bytes, pages and field mappings", async template => {
+    const bytes=await readFile(`src/modules/duct-rental/assets/${template.targetFile}`), pdf=await PDFDocument.load(bytes);
+    expect(createHash("sha256").update(bytes).digest("hex")).toBe(template.sha256);expect(bytes.length).toBe(template.bytes);expect(pdf.getPageCount()).toBe(5);
+    const names=pdf.getForm().getFields().map(field=>field.getName());expect(names).toHaveLength(164);expect(Object.keys(ntFieldValues(data)).every(name=>names.includes(name))).toBe(true);
+    expect(pdf.context.enumerateIndirectObjects().filter(([,value])=>value instanceof PDFDict && value.has(PDFName.of("T"))).length).toBe(template.namedDictionaries);
   });
 });

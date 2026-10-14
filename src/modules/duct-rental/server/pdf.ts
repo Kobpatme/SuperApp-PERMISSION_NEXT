@@ -47,7 +47,7 @@ export async function generateNtPdf(design: Partial<DuctRentalFormData>) {
   return pdf.save();
 }
 export type Stamp = SignatureOffsets & { page: number; width: number; height: number; rotation: number };
-export async function stampSignature(base: Uint8Array, png: Uint8Array, placement: Stamp, signerName: string, signedAt: Date) {
+export async function stampSignature(base: Uint8Array, png: Uint8Array, placement: Stamp, signerName: string, signedAt: Date, displayDate?: string) {
   const pdf = await PDFDocument.load(base), page = pdf.getPages()[placement.page - 1], font = await thaiFont(pdf), dateFont = await pdf.embedFont(StandardFonts.Helvetica);
   if (!page || placement.page !== 4) throw new DuctError("SIGN_PAGE", "NT Form ต้องลงนามในหน้าที่ 4");
   const layout = signatureLayout(page.getWidth(), page.getHeight(), placement), image = await pdf.embedPng(png);
@@ -60,7 +60,8 @@ export async function stampSignature(base: Uint8Array, png: Uint8Array, placemen
   const fitted = (value: string, maxWidth: number, max: number, min: number, selectedFont: typeof font) => { let size = max; while (size > min && selectedFont.widthOfTextAtSize(value, size) > maxWidth) size -= 0.5; return Math.max(size, min); };
   const name = signerName.trim(), nameSize = fitted(name, layout.name.width - 14, 9.5, 7, font);
   page.drawText(name, { x: layout.name.x + (layout.name.width - font.widthOfTextAtSize(name, nameSize)) / 2, y: layout.name.y + (layout.name.height - nameSize) / 2, size: nameSize, font, color: documentRgb(0.1, 0.14, 0.21) });
-  const parts = signedAt.toLocaleDateString("en-GB", { timeZone: "Asia/Bangkok", day: "2-digit", month: "2-digit", year: "numeric" }).split("/");
+  const dateOnDocument = displayDate ? new Date(`${displayDate}T12:00:00+07:00`) : signedAt;
+  const parts = displayDate === "" ? [] : dateOnDocument.toLocaleDateString("en-GB", { timeZone: "Asia/Bangkok", day: "2-digit", month: "2-digit", year: "numeric" }).split("/");
   const boxes = [{ start: -0.07, width: 0.34 }, { start: 0.31, width: 0.30 }, { start: 0.68, width: 0.32 }];
   parts.forEach((part, index) => {
     const boxWidth = layout.date.width * boxes[index].width, size = fitted(part, boxWidth - 3, 7.5, 6, dateFont);
