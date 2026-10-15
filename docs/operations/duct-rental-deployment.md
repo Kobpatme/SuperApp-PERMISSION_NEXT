@@ -28,7 +28,7 @@ npm audit --omit=dev
 
 ## เงื่อนไขเปิดโมดูล
 
-Manifest ส่งมอบยัง lifecycle development/enabledByDefault false ให้ deploy Core ที่ schema พร้อมได้โดยโมดูลนี้ยังปิด Human UAT, template/font rights/printing/retention, identities/teams/scopes/service-center coordinator mapping และ operator rollout review ต้องผ่านก่อนเปลี่ยน lifecycle เป็น active ใน reviewed release แล้วเปิดผ่าน Core Admin
+Manifest lifecycle active/enabledByDefault false ตามคำขอเจ้าของให้เปิด local UAT ด้วยบัญชีเดิม การเปิดแต่ละ environment ยังผ่าน Core Admin และ scoped grants เดิม Human UAT, template/font rights/printing/retention, identities/teams/scopes/service-center coordinator mapping และ operator rollout review ยังต้องผ่านก่อน production ดู [การทดสอบพาดสาย](cable-trial-uat.md) งานนี้เพิ่ม migration0058 ให้ฐาน local หลังสำรองข้อมูล ไม่ใช่การเปิด production
 
 มี 10 editable role presets แต่ไม่มี auto-assign ผู้ใช้จริง Admin เลือก/คัดลอกและมอบ scope ผ่าน Core ตามหน้าที่ Sr. Manager มี assigned-only signing ตาม DQ01 การดูราคาแยก rate.read; server ตรวจ current original/own asset/verified actor/audit time
 

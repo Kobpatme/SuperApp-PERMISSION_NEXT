@@ -30,6 +30,7 @@
 | role presets | ชุดสิทธิ์สำเร็จรูป §5.2 | Design/Draftsman/Permission/Install/3rd Party/Viewer/Management/Admin | 40 permissions/10 editable presets; ไม่ auto assign; replay รักษา customization | ✅ | Source role ownership/catalog exact/replay/Core Admin browser ผ่าน |
 | source golden matrix | exhaustive tests §6.5/6.6 | cable pairs/boundaries/roles/transitions/constants | all33pairs/valid boundaries/reference7arrays/role visibility4000/files1600/transitions1500/annual25/cancel25 | ✅ | frozen AST/VM/Source Zod4 fixtures และ native assertions ผ่าน ดู12 |
 | real cutover/UAT | production runtime | deployed Source not inspected | lifecycle development/default false until approved UAT | ⚠️ | operator handoff only |
-| MOD2/documents/licenses/support | other module/static placeholders | communication-cable and other pages | separate future scope | ❌ | not Duct Rental; no claim of port |
+| MOD2 communication-cable | PEA/MEA local UAT | communication-cable/page: client state prototype | ADAPT owner-requested persisted trial, scoped list, draft/edit/transition/revision/archive, audit/version/idempotency; prototype preview retained | partial | local trial only; forms/files/fees/SLA and agency submission not implemented |
+| documents/licenses/support | other module/static placeholders | other pages | separate future scope | ❌ | not Duct Rental; no claim of port |
 
 Source controls inventory is retained in Git history at commit392c327; the current [RULE catalogue](03-business-logic-catalog.md) and frozen fixtures preserve provenance. This table does not claim each403attribute has an independent browser assertion or pixel-identical Source UI. Core13pairs compare separately against baseline5f32a111.

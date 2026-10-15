@@ -32,3 +32,9 @@ Isolated local PostgreSQL fixtures were used for migrations/transactions/browser
 ## Single active session policy — 2026-10-08
 
 The addendum applies the same single-session rule to administrators and staff; no bypass was introduced. A new login displaces an older administrator session, so operators must account for this during shared-account troubleshooting. If unattended/service accounts are introduced later, their identity and session policy needs a separate owner decision. This does not block the current interactive-account implementation. The feature flag can disable future superseding; it does not restore tokens already revoked.
+
+## พาดสาย PEA / MEA — local UAT 2026-10-15
+
+เจ้าของขอให้ร่างโฟลว์คล้ายเช่าท่อและทดสอบด้วยบัญชีเดิมในแอปหลัก จึงใช้โฟลว์ทดลอง7ขั้นและการส่งกลับตรวจเอกสารก่อนยื่นใหม่ตาม [คู่มือ UAT](operations/cable-trial-uat.md) ชื่อโครงการเป็นข้อมูลขั้นต่ำสำหรับร่าง; เส้นทาง/จุดต้นทาง–ปลายทาง/ประเภทสายเป็นเงื่อนไขส่งตรวจ; เลขรับเรื่องก่อนยื่น; เลขใบอนุญาตก่อนรับPermit; หมายเหตุผลติดตั้งก่อนปิดงาน ทั้งหมดเป็น provisional gates สำหรับการทดสอบครั้งนี้
+
+ยังต้องยืนยันแบบฟอร์มจริงของแต่ละหน่วยงาน ช่องทางยื่นและสถานะที่ใช้ ผู้อนุมัติ ระยะเวลาตามขั้น ราคา/เงินประกัน/ภาษี ระยะสัญญา การต่อสัญญา/ยกเลิก และ team assignment ก่อนขยายการใช้งาน ไม่มี hard-coded SLA หรือค่าบริการ ไม่มีการเชื่อมต่อหน่วยงานภายนอกใน local UAT นี้

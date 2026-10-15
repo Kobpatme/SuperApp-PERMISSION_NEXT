@@ -1,5 +1,7 @@
 # METRIX native local QA — 15/10/2569
 
+เพิ่มเติม local UAT พาดสาย: ดู [คู่มือทดสอบ](../../operations/cable-trial-uat.md) และ [สถานะปัจจุบัน](../../implementation-status.md) ตารางด้านล่างเป็น checkpoint ก่อนเพิ่ม migration0058; ผลของโฟลว์พาดสายบันทึกในสถานะปัจจุบันและ `.data/cable-final-*` / `.data/cable-trial-evidence` Manifest active/default false ตามคำขอเจ้าของเปิด local testing ไม่ใช่ผล human UAT หรือ production rollout
+
 Source `f87220bf94b765e4896388632c3dbeabb5286510`; immutable Core baseline `5f32a111ebeeb3fea8918db7e702d95bc7302bdf` ดู [current status](../../implementation-status.md), [module contract](../../modules/duct-rental.md) และ [deployment](../../operations/duct-rental-deployment.md)
 
 ## ผลล่าสุด

@@ -7,15 +7,15 @@ import { modules, overviewDestination, type ModuleId } from "@/lib/module-regist
 import { WorkspaceIcon } from "@/components/workspace-icon";
 
 export type WorkNavItem = { href: string; label: string; icon: "work" | "team" | "filter" | "search" | "check" | "info" | "refresh" };
-type CollapsibleModuleId = "work" | "guarantees";
+type CollapsibleModuleId = "work" | "guarantees" | "duct-rental";
 type SectionState = Record<CollapsibleModuleId, boolean>;
 
 const sectionStorageKey = "permission-next-sidebar-sections";
-const defaultSections: SectionState = { work: true, guarantees: true };
+const defaultSections: SectionState = { work: true, guarantees: true, "duct-rental": true };
 const sectionChangeEvent = "permission-next-sidebar-sections-change";
 
 function isCollapsibleModule(id: string): id is CollapsibleModuleId {
-  return id === "work" || id === "guarantees";
+  return id === "work" || id === "guarantees" || id === "duct-rental";
 }
 
 function readSectionSnapshot() {
@@ -36,7 +36,7 @@ function subscribeToSectionChanges(onStoreChange: () => void) {
 function parseSectionSnapshot(snapshot: string): SectionState {
   try {
     const saved = JSON.parse(snapshot) as Partial<SectionState>;
-    return { work: saved.work !== false, guarantees: saved.guarantees !== false };
+    return { work: saved.work !== false, guarantees: saved.guarantees !== false, "duct-rental": saved["duct-rental"] !== false };
   } catch {
     return defaultSections;
   }
@@ -61,7 +61,7 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
   return <nav className="sidebar-nav" aria-label="พื้นที่ทำงาน">
     {items.map((item, index) => {
       const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href) && !(item.id === "guarantees" && installationTeamView);
-      const hasChildren = item.id === "work" ? workNavigation.length > 0 : item.id === "guarantees";
+      const hasChildren = item.id === "work" ? workNavigation.length > 0 : item.id === "guarantees" || item.id === "duct-rental";
       const expanded = isCollapsibleModule(item.id) ? expandedSections[item.id] : false;
       const parentLink = <Link className={`sidebar-link ${active ? "active" : ""}`} href={`${item.href}${params.get("preview") === "1" ? "?preview=1" : ""}`} aria-current={active ? "page" : undefined} aria-label={collapsed ? item.name : undefined} title={collapsed ? item.name : undefined} onClick={onNavigate}>
         <WorkspaceIcon name={item.icon} size={21}/><span className="sidebar-link-label">{item.name}</span>
@@ -79,6 +79,16 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
             return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
           })}
           {item.id === "guarantees" && <Link className={`sidebar-child-link ${installationTeamView ? "active" : ""}`} href="/guarantees?view=installation-team" aria-current={installationTeamView ? "page" : undefined} aria-label={collapsed ? "ทีมติดตั้ง" : undefined} title={collapsed ? "ทีมติดตั้ง" : undefined} onClick={onNavigate}><WorkspaceIcon name="team" size={18}/><span className="sidebar-link-label">ทีมติดตั้ง</span></Link>}
+          {item.id === "duct-rental" && [
+            { href: "/duct-rental", label: "เช่าท่อร้อยสาย", icon: "buildings" as const },
+            { href: "/duct-rental/renewal", label: "ต่อสัญญา", icon: "refresh" as const },
+            { href: "/duct-rental/communication-cable", label: "พาดสายสื่อสาร", icon: "work" as const },
+          ].map(child => {
+            const childActive = child.href === "/duct-rental"
+              ? pathname === child.href || /^\/duct-rental\/(new|[0-9a-f-]{36})(\/|$)/i.test(pathname)
+              : pathname === child.href || pathname.startsWith(`${child.href}/`);
+            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
+          })}
         </div>}
       </div>;
     })}
