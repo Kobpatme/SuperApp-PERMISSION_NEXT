@@ -35,6 +35,12 @@ try {
   const after = (await db`select count(*)::int as n from public.permissions where module_id='duct-rental'`)[0].n;
   assert.ok(before > 0); assert.equal(after, before);
   assert.equal((await db`select count(*)::int as n from public.role_permissions rp join public.roles r on r.id=rp.role_id where permission_code like 'duct_rental.%' and r.code='platform_admin'`)[0].n, 0);
+  const eventPolicies = await db`select policyname,roles,with_check,permissive from pg_policies where schemaname='public' and policyname in ('duct_activity_append','duct_outbox_append') order by policyname`;
+  assert.equal(eventPolicies.length, 2);
+  for (const policy of eventPolicies) {
+    assert.deepEqual(policy.roles, ['duct_rental_runtime'], 'Duct predicates must not be evaluated for unrelated runtimes');
+    assert.match(policy.with_check, /duct_rental_has_entry/); assert.equal(policy.permissive, 'PERMISSIVE');
+  }
   const presetsSql = await readFile("supabase/migrations/0053_duct_rental_role_presets.sql", "utf8");
   const presets = JSON.parse(presetsSql.match(/jsonb_array_elements\('(.+)'::jsonb\)/)[1].replaceAll("''", "'"));
   for (const preset of presets) {
