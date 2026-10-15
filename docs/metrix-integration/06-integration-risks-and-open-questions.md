@@ -18,6 +18,6 @@ DQ01/02/03/07/09 ได้รับคำตอบโดยตรงจากเ
 
 Security adaptation เพิ่มเติม: การสร้าง annual renewal ที่ unique ทั่วระบบต่อปีต้องมี module.view/renewal.create/rate.read แบบ ALL เพื่อไม่สร้าง snapshot ที่ขาดเส้นทางจาก scope filter; actor และ team ของแต่ละคำขอยังบังคับ RLS ตามปกติ การ fallback ลายเซ็นเริ่มต้นจำกัดเฉพาะเจ้าของเดียวกัน แก้ cross-owner bug ในต้นทางตามข้อกำหนด private assets
 
-ขอบเขต local ที่ยืนยันแล้ว: native browser 7 workflows, 21 PostgreSQL service tests, PDF render/Source offline reference, Core 13 screenshot pairs, axe ใน flow ที่ทดสอบ และ 1000-row paging/query measurements
+ขอบเขตlocalที่ยืนยันแล้ว: native browser8flows/24PostgreSQLservices, PDFrender/Sourceoffline reference/Core13pairs/axe13views/1000-rowpaging ดูcurrent QA guide ไม่ถือhumanUATหรือproductionloadว่าผ่าน
 
 ยังไม่ยืนยัน: deployed Source drift/production inventory/real data quality/real users and scopes/template printing and retention approval/human UAT/production load/concurrent 100 users Source legacy HTML เก็บเป็น reference ไม่ใช้ใน Next runtime เจ้าของยืนยันไม่ย้ายข้อมูลจริง; offline tools/fixtures ส่งมอบตาม [10](10-offline-import.md)

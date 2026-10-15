@@ -1,9 +1,9 @@
 # กฎธุรกิจและ state machines
 
-> Coverage ล่าสุด 14/10/2569 อยู่ใน [99](99-final-report.md): Source goldens, native domain/API/PDF และ 21 constrained PostgreSQL tests ครอบคลุม RULE-001–020 ร่วมกับ browser 7 workflows รายการ Source cases และ edge behavior ด้านล่างยังคงเดิม ไม่เปลี่ยน filename Memo/whitespace/ceil SLA เงียบ ๆ เงิน 2dp และจำนวนสายจริงเป็น owner decisions
+> Coverage ปัจจุบันอยู่ใน [QA guide](../quality/duct-rental/README.md): Source goldens/native domain/API/PDF, 24 constrained PostgreSQL tests และ browser8flows รายการ Source cases/edge behavior ด้านล่างคงเดิม เงิน2dp/จำนวนสายจริง/assigned signingเป็น owner decisions
 
 
-อ้าง source SHA ใน 01; ตัวอย่างด้านล่างอ่านจากเงื่อนไขจริง ไม่ใช่อัตราธุรกิจที่ตั้งขึ้นใหม่ RULE ที่ยังไม่มี golden/integration ใน target ระบุใน 99; pure fixtures ต้องสร้างด้วยการรัน source functions อีกครั้งก่อน M3 ทุกสูตรอยู่ client ยกเว้น API/DDL ที่ระบุ
+Source freeze `f87220bf94b765e4896388632c3dbeabb5286510`; ตัวอย่างด้านล่างอ่านจากเงื่อนไขจริง ไม่ใช่อัตราธุรกิจที่ตั้งขึ้นใหม่ Persisted goldens สร้างจาก frozen AST/VM/Source Zod; ดู regeneration และ required gatesในQA guide รายการนี้อธิบายต้นทาง ซึ่งสูตรอยู่clientยกเว้นAPI/DDLที่ระบุ ส่วนnativeบังคับกฎฝั่งserver
 
 ## RULE-001 — Draft และการรับงาน
 

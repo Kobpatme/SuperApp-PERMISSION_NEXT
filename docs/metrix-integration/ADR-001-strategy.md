@@ -1,6 +1,6 @@
 # ADR-001 — โมดูล native พร้อม source freeze
 
-> Closure 15/10/2569: คง Source financial JSON shapes/notes/extensions ใน private financial row พร้อม validated numeric projections (0054) ตำแหน่งกายภาพแยกจาก universally-readable request เป็น Core RLS adapter เพื่อบังคับ rate.read; ไม่ normalize ทิ้ง Source fields ไม่เพิ่มสูตร และไม่ backfill ข้อมูลจริง ดู [12](12-parity-closure.md)
+> Contract15/10/2569: คงSource financial JSON shapes/notes/extensionsในprivate financial row พร้อมvalidated numeric projections(0054) ตำแหน่งกายภาพแยกจากuniversally-readable requestเป็นCore RLS adapterเพื่อrate.read ไม่normalizeทิ้งSourcefields/เพิ่มสูตร/backfillจริง ดู [data model](04-data-model.md)/[module contract](../modules/duct-rental.md)
 
 > Implementation update 14/10/2569: directory ใช้ `components/` สำหรับ module UI และ tables ใช้ prefix `duct_rental_` ตาม convention Core PostgreSQL แยก constrained runtime + private server storage แทน Source Supabase stores Core Admin toggle ตาม DQ09 ผ่าน server tests; production release ยังรอ UAT Original native choice ด้านล่างคงไว้เป็น ADR history
 

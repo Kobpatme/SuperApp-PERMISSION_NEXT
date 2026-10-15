@@ -6,18 +6,18 @@ Updated 2026-10-15. Earlier Core-only counts below are historical checkpoints. T
 
 - Next.js 16.3.8, React 19, PostgreSQL, Argon2id passwords and opaque database sessions. Optional NAS/Microsoft 365 adapters retain server-side authorization.
 - Local main: PostgreSQL on port 5432, application on port 3000. Migration ledger has 28 entries after backed-up restore rehearsals; original business/account/car/session fields preserved. No historical KPI recalculation.
-- Latest application verification: unit 267 passed / 41 opt-in skipped; dedicated sync/session PostgreSQL 13 passed; browser 6 passed; lint/typecheck/build and document mapping passed. These are local results, not production evidence.
-- Repository cleanup was checked from staged source without environment files or generated evidence: lint/typecheck/build passed, unit 267 passed and document mapping 1 passed, using installed locked dependencies. Markdown cleanup changes documentation and Git tracking only.
+- Earlier Core-only checkpoint: unit267/41opt-in, sync/session PostgreSQL13/browser6. Current application local checks15/10: lint/typecheck/build/unit6164pass/65opt-in skipped/document1/CSS316files0violations/contrast58pairs0failures/staticcopy0findings/production dependency audit0vulnerabilities. This is local evidence, not human UAT/production approval.
+- Main handoff retains source/runtime assets/licenses, lockfile/configuration, all57migrations, repeatable tests/fixtures/tools and current contracts/runbooks. Generated evidence/.env/.data/Sourceclones are ignored. Nine completed METRIX discovery/audit/closure reports are untracked with local copies/Git history preserved; current module/parity/QA/deployment guidance is retained. CI separates UX/Admin-Work/Car/Duct fixtures and checks Duct PostgreSQL/catalog/rollback/import. Browser pools are spec-owned; security assertions check soft-revocation and rejected old tokens. Migration0057 scopes two Duct event policies to its runtime group, fixing constrained Car writes without granting private Duct predicates to Car.
 
 ## เช่าท่อร้อยสาย / METRIX — 15/10/2569
 
-**ปิดข้อพบตามไฟล์แนบ:** RC-01–07 implementation/local verification ครบแล้ว รวม 10 editable role bundles/exhaustive Source goldens/constants/created banner/date+offset signature controls/templates3/private lossless financial JSON และ active metadata edits ดู [หลักฐานปิดข้อ](metrix-integration/12-parity-closure.md) ไม่มี real migration หรือ human UAT/production-ready claim
+**ปิดข้อพบตามไฟล์แนบ:** RC-01–07 implementation/local verification ครบแล้ว รวม10editablebundles/exhaustiveSourcegoldens/constants/createdbanner/date+offsetsignaturecontrols/templates3/privateSourceJSON/activeedits ดู [contract](modules/duct-rental.md)/[QA](quality/duct-rental/README.md) รายงานก่อน/หลังเก็บlocal/Githistory commit392c327 ไม่มีrealmigration/humanUAT/production-ready claim
 
 Native module implementation M0–M9 ส่งมอบสำหรับ local UAT: 40 capabilities/scopes, Core Admin enable/disable ตาม DQ09, server workflow/private PDF/assigned signing, 10-phase NT/non-NT, annual/cancel/SLA/realtime และ offline importer tools/fixtures ไม่มี real data migration
 
-Latest verification: lint/typecheck/build ผ่าน, unit6164ผ่าน65opt-inข้าม/document1; constrained PostgreSQL24ผ่าน/catalogถึง0056/empty56-migration DDL rollback; import CLI5+planner7/financial3; browser8ผ่าน/Core13คู่0pixelchange/axe13views0violations; 1000-row page50ใช้4SQLต่อcall15calls (ไม่ใช่ production SLA)
+Latest verification: lint/typecheck/buildผ่าน, unit6164/65opt-inข้าม/document1; DuctPostgreSQL24/catalogถึง0057/57-DDLrollback/importCLI5ผ่าน; Car schema10/service16ผ่าน; freshUXbrowser45/Admin-Work11ผ่านหลังแก้CI ส่วนDuctbrowser8/Core13คู่0pixelchange/axe13views0violationsเป็นcheckpoint15/10ก่อนhandoffcleanup; 1000-rowpage50×4SQL/call ไม่ใช่productionSLA
 
-Main manifest ยังdevelopment/default-disabled ตาม human UAT gate ไม่มีmain/productionapply/grants/deploy Owner decisionsDQ01/02/03/07/09ใช้แล้ว การเปิดจริงต้อง real identities/teams/scopes/coordinator map/template&retention review และบันทึกUAT รายงานเก่า267/439testsข้างต้นเป็น historicalCorecheckpoint ไม่ใช่ผลล่าสุด ดู [รายงาน](metrix-integration/99-final-report.md) และ [QA](quality/duct-rental/README.md)
+Manifestยังdevelopment/default-disabledตามhumanUAT gate ไม่มีmain/productionapply/grants/deploy DQ01/02/03/07/09ใช้แล้ว เปิดจริงต้องreviewidentities/teams/scopes/coordinator/template/retention/UAT ดู [deployment](operations/duct-rental-deployment.md)/[QA](quality/duct-rental/README.md) การpushmainไม่ใช่เปิดโมดูลหรือย้ายข้อมูลจริง
 
 ## Car booking
 

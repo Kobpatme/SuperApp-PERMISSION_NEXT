@@ -6,4 +6,6 @@ Generated screenshots, logs, JSON reports, rendered HTML fixtures, build outputs
 
 The cleanup uses `git rm --cached`, preserving existing local evidence and completed one-time transformation scripts. It does not rewrite Git history: earlier commits still contain their original files. Active tests, fixture generators, runtime compatibility references and migrations remain tracked. No deployment or data migration is implied by pushing repository changes.
 
+METRIX handoff keeps its current module/rule/data/parity/owner-decision/ADR/import contracts and repeatable QA guide. Completed discovery/inventory/audit/closure reports remain local and can be recovered with `git show 392c327:docs/metrix-integration/<filename>`; no Source runtime assets, licenses, migrations, tests or fixture generators are removed. Use the current documentation index in a new checkout.
+
 Use `npm ci` to install the locked dependencies. `npm run build` generates public build metadata and the Next.js production output. `npm run test:e2e` regenerates the isolated error-render fixture before browser tests; raw Playwright invocations must run `node scripts/render-ux-error-fixture.cjs` first when that spec is included. Generated evidence must not be force-added to Git.

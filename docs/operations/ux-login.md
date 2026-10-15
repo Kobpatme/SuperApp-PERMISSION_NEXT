@@ -1,5 +1,7 @@
 # การตั้งค่า UX และการเข้าสู่ระบบ
 
+CI/current suites: ชุดUXหลักใช้playwright.config.tsกับฐานpermission_next_ux_test ส่วนAdmin/Work parityใช้playwright.parity.config.ts/ฐานpermission_next_parity_testและseedของตน Car/Duct/Syncมีconfigแยก ห้ามดึงtestsข้ามfixtureมารวมโดยไม่เตรียมฐาน/บัญชี Browser specแต่ละไฟล์สร้างและปิดPostgreSQLpoolของตน เพื่อไม่ใช้poolที่ไฟล์ก่อนหน้าปิดไป Sessionเก่าหลังเปลี่ยนรหัสเก็บrevoked_at/revoked_reasonสำหรับประวัติ; assertionต้องตรวจactive sessionหนึ่งรายการและtokenเก่า401 ไม่คาดว่าประวัติถูกลบ
+
 Q1: ช่องทางช่วยเหลือยังไม่ได้เลือก จึงใช้ “ติดต่อผู้ดูแลระบบ” เป็นค่าแสดงผลทั่วไป ตั้งรายละเอียดเพิ่มเติมผ่าน `SUPPORT_CONTACT_TEXT` (ไม่เกิน240ตัวอักษร); ไม่กำหนดโทรศัพท์ อีเมล หรือ LINE แทนเจ้าของ.
 
 Q2: คง `TRUSTED_PROXY_COUNT=0` จนเจ้าของยืนยันเส้นทาง reverse proxy จริง. ค่านี้ทำให้ไม่เชื่อ header IP จาก client; rate limit ตามอีเมล5ครั้ง/15นาที และ account lockout ยังทำงาน. IP limit20ครั้ง/15นาทีจะใช้เมื่อกำหนดจำนวน proxy ที่เชื่อถือได้อย่างถูกต้องเท่านั้น. ห้ามเพิ่มค่าโดยเดาและต้องทดสอบ chain/IP spoofing หลังเปลี่ยน topology. Production Node instance เรียก instrumentation.register ตอนบูตและบันทึก `auth.trusted_proxy_not_configured` เมื่อค่าเป็น0 โดยไม่บันทึก URL ฐานข้อมูลหรือ secret. คำเตือนอยู่ใน server log ไม่แสดงในหน้าเข้าสู่ระบบ.

@@ -1,6 +1,6 @@
 # Source → Native parity matrix
 
-> **ปิดข้อพบ 15/10/2569:** RC-01–07 มี implementation และ local verification ครบแล้ว ดู [หลักฐานปิดข้อ](12-parity-closure.md) M8 เป็น tools/fixtures ตามคำสั่ง ไม่ย้ายข้อมูลจริง Human UAT/production rollout ยังเป็น release gates แยกต่างหาก
+> **ปิดข้อพบ 15/10/2569:** RC-01–07 มี implementation/local verification แล้ว ดู [QA guide](../quality/duct-rental/README.md)/[current status](../implementation-status.md) M8เป็นtools/fixtures ไม่ย้ายข้อมูลจริง Human UAT/production rolloutเป็นreleasegatesแยกต่างหาก รายงานตรวจก่อน/หลังเก็บในGit historyที่commit392c327
 
 ตรวจ 14/10/2569: ✅ หมายถึงมี implementation และหลักฐาน local ตามช่อง test; ⚠️ หมายถึงมีขอบเขตต้อง UAT/production review; ❌ หมายถึงยังไม่ทำและอยู่นอกขอบเขต ไม่มีการประกาศ migrated ก่อน human UAT
 
@@ -32,4 +32,4 @@
 | real cutover/UAT | production runtime | deployed Source not inspected | lifecycle development/default false until approved UAT | ⚠️ | operator handoff only |
 | MOD2/documents/licenses/support | other module/static placeholders | communication-cable and other pages | separate future scope | ❌ | not Duct Rental; no claim of port |
 
-Controls index [09](09-ui-control-evidence.md) and [RULE catalogue](03-business-logic-catalog.md) preserve Source provenance; this table does not claim every 403 attribute has an independent browser assertion or pixel-identical Source UI. Core before/after is a separate 13-pair pixel comparison against baseline 5f32a111.
+Source controls inventory is retained in Git history at commit392c327; the current [RULE catalogue](03-business-logic-catalog.md) and frozen fixtures preserve provenance. This table does not claim each403attribute has an independent browser assertion or pixel-identical Source UI. Core13pairs compare separately against baseline5f32a111.

@@ -88,3 +88,14 @@ docs/repository-audit/reusable-assets.md
 docs/results/BUILDINGS-COST-PARITY-RESULT.md
 docs/results/GUARANTEE-PARITY-RESULT.md
 docs/implementation-checklist.md
+
+# Completed METRIX discovery, inventory and closure reports remain local/in Git history.
+docs/metrix-integration/00-target-baseline.md
+docs/metrix-integration/01-overview-and-stack.md
+docs/metrix-integration/02-feature-inventory.md
+docs/metrix-integration/05-screen-and-ux-map.md
+docs/metrix-integration/08-source-file-index.md
+docs/metrix-integration/09-ui-control-evidence.md
+docs/metrix-integration/11-requirement-recheck.md
+docs/metrix-integration/12-parity-closure.md
+docs/metrix-integration/99-final-report.md

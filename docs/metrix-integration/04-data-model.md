@@ -16,7 +16,7 @@
 | replay protection | duct_rental_mutation_receipts | actor + UUID idempotency key + fingerprint; replay คืนผลเดิม, payload ต่างปฏิเสธ |
 | service center coordinator | module settings / reviewed Core teams | ไม่เดาชื่อคนหรือ team จริง; admin mapping versioned |
 
-ชื่อจริงและชนิดอยู่ใน `src/modules/duct-rental/server/schema.ts`; migrations 0029–0056 รวม permission catalog/presets, FORCE RLS, scope functions, workflow/document guards, lossless financial JSON และ indexes ไม่มีตาราง Supabase Auth ซ้ำ ดู architecture contract/verification ใน [12](12-parity-closure.md) migrations ใหม่ทดสอบเฉพาะ fixture ไม่มี real backfill
+ชื่อจริงและชนิดอยู่ใน `src/modules/duct-rental/server/schema.ts`; migrations 0029–0057 รวม permission catalog/presets, FORCE RLS, scope functions, workflow/document guards, lossless financial JSON และ indexes ไม่มีตาราง Supabase Auth ซ้ำ ดู [module contract](../modules/duct-rental.md)/[QA](../quality/duct-rental/README.md) เก็บ Source JSON keys/notes/extensions ใน private financial row; numeric projectionsตรวจโดยtriggerเพื่อrate.read/DQ02 ไม่normalizeทิ้งpayload ไม่มีrealbackfill
 
 การอ่านใช้ Core active session/live grants และ OWN/TEAM/SELECTED_TEAMS/ALL; signed-only reader ไม่ได้สิทธิ์แก้ request การสร้าง annual snapshot ต้องมี module.view/renewal.create/rate.read แบบ ALL เพื่อไม่สร้างปีที่ขาดเส้นทาง Runtime login แยกต้อง NOSUPERUSER/NOBYPASSRLS และไม่เป็น table owner
 

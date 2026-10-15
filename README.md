@@ -5,6 +5,8 @@ Secure modular-monolith foundation for a unified internal workspace covering:
 - Work & Activity and automatic KPI
 - Canonical Building, conditions and versioned pricing
 - Building guarantee and refund workflows
+- Car booking and scheduling
+- Duct rental workflows, PDF signing and annual renewals (development/default-disabled until owner UAT)
 - Shared identity, scoped authorization, audit, events, attachments, notifications and automation
 
 ## Run locally
