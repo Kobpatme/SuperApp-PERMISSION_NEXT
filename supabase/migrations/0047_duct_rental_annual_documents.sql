@@ -18,7 +18,8 @@ create policy duct_annual_document_create on public.duct_rental_documents for in
 do $migration$
 declare original text; changed text; needle text;
 begin
- original:=pg_get_functiondef('public.duct_rental_guard_document()'::regprocedure);
+ -- Windows checkouts preserve CRLF inside function bodies; match the same guard on both platforms.
+ original:=replace(pg_get_functiondef('public.duct_rental_guard_document()'::regprocedure),E'\r\n',E'\n');
  needle:=E'begin\n';
  changed:=replace(original,needle,E'begin\n  if new.renewal_id is not null then\n    if tg_op<>''INSERT'' or new.request_id is not null or new.file_type<>''renewal_contract'' or new.media_type<>''application/pdf'' or new.signed_task_id is not null or new.supersedes_id is not null or new.created_by<>public.current_platform_user_id()\n      or not public.duct_rental_annual_access(new.renewal_id,''duct_rental.renewal.contract'') or not exists(select 1 from public.duct_rental_renewals r where r.id=new.renewal_id and r.status=''provider_confirmed'' and r.archived_at is null) then raise exception ''Annual document denied'' using errcode=''42501''; end if;\n    return new;\n  end if;\n');
  if changed=original then raise exception 'Expected document guard missing'; end if;
