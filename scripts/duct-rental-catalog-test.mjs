@@ -46,7 +46,8 @@ try {
   for (const preset of presets) {
     const [role] = await db`select id,is_system from roles where code=${preset.code}`;
     assert.equal(role.is_system, false);
-    assert.deepEqual((await db`select permission_code from role_permissions where role_id=${role.id} order by permission_code`).map(row => row.permission_code), [...preset.permissions].sort());
+    // Compare exact permission sets with one comparator, independent of DB collation.
+    assert.deepEqual((await db`select permission_code from role_permissions where role_id=${role.id}`).map(row => row.permission_code).sort(), [...preset.permissions].sort(), preset.code);
     assert.equal((await db`select count(*)::int n from user_role_assignments where role_id=${role.id}`)[0].n, 0);
   }
   const presetRollback = new Error("preset customization rollback");
