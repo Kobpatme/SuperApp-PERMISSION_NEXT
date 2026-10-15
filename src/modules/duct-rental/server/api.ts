@@ -11,6 +11,7 @@ import { id as idSchema } from "../schemas/operations";
 import { readOptions, readSettings, saveSettings } from "./options";
 import { changeSignals } from "./events";
 import { readTracking } from "./tracking";
+import { listCables, createCable, changeCable } from "./cables";
 
 const noStore = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Referrer-Policy": "no-referrer" };
 async function limitedBody(request: Request, max: number) {
@@ -52,6 +53,7 @@ export async function handleDuctRentalRequest(request: Request, path: string[]) 
       if (resource === "requests" && id && operation === "nt-template") return binary(await ntTemplate(id, context, url.searchParams.get("variant") || "original", url.searchParams.get("download") === "1"), url.searchParams.get("download") === "1");
       if (resource === "requests" && id && operation === "nt-preview") return binary(await previewNtDocument(id, context, url.searchParams.get("reference") ?? undefined, url.searchParams.get("download") === "1"), url.searchParams.get("download") === "1");
       const data = resource === "requests" ? id ? await readRequest(id, context) : await listRequests(Object.fromEntries(url.searchParams), context)
+        : resource === "cables" && !id ? await listCables(Object.fromEntries(url.searchParams), context)
         : resource === "options" && !id ? await readOptions(context, url.searchParams.get("center") ?? "")
         : resource === "settings" && !id ? await readSettings(context)
         : resource === "tracking" && !id ? await readTracking(Object.fromEntries(url.searchParams), context)
@@ -86,6 +88,7 @@ export async function handleDuctRentalRequest(request: Request, path: string[]) 
       : operation === "nt-form" ? await generateNtDocument(id, version(), key, context, object.reference === undefined ? undefined : z.string().parse(object.reference))
       : operation === "assign" ? await assignSignature(id, raw, key, context)
       : ["accept", "submit", "save", "archive"].includes(operation) ? await changeRequest(id, operation as "accept" | "submit" | "save" | "archive", version(), object.data ?? {}, key, context) : undefined
+      : resource === "cables" ? !id ? await createCable(raw,key,context) : operation === "change" ? await changeCable(id,raw,key,context) : undefined
       : resource === "renewals" ? !id ? await createRenewal(raw, key, context) : operation === "review" ? await reviewRenewal(id, raw, key, context) : ["advance", "archive"].includes(operation) ? await advanceRenewal(id, raw, key, context, operation === "archive") : undefined
       : resource === "cancellations" ? !id ? await createCancellation(raw, key, context) : ["advance", "reject", "archive"].includes(operation) ? await changeCancellation(id, operation as "advance" | "reject" | "archive", raw, key, context) : undefined
       : resource === "signatures" && id ? operation === "sign" ? await signDocument(id, raw, key, context) : operation === "revoke" ? await revokeSignature(id, version(), key, context) : undefined

@@ -6,7 +6,14 @@ import styles from "./workspace.module.css";
 export const phaseLabels: Record<RequestPhase, string> = { DESIGN: "ออกแบบ", DRAFTSMAN: "เขียนแบบ", PERMISSION_1: "ขออนุญาต 1", INSTALL: "ติดตั้ง", DRAFTSMAN_2: "แบบหลังติดตั้ง", PERMISSION_2: "ขออนุญาต 2", "3RD_PARTY_1": "แจ้งอัตรา", PERMISSION_3: "ชำระเงิน", "3RD_PARTY_2": "สัญญา", COMPLETE: "เสร็จสมบูรณ์" };
 export const phaseViews: Record<RequestPhase, string> = { DESIGN: "design", DRAFTSMAN: "draftsman", PERMISSION_1: "permission", INSTALL: "install", DRAFTSMAN_2: "draftsman2", PERMISSION_2: "permission2", "3RD_PARTY_1": "3rdparty", PERMISSION_3: "permission3", "3RD_PARTY_2": "contract", COMPLETE: "design" };
 export function ModuleNav({ current = "requests" }: { current?: string }) {
-  return <nav className={styles.actions} aria-label="งานเช่าท่อ"><Link className={styles.button} href="/duct-rental" aria-current={current === "requests" ? "page" : undefined}>คำขอเช่าท่อ</Link><Link className={styles.button} href="/duct-rental/renewal" aria-current={current === "renewal" ? "page" : undefined}>ต่อสัญญารายปี</Link><Link className={styles.button} href="/duct-rental/cancellation" aria-current={current === "cancellation" ? "page" : undefined}>ยกเลิกการใช้ท่อ</Link><Link className={styles.button} href="/duct-rental/tasks" aria-current={current === "tasks" ? "page" : undefined}>งานลงนามและลายเซ็น</Link></nav>;
+  const secondary = [
+    { key: "cancellation", href: "/duct-rental/cancellation", label: "ยกเลิกการใช้ท่อ" },
+    { key: "tracking", href: "/duct-rental/tracking", label: "ติดตามต่อสัญญาและยกเลิก" },
+    { key: "tasks", href: "/duct-rental/tasks", label: "งานลงนามและลายเซ็น" },
+  ];
+  return <div className={styles.moduleNav}>
+    <nav className={styles.actions} aria-label="งานสนับสนุนเช่าท่อและพาดสาย">{secondary.map(item => <Link key={item.key} className={styles.supportLink} href={item.href} aria-current={current === item.key ? "page" : undefined}>{item.label}</Link>)}</nav>
+  </div>;
 }
 export function Field({ label, children, error, full }: { label: string; children: ReactNode; error?: string; full?: boolean }) {
   const id = useId(), controlId = `${id}-control`;

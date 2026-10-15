@@ -1,9 +1,16 @@
 import { date, integer, jsonb, numeric, pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
 import type { DuctRentalFormData, InstallDetailData } from "../schemas/design";
 import type { PhaseStatus, RequestPhase } from "../domain/source-policy";
+import type { CableInput, CableStage } from "../domain/cable-workflow";
 
 const times = { createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(), updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull() };
 const scoped = { ownerId: uuid("owner_id").notNull(), teamId: uuid("team_id") };
+export const cableRequests = pgTable("communication_cable_requests", {
+  id: uuid("id").defaultRandom().primaryKey(), code: text("code").notNull(), ownerId: uuid("owner_id").notNull(),
+  stage: text("stage").$type<CableStage>().notNull().default("DESIGN"), data: jsonb("data").$type<CableInput>().notNull(),
+  history: jsonb("history").$type<{at:string;actorId:string;action:string;from:CableStage;to:CableStage;reason:string}[]>().notNull().default([]),
+  version: integer("version").notNull().default(1), archivedAt: timestamp("archived_at",{withTimezone:true}), ...times,
+});
 export const requests = pgTable("duct_rental_requests", {
   id: uuid("id").defaultRandom().primaryKey(), sourceId: text("source_id"), code: text("code").notNull(), ...scoped,
   businessDate: date("business_date").defaultNow().notNull(), projectName: text("project_name").notNull(), routeName: text("route_name").notNull(),

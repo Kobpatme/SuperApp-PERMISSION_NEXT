@@ -19,7 +19,7 @@ export function RequestListWorkspace({ permissions, userId }: { permissions: str
   const [detail, setDetail] = useState<string | null>(null);
   const filter = (name: keyof typeof filters, value: string) => { setFilters(previous => ({ ...previous, [name]: value })); setOffset(0); };
   return <div className={styles.workspace}>
-    <PageHeader title="เช่าท่อร้อยสาย" description="คำขอเช่าท่อ ต่อสัญญา และยกเลิกการใช้ท่อ" actions={permissions.includes("duct_rental.request.create") ? <Link className={styles.primary} href="/duct-rental/new">สร้างคำขอ</Link> : undefined} />
+    <PageHeader title="เช่าท่อร้อยสาย" description="สร้างคำขอ ติดตามการอนุญาตและติดตั้ง และดูเส้นทางเช่าท่อที่ใช้งานอยู่" actions={permissions.includes("duct_rental.request.create") ? <Link className={styles.primary} href="/duct-rental/new">สร้างคำขอ</Link> : undefined} />
     <ModuleNav />{permissions.includes("duct_rental.settings.manage") && <div className={styles.actions}><Link className={styles.button} href="/duct-rental/settings">ตั้งค่าผู้ประสานงาน</Link></div>}
     <TrackingSummary />
     <RefreshBar {...model} refresh={() => model.refresh()} />

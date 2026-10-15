@@ -14,6 +14,8 @@ import { createRenewal, reviewRenewal, advanceRenewal, readRenewal, createCancel
 import { generateNtDocument, downloadDocument, uploadDocument, uploadAnnualDocument, ntTemplate } from "../server/files";
 import { assignSignature, revokeSignature, signDocument, previewSignature, saveSignatureAsset, changeSignatureAsset, readSigning, readSignatureAsset } from "../server/signing";
 import { readTracking } from "../server/tracking";
+import { createCable, changeCable, listCables } from "../server/cables";
+import { cableInput } from "../domain/cable-workflow";
 
 const dbMock = vi.hoisted(() => vi.fn());
 vi.mock("../server/db", () => ({ getDuctRentalDb: dbMock }));
@@ -70,6 +72,23 @@ describe.skipIf(process.env.DUCT_RENTAL_INTEGRATION !== "1")("duct services: rea
     result = await advance(draft.id, result.version, "3RD_PARTY_2", actor, { guarantee: { contractNumber: "TEST", fullAmount: "1.005", paymentType: "เงินสด", venderCode: "1129267", receiptNumber: "TEST" } });
     expect(result.phase).toBe("COMPLETE"); return result;
   }
+  it("persists scoped cable trial with audit, retries, revision and terminal guards", async () => {
+    const actor=await user(), stranger=await user(["duct_rental.module.view"],"OWN"), viewer=await user(["duct_rental.module.view"],"ALL");
+    const data=cableInput.parse({authority:"MEA",projectName:`CABLE-${randomUUID()}`,routeName:"route",startPoint:"A",endPoint:"B",cableType:"ADSS",submissionNumber:"TEST",permitNumber:"PERMIT",notes:"ตรวจรับจำลอง"});
+    const key=randomUUID(),row=await createCable(data,key,actor);
+    expect(await createCable(data,key,actor)).toEqual(row);
+    expect((await listCables({query:data.projectName},stranger)).rows).toHaveLength(0);
+    await expect(changeCable(row.id,{version:1,action:"save",data},randomUUID(),viewer)).rejects.toMatchObject({status:403});
+    await expect(changeCable(row.id,{version:2,action:"save",data},randomUUID(),actor)).rejects.toMatchObject({status:409});
+    let version=1;
+    for(const action of ["advance","advance","revise","advance","advance","advance","advance","advance","advance"]){const result=await changeCable(row.id,{version,action,data,reason:"ปรับแบบจำลอง"},randomUUID(),actor);version=result.version;}
+    const [final]=(await listCables({query:data.projectName},actor)).rows;
+    expect(final.stage).toBe("COMPLETE");expect(final.history).toHaveLength(9);
+    await expect(changeCable(row.id,{version,action:"save",data},randomUUID(),actor)).rejects.toMatchObject({status:409});
+    expect((await operator`select count(*)::int n from audit_logs where entity_id=${row.id}`)[0].n).toBe(10);
+    await changeCable(row.id,{version,action:"archive",data},randomUUID(),actor);
+    expect((await listCables({query:data.projectName},actor)).rows).toHaveLength(0);
+  });
   it("preserves active owner edits and invalidates signing without changing workflow or scopes", async () => {
     const actor = await user(), signer = await user(["duct_rental.module.view", "duct_rental.signoff.sign"], "OWN"), stranger = await user(["duct_rental.module.view", "duct_rental.document.read", "duct_rental.request.update"]);
     const row = await permissionOne(actor), doc = await generateNtDocument(row.id, row.version, randomUUID(), actor);

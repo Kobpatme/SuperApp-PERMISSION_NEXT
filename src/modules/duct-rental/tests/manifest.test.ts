@@ -14,7 +14,7 @@ describe("duct rental registration", () => {
     for (const [resource] of ductPhaseResources) {
       for (const action of ["accept", "submit"]) {
         const code = `duct_rental.${resource}.${action}`;
-        expect(capabilities.find(c => c.code === code)?.moduleName).toBe("เช่าท่อร้อยสาย");
+        expect(capabilities.find(c => c.code === code)?.moduleName).toBe("เช่าท่อและพาดสาย");
         expect(parseCatalogCapabilities([code])).toContain(code);
       }
     }
