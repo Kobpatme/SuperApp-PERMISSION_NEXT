@@ -70,5 +70,7 @@ try {
   assert.equal((await db`select count(*)::int as n from public.permissions where code in ('duct_rental.fixture.read','work.fixture.read')`)[0].n, 0);
   console.log(JSON.stringify({ database: name, capabilities: after, rolePresets: presets.length, passed: ["fresh migrations", "catalog replay idempotent", "editable role presets exact permissions", "preset replay preserves customization", "no automatic duct grants or assignments", "existing work grants preserved", "transaction rollback"] }));
 } catch (error) {
-  console.error(JSON.stringify({ error: "Isolated duct catalog check failed", code: error.code || error.name })); process.exitCode = 1;
+  // Only fixture assertion metadata; never connection details or SQL parameters.
+  const assertion = error.code === "ERR_ASSERTION" ? { operator: error.operator, actual: error.actual, expected: error.expected, at: error.stack?.split("\n").find(line => line.includes("duct-rental-catalog-test.mjs"))?.trim() } : undefined;
+  console.error(JSON.stringify({ error: "Isolated duct catalog check failed", code: error.code || error.name, assertion })); process.exitCode = 1;
 } finally { await db.end(); }
