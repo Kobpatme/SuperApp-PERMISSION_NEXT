@@ -16,10 +16,14 @@ import { ospColumns } from "./car-booking-osp";
 describe.skipIf(process.env.CAR_BOOKING_SERVICE_INTEGRATION!=="1")("car services on isolated PostgreSQL with runtime RLS",()=>{
   let operator:ReturnType<typeof postgres>;
   const ctx=(id:string):CarBookingContext=>({actorId:id,displayName:"พนักงานทดสอบ",requestId:randomUUID()});
-  beforeAll(()=>{
+  beforeAll(async()=>{
     const target=new URL(process.env.CAR_BOOKING_TEST_DATABASE_URL!);
     if(!["localhost","127.0.0.1","[::1]"].includes(target.hostname) || target.pathname!=="/permission_next_car_booking_test")throw new Error("Isolated local fixture required");
     operator=postgres(target.href,{max:6,prepare:false,onnotice:()=>{}});
+    // This suite asserts module-wide totals and rebuild delivery. Repeated runs
+    // must not include load fixtures left by an earlier invocation.
+    expect((await operator`select current_database() as name`)[0].name).toBe("permission_next_car_booking_test");
+    await operator`truncate public.car_booking_osp_jobs,public.car_booking_logs,public.car_booking_bookings,public.car_booking_cars`;
     const db=drizzle(operator,{schema});
     mockDb.mockReturnValue({transaction:<T>(body:Parameters<typeof db.transaction<T>>[0])=>db.transaction(async tx=>{
       await tx.execute(sql`set local role car_booking_test_runtime`);return body(tx);

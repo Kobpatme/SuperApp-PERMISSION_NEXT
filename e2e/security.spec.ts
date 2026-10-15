@@ -1,7 +1,8 @@
 import {expect,test,type Page} from "@playwright/test";
 import {createHash} from "node:crypto";
 import {verify} from "@node-rs/argon2";
-import {fixtureSql as sql,fixtureIds,resetSecurityFixtures} from "./fixture-db";
+import {createFixtureSql,fixtureIds,resetSecurityFixtures} from "./fixture-db";
+const sql=createFixtureSql();
 const digest=(token:string)=>createHash("sha256").update(token).digest("hex");
 const generic="อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชียังไม่พร้อมใช้งาน";
 async function submit(page:Page,email="staff@example.test",password="FixturePassword123!"){
@@ -10,8 +11,8 @@ async function submit(page:Page,email="staff@example.test",password="FixturePass
   await page.getByRole("button",{name:"เข้าสู่ระบบ",exact:true}).click();await response;
 }
 async function session(page:Page){const cookie=(await page.context().cookies()).find(c=>c.name==="pn_session");expect(cookie).toBeDefined();return {cookie:cookie!,tokenHash:digest(cookie!.value)};}
-test.beforeEach(async()=>resetSecurityFixtures());
-test.afterEach(async()=>resetSecurityFixtures());
+test.beforeEach(async()=>resetSecurityFixtures(sql));
+test.afterEach(async()=>resetSecurityFixtures(sql));
 test.afterAll(async()=>sql.end());
 test("first sign-in forces password change, revokes sessions, audits, enters modules and logs out",async({page})=>{
   await submit(page,"temporary@example.test","WrongFixture123!");await expect(page.locator(".auth-error[role=alert]")).toContainText(generic);await expect(page.locator("input[name=email]")).toHaveValue("temporary@example.test");
@@ -23,7 +24,9 @@ test("first sign-in forces password change, revokes sessions, audits, enters mod
   const otherHash=digest("additional-synthetic-session");await sql`insert into auth_sessions(user_id,token_hash,expires_at) values(${fixtureIds.temporary},${otherHash},now()+interval '1 hour')`;
   await page.locator("input[name=password]").fill("NewFixturePassword456!");await page.locator("input[name=confirm]").fill("NewFixturePassword456!");await page.getByRole("button",{name:"บันทึกและเข้าใช้งาน",exact:true}).click();await page.waitForURL("http://localhost:3100/");
   const fresh=await session(page);expect(fresh.tokenHash).not.toBe(initial.tokenHash);
-  const sessions=await sql`select token_hash from auth_sessions where user_id=${fixtureIds.temporary}`;expect(sessions.map(s=>s.token_hash)).toEqual([fresh.tokenHash]);
+  const sessions=await sql`select token_hash from auth_sessions where user_id=${fixtureIds.temporary} and revoked_at is null`;expect(sessions.map(s=>s.token_hash)).toEqual([fresh.tokenHash]);
+  const revoked=await sql`select revoked_at,revoked_reason from auth_sessions where token_hash in (${initial.tokenHash},${otherHash})`;expect(revoked).toHaveLength(2);for(const old of revoked){expect(old.revoked_at).not.toBeNull();expect(old.revoked_reason).toBe("password_changed");}
+  expect((await page.request.get("/api/dashboard",{headers:{Cookie:`pn_session=${initial.cookie.value}`}})).status()).toBe(401);
   const [credential]=await sql`select must_change_password,password_hash from local_credentials where user_id=${fixtureIds.temporary}`;expect(credential.must_change_password).toBe(false);expect(await verify(credential.password_hash,"NewFixturePassword456!")).toBe(true);
   const audit=await sql`select metadata from audit_logs where action='password.change' and actor_id=${fixtureIds.temporary} order by created_at desc limit 1`;expect(audit[0].metadata.sessionsRevoked).toBe(true);expect(JSON.stringify(audit)).not.toContain("NewFixturePassword456!");
   await page.goto("/work");await expect(page.locator("h1")).toBeVisible();

@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 import postgres from 'postgres';
 import fs from 'node:fs/promises';
 config({ path: '.env.local', quiet: true });
-const target = new URL(process.env.DATABASE_URL);
+const target = new URL(process.env.PARITY_TEST_DATABASE_URL || process.env.DATABASE_URL);
 if (!['localhost', '127.0.0.1', '[::1]'].includes(target.hostname)) throw new Error('Local PostgreSQL required');
 target.pathname = '/permission_next_parity_test';
 const adminTarget = new URL(target); adminTarget.pathname = '/postgres';

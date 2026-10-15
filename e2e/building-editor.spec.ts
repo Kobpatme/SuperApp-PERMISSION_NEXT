@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { fixtureSql as sql } from "./fixture-db";
+import { createFixtureSql } from "./fixture-db";
+const sql = createFixtureSql();
 import { settlePresentation } from "./settle";
 
 const prefix = "UX-EDITOR-";
