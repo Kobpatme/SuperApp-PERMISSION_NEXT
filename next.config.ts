@@ -10,6 +10,10 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+  outputFileTracingIncludes: {
+    "/*": ["./src/modules/duct-rental/assets/**/*"],
+  },
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {

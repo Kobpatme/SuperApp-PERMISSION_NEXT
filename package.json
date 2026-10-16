@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "test:deployment": "node --test scripts/deployment/config.test.mjs",
+    "test:docker": "node scripts/deployment/test-docker.mjs",
     "check:car:readiness": "node scripts/car-booking-readiness.mjs",
     "import:car": "node scripts/import-car-booking.mjs",
     "test:car:import:unit": "node --test scripts/car-booking-import-unit.test.mjs",
