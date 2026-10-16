@@ -1,5 +1,9 @@
 # On-premise deployment
 
+For Docker/GitLab packaging, separate operator/runtime accounts and TLS options,
+use [DEPLOY.md](../../DEPLOY.md). Container acceptance and TencentDB capability
+confirmation remain required; packaging alone is not production approval.
+
 ## Required services
 
 - Node.js 22 LTS application service
@@ -11,7 +15,7 @@
 
 1. Copy `.env.example` to `.env.local` and set `DATABASE_URL` and an absolute `GUARANTEE_STORAGE_DIR`.
 2. Grant the application service account read/write access only to that evidence directory.
-3. Run `npm ci`, `npm run db:migrate`, and `npm run auth:bootstrap`.
+3. Run `npm ci`; set the separate operator `DATABASE_URL_MIGRATE`, then run `npm run db:migrate` and one-time `npm run auth:bootstrap`. Supply INITIAL_ADMIN_* privately; re-run never resets an existing admin. Runtime DATABASE_URL must use the reviewed Core DML account after migration0059.
 4. Sign in with the bootstrap account and replace its temporary password.
 5. Create positions and users from **ผู้ดูแลระบบ**. Database editing is not required after bootstrap.
 

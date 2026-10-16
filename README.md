@@ -11,9 +11,25 @@ Secure modular-monolith foundation for a unified internal workspace covering:
 
 ## Run locally
 
+For a clean Docker/IT handoff, use the [Docker and GitLab guide](DEPLOY.md):
+
+```powershell
+Copy-Item .env.example .env
+docker compose up --build -d --wait app
+# Supply INITIAL_ADMIN_* privately in .env, then run once:
+docker compose --profile tools run --rm bootstrap
+```
+
+The Docker reference uses separate schema/Core/Car/Duct accounts and private
+volumes. Container/database acceptance must be run on a Docker host before
+release. `npm run test:docker` creates only a disposable isolated fixture.
+
+For an existing native development setup:
+
 ```powershell
 npm install
-Copy-Item .env.example .env.local
+# Preserve/configure .env.local with localhost DB URLs and host storage paths.
+# DATABASE_URL_MIGRATE is the operator URL; DATABASE_URL is Core runtime.
 npm run db:migrate
 npm run auth:bootstrap
 npm run dev
@@ -21,7 +37,7 @@ npm run dev
 
 The application is self-contained for an organization network. It uses PostgreSQL for business data, Argon2id password hashes and opaque database-backed sessions. There is no external authentication or storage dependency. Set `DATABASE_URL` and the private `GUARANTEE_STORAGE_DIR`, run the migrations, and bootstrap the first administrator once. Every later account, position and status change is handled in `/admin` without direct database access.
 
-The first administrator receives a temporary password and must change it at first sign-in. Administrators add or suspend users, reset passwords, and map positions to RBAC roles and `OWN`, `TEAM` or `ALL` data scopes. Accounts are suspended rather than deleted so financial history and audit references remain intact.
+The first administrator uses a privately supplied temporary password and must change it at first sign-in. Bootstrap is a one-time operation and never resets an existing administrator. Administrators add or suspend users, reset passwords, and map positions to RBAC roles and `OWN`, `TEAM` or `ALL` data scopes. Accounts are suspended rather than deleted so financial history and audit references remain intact.
 
 Primary module routes are native Next.js surfaces. Legacy compatibility routes remain available only outside production as migration references and return 404 in production.
 

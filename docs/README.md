@@ -12,6 +12,7 @@ Start with [current status](implementation-status.md), [open decisions](open-que
 
 ## Deployment and maintenance
 
+- [Docker / GitLab / TencentDB handoff](../DEPLOY.md), [Docker verification status](quality/docker-deployment/README.md).
 - [Deployment](operations/deployment-runbook.md), [on-premise hosting](operations/on-premise-deployment.md), [backup/restore](operations/backup-restore-runbook.md), [incident response](operations/incident-response.md).
 - [Car database](operations/car-booking-database.md), [import](operations/car-booking-import.md), [OSP sync](operations/car-booking-osp.md), [cutover](operations/car-booking-cutover.md).
 - [Single sessions and live refresh](operations/sync-session-health.md), [authorization bootstrap](operations/authorization-bootstrap.md), [repository policy](operations/repository-policy.md).

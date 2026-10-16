@@ -1,8 +1,10 @@
 # Current implementation status
 
-Updated 2026-10-15. Earlier Core-only counts below are historical checkpoints. This handoff records the latest local checkpoint; it does not claim production release, real-data reconciliation or human UAT approval. Application source and repeatable tests take precedence over historical reports.
+Updated 2026-10-16. Earlier Core-only counts below are historical checkpoints. This handoff records the latest local checkpoint; it does not claim production release, real-data reconciliation or human UAT approval. Application source and repeatable tests take precedence over historical reports.
 
 ## Runtime and verification
+
+- Docker/GitLab handoff16/10/2569: เพิ่มstandalone/PDF tracing, multi-stage non-root runner+tools+NAS, localComposeและGitLabregistryCI, TLSกลาง3pools, migrationURLแยกและfirst-adminbootstrapแบบno-op ผู้ใช้อนุมัติขยายCore/RLSเป็นmigration0059เพื่อใช้non-owner DMLlogin;ยังไม่applyลงฐานใด ผู้ใช้เลือกให้ทดสอบDBบนDockerเท่านั้น เครื่องไม่มีDocker/WSLจึงยังไม่ยืนยันcontainer/migration/bootstrap/browser/image size ผลlocal lint/typecheck/unit6,166ผ่าน66opt-inข้าม/document1/TLS4/standalonebuildผ่าน;ComposeCLI2.39.4 configผ่านและGitleakshistory112commitsผ่านโดยมีข้อยกเว้นFirebaselegacyที่เจ้าของยืนยัน+cachefalsepositive ดู [DEPLOY](../DEPLOY.md)/[รายงาน](quality/docker-deployment/README.md) เจ้าของอนุญาตcommitและส่งorigin/mainบนGitHubเพื่อITตรวจcode โดยไม่มีproductionmutation/permission-assignment/UIchange
 
 - Sidebar correction15/10/2569ตามเจ้าของ: ย้าย3เมนูหลักไปใต้กลุ่มเช่าท่อและพาดสายใน Core Sidebar ใช้รูปแบบย่อยเดิมของWork/Guarantees พร้อมพับขยาย/จำค่า/activeหน้าย่อยและmobile/collapsed navigation เอา3ปุ่มหลักซ้ำออกจากหน้า เหลือทางลัดงานสนับสนุน ไม่มีเปลี่ยนAPI/schema/grants ผลfresh gates: lint/typecheck/unit6,166ผ่าน/66opt-inข้าม/document/buildผ่าน; browserโฟลว์เดิม2ผ่านหลังbuildSidebarใหม่ สำเนาแอปหลักlocal syncและrestartแล้ว หลักฐาน `.data/sidebar-*`
 

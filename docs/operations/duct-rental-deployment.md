@@ -4,9 +4,9 @@
 
 ## ชุดไฟล์ที่ต้องมี
 
-เก็บ source, package.json/package-lock.json, Next configuration, public assets, migrations ทั้งหมด และ scripts/run-with-nas.cjs/scripts/write-build-info.mjs ตาม checkout เดียวกัน Production ใช้ Node.js22, PostgreSQL16+ และ TLS reverse proxy ปัจจุบัน deploy แบบ checkout + npm build/start; ยังไม่มี Docker/standalone recipe
+เก็บ source, package.json/package-lock.json, Next configuration, public assets และ migrations ตาม checkout เดียวกัน Production contract ใช้ Node.js22, PostgreSQL16+ และ TLS reverse proxy มี Docker/standalone recipe ใน [DEPLOY.md](../../DEPLOY.md) แล้ว แต่ container acceptance และข้อจำกัด TencentDB ยังต้องยืนยันก่อน production; native checkout ใช้ scripts/run-with-nas.cjs/scripts/write-build-info.mjs เดิม
 
-ต้องเก็บ src/modules/duct-rental/assets ทั้ง directory ด้วย เพราะ server PDF อ่าน template/Sarabun จาก process.cwd() และ browser ใช้ public/duct-rental/pdf.worker.min.mjs/standard_fonts แบบ local เรียก npm run build และ npm run start จาก repository root ไม่คัดเฉพาะ .next ไปเครื่องใหม่
+ต้องเก็บ src/modules/duct-rental/assets ทั้ง directory ด้วย เพราะ server PDF อ่าน template/Sarabun จาก process.cwd() และ browser ใช้ public/duct-rental/pdf.worker.min.mjs/standard_fonts แบบ local Native build/start ใช้ repository root; Docker tracing รวม assets directory และคัด public/.next/static พร้อม standalone server
 
 ```powershell
 npm ci
