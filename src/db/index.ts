@@ -1,6 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { requireDatabaseUrl } from "@/lib/env";
+import { databaseSslOptions } from "@/lib/database-ssl.mjs";
 import * as schema from "@/db/schema";
 
 type SqlClient = ReturnType<typeof postgres>;
@@ -9,6 +10,7 @@ const globalForDatabase = globalThis as typeof globalThis & { permissionNextSql?
 function getSqlClient() {
   if (!globalForDatabase.permissionNextSql) {
     globalForDatabase.permissionNextSql = postgres(requireDatabaseUrl(), {
+      ...databaseSslOptions(),
       max: process.env.NODE_ENV === "production" ? 10 : 3,
       idle_timeout: 20,
       connect_timeout: 10,

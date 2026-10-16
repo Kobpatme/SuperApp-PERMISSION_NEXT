@@ -1,19 +1,12 @@
 import { config } from "dotenv";
 import { createInterface } from "node:readline/promises";
-import { randomBytes } from "node:crypto";
 import { stdin, stdout } from "node:process";
 import { hash } from "@node-rs/argon2";
 import postgres from "postgres";
+import { databaseSslOptions } from "../src/lib/database-ssl.mjs";
 
 config({ path: ".env.local" });
 config();
-
-if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required");
-const prompt = createInterface({ input: stdin, output: stdout });
-const email = (await prompt.question("Admin email: ")).trim().toLowerCase();
-const displayName = (await prompt.question("Display name: ")).trim();
-prompt.close();
-if (!/^\S+@\S+\.\S+$/.test(email) || displayName.length < 2) throw new Error("Invalid administrator email or display name");
 
 async function readHidden(label) {
   if (!stdin.isTTY || typeof stdin.setRawMode !== "function") return "";
@@ -22,43 +15,73 @@ async function readHidden(label) {
   stdin.resume();
   return new Promise((resolve, reject) => {
     let value = "";
-    const finish = () => { stdin.off("data", onData); stdin.setRawMode(false); stdin.pause(); stdout.write("\n"); resolve(value); };
+    const finish = (error) => {
+      stdin.off("data", onData); stdin.setRawMode(false); stdin.pause(); stdout.write("\n");
+      if (error) reject(error); else resolve(value);
+    };
     const onData = (chunk) => {
-      const text = String(chunk);
-      for (const char of text) {
-        if (char === "\u0003") { stdin.setRawMode(false); reject(new Error("Cancelled")); return; }
+      for (const char of String(chunk)) {
+        if (char === "\u0003") { finish(new Error("Cancelled")); return; }
         if (char === "\r" || char === "\n") { finish(); return; }
-        if (char === "\b" || char === "\u007f") { if (value) { value = value.slice(0, -1); stdout.write("\b \b"); } continue; }
-        if (char >= " ") { value += char; stdout.write("*"); }
+        if (char === "\b" || char === "\u007f") { value = value.slice(0, -1); continue; }
+        if (char >= " ") value += char;
       }
     };
     stdin.on("data", onData);
   });
 }
 
-const suppliedPassword = await readHidden("Temporary password (leave blank to generate): ");
-const commonPasswords = new Set(["password", "password123", "1234567890", "qwerty123", "welcome123", "admin123"]);
-if (suppliedPassword && (suppliedPassword.length < 12 || suppliedPassword.length > 256 || !/[a-zA-Z]/.test(suppliedPassword) || !/\d/.test(suppliedPassword) || !/[^a-zA-Z0-9]/.test(suppliedPassword) || commonPasswords.has(suppliedPassword.toLocaleLowerCase("en-US")))) {
-  throw new Error("Temporary password must be at least 12 characters and include letters, numbers and a symbol");
+async function credentials() {
+  let email = process.env.INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
+  let displayName = process.env.INITIAL_ADMIN_DISPLAY_NAME?.trim();
+  if (stdin.isTTY && (!email || !displayName)) {
+    const prompt = createInterface({ input: stdin, output: stdout });
+    try {
+      email ||= (await prompt.question("Admin email: ")).trim().toLowerCase();
+      displayName ||= (await prompt.question("Display name: ")).trim();
+    } finally { prompt.close(); }
+  }
+  const password = process.env.INITIAL_ADMIN_PASSWORD || await readHidden("Temporary password (hidden): ");
+  if (!email || !/^\S+@\S+\.\S+$/.test(email) || email.length > 254 || !displayName || displayName.length < 2 || displayName.length > 180) {
+    throw new Error("INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_DISPLAY_NAME are required");
+  }
+  // Same existing local-auth password policy and Argon2id parameters.
+  const common = new Set(["password", "password123", "1234567890", "qwerty123", "welcome123", "admin123"]);
+  if (password.length < 12 || password.length > 256 || !/[a-zA-Z]/.test(password) || !/\d/.test(password) || !/[^a-zA-Z0-9]/.test(password) || common.has(password.toLowerCase())) {
+    throw new Error("INITIAL_ADMIN_PASSWORD must be 12-256 characters with letters, numbers and a symbol");
+  }
+  return { email, displayName, password };
 }
-const password = suppliedPassword || `${randomBytes(18).toString("base64url")}!9a`;
-const passwordHash = await hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1, outputLen: 32 });
-const sql = postgres(process.env.DATABASE_URL, { max: 1, prepare: false });
-try {
-  await sql.begin(async (tx) => {
-    const [role] = await tx`select id from public.roles where code='platform_admin'`;
-    const [position] = await tx`select id from public.positions where code='platform_admin'`;
-    if (!role || !position) throw new Error("Run npm run db:migrate before bootstrap");
-    const [user] = await tx`insert into public.profiles(email,display_name,position_id,status) values(${email},${displayName},${position.id},'active')
-      on conflict(lower(email)) do update set display_name=excluded.display_name,position_id=excluded.position_id,status='active' returning id`;
-    await tx`insert into public.local_credentials(user_id,password_hash,must_change_password) values(${user.id},${passwordHash},true)
-      on conflict(user_id) do update set password_hash=excluded.password_hash,must_change_password=true,failed_attempts=0,locked_until=null,updated_at=now()`;
-    let [assignment] = await tx`select id from public.user_role_assignments where user_id=${user.id} and role_id=${role.id} and valid_until is null limit 1`;
-    if (!assignment) [assignment] = await tx`insert into public.user_role_assignments(user_id,role_id,created_by) values(${user.id},${role.id},${user.id}) returning id`;
-    const [scope] = await tx`select id from public.data_scope_grants where assignment_id=${assignment.id} and scope_type='ALL' limit 1`;
-    if (!scope) await tx`insert into public.data_scope_grants(assignment_id,scope_type) values(${assignment.id},'ALL')`;
-  });
-  stdout.write(suppliedPassword
-    ? "Platform administrator is ready with the supplied temporary password. Sign in and change it immediately.\n"
-    : `Platform administrator is ready. Temporary password: ${password}\nSign in and change it immediately; it will not be shown again.\n`);
-} finally { await sql.end(); }
+
+async function main() {
+  if (!process.env.DATABASE_URL_MIGRATE) throw new Error("DATABASE_URL_MIGRATE is required for first-admin bootstrap");
+  const sql = postgres(process.env.DATABASE_URL_MIGRATE, { ...databaseSslOptions(), max: 1, prepare: false });
+  try {
+    const created = await sql.begin(async tx => {
+      await tx`select pg_advisory_xact_lock(hashtext('permission-next:first-admin'))`;
+      // Any previous admin assignment blocks bootstrap, even suspended/expired.
+      // Recovery is an operator procedure; bootstrap never resets an account.
+      const [existing] = await tx`select 1 from public.user_role_assignments a join public.roles r on r.id=a.role_id where r.code='platform_admin' limit 1`;
+      if (existing) return false;
+      const [role] = await tx`select id from public.roles where code='platform_admin'`;
+      const [position] = await tx`select id from public.positions where code='platform_admin'`;
+      if (!role || !position) throw new Error("Apply migrations before bootstrap");
+      const { email, displayName, password } = await credentials();
+      const passwordHash = await hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1, outputLen: 32 });
+      // No UPSERT: never promote or reset an existing email.
+      const [user] = await tx`insert into public.profiles(email,display_name,position_id,status) values(${email},${displayName},${position.id},'active') returning id`;
+      await tx`insert into public.local_credentials(user_id,password_hash,must_change_password) values(${user.id},${passwordHash},true)`;
+      const [assignment] = await tx`insert into public.user_role_assignments(user_id,role_id,created_by) values(${user.id},${role.id},${user.id}) returning id`;
+      await tx`insert into public.data_scope_grants(assignment_id,scope_type) values(${assignment.id},'ALL')`;
+      await tx`insert into public.audit_logs(actor_id,module_id,action,entity_type,entity_id,metadata) values(${user.id},'core','auth.bootstrap','profile',${user.id},'{"firstAdmin":true}'::jsonb)`;
+      return true;
+    });
+    stdout.write(created ? "First administrator created. Sign in, change the temporary password and remove INITIAL_ADMIN_* from the environment.\n" : "An administrator already exists; no changes made.\n");
+  } finally { await sql.end(); }
+}
+
+main().catch(error => {
+  // Driver messages can contain connection information. Never output SQL/URLs.
+  process.stderr.write(error.code ? `Bootstrap failed (${error.code}).\n` : `Bootstrap failed: ${error.message}\n`);
+  process.exitCode = 1;
+});
