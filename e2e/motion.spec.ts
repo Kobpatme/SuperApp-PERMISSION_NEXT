@@ -7,7 +7,7 @@ async function checkMotion(page:Page,reduced:boolean) {
     styles:[...document.querySelectorAll("*")].flatMap(el=>[null,"::before","::after"].map(p=>{const s=getComputedStyle(el,p);return {animation:s.animationName,transition:s.transitionDuration};})),
   }));
   if(reduced){expect(result.animations).toEqual([]);expect(result.styles.every(s=>s.animation==="none"&&s.transition.split(",").every(v=>parseFloat(v)===0))).toBe(true);}
-  else for(const a of result.animations){expect(Number(a.duration)).toBeLessThanOrEqual(200);expect(a.keys.every(k=>["opacity","transform"].includes(k))).toBe(true);if(a.iterations===Infinity)expect(a.name).toMatch(/spin|skeleton/);}
+  else for(const a of result.animations){const loading=a.name === "spin" || a.name === "skeleton-shimmer";expect(Number(a.duration)).toBeLessThanOrEqual(loading?1400:200);expect(a.keys.every(k=>["opacity","transform"].includes(k))).toBe(true);if(a.iterations===Infinity)expect(loading).toBe(true);}
   return result.animations;
 }
 for(const reduced of [false,true])test(`motion respects preference ${reduced?"reduce":"normal"}`,async({page})=>{

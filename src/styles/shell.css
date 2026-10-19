@@ -1,7 +1,7 @@
 /* Shared workspace navigation. Desktop uses a persistent rail; small screens
    use the same destinations in a native modal dialog. */
 .workspace-shell {
-  --workspace-sidebar-width: 240px;
+  --workspace-sidebar-width: 224px;
 }
 
 .workspace-shell.sidebar-collapsed {
@@ -17,19 +17,19 @@
 .workspace-shell .shell-header .topbar {
   display: flex;
   flex-wrap: nowrap;
-  min-height: 64px;
+  min-height: 60px;
   margin: 0;
   padding: 0 clamp(18px, 3vw, 44px);
 }
 
 .workspace-sidebar {
   position: fixed;
-  inset: 64px auto 0 0;
+  inset: 60px auto 0 0;
   z-index: 95;
   display: flex;
   flex-direction: column;
   width: var(--workspace-sidebar-width);
-  padding: 26px 12px 16px;
+  padding: 20px 10px 16px;
   border-right: 2px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -163,38 +163,38 @@
   transform: rotate(90deg);
 }
 
-.workspace-shell.sidebar-collapsed .sidebar-heading {
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-heading {
   justify-content: center;
   margin-inline: 0;
 }
 
-.workspace-shell.sidebar-collapsed .sidebar-heading-label,
-.workspace-shell.sidebar-collapsed .sidebar-link-label {
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-heading-label,
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-link-label {
   display: none;
 }
 
-.workspace-shell.sidebar-collapsed .sidebar-heading-rule {
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-heading-rule {
   display: none;
 }
 
-.workspace-shell.sidebar-collapsed .sidebar-link,
-.workspace-shell.sidebar-collapsed .sidebar-collapse-button {
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-link,
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-collapse-button {
   justify-content: center;
   padding-inline: 0;
 }
 
-.workspace-shell.sidebar-collapsed .sidebar-subnav {
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-subnav {
   margin-left: 0;
   padding-left: 0;
   border-left: 0;
 }
 
-.workspace-shell.sidebar-collapsed .sidebar-child-link {
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-child-link {
   justify-content: center;
   padding-inline: 0;
 }
 
-.workspace-shell.sidebar-collapsed .sidebar-collapse-button svg {
+.workspace-shell.sidebar-collapsed > .workspace-sidebar .sidebar-collapse-button svg {
   transform: rotate(-90deg);
 }
 
@@ -202,7 +202,7 @@
   max-width: none;
   min-width: 0;
   margin: 0 0 0 var(--workspace-sidebar-width);
-  padding: 32px clamp(20px, 4vw, 56px) 48px;
+  padding: 24px clamp(20px, 3vw, 40px) 40px;
 }
 
 .workspace-shell :is(.operational-home, .native-module, .workspace-overview) {

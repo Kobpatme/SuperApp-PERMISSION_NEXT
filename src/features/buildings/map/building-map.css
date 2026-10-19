@@ -17,14 +17,14 @@
 .building-map-canvas-panel:fullscreen>.building-longdo-map{height:100%;min-height:0}.building-map-canvas-panel:fullscreen .building-longdo-map-canvas{min-height:0}
 .building-location-picker:fullscreen>.building-longdo-map{height:calc(100dvh - 210px);min-height:0}
 .building-map-page{display:grid;gap:var(--space-4);min-width:0;max-width:100%;padding:var(--space-5);color:var(--color-text)}
-.building-map-header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;min-width:0}
+.building-map-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;min-width:0}
 .building-map-back{display:inline-flex;min-height:36px;align-items:center;color:var(--color-brand);font-size:13px;font-weight:700;text-decoration:none}
 .building-map-header h1{margin:2px 0 4px;font-size:clamp(22px,2.5vw,30px);line-height:1.35;overflow-wrap:anywhere}
 .building-map-header p{margin:0;color:var(--color-text-muted);font-size:14px;line-height:1.6}
 .building-map-summary{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
-.building-map-summary>div{display:grid;align-content:center;gap:2px;min-width:112px;padding:9px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)}
+.building-map-summary>div{display:grid;align-content:center;gap:2px;min-width:112px;padding:8px 11px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)}
 .building-map-summary strong{font-size:19px;font-variant-numeric:tabular-nums;line-height:1.6}.building-map-summary span{color:var(--color-text-muted);font-size:12px;line-height:1.6}
-.building-map-filters{display:flex;align-items:end;flex-wrap:wrap;gap:10px;padding:12px;border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-surface)}
+.building-map-filters{display:flex;align-items:end;flex-wrap:wrap;gap:8px;padding:10px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)}
 .building-map-filters label,.building-location-search{display:grid;flex:1 1 160px;min-width:145px;gap:5px;color:var(--color-text-muted);font-size:13px;font-weight:700;line-height:1.6}
 .building-map-filters input,.building-map-filters select,.building-location-search input{width:100%;min-height:42px;padding:8px 10px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font:500 14px/1.35 var(--font-ui)}
 .building-map-filters input:focus-visible,.building-map-filters select:focus-visible,.building-location-search input:focus-visible{outline:2px solid var(--color-brand);outline-offset:1px}

@@ -14,16 +14,16 @@
 @media(max-width:800px) { .work-kpi-grid { grid-template-columns:1fr; } .work-timeline li { grid-template-columns:1fr; gap:4px; } }
 
 /* Work/KPI recovery screens: one responsive, readable surface for domain-specific workflows. */
-.work-native { min-width: 0; display: grid; gap: 20px; }
+.work-native { min-width: 0; display: grid; gap: 16px; }
 .work-native > * { min-width: 0; }
-.work-panel { min-width: 0; padding: 22px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); }
+.work-panel { min-width: 0; padding: 18px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
 .work-section-head,.work-form-intro,.work-task-detail-head,.work-kpi-card-head,.work-person-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; min-width: 0; }
 .work-section-head h2,.work-form-intro h2,.work-task-detail h2,.work-kpi-business-card h2 { margin: 0; color: var(--color-text); font-size: 20px; line-height: 1.35; }
 .work-section-head p,.work-form-intro p,.work-task-detail-head p { margin: 5px 0 0; color: var(--color-text-muted); font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
 .work-eyebrow { display: block; margin-bottom: 5px; color: var(--color-brand-strong, var(--color-brand)); font-size: 13px; font-weight: 700; }
 .work-inline-links { display: flex; flex-wrap: wrap; gap: 8px; }
 .work-metric-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; min-width: 0; }
-.work-metric { min-width: 0; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.work-metric { min-width: 0; padding: 12px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
 .work-metric span,.work-metric small { display: block; color: var(--color-text-muted); font-size: 14px; line-height: 1.6; }
 .work-metric strong { display: block; margin: 5px 0 2px; color: var(--color-text); font-size: 25px; line-height: 1.6; overflow-wrap: anywhere; }
 .work-metric-info { border-top: 3px solid var(--color-info); }.work-metric-success { border-top: 3px solid var(--color-success); }.work-metric-warning { border-top: 3px solid var(--color-warning); }.work-metric-danger { border-top: 3px solid var(--color-danger); }

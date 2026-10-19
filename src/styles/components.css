@@ -16,7 +16,7 @@ body {
 
 :where(code, kbd, pre, .record-code) { font-family: var(--font-mono); }
 
-:where(button, input, select, textarea, summary, a):focus-visible {
+:is(button, input, select, textarea, summary, a):focus-visible {
   outline: 3px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
@@ -27,7 +27,7 @@ body {
 }
 
 .workspace-shell .shell-header .topbar {
-  min-height: 64px;
+  min-height: 60px;
   gap: 16px;
   padding-inline: clamp(20px, 3vw, 40px);
   background: var(--color-surface);
@@ -50,8 +50,8 @@ body {
 .top-brand-copy small { margin-top: 2px; color: var(--color-text-muted); font-size: 12px; letter-spacing: .02em; }
 
 .workspace-sidebar {
-  inset-block-start: 64px;
-  padding: 24px 12px 16px;
+  inset-block-start: 60px;
+  padding: 20px 10px 16px;
   border-right: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -91,7 +91,7 @@ body {
 }
 .sidebar-section-toggle:hover { border-color:var(--color-border); background:var(--color-surface-subtle); color:var(--color-text); }
 .sidebar-section-toggle.is-expanded svg { transform:rotate(180deg); }
-.workspace-shell > .main { padding: 32px clamp(24px, 4vw, 48px) 48px; }
+.workspace-shell > .main { padding: 24px clamp(20px, 3vw, 40px) 40px; }
 .workspace-search { width: min(520px, 42vw); }
 .workspace-search .search input,
 .queue-search input,
@@ -127,7 +127,13 @@ body {
 .workspace-search-result-copy > .truncated-text-wrap { min-width: 0; }
 .account-trigger { min-height: 44px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
 .avatar-circle { border-radius: 50%; background: var(--color-brand-soft); color: var(--color-brand); }
-.page-heading { align-items: flex-end; margin-bottom: 28px; }
+.page-heading { align-items: flex-end; gap:var(--space-4); margin-bottom: 20px; }
+.page-heading > div:first-child { min-width:0; }
+.page-heading .eyebrow { margin:0 0 4px; }
+.page-heading .heading-actions { align-items:center; }
+.module-directory-heading { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:var(--space-2); margin:24px 0 12px; padding-top:16px; border-top:1px solid var(--color-border); }
+.module-directory-heading h2 { margin:0; font-size:17px; }
+.module-directory-heading p { margin:0; color:var(--color-text-muted); font-size:13px; }
 .page-heading h1,
 .workspace-heading h1,
 .operational-heading h1,

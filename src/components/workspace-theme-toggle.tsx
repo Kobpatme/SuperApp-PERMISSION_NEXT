@@ -12,7 +12,9 @@ export function WorkspaceThemeToggle() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const saved = window.localStorage.getItem(storageKey);
+      let saved: string | null = null;
+      try { saved = window.localStorage.getItem(storageKey); }
+      catch { /* Storage is optional; keep the system preference usable. */ }
       const initial: WorkspaceTheme = saved === "dark" || saved === "light"
         ? saved
         : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
@@ -26,7 +28,8 @@ export function WorkspaceThemeToggle() {
     if (!ready) return;
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
-    window.localStorage.setItem(storageKey, theme);
+    try { window.localStorage.setItem(storageKey, theme); }
+    catch { /* Apply the theme even when the preference cannot be persisted. */ }
   }, [ready, theme]);
 
   const isDark = theme === "dark";

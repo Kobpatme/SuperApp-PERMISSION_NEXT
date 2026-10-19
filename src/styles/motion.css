@@ -12,7 +12,7 @@
 @keyframes skeleton-shimmer { from { transform:translateX(-100%); opacity:.25; } to { transform:translateX(100%); opacity:.6; } }
 .auth-shell { animation:auth-enter var(--motion-base) var(--ease-out) both; }
 .auth-error { animation:auth-error var(--motion-fast) ease-out; }
-.auth-spinner { animation:spin var(--motion-base) linear infinite; }
+.auth-spinner { animation:spin 900ms linear infinite; }
 .auth-eye { transition:opacity var(--motion-fast) ease-out; }
 :where(.detail-panel[open],.permission-drawer[open],.notification-dialog[open],.deposit-modal[open]) { animation:panel-enter var(--motion-base) var(--ease-out) both; }
 :where(.detail-panel[open],.permission-drawer[open],.notification-dialog[open],.deposit-modal[open])::backdrop { animation:backdrop-enter var(--motion-base) ease-out both; }
@@ -23,7 +23,7 @@
 .workspace-table tbody tr:nth-child(-n+3),.deposit-queue-row:nth-child(-n+3) { animation:row-enter var(--motion-fast) ease-out both; }
 .workspace-table tbody tr:nth-child(2),.deposit-queue-row:nth-child(2) { animation-delay:40ms; }
 .workspace-table tbody tr:nth-child(3),.deposit-queue-row:nth-child(3) { animation-delay:80ms; }
-.loading-line::after,.loading-table::after { animation:skeleton-shimmer var(--motion-base) linear infinite; }
+.loading-line::after,.loading-table::after { animation:skeleton-shimmer 1400ms ease-in-out infinite; }
 :where(button,a,summary):not(:disabled):active { transition:transform var(--motion-fast) ease-out; }
 .auth-visibility { position:absolute; }
 .auth-eye { grid-area:1/1; opacity:0; }
