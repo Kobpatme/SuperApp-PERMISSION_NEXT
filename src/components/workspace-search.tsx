@@ -62,7 +62,7 @@ export function WorkspaceSearch({ allowedModuleIds }: { allowedModuleIds: Module
   function goTo(href: string) { setOpen(false); setQuery(""); inputRef.current?.blur(); router.push(href); }
 
   return <div className="workspace-search" ref={rootRef} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false); }}>
-    <label className="search" htmlFor="workspace-search-input"><WorkspaceIcon name="search" size={19}/>
+    <label className="search" htmlFor="workspace-search-input"><WorkspaceIcon name="search" size={20}/>
       <input ref={inputRef} id="workspace-search-input" value={query} maxLength={200} placeholder="ค้นหาเมนูและรายการติดตาม…" aria-label="ค้นหาเมนูและรายการติดตาม" role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={open ? listboxId : undefined} aria-activedescendant={open && results[active] ? `${listboxId}-${active}` : undefined} autoComplete="off"
         onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); setOpen(true); }} onFocus={() => setOpen(true)}
         onKeyDown={(event) => {

@@ -43,8 +43,8 @@ function DetailPanel({ item, preview, onClose, opener }: { item: DashboardItem; 
        <section className="detail-section"><h3>รายละเอียด</h3><TruncatedText text={item.description || copy.feedback.detailsEmpty} lines={3}/></section>
        <section className="next-step"><WorkspaceIcon name="arrow"/><div><h3>ขั้นตอนถัดไป</h3><TruncatedText text={item.nextAction || "ตรวจสอบข้อมูลกับผู้รับผิดชอบก่อนดำเนินการต่อ"} lines={3}/></div></section>
       <div className="detail-actions">
-        {!preview && item.href !== moduleInfo.href && <Link className="primary" href={item.href} onClick={onClose}>{copy.feedback.openRecord}<WorkspaceIcon name="arrow" size={17}/></Link>}
-        <button className="secondary-action" type="button" onClick={async () => { try { await navigator.clipboard.writeText(item.code || item.id); setMessage("คัดลอกรหัสรายการแล้ว"); } catch { setMessage("คัดลอกไม่สำเร็จ กรุณาเลือกรหัสแล้วคัดลอกด้วยตนเอง"); } }}><WorkspaceIcon name="copy" size={17}/>คัดลอกรหัส</button>
+        {!preview && item.href !== moduleInfo.href && <Link className="primary" href={item.href} onClick={onClose}>{copy.feedback.openRecord}<WorkspaceIcon name="arrow" size={18}/></Link>}
+        <button className="secondary-action" type="button" onClick={async () => { try { await navigator.clipboard.writeText(item.code || item.id); setMessage("คัดลอกรหัสรายการแล้ว"); } catch { setMessage("คัดลอกไม่สำเร็จ กรุณาเลือกรหัสแล้วคัดลอกด้วยตนเอง"); } }}><WorkspaceIcon name="copy" size={18}/>คัดลอกรหัส</button>
       </div>
       <p role="status" className="inline-feedback">{message}</p>
       <p className="detail-footnote">รายละเอียดจากรายการติดตาม · กด Esc เพื่อกลับไปยังรายการเดิม</p>
@@ -70,7 +70,7 @@ function SavedViews({ storageKey, settings, apply }: { storageKey: string; setti
     catch { setMessage("บันทึกไม่สำเร็จ โปรดตรวจสอบการอนุญาตพื้นที่จัดเก็บของเบราว์เซอร์"); return false; }
   }
   return <details className="saved-views" ref={ref} onToggle={(event) => { if (event.currentTarget.open) loadViews(); }} onKeyDown={(event) => { if (event.key === "Escape" && ref.current) { ref.current.open = false; ref.current.querySelector("summary")?.focus(); } }}>
-    <summary className="secondary-action"><WorkspaceIcon name="save" size={17}/>มุมมองที่บันทึกไว้<WorkspaceIcon name="chevron" size={16}/></summary>
+    <summary className="secondary-action"><WorkspaceIcon name="save" size={18}/>มุมมองที่บันทึกไว้<WorkspaceIcon name="chevron" size={16}/></summary>
     <div className="saved-views-popover">
       <strong>มุมมองของฉัน</strong><p>เก็บตัวกรองและการเรียงลำดับในเบราว์เซอร์นี้</p>
        {views.length ? <ul>{views.map((view) => <li key={view.id}><button type="button" className="saved-view-link" onClick={() => { apply(view.settings); if (ref.current) ref.current.open = false; }}><TruncatedText text={view.name} lines={1}/></button><button type="button" className="round-btn" aria-label={`ลบมุมมอง ${view.name}`} onClick={() => save(views.filter((item) => item.id !== view.id), "ลบมุมมองแล้ว")}><WorkspaceIcon name="close" size={16}/></button></li>)}</ul> : <p className="muted">ยังไม่มีมุมมองที่บันทึกไว้</p>}
@@ -144,12 +144,12 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
         <SavedViews storageKey={`permission-next:views:${userId}:${moduleId || "overview"}:${preview ? "preview" : "live"}`} settings={settings} apply={changeSettings}/>
       </div>
       {filtersOpen && <div className="queue-filters" id="queue-filters"><label>สถานะ<select value={settings.status} onChange={(event) => changeSettings({ status: event.target.value })}><option value="">ทุกสถานะ</option>{statuses.map((status) => <option key={status}>{status}</option>)}{settings.status && !statuses.includes(settings.status) && <option>{settings.status}</option>}</select></label><label>เรียงตาม<select value={settings.sort} onChange={(event) => changeSettings({ sort: event.target.value as ViewSettings["sort"] })}><option value="priority">ความเร่งด่วน</option><option value="due">กำหนดใกล้ที่สุด</option><option value="title">ชื่อรายการ ก–ฮ</option></select></label><button type="button" className="text-btn" onClick={() => changeSettings({ query: "", status: "", sort: "priority", view: "all" })}>ล้างตัวกรองทั้งหมด</button></div>}
-      {partial && <div className="queue-notice" role="status"><WorkspaceIcon name="info" size={17}/>แสดงข้อมูลบางส่วน บางระบบยังเชื่อมต่อไม่ได้ ดูสถานะข้อมูลด้านล่าง</div>}
+      {partial && <div className="queue-notice" role="status"><WorkspaceIcon name="info" size={18}/>แสดงข้อมูลบางส่วน บางระบบยังเชื่อมต่อไม่ได้ ดูสถานะข้อมูลด้านล่าง</div>}
       {sources.some((source) => source.itemCount >= 500) && <p className="queue-notice">{copy.feedback.queueLimit}</p>}
       {selected.length > 0 && <div className="batch-toolbar"><strong>เลือก {selected.length} รายการในหน้านี้</strong><button type="button" className="secondary-action" onClick={async () => {
         try { await navigator.clipboard.writeText(selected.map((item) => item.code || item.id).join("\n")); setMessage(`คัดลอกรหัส ${selected.length} รายการแล้ว`); }
         catch { setMessage("คัดลอกไม่สำเร็จ กรุณาลองอีกครั้ง"); }
-      }}><WorkspaceIcon name="copy" size={17}/>คัดลอกรหัสที่เลือก</button><button type="button" className="text-btn" onClick={() => setSelection(new Set())}>ยกเลิกการเลือก</button></div>}
+      }}><WorkspaceIcon name="copy" size={18}/>คัดลอกรหัสที่เลือก</button><button type="button" className="text-btn" onClick={() => setSelection(new Set())}>ยกเลิกการเลือก</button></div>}
       <p role="status" className="inline-feedback">{message}</p>
       <div className="table-scroll" role="region" aria-label="ตารางรายการติดตาม เลื่อนแนวนอนได้" tabIndex={0}>
         <table className="workspace-table"><caption className="sr-only">รายการติดตามที่คุณมีสิทธิ์ดู เปิดรายละเอียดด้วยปุ่มชื่อรายการ</caption><thead><tr>

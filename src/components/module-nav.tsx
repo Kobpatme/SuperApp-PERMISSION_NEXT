@@ -74,13 +74,13 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
       const currentChildHref = item.id === "work" ? currentWorkHref : item.id === "duct-rental" ? currentDuctHref : item.id === "guarantees" && installationTeamView ? "/guarantees?view=installation-team" : undefined;
       const parentCurrent = active && (!expanded || !currentChildHref);
       const parentLink = <Link className={`sidebar-link ${active ? "active" : ""}`} href={`${item.href}${params.get("preview") === "1" ? "?preview=1" : ""}`} aria-current={parentCurrent ? "page" : undefined} aria-label={collapsed ? item.name : undefined} title={collapsed ? item.name : undefined} onClick={onNavigate}>
-        <WorkspaceIcon name={item.icon} size={21}/><span className="sidebar-link-label">{item.name}</span>
+        <WorkspaceIcon name={item.icon} size={20}/><span className="sidebar-link-label">{item.name}</span>
       </Link>;
       return <div className="sidebar-nav-entry" key={item.href}>
         {!collapsed && items[index - 1]?.group !== item.group && <span className="sidebar-group-label">{groupLabels[item.group]}</span>}
         {hasChildren ? <div className="sidebar-link-row">
           {parentLink}
-          {!collapsed && <button className={`sidebar-section-toggle ${expanded ? "is-expanded" : ""}`} type="button" aria-label={`${expanded ? "พับ" : "ขยาย"}เมนู${item.name}`} aria-expanded={expanded} onClick={() => isCollapsibleModule(item.id) && toggleSection(item.id)}><WorkspaceIcon name="chevron" size={17}/></button>}
+          {!collapsed && <button className={`sidebar-section-toggle ${expanded ? "is-expanded" : ""}`} type="button" aria-label={`${expanded ? "พับ" : "ขยาย"}เมนู${item.name}`} aria-expanded={expanded} onClick={() => isCollapsibleModule(item.id) && toggleSection(item.id)}><WorkspaceIcon name="chevron" size={18}/></button>}
         </div> : parentLink}
         {hasChildren && expanded && <div className="sidebar-subnav" aria-label={`เมนู${item.name}`}>
           {item.id === "work" && workNavigation.map((child) => {

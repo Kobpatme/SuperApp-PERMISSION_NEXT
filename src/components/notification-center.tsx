@@ -5,6 +5,7 @@ import { markNotificationsRead } from "@/app/(platform)/notification-actions";
 import type { NotificationInbox } from "@/lib/notification-inbox";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TruncatedText } from "@/components/ui/truncated-text";
+import { WorkspaceIcon } from "@/components/workspace-icon";
 
 export function NotificationCenter({ inbox }: { inbox: NotificationInbox }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -13,7 +14,7 @@ export function NotificationCenter({ inbox }: { inbox: NotificationInbox }) {
   if (inbox.state === "denied") return null;
   return <>
     <button ref={trigger} className="round-btn" type="button" aria-haspopup="dialog" aria-label={`การแจ้งเตือน ยังไม่อ่าน ${inbox.unread} รายการ`} onClick={() => dialog.current?.showModal()}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M9 21h6"/></svg>
+      <WorkspaceIcon name="bell" size={20}/>
       {inbox.unread > 0 && <span className="notification-count">{inbox.unread > 99 ? "99+" : inbox.unread}</span>}
     </button>
     <dialog ref={dialog} className="notification-dialog" aria-labelledby="notification-title" onClose={() => trigger.current?.focus()} onClick={event => { if (event.target === dialog.current) dialog.current.close(); }}>

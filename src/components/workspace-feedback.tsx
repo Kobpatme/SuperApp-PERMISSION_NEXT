@@ -21,7 +21,7 @@ export function RefreshButton({ onRefresh, refreshPending = false }: { onRefresh
   const [pending, startTransition] = useTransition();
   const busy = pending || refreshPending;
   return <button type="button" className="secondary-action" disabled={busy} onClick={() => onRefresh ? onRefresh() : startTransition(() => router.refresh())}>
-    <WorkspaceIcon name="refresh" size={17}/><span>{busy ? "กำลังอัปเดต…" : "อัปเดตข้อมูล"}</span>
+    <WorkspaceIcon name="refresh" size={18}/><span>{busy ? "กำลังอัปเดต…" : "อัปเดตข้อมูล"}</span>
   </button>;
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { copy } from "@/lib/copy";
+import { workspaceIconMarkup } from "@/components/workspace-icon";
 
 import { useEffect, useRef, useState } from "react";
 import { escapeMapText, loadLongdoMap, normalizeLongdoStyle, subscribeMapReady, type LongdoMapInstance, type LongdoMarker, type LongdoNamespace, type LongdoStyle } from "./longdo-map-adapter";
@@ -154,7 +155,7 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
       const first = selected ?? cluster.points[0];
       const grouped = cluster.points.length > 1;
       const status = first.status === "Permission Confirmed" ? "confirmed" : first.status === "MOU" ? "mou" : first.status === "อาคารปิดถาวร" ? "closed" : "pending";
-      const buildingIcon = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 21V3h14v18M3 21h18M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2M10 21v-3h4v3"/></svg>';
+      const buildingIcon = workspaceIconMarkup("buildings", 20, 2);
       const label = grouped ? `${cluster.points.length} อาคาร คลิกเพื่อขยายและเลือก` : `${first.name} · ${first.status ?? ""}`;
       const marker = new longdo.Marker({ lat: cluster.latitude, lon: cluster.longitude }, {
         icon: { html: `<button type="button" aria-label="${escapeMapText(label)}" title="${escapeMapText(label)}" class="building-map-marker ${grouped ? "building-map-marker-cluster" : `building-map-marker-${status}`}${selected ? " building-map-marker-selected" : ""}">${grouped ? cluster.points.length : buildingIcon}</button>`, size: { width: 44, height: 44 }, offset: { x: 22, y: 22 } } });
