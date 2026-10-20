@@ -369,7 +369,19 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
   .card:hover,
   .module-directory > a:hover { transform: none; }
 }
-/* Work components — prevent flex/grid children from refusing to shrink */
+.card-hover:hover { box-shadow:var(--shadow-md); border-color:color-mix(in srgb,var(--color-brand) 45%,var(--color-border)); }
+.work-quick-links { margin-top: 22px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); overflow: hidden; }
+.work-quick-links .work-section-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; border-bottom: 1px solid var(--color-border); }
+.work-quick-links .work-section-head h2 { margin: 0; font-size: var(--text-h3); color: var(--color-text); }
+.work-quick-links .work-section-head p { margin: 4px 0 0; color: var(--color-text-muted); font-size: var(--text-caption); }
+.work-quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 10px; padding: 16px 20px 20px; }
+.quick-link { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); text-decoration: none; font-size: var(--text-body); font-weight: 600; transition: border-color var(--motion-fast) ease-out, background var(--motion-fast) ease-out; min-width: 0; }
+.quick-link:hover { border-color: var(--color-brand); background: var(--color-brand-soft); color: var(--color-brand); }
+.quick-link-primary { border-color: var(--color-brand); background: var(--color-brand); color: var(--color-on-brand); }
+.quick-link-primary:hover { background: var(--color-brand-hover); color: var(--color-on-brand); }
+.quick-link span { display: block; min-width: 0; }
+.quick-link small { color: color-mix(in srgb, var(--color-text) 60%, transparent); font-size: var(--text-caption); font-weight: 500; line-height: 1.5; min-width: 0; }
+@media (max-width: 650px) { .work-quick-grid { grid-template-columns: 1fr 1fr; } }
 .work-panel,
 .work-person-card,
 .work-job-group,
