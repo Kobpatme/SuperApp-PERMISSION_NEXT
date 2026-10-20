@@ -41,7 +41,7 @@
   min-height: 32px;
   margin: 0 0 16px 12px;
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--text-body-strong);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -73,9 +73,9 @@
   min-height: 52px;
   padding: 10px 14px;
   border: 2px solid transparent;
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   color: var(--color-text-muted);
-  font-size: 16px;
+  font-size: var(--text-h3);
   font-weight: 700;
   line-height: 1.6;
 }
@@ -115,9 +115,9 @@
   min-height: 40px;
   padding: 7px 12px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--text-body);
   font-weight: 700;
   line-height: 1.6;
 }
@@ -145,10 +145,10 @@
   min-height: 44px;
   padding: 0;
   border: 2px solid var(--color-border);
-  border-radius: 16px;
+  border-radius: var(--radius-xl);
   background: var(--color-surface);
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--text-body-strong);
   font-weight: 700;
 }
 
@@ -289,7 +289,7 @@
     margin-bottom: 20px;
     padding: 0 2px 16px;
     border-bottom: 2px dashed var(--color-border);
-    font-size: 20px;
+    font-size: var(--text-h2);
   }
 
   .workspace-mobile-dialog .sidebar-nav {

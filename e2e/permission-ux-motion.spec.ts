@@ -3,6 +3,10 @@ import { build } from "esbuild";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+test.use({ launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
+  : {} });
+
 const css = ["src/styles/tokens.css", "src/app/globals.css", "src/styles/ui.css", "src/styles/motion.css"]
   .map(file => readFileSync(resolve(file), "utf8")).join("\n");
 
