@@ -10,11 +10,12 @@ import { JobTrackerScreen } from "@/features/work/screens/job-tracker";
 import { KpiWorkspaceScreen } from "@/features/work/screens/kpi-workspace";
 import { WorkReportsScreen } from "@/features/work/screens/reports";
 import { WorkEmpty, WorkScreenShell, WorkUnavailable } from "@/features/work/components/work-screen-shell";
+import { TruncatedText } from "@/components/ui/truncated-text";
 import { isWorkView, type WorkView } from "@/lib/work-view";
 
 function ActivityScreen({ model }: { model: WorkReadModel }) {
   if (model.source.status !== "ready") return <WorkScreenShell title="กิจกรรมงาน" description="ตรวจสอบการเปลี่ยนแปลงที่เกี่ยวข้องกับงาน"><WorkUnavailable message="ยังโหลดกิจกรรมไม่ได้" detail={model.source.message} /></WorkScreenShell>;
-  return <WorkScreenShell title="กิจกรรมงาน" description="ติดตามการสร้าง มอบหมาย เปลี่ยนสถานะ และบันทึกงานในขอบเขตสิทธิ์" parent={{ label: "งานของฉัน", href: "/work" }}>{model.activities.length ? <section className="work-panel"><ol className="work-activity-list work-activity-list-expanded">{model.activities.map((event) => <li key={event.id}><span className="work-activity-dot" aria-hidden="true"/><div><strong>{event.eventLabel}</strong><span>{event.ownerName} · รายการ {event.entityId}</span><time dateTime={event.occurredAt}>{new Date(event.occurredAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}</time></div></li>)}</ol></section> : <WorkEmpty title="ยังไม่มีกิจกรรมงาน" detail="กิจกรรมที่อยู่ในขอบเขตสิทธิ์ของคุณจะแสดงที่นี่เมื่อมีการเปลี่ยนแปลง" />}</WorkScreenShell>;
+  return <WorkScreenShell title="กิจกรรมงาน" description="ติดตามการสร้าง มอบหมาย เปลี่ยนสถานะ และบันทึกงานในขอบเขตสิทธิ์" parent={{ label: "งานของฉัน", href: "/work" }}>{model.activities.length ? <section className="work-panel"><ol className="work-activity-list work-activity-list-expanded">{model.activities.map((event) => <li key={event.id}><span className="work-activity-dot" aria-hidden="true"/><div><strong><TruncatedText text={event.eventLabel} lines={1}/></strong><span><TruncatedText text={event.ownerName} lines={1}/> · รายการ {event.entityId}</span><time dateTime={event.occurredAt}>{new Date(event.occurredAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}</time></div></li>)}</ol></section> : <WorkEmpty title="ยังไม่มีกิจกรรมงาน" detail="กิจกรรมที่อยู่ในขอบเขตสิทธิ์ของคุณจะแสดงที่นี่เมื่อมีการเปลี่ยนแปลง" />}</WorkScreenShell>;
 }
 
 function DueScreen({ model, userId }: { model: WorkReadModel; userId: string }) {
@@ -24,7 +25,7 @@ function DueScreen({ model, userId }: { model: WorkReadModel; userId: string }) 
 }
 
 function WorkTaskListForDue({ tasks }: { tasks: WorkReadModel["tasks"] }) {
-  return <div className="work-due-list">{tasks.map((task) => <div key={task.id}><div><strong>{task.title}</strong><span>{task.jobCode || "ยังไม่มีรหัสงาน"}</span></div><span className="work-danger-text">{task.dueAt ? new Date(task.dueAt).toLocaleDateString("th-TH") : "ไม่กำหนด"}</span></div>)}</div>;
+  return <div className="work-due-list">{tasks.map((task) => <div key={task.id}><div><strong><TruncatedText text={task.title} lines={1}/></strong><span><TruncatedText text={task.jobCode || "ยังไม่มีรหัสงาน"} lines={1}/></span></div><span className="work-danger-text">{task.dueAt ? new Date(task.dueAt).toLocaleDateString("th-TH") : "ไม่กำหนด"}</span></div>)}</div>;
 }
 
 export async function WorkRoutePage({ view, recordId, ownerId }: { view: string; recordId?: string; ownerId?: string }) {
