@@ -37,7 +37,12 @@
 .loading-line,.loading-table { position:relative; overflow:hidden; }
 .loading-line::after,.loading-table::after { content:""; position:absolute; inset:0; background:var(--color-border); }
 :where(button,a,summary):not(:disabled):active { transform:scale(.99); }
-body:has(dialog[open]) { overflow:hidden; }
+@keyframes toast-enter { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes toast-exit { to { opacity:0; transform:translateY(10px); } }
+.toast { animation:toast-enter var(--motion-base) var(--ease-out) both; }
+.toast.is-closing { animation:toast-exit var(--motion-fast) var(--ease-out) both; }
+.card-hover:hover { box-shadow:var(--shadow-md); border-color:color-mix(in srgb,var(--color-brand) 45%,var(--color-border)); }
+.page-enter { animation:auth-enter var(--motion-base) var(--ease-out) both; }
 /* Building map motion — detail slide-up, view crossfade, list stagger */
 .building-map-detail{animation:detail-slide-up var(--motion-base) var(--ease-out) both}
 .building-map-layout > section{animation:map-view-crossfade var(--motion-fast) ease-out both}
