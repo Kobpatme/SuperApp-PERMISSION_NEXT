@@ -1,0 +1,158 @@
+# Disposable local fixture + configuration reference. Production uses IT's
+# external TencentDB and separately provisioned accounts; see DEPLOY.md.
+name: superapp-local
+
+x-build: &build
+  context: .
+  args:
+    APP_COMMIT_SHA: ${APP_COMMIT_SHA:-}
+    APP_BRANCH: ${APP_BRANCH:-}
+    APP_BUILT_AT: ${APP_BUILT_AT:-}
+
+services:
+  db:
+    # Local portable/CI fixture is PostgreSQL 16. TODO(IT): confirm TencentDB.
+    image: postgres:${POSTGRES_VERSION:-16}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Copy .env.example to .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Set local migration user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set local migration password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    # Deliberately no database host-port publication.
+
+  migrate:
+    image: ${TOOLS_IMAGE:-superapp-tools:local}
+    build:
+      <<: *build
+      target: tools
+    environment:
+      COMPOSE_LOCAL_DATABASE: "1"
+      DATABASE_URL_MIGRATE: ${DATABASE_URL_MIGRATE:?Set separate migration URL}
+      DATABASE_URL: ${DATABASE_URL:?Set Core runtime URL}
+      CAR_BOOKING_DATABASE_URL: ${CAR_BOOKING_DATABASE_URL:?Set Car runtime URL}
+      DUCT_RENTAL_DATABASE_URL: ${DUCT_RENTAL_DATABASE_URL:?Set Duct runtime URL}
+      DATABASE_SSL: ${DATABASE_SSL:-disable}
+      DATABASE_SSL_CA_PATH: ${DATABASE_SSL_CA_PATH:-}
+    command: ["node", "scripts/deployment/migrate-compose.mjs"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  nas:
+    build:
+      <<: *build
+      target: nas
+    environment:
+      PERMISSION_NAS_BRIDGE_SECRET: ${PERMISSION_NAS_BRIDGE_SECRET:?Set a bridge secret}
+    volumes:
+      - nas-documents:/data/nas
+    restart: unless-stopped
+
+  app:
+    image: ${APP_IMAGE:-superapp:local}
+    build:
+      <<: *build
+      target: runner
+    # Explicit runtime allowlist: no migration URL, operator password or initial
+    # admin credentials enter the web container via env_file.
+    environment:
+      PORT: ${PORT:-3000}
+      DATABASE_URL: ${DATABASE_URL:?Set Core runtime URL}
+      CAR_BOOKING_DATABASE_URL: ${CAR_BOOKING_DATABASE_URL:?Set Car runtime URL}
+      DUCT_RENTAL_DATABASE_URL: ${DUCT_RENTAL_DATABASE_URL:?Set Duct runtime URL}
+      DATABASE_SSL: ${DATABASE_SSL:-disable}
+      DATABASE_SSL_CA_PATH: ${DATABASE_SSL_CA_PATH:-}
+      GUARANTEE_STORAGE_DIR: /data/guarantees
+      DUCT_RENTAL_STORAGE_DIR: /data/duct-rental
+      PERMISSION_NAS_BRIDGE_URL: ${PERMISSION_NAS_BRIDGE_URL:-http://nas:8766}
+      PERMISSION_NAS_BRIDGE_SECRET: ${PERMISSION_NAS_BRIDGE_SECRET:?Set a bridge secret}
+      AUTH_SINGLE_SESSION: ${AUTH_SINGLE_SESSION:-true}
+      AUTH_IDLE_TIMEOUT_MINUTES: ${AUTH_IDLE_TIMEOUT_MINUTES:-30}
+      AUTH_ABSOLUTE_TIMEOUT_HOURS: ${AUTH_ABSOLUTE_TIMEOUT_HOURS:-12}
+      TRUSTED_PROXY_COUNT: ${TRUSTED_PROXY_COUNT:-0}
+      SUPPORT_CONTACT_TEXT: ${SUPPORT_CONTACT_TEXT:-}
+      LONGDO_MAP_API_KEY: ${LONGDO_MAP_API_KEY:-}
+      M365_TENANT_ID: ${M365_TENANT_ID:-}
+      M365_CLIENT_ID: ${M365_CLIENT_ID:-}
+      M365_CLIENT_SECRET: ${M365_CLIENT_SECRET:-}
+      SHAREPOINT_HOSTNAME: ${SHAREPOINT_HOSTNAME:-}
+      SHAREPOINT_SITE_PATH: ${SHAREPOINT_SITE_PATH:-}
+      SHAREPOINT_DOCUMENT_LIBRARY: ${SHAREPOINT_DOCUMENT_LIBRARY:-Shared Documents}
+      SHAREPOINT_ROOT_FOLDER: ${SHAREPOINT_ROOT_FOLDER:-Permission Next}
+      SHAREPOINT_SITE_ID: ${SHAREPOINT_SITE_ID:-}
+      SHAREPOINT_DRIVE_ID: ${SHAREPOINT_DRIVE_ID:-}
+      CAR_BOOKING_ACCEPT_NEW_BOOKINGS: ${CAR_BOOKING_ACCEPT_NEW_BOOKINGS:-true}
+      CAR_BOOKING_OSP_SYNC_ENABLED: ${CAR_BOOKING_OSP_SYNC_ENABLED:-false}
+      CAR_BOOKING_OSP_SPREADSHEET_ID: ${CAR_BOOKING_OSP_SPREADSHEET_ID:-}
+      CAR_BOOKING_OSP_SHEET_TITLE: ${CAR_BOOKING_OSP_SHEET_TITLE:-BookingsOSP}
+      CAR_BOOKING_GOOGLE_CLIENT_EMAIL: ${CAR_BOOKING_GOOGLE_CLIENT_EMAIL:-}
+      CAR_BOOKING_GOOGLE_PRIVATE_KEY: ${CAR_BOOKING_GOOGLE_PRIVATE_KEY:-}
+      CAR_BOOKING_OSP_WORKER_SECRET: ${CAR_BOOKING_OSP_WORKER_SECRET:-}
+      CAR_BOOKING_OSP_WORKER_USER_ID: ${CAR_BOOKING_OSP_WORKER_USER_ID:-}
+    ports:
+      - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_HOST_PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - guarantee-files:/data/guarantees
+      - duct-files:/data/duct-rental
+      - next-cache:/app/.next/cache
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      nas:
+        condition: service_started
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  bootstrap:
+    profiles: ["tools"]
+    image: ${TOOLS_IMAGE:-superapp-tools:local}
+    build:
+      <<: *build
+      target: tools
+    environment:
+      DATABASE_URL_MIGRATE: ${DATABASE_URL_MIGRATE:?Set migration URL}
+      DATABASE_SSL: ${DATABASE_SSL:-disable}
+      DATABASE_SSL_CA_PATH: ${DATABASE_SSL_CA_PATH:-}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-}
+      INITIAL_ADMIN_DISPLAY_NAME: ${INITIAL_ADMIN_DISPLAY_NAME:-}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
+    command: ["node", "scripts/bootstrap-admin.mjs"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  verify:
+    profiles: ["verification"]
+    build:
+      <<: *build
+      target: verification
+    environment:
+      COMPOSE_LOCAL_DATABASE: "1"
+      DEPLOY_TEST_BASE_URL: http://app:${PORT:-3000}
+      DATABASE_URL_MIGRATE: ${DATABASE_URL_MIGRATE:?Set local migration URL}
+      DATABASE_URL: ${DATABASE_URL:?Set Core runtime URL}
+      CAR_BOOKING_DATABASE_URL: ${CAR_BOOKING_DATABASE_URL:?Set Car runtime URL}
+      DUCT_RENTAL_DATABASE_URL: ${DUCT_RENTAL_DATABASE_URL:?Set Duct runtime URL}
+      DATABASE_SSL: disable
+      APP_COMMIT_SHA: ${APP_COMMIT_SHA:-}
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  guarantee-files:
+  duct-files:
+  nas-documents:
+  next-cache:

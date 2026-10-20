@@ -1,0 +1,74 @@
+/* Sole workspace token source. Consumers use semantic tokens directly. */
+:root {
+  color-scheme: light;
+  --color-bg: #f4f6f9;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #eef2f7;
+  --color-border: #d7dee8;
+  --color-border-strong: #77879b;
+  --color-text: #182334;
+  --color-text-muted: #536278;
+  --color-text-subtle: #606e84;
+  --color-brand: #244fb8;
+  --color-brand-deep: #193d92;
+  --color-on-brand-deep: #ffffff;
+  --color-focus-ring: #244fb8;
+  --color-brand-strong: #193d92;
+  --color-brand-hover: #193d92;
+  --color-brand-soft: #e9efff;
+  --color-on-brand: #ffffff;
+  --color-success: #167143;
+  --color-success-soft: #e4f4ea;
+  --color-warning: #865100;
+  --color-warning-soft: #fff2d6;
+  --color-danger: #b42332;
+  --color-danger-soft: #ffeaed;
+  --color-info: #245db1;
+  --color-info-soft: #e8f0ff;
+  --color-overlay: rgb(18 32 52 / 55%);
+  --color-highlight: rgb(255 255 255 / 15%);
+  --color-shadow-ink: rgb(18 32 52 / 15%);
+  --radius-xs: 3px; --radius-sm: 5px; --radius-md: 8px; --radius-lg: 12px;
+  --radius-xl: 16px;
+  --text-micro: 11px; --text-caption: 12px; --text-body: 13px; --text-body-strong: 14px;
+  --text-h3: 16px; --text-h2: 20px; --text-h1: clamp(24px, 2vw, 30px); --text-stat: 24px;
+  --shadow-xs: 0 1px 2px rgb(18 32 52 / 5%);
+  --shadow-sm: 0 3px 12px rgb(18 32 52 / 9%);
+  --shadow-md: 0 12px 32px rgb(18 32 52 / 18%);
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-7: 28px; --space-8: 32px; --space-9: 36px; --space-10: 40px;
+  --font-ui: var(--font-nunito), var(--font-thai), sans-serif;
+  --font-heading: var(--font-manrope), var(--font-thai), sans-serif;
+  --font-mono: var(--font-code), monospace;
+    --z-sticky: 100; --z-dropdown: 220; --z-module: 90; --z-skip: 1000;
+  --motion-fast: 120ms; --motion-base: 200ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #111925; --color-surface: #1b2636; --color-surface-subtle: #243246;
+  --color-border: #3a4a61; --color-border-strong: #8294ad;
+  --color-text: #eff3f9; --color-text-muted: #b9c6d8; --color-text-subtle: #a2b3c9;
+  --color-brand: #9bbcff; --color-brand-strong: #bad0ff; --color-brand-hover: #bad0ff; --color-brand-soft: #253d64;
+  --color-brand-deep: #12213c; --color-on-brand-deep: #eff3f9; --color-focus-ring: #9bbcff;
+  --color-on-brand: #12213c;
+  --color-success: #83d9a6; --color-success-soft: #1c3f30;
+  --color-warning: #f4c36b; --color-warning-soft: #46381f;
+  --color-danger: #ffa1ac; --color-danger-soft: #4b2834;
+  --color-info: #9bbcff; --color-info-soft: #253d64;
+  --color-overlay: rgb(0 0 0 / 65%);
+  --color-highlight: rgb(255 255 255 / 8%);
+  --color-shadow-ink: rgb(0 0 0 / 30%);
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 15%);
+  --shadow-sm: 0 3px 12px rgb(0 0 0 / 22%);
+  --shadow-md: 0 12px 32px rgb(0 0 0 / 35%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-fast: 0ms;
+    --motion-base: 0ms;
+  }
+
+  * { scroll-behavior: auto !important; }
+}

@@ -1,0 +1,163 @@
+{
+  "sourceCommit": "f87220bf94b765e4896388632c3dbeabb5286510",
+  "requests": [
+    {
+      "id": "FIXTURE-RQ-1",
+      "current_phase": "COMPLETE",
+      "phase_statuses": {
+        "DESIGN": "done",
+        "DRAFTSMAN": "done",
+        "PERMISSION_1": "done",
+        "INSTALL": "done",
+        "DRAFTSMAN_2": "done",
+        "PERMISSION_2": "done",
+        "3RD_PARTY_1": "done",
+        "PERMISSION_3": "done",
+        "3RD_PARTY_2": "done",
+        "COMPLETE": "done"
+      },
+      "owner_id": "fixture-designer",
+      "created_at": "2031-01-02",
+      "design_data": {
+        "projectName": "ข้อมูลจำลอง FIXTURE-RQ-1",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "rate_notice_data": {
+        "monthlyFee": "99.50",
+        "yearlyFee": "0.10",
+        "contractStartDate": "2031-01-01",
+        "contractEndDate": "2031-12-31"
+      },
+      "guarantee_data": {
+        "contractNumber": "FIXTURE-CONTRACT",
+        "fullAmount": "1.005",
+        "paymentType": "BG",
+        "venderCode": "1129267",
+        "receiptNumber": "FIXTURE-RECEIPT"
+      }
+    },
+    {
+      "id": "FIXTURE-RQ-2",
+      "current_phase": "COMPLETE",
+      "phase_statuses": {
+        "DESIGN": "done",
+        "DRAFTSMAN": "done",
+        "PERMISSION_1": "done",
+        "INSTALL": "done",
+        "DRAFTSMAN_2": "done",
+        "PERMISSION_2": "done",
+        "3RD_PARTY_1": "done",
+        "PERMISSION_3": "done",
+        "3RD_PARTY_2": "done",
+        "COMPLETE": "done"
+      },
+      "owner_id": "fixture-designer",
+      "created_at": "2031-01-02",
+      "design_data": {
+        "projectName": "ข้อมูลจำลอง FIXTURE-RQ-2",
+        "routeName": "เส้นทางทดสอบ",
+        "ownerDuct": "NT",
+        "routeDetail": "เส้นทาง",
+        "jobType": "Network",
+        "serviceCenter": "BKK 1",
+        "cableType": "ADSS",
+        "fiberType": "12 Core",
+        "diameter": 8.7,
+        "distance": 1,
+        "startCoords": "13,100",
+        "endCoords": "14,101",
+        "district": "เขตทดสอบ",
+        "province": "จังหวัดทดสอบ"
+      },
+      "rate_notice_data": {
+        "monthlyFee": "99.50",
+        "yearlyFee": "0.20",
+        "contractStartDate": "2031-01-01",
+        "contractEndDate": "2031-12-31"
+      },
+      "guarantee_data": {
+        "contractNumber": "FIXTURE-CONTRACT",
+        "fullAmount": "1.005",
+        "paymentType": "BG",
+        "venderCode": "1129267",
+        "receiptNumber": "FIXTURE-RECEIPT"
+      }
+    }
+  ],
+  "request_files": [
+    {
+      "id": "FIXTURE-FILE-1",
+      "request_id": "FIXTURE-RQ-1",
+      "name": "ภาพประกอบจำลอง.png",
+      "phase": "DESIGN",
+      "file_type": "other",
+      "url": "https://fixture.invalid/never-fetched.png"
+    }
+  ],
+  "annual_renewals": [
+    {
+      "id": "FIXTURE-YEAR-2032",
+      "year": 2032,
+      "status": "draft",
+      "created_by": "fixture-designer",
+      "estimated_total_cost": "0.30"
+    }
+  ],
+  "annual_renewal_routes": [
+    {
+      "id": "FIXTURE-ROUTE-1",
+      "renewal_id": "FIXTURE-YEAR-2032",
+      "route_id": "FIXTURE-RQ-1",
+      "route_name": "เส้นทางจำลอง",
+      "project_name": "โครงการจำลอง 1",
+      "owner_duct": "NT",
+      "service_center": "BKK 1",
+      "monthly_fee": "99.50",
+      "yearly_fee": "0.10",
+      "review_status": "keep",
+      "review_notes": "ข้อมูลจำลอง"
+    },
+    {
+      "id": "FIXTURE-ROUTE-2",
+      "renewal_id": "FIXTURE-YEAR-2032",
+      "route_id": "FIXTURE-RQ-2",
+      "route_name": "เส้นทางจำลอง",
+      "project_name": "โครงการจำลอง 2",
+      "owner_duct": "NT",
+      "service_center": "BKK 1",
+      "monthly_fee": "99.50",
+      "yearly_fee": "0.20",
+      "review_status": "keep",
+      "review_notes": "ข้อมูลจำลอง"
+    }
+  ],
+  "cancellations": [
+    {
+      "id": "FIXTURE-CAN-1",
+      "request_id": "FIXTURE-RQ-2",
+      "requested_by_id": "fixture-designer",
+      "route_name": "เส้นทางจำลอง",
+      "project_name": "โครงการจำลอง",
+      "owner_duct": "NT",
+      "service_center": "BKK 1",
+      "status": "pending",
+      "effective_date": "2032-01-01",
+      "reason": "เตรียม fixture เท่านั้น",
+      "notes": "ยังไม่ยกเลิกจริง",
+      "monthly_fee": "99.50",
+      "yearly_fee": "0.20"
+    }
+  ]
+}

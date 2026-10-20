@@ -1,0 +1,35 @@
+{
+  "sourceSha": "f87220bf94b765e4896388632c3dbeabb5286510",
+  "templates": [
+    {
+      "variant": "blank",
+      "sourcePath": "public/templates/แบบฟอร์มคำขอใช้บริการท่อร้อยสายสื่อสาร NT.pdf",
+      "targetFile": "nt-duct-rental-blank.pdf",
+      "sha256": "e87cc7ca060f79943178554af86357c4cb6fc6883475ed75957d0a955e4911ed",
+      "bytes": 249371,
+      "pages": 5,
+      "namedDictionaries": 195,
+      "activeSourceRenderer": false
+    },
+    {
+      "variant": "copy",
+      "sourcePath": "public/templates/แบบฟอร์มคำขอใช้บริการท่อร้อยสายสื่อสารตัวอย่าง - Copy.pdf",
+      "targetFile": "nt-duct-rental-example-copy.pdf",
+      "sha256": "04e28684fe67c7f4794d6e77e3a41acbc9d28711e15ac59599e91572c7219d41",
+      "bytes": 263545,
+      "pages": 5,
+      "namedDictionaries": 196,
+      "activeSourceRenderer": false
+    },
+    {
+      "variant": "original",
+      "sourcePath": "public/templates/แบบฟอร์มคำขอใช้บริการท่อร้อยสายสื่อสารตัวอย่าง.pdf",
+      "targetFile": "nt-duct-rental.pdf",
+      "sha256": "57aa9d7ab53c8960fdfe99ae4fb65948a93d37d72f8c35f1cdf84d0faea81f9c",
+      "bytes": 266392,
+      "pages": 5,
+      "namedDictionaries": 196,
+      "activeSourceRenderer": true
+    }
+  ]
+}

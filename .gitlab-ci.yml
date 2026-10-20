@@ -1,0 +1,97 @@
+stages: [verify, build, push, deploy]
+
+variables:
+  GIT_DEPTH: "0"
+  # TODO(IT): approve matching Docker CLI/daemon digests and registry access.
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: /certs
+  DOCKER_TLS_VERIFY: "1"
+  DOCKER_CERT_PATH: /certs/client
+
+quality:
+  stage: verify
+  image: node:22-bookworm-slim
+  cache:
+    key:
+      files: [package-lock.json]
+    paths: [.npm-cache/]
+  script:
+    - npm ci --cache .npm-cache --no-audit --no-fund
+    - npm run lint
+    - npm run typecheck
+    - npm test
+    - npm run test:documents
+    - npm run test:deployment
+
+secret_scan:
+  stage: verify
+  image:
+    name: zricethezav/gitleaks:v8.24.3
+    entrypoint: [""]
+  script:
+    - gitleaks git . --log-opts="--all --full-history" --redact=100 --no-banner
+
+.docker_job:
+  image: docker:28-cli
+  services:
+    - name: docker:28-dind
+      alias: docker
+  # TODO(IT): Linux Docker executor with privileged DinD + shared /certs/client
+  # volume is the default recipe. Shell/Kubernetes/rootless runners need an
+  # IT-reviewed equivalent. This file does not configure the runner/server.
+  before_script:
+    - docker info
+
+container_build:
+  extends: .docker_job
+  stage: build
+  timeout: 45 minutes
+  script:
+    - apk add --no-cache nodejs
+    # The npm wrapper replaces all known .env keys with local placeholders,
+    # creates a unique Compose project, tests it and cleans only that fixture.
+    - node scripts/deployment/test-docker.mjs
+    # Build release images from the same source/public build identity. No DB
+    # variables or secrets are passed to either build.
+    - docker build --target runner --build-arg APP_COMMIT_SHA="$CI_COMMIT_SHA" --build-arg APP_BRANCH="$CI_COMMIT_REF_NAME" -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" .
+    - docker build --target tools -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-tools" .
+    - docker save "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-tools" | gzip > images.tar.gz
+  artifacts:
+    paths: [images.tar.gz]
+    expire_in: 1 day
+    access: maintainer
+  # TODO(IT): artifact upload/download limit must fit both compressed images.
+  # If registry staging/buildx is preferred, replace this transfer explicitly.
+
+registry_push:
+  extends: .docker_job
+  stage: push
+  needs:
+    - job: container_build
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_BRANCH
+  script:
+    - gzip -dc images.tar.gz | docker load
+    - echo "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA-tools"
+    - docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG"
+    - |
+      if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
+        docker tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA" "$CI_REGISTRY_IMAGE:latest"
+        docker push "$CI_REGISTRY_IMAGE:latest"
+      fi
+  after_script:
+    - docker logout "$CI_REGISTRY" || true
+
+deploy_todo_it:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  allow_failure: true
+  script:
+    - echo "TODO(IT) configure server deployment, secrets, reviewed migrations, backups, HTTPS and rollback. This placeholder performs no deployment."
+    - exit 1

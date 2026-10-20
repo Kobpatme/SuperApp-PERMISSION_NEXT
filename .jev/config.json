@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "endpoint": "https://api.typesafe.ai",
+  "model": "jev-latest",
+  "privacy_mode": "metadata_only",
+  "allow_source_code": false,
+  "log_raw_state": false,
+  "choice": {
+    "high_confidence": 0.9,
+    "verify_confidence": 0.7
+  },
+  "noul": {
+    "positive": 0.8,
+    "uncertain_low": 0.4,
+    "uncertain_high": 0.6
+  },
+  "rank": {
+    "max_items_per_batch": 24,
+    "top_k": 6
+  },
+  "retry": {
+    "max_jev_retries_per_decision": 1
+  },
+  "network": {
+    "timeout_seconds": 20
+  },
+  "logging": {
+    "enabled": true,
+    "directory": ".jev/logs"
+  },
+  "profile": "web-fullstack",
+  "mcp": {
+    "server_name": "jev",
+    "sdk_version": "1.26.0",
+    "max_candidates_per_call": 24,
+    "prefer_mcp": true,
+    "cli_fallback": true
+  }
+}

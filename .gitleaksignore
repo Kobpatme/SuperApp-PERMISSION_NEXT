@@ -1,0 +1,7 @@
+# 2026-10-16: false positive, CacheService cache key columns_initialized_v2.
+741888f520b7981e08de236dc62cc323aad73c1c:docs/legacy-car-booking/Code.gs:generic-api-key:1963
+# 2026-10-16: owner explicitly accepted the legacy Firebase web key while the
+# complete workflow moves to this system. Exact historical/current fingerprints
+# only; new credentials and other files remain scanned. Key not copied to image.
+6ccef5b40fc5a9c006d02e58860897142d50ce52:mods/permission-next/Permission_Next.html:gcp-api-key:2610
+mods/permission-next/Permission_Next.html:gcp-api-key:2610

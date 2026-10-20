@@ -1,0 +1,17 @@
+{
+  "actors": {
+    "fixture-designer": "00000000-0000-4000-8000-000000009001"
+  },
+  "centers": {
+    "BKK 1": "00000000-0000-4000-8000-000000009101"
+  },
+  "renewalStatuses": {},
+  "files": {
+    "FIXTURE-FILE-1": {
+      "relativePath": "signature.png",
+      "checksumSha256": "1286d1ce38d8da0574f82a17740ceb44f95119bc2d35e44962d90d10b30e17c1",
+      "sizeBytes": 1554,
+      "mediaType": "image/png"
+    }
+  }
+}
