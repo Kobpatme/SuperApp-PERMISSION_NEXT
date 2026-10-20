@@ -4,8 +4,21 @@
 .building-map-entry a:focus-visible,.building-map-detail a:focus-visible,.building-map-page button:focus-visible,.building-map-page a:focus-visible,.building-location-picker button:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
 .building-longdo-map{position:relative;width:100%;height:100%;min-height:280px;overflow:hidden;border-radius:var(--radius-md);background:var(--color-surface-subtle)}
 .building-longdo-map-canvas{position:absolute;inset:0;width:100%;height:100%;min-height:280px}
-.building-map-marker{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:2px solid var(--color-surface);border-radius:50%;background:var(--color-brand);color:var(--color-surface);font:700 16px/1 var(--font-ui);box-sizing:border-box;box-shadow:0 1px 4px color-mix(in srgb,var(--color-text) 25%,transparent)}
-.building-map-marker-cluster{font-size:var(--text-body);font-variant-numeric:tabular-nums}
+.building-map-marker{position:relative;width:44px;height:44px;border:none;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--color-brand);color:var(--color-surface);font:700 15px/1 var(--font-ui);box-sizing:border-box;box-shadow:0 4px 14px color-mix(in srgb,var(--color-text) 25%,transparent);cursor:pointer;display:flex;align-items:center;justify-content:center;animation:marker-enter var(--motion-base) var(--ease-out) both}
+.building-map-marker > *{transform:rotate(45deg);display:inline-block}
+.building-map-marker:hover{transform:rotate(-45deg) scale(1.1);box-shadow:0 10px 24px color-mix(in srgb,var(--color-text) 35%,transparent);z-index:10}
+.building-map-marker:focus-visible{outline:3px solid var(--color-brand);outline-offset:2px}
+.building-map-marker::after{content:"";position:absolute;right:-6px;bottom:-6px;width:10px;height:10px;border:2px solid var(--color-surface);border-radius:50%;background:var(--color-brand)}
+.building-map-marker-confirmed::after{background:var(--color-success)}
+.building-map-marker-mou::after{background:var(--color-info)}
+.building-map-marker-pending::after{background:var(--color-warning)}
+.building-map-marker-closed::after{background:var(--color-text-muted)}
+.building-map-marker-cluster{border-radius:50%;transform:none;background:var(--color-brand);border:3px solid var(--color-surface);box-shadow:0 4px 14px color-mix(in srgb,var(--color-text) 25%,transparent);animation:marker-enter var(--motion-base) var(--ease-out) both}
+.building-map-marker-cluster:hover{transform:scale(1.1);box-shadow:0 10px 24px color-mix(in srgb,var(--color-text) 35%,transparent);z-index:10}
+.building-map-marker-cluster > *{transform:none}
+.building-map-marker-selected{position:relative;animation:marker-enter var(--motion-base) var(--ease-out) both,marker-pulse 2s ease-in-out infinite}
+.building-map-marker-selected::before{content:"";position:absolute;inset:-6px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid var(--color-brand);opacity:0;animation:marker-pulse-ring 2s ease-in-out infinite}
+.building-map-marker-cluster.building-map-marker-selected::before{border-radius:50%;transform:none}
 .building-longdo-map-state{position:absolute;z-index:2;inset:0;display:grid;align-content:center;justify-items:center;gap:9px;padding:24px;background:color-mix(in srgb,var(--color-surface) 94%,transparent);color:var(--color-text);text-align:center}
 .building-longdo-map-state strong{font-size:var(--text-h3);line-height:1.6}.building-longdo-map-state span{max-width:440px;color:var(--color-text-muted);font-size:var(--text-body-strong);line-height:1.6}
 .building-longdo-map-state button,.building-location-picker button,.building-map-page button{min-height:42px;padding:8px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font:700 13px/1.35 var(--font-ui);cursor:pointer}
@@ -62,13 +75,14 @@
 @media(max-width:700px){.building-map-header{align-items:flex-start;flex-direction:column}.building-map-summary{justify-content:flex-start;width:100%}.building-map-summary>div{flex:1 1 120px}.building-map-layout{grid-template-columns:minmax(0,1fr);min-height:0}.building-map-list{max-height:300px}.building-map-canvas-panel{min-height:60svh}.building-map-canvas-panel>.building-longdo-map{min-height:60svh}.building-map-legend{font-size:var(--text-caption)}.building-map-detail{max-height:46%;}.building-location-heading{align-items:flex-start;flex-direction:column}.building-location-values{grid-template-columns:repeat(2,minmax(0,1fr))}.building-location-picker>.building-longdo-map{height:50svh;min-height:300px}}
 @media(max-width:700px){.building-create-fields{grid-template-columns:minmax(0,1fr);padding:14px}.building-create-submit{align-items:stretch;flex-direction:column}.building-create-submit button{width:100%}.building-map-entry{align-items:flex-start;flex-direction:column}.building-map-entry>div{justify-content:flex-start;width:100%}}
 @media(max-width:390px){.building-map-page{gap:12px;padding:12px}.building-map-summary>div{min-width:calc(50% - 5px)}.building-map-filters{padding:9px}.building-map-filters label{flex-basis:calc(50% - 6px);min-width:0}.building-map-filters .building-location-button{width:100%}.building-map-legend{left:8px;top:8px;gap:6px;padding:6px 8px}.building-map-detail{right:8px;bottom:8px;width:calc(100% - 16px)}.building-map-list li{padding-inline:1px}}
-.building-map-marker{width:44px;height:44px;color:var(--color-on-brand);border-radius:var(--radius-xl);cursor:pointer}
-.building-map-marker-cluster{border-radius:50%;background:var(--color-brand);font-size:var(--text-body-strong);border:3px solid var(--color-surface)}
-.building-map-marker-confirmed{background:var(--color-success,var(--color-brand))}
-.building-map-marker-mou{background:var(--color-info,var(--color-brand))}
-.building-map-marker-pending{background:var(--color-warning);color:var(--color-text)}
-.building-map-marker-closed{background:var(--color-text-muted)}
-.building-map-marker-selected{outline:3px solid var(--color-text);outline-offset:2px}
+.building-map-marker-hover-zone{position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity var(--motion-fast) ease-out}
+.building-map-marker:hover .building-map-marker-hover-zone{opacity:0.15}
+.building-map-marker-cluster{animation:marker-enter var(--motion-base) var(--ease-out) both}
+.building-map-marker-cluster:hover{transform:scale(1.1);box-shadow:0 10px 24px color-mix(in srgb,var(--color-text) 35%,transparent);z-index:10}
+.building-map-marker-selected{position:relative;animation:marker-enter var(--motion-base) var(--ease-out) both,marker-pulse 2s ease-in-out infinite}
+.building-map-marker-selected::before{content:"";position:absolute;inset:-6px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid var(--color-brand);opacity:0;animation:marker-pulse-ring 2s ease-in-out infinite}
+.building-map-marker-cluster.building-map-marker-selected::before{border-radius:50%;transform:none}
+.building-map-marker-selected::after{opacity:0.9}
 .building-longdo-fullscreen{top:auto;right:auto;bottom:32px;left:12px}
 .building-map-cluster-picker{position:absolute;z-index:4;left:12px;bottom:88px;width:min(340px,calc(100% - 24px));max-height:50%;display:flex;flex-direction:column;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-xs)}
 .building-map-cluster-picker header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-bottom:1px solid var(--color-border)}
@@ -79,5 +93,10 @@
 .building-map-cluster-picker li button:hover{background:var(--color-brand-soft)}
 .building-map-cluster-picker button:focus-visible{outline:2px solid var(--color-brand);outline-offset:-2px}
 .building-map-cluster-picker strong{font-size:var(--text-body-strong);line-height:1.6}.building-map-cluster-picker li span{font-size:var(--text-body);color:var(--color-text-muted);line-height:1.6}
-.building-longdo-map .building-map-marker{padding:0;min-height:44px;border:2px solid var(--color-surface);font:700 15px/1 var(--font-ui)}
+.building-longdo-map .building-map-marker{padding:0;border:none;font:700 15px/1 var(--font-ui);cursor:pointer}
 .building-map-cluster-picker{left:auto;right:12px}
+
+/* Map marker animations — entrance + selected pulse */
+@keyframes marker-enter{from{opacity:0;transform:rotate(-45deg) scale(0.7)}to{opacity:1;transform:rotate(-45deg) scale(1)}}
+@keyframes marker-pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--color-brand) 40%)}50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--color-brand) 20%)}}
+@keyframes marker-pulse-ring{0%{transform:rotate(-45deg) scale(0.8);opacity:0}50%{opacity:0.6}100%{transform:rotate(-45deg) scale(1.4);opacity:0}}
