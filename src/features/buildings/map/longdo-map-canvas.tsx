@@ -1,7 +1,6 @@
 "use client";
 
 import { copy } from "@/lib/copy";
-import { workspaceIconMarkup } from "@/components/workspace-icon";
 
 import { useEffect, useRef, useState } from "react";
 import { escapeMapText, loadLongdoMap, normalizeLongdoStyle, subscribeMapReady, type LongdoMapInstance, type LongdoMarker, type LongdoNamespace, type LongdoStyle } from "./longdo-map-adapter";
@@ -155,10 +154,14 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
       const first = selected ?? cluster.points[0];
       const grouped = cluster.points.length > 1;
       const status = first.status === "Permission Confirmed" ? "confirmed" : first.status === "MOU" ? "mou" : first.status === "อาคารปิดถาวร" ? "closed" : "pending";
-      const buildingIcon = workspaceIconMarkup("buildings", 20, 2);
       const label = grouped ? `${cluster.points.length} อาคาร คลิกเพื่อขยายและเลือก` : `${first.name} · ${first.status ?? ""}`;
+      // Dot + hover label chip: one visual language for single markers and clusters.
+      const markerInner = grouped
+        ? `<span class="building-map-marker-cluster">${cluster.points.length}</span>`
+        : `<span class="building-map-marker-dot"></span><span class="building-map-marker-label">${escapeMapText(first.name)}</span>`;
+      const markerClass = `building-map-marker${grouped ? "" : ` building-map-marker-${status}`}${selected ? " building-map-marker-selected" : ""}`;
       const marker = new longdo.Marker({ lat: cluster.latitude, lon: cluster.longitude }, {
-        icon: { html: `<button type="button" aria-label="${escapeMapText(label)}" title="${escapeMapText(label)}" class="building-map-marker ${grouped ? "building-map-marker-cluster" : `building-map-marker-${status}`}${selected ? " building-map-marker-selected" : ""}">${grouped ? cluster.points.length : buildingIcon}</button>`, size: { width: 44, height: 44 }, offset: { x: 22, y: 22 } } });
+        icon: { html: `<button type="button" aria-label="${escapeMapText(label)}" title="${escapeMapText(label)}" class="${markerClass}">${markerInner}</button>`, size: { width: 44, height: 44 }, offset: { x: 22, y: 22 } } });
       if (grouped) { marker.buildingIds = cluster.points.map((point) => point.id); marker.clusterLocation = { lat: cluster.latitude, lon: cluster.longitude }; }
       else marker.buildingId = first.id;
       map.Overlays.add(marker);

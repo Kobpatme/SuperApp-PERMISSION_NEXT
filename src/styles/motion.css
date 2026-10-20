@@ -10,9 +10,8 @@
 @keyframes success-enter { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:scale(1); } }
 @keyframes row-enter { from { opacity:0; } to { opacity:1; } }
 @keyframes skeleton-shimmer { from { transform:translateX(-100%); opacity:.25; } to { transform:translateX(100%); opacity:.6; } }
-@keyframes marker-enter { from { opacity:0; transform:rotate(-45deg) scale(0.7); } to { opacity:1; transform:rotate(-45deg) scale(1); } }
-@keyframes marker-pulse { 0%,100% { box-shadow:0 0 0 0 color-mix(in srgb,var(--color-brand) 40%); } 50% { box-shadow:0 0 0 8px color-mix(in srgb,var(--color-brand) 20%); } }
-@keyframes marker-pulse-ring { 0% { transform:rotate(-45deg) scale(0.8); opacity:0; } 50% { opacity:0.6; } 100% { transform:rotate(-45deg) scale(1.4); opacity:0; } }
+@keyframes marker-enter { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:scale(1); } }
+@keyframes marker-pulse { 0%,100% { box-shadow:0 0 0 0 color-mix(in srgb,var(--color-brand) 35%); } 50% { box-shadow:0 0 0 7px color-mix(in srgb,var(--color-brand) 0%); } }
 @keyframes detail-slide-up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 @keyframes map-view-crossfade { from { opacity:0; } to { opacity:1; } }
 @keyframes row-stagger-enter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
