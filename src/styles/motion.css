@@ -1,4 +1,4 @@
-/* Motion communicates input and state. Only transform/opacity, 120/200ms. */
+/* Motion communicates input and state. Only transform/opacity, 120/200/320ms. */
 @keyframes auth-enter { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 @keyframes auth-error { 0%,100% { transform:translateX(0); } 35% { transform:translateX(-2px); } 70% { transform:translateX(2px); } }
 @keyframes spin { to { transform:rotate(360deg); } }
@@ -15,12 +15,27 @@
 @keyframes detail-slide-up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 @keyframes map-view-crossfade { from { opacity:0; } to { opacity:1; } }
 @keyframes row-stagger-enter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+/* Premium page entrance — fade up slightly */
+@keyframes page-fade-up { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+/* Premium card stagger — child items reveal one by one */
+@keyframes card-stagger { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+/* Premium modal — scale from center with gentle bounce */
+@keyframes modal-scale { from { opacity:0; transform:scale(0.94); } to { opacity:1; transform:scale(1); } }
+/* Premium backdrop — smooth dim */
+@keyframes backdrop-dim { from { opacity:0; } to { opacity:1; } }
+/* Premium button press */
+@keyframes button-press { 0% { transform:scale(1); } 50% { transform:scale(0.97); } 100% { transform:scale(1); } }
+/* Premium empty state marker pulse */
+@keyframes marker-breathe { 0%,100% { opacity:.4; transform:scale(1); } 50% { opacity:.8; transform:scale(1.05); } }
+/* Premium sidebar slide */
+@keyframes sidebar-slide { from { transform:translateX(-100%); } to { transform:translateX(0); } }
+
 .auth-shell { animation:auth-enter var(--motion-base) var(--ease-out) both; }
 .auth-error { animation:auth-error var(--motion-fast) ease-out; }
 .auth-spinner { animation:spin 900ms linear infinite; }
 .auth-eye { transition:opacity var(--motion-fast) ease-out; }
-:where(.detail-panel[open],.permission-drawer[open],.notification-dialog[open],.deposit-modal[open]) { animation:panel-enter var(--motion-base) var(--ease-out) both; }
-:where(.detail-panel[open],.permission-drawer[open],.notification-dialog[open],.deposit-modal[open])::backdrop { animation:backdrop-enter var(--motion-base) ease-out both; }
+:where(.detail-panel[open],.permission-drawer[open],.notification-dialog[open],.deposit-modal[open],.work-create-dialog[open]) { animation:modal-scale var(--motion-base) var(--ease-out) both; }
+:where(.detail-panel[open],.permission-drawer[open],.notification-dialog[open],.deposit-modal[open],.work-create-dialog[open])::backdrop { animation:backdrop-dim var(--motion-base) ease-out both; }
 :where(.detail-panel,.permission-drawer).is-closing { animation:panel-exit var(--motion-fast) ease-out both; }
 :where(.detail-panel,.permission-drawer).is-closing::backdrop { animation:backdrop-exit var(--motion-fast) ease-out both; }
 :where(.account-control[open] .account-popover,.saved-views[open] .saved-views-popover,.workspace-search-popover,.permission-search-suggestions) { animation:popover-enter var(--motion-fast) var(--ease-out) both; }
@@ -28,6 +43,12 @@
 .workspace-table tbody tr:nth-child(-n+3),.deposit-queue-row:nth-child(-n+3) { animation:row-enter var(--motion-fast) ease-out both; }
 .workspace-table tbody tr:nth-child(2),.deposit-queue-row:nth-child(2) { animation-delay:40ms; }
 .workspace-table tbody tr:nth-child(3),.deposit-queue-row:nth-child(3) { animation-delay:80ms; }
+/* Card stagger for premium lists */
+.work-card-stagger > * { animation:card-stagger var(--motion-base) var(--ease-out) both; }
+.work-card-stagger > *:nth-child(2) { animation-delay:60ms; }
+.work-card-stagger > *:nth-child(3) { animation-delay:120ms; }
+.work-card-stagger > *:nth-child(4) { animation-delay:180ms; }
+.work-card-stagger > *:nth-child(5) { animation-delay:240ms; }
 .loading-line::after,.loading-table::after { animation:skeleton-shimmer 1400ms ease-in-out infinite; }
 :where(button,a,summary):not(:disabled):active { transition:transform var(--motion-fast) ease-out; }
 .auth-visibility { position:absolute; }
@@ -41,8 +62,8 @@
 @keyframes toast-exit { to { opacity:0; transform:translateY(10px); } }
 .toast { animation:toast-enter var(--motion-base) var(--ease-out) both; }
 .toast.is-closing { animation:toast-exit var(--motion-fast) var(--ease-out) both; }
-.card-hover:hover { box-shadow:var(--shadow-md); border-color:color-mix(in srgb,var(--color-brand) 45%,var(--color-border)); }
-.page-enter { animation:auth-enter var(--motion-base) var(--ease-out) both; }
+.card-hover:hover { box-shadow:var(--shadow-md); border-color:color-mix(in srgb,var(--color-brand) 45%,var(--color-border)); transform:translateY(-2px); transition:all var(--motion-fast) var(--ease-out); }
+.page-enter { animation:page-fade-up var(--motion-base) var(--ease-out) both; }
 /* Building map motion — detail slide-up, view crossfade, list stagger */
 .building-map-detail{animation:detail-slide-up var(--motion-base) var(--ease-out) both}
 .building-map-layout > section{animation:map-view-crossfade var(--motion-fast) ease-out both}
@@ -50,6 +71,10 @@
 .building-map-list li:nth-child(2){animation-delay:40ms}
 .building-map-list li:nth-child(3){animation-delay:80ms}
 .building-map-list li:nth-child(4){animation-delay:120ms}
+/* Sidebar premium slide */
+.sidebar-enter { animation:sidebar-slide var(--motion-base) var(--ease-out) both; }
+/* Marker breathe for empty states */
+.work-empty-marker { animation:marker-breathe 3s ease-in-out infinite; }
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after,*::backdrop { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
   :where(button,a,summary):active { transform:none; }

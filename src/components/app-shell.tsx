@@ -42,7 +42,7 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
         </div>
       </header>
     </div>
-    <aside className="workspace-sidebar" aria-label="เมนูหลัก">
+    <aside className={`workspace-sidebar ${collapsed ? "sidebar-collapsed" : "sidebar-enter"}`} aria-label="เมนูหลัก">
       <div className="sidebar-heading"><span className="sidebar-heading-label">พื้นที่ทำงาน</span><span className="sidebar-heading-rule"/>
         <button className="sidebar-collapse-button" type="button" aria-label={collapsed ? "ขยายเมนูด้านข้าง" : "ยุบเมนูด้านข้าง"} aria-expanded={!collapsed} onClick={toggleCollapsed} title={collapsed ? "ขยายเมนู" : "ยุบเมนู"}>
           <WorkspaceIcon name="chevron" size={20}/>
