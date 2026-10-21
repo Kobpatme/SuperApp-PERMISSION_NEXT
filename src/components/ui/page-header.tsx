@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { TruncatedText } from "@/components/ui/truncated-text";
 
-export function PageHeader({ title, description, eyebrow, parent, actions }: {
- title: string; description?: string; eyebrow?: string; parent?: { label: string; href: string }; actions?: React.ReactNode;
+export function PageHeader({ title, description, eyebrow, parent, actions, className }: {
+ title: string; description?: string; eyebrow?: string; parent?: { label: string; href: string }; actions?: React.ReactNode; className?: string;
 }) {
   return (
-    <header className="page-heading">
+    <header className={`page-heading ${className ?? ""}`.trim()}>
       <div className="page-heading-row">
         <div className="page-heading-content">
           {parent && (
