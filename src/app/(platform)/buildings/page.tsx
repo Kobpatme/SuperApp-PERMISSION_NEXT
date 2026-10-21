@@ -8,6 +8,7 @@ import { listPermissionBuildings } from "@/lib/permission-building-server";
 import { buildingQueryParams, parseBuildingQuery } from "@/lib/building-query";
 import { BuildingsWorkspace } from "./buildings-workspace";
 import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
 import "./permission-buildings.css";
 import "@/features/buildings/map/building-map.css";
 
@@ -22,6 +23,7 @@ export default async function BuildingsPage({ searchParams }: { searchParams: Pr
     {data.state === "not_configured" ? copy.feedback.unavailable : "โหลดข้อมูลอาคารไม่สำเร็จ กรุณาลองอีกครั้ง"}
   </main>;
   return <>
+    <PageHeader title="อาคารและค่าใช้จ่าย" description="ค้นหาข้อมูลอาคาร ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน" parent={{ label: "ภาพรวม", href: "/" }} actions={canCreate ? <Link className="btn-primary" href="/buildings/new">เพิ่มอาคาร</Link> : undefined} />
     <BuildingsWorkspace buildings={data.items} total={data.total} canCreate={canCreate} mapApiKey={process.env.LONGDO_MAP_API_KEY ?? ""} initialQuery={query.query} initialFilters={query} />
     <nav className="permission-pagination" aria-label="หน้าผลลัพธ์">
       {data.previousCursor ? <Link href={`/buildings?${buildingQueryParams(query, { page: Math.max(1, data.page - 1), before: data.previousCursor, after: "" })}`}>หน้าก่อนหน้า</Link> : <span/>}
