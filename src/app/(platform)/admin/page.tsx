@@ -9,7 +9,7 @@ import { AdminWorkspace } from "@/components/admin-workspace";
 import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { adminCapabilityCatalog } from "@/lib/admin-access-contract";
-import "./admin.css";
+
 import { getWorkspaceData } from "@/lib/workspace-server";
 import { getWorkAdminData } from "@/lib/work-admin-read";
 import { WorkAdminPanels } from "@/features/work/components/admin-panels";
@@ -77,15 +77,82 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     { id:"restore", label:"กู้คืนงาน", group:"ตรวจสอบ", allowed:access.permissions.includes("work.task.delete") && access.permissions.includes("work.task.manage"), description:"ตรวจและกู้คืนงานที่ถูกซ่อนจากรายการ", count:workAdmin.deleted.length },
   ].filter(item=>item.allowed);
   const current = sections.find(item=>item.id===params.section) ?? sections[0];
-  return <div className="admin-page"><PageHeader title="ผู้ดูแลระบบ" description="จัดการบัญชี สิทธิ์ และการตั้งค่าของพื้นที่ทำงาน" parent={{label:"ภาพรวม",href:"/"}} actions={permissionsGranted.users?<Link className="primary" href="/admin/car-booking">สิทธิ์ระบบจองรถ</Link>:undefined}/>
-    <div className="admin-layout"><nav className="admin-navigation" aria-label="ส่วนจัดการระบบ">{[...new Set(sections.map(item=>item.group))].map(group=><div className="admin-navigation-group" key={group}><span>{group}</span>{sections.filter(item=>item.group===group).map(item=><Link key={item.id} href={`/admin?section=${item.id}`} aria-current={current.id===item.id?"page":undefined}>{item.label}</Link>)}</div>)}</nav>
-    <div className="admin-content" key={current.id}>
-    {current.id==="overview" ? <><section className="admin-overview"><h2>ภาพรวมผู้ดูแล</h2><p>เลือกส่วนที่ต้องการจัดการ</p><div className="admin-overview-grid">{sections.filter(item=>item.id!=="overview").map(item=><Link key={item.id} href={`/admin?section=${item.id}`} className="admin-overview-link"><span><strong>{item.label}</strong><small>{item.description}</small></span>{item.count!==null&&<b>{item.count}<span className="sr-only"> รายการ</span></b>}<span aria-hidden="true">→</span></Link>)}</div></section>{permissionsGranted.audit&&<details className="admin-panel"><summary>สถานะการเชื่อมต่อข้อมูล</summary><ul>{diagnostics.map(source=><li key={source.moduleId}><code>{source.moduleId}</code> · {source.status==="ready"?"พร้อมใช้งาน":"ยังไม่พร้อมใช้งาน"}</li>)}</ul></details>}</> : <>
-    <div className="admin-section-heading"><h2>{current.label}</h2><p>{current.description}</p></div>
-    {current.id==="audit"&&permissionsGranted.audit&&<form method="get" className="admin-filter-form" aria-label="ตัวกรองประวัติ"><input type="hidden" name="section" value="audit"/><label>ส่วนงาน<input name="auditModule" defaultValue={typeof params.auditModule==="string"?params.auditModule:""}/></label><label>ค้นหาการเปลี่ยนแปลง<input name="auditAction" defaultValue={typeof params.auditAction==="string"?params.auditAction:""}/></label><label>ผู้ดำเนินการ<select name="auditActor" defaultValue={typeof params.auditActor==="string"?params.auditActor:""}><option value="">ทั้งหมด</option>{userRows.map(user=><option key={user.id} value={user.id}>{user.displayName}</option>)}</select></label><label>ตั้งแต่<input type="date" name="auditFrom" defaultValue={typeof params.auditFrom==="string"?params.auditFrom:""}/></label><label>ถึง<input type="date" name="auditTo" defaultValue={typeof params.auditTo==="string"?params.auditTo:""}/></label><div className="admin-filter-actions"><button className="secondary-action">ใช้ตัวกรอง</button><Link href="/admin?section=audit">ล้างตัวกรอง</Link></div></form>}
-    {current.id==="modules"&&<AdminModuleSettings available={moduleState.available} items={modules.map(module=>{const row=moduleState.rows.find(item=>item.moduleId===module.id);return {id:module.id,name:module.name,ready:module.lifecycle==="active",enabled:effectiveModuleEnabled(module,row?.enabled),version:row?.version??0};})}/>}
-    <AdminWorkspace section={current.id} users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
-    userScopes={userScopeRows} sessions={sessionRows} auditRows={auditRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))}
-    capabilities={adminCapabilityCatalog} permissionsGranted={permissionsGranted}/><WorkAdminPanels section={current.id} data={workAdmin}/></>}
-    </div></div></div>;
+  return (
+    <main className="admin-page">
+      <PageHeader title="ผู้ดูแลระบบ" description="จัดการบัญชี สิทธิ์ และการตั้งค่าของพื้นที่ทำงาน" parent={{ label: "ภาพรวม", href: "/" }} actions={permissionsGranted.users ? <Link className="btn-primary" href="/admin/car-booking">สิทธิ์ระบบจองรถ</Link> : undefined} />
+      <div className="admin-layout">
+        <nav className="admin-navigation" aria-label="ส่วนจัดการระบบ">
+          {[...new Set(sections.map(item => item.group))].map(group => (
+            <div className="admin-navigation-group" key={group}>
+              <span>{group}</span>
+              {sections.filter(item => item.group === group).map(item => (
+                <Link key={item.id} href={`/admin?section=${item.id}`} aria-current={current.id === item.id ? "page" : undefined} className={current.id === item.id ? "btn-primary" : "btn-ghost"}>{item.label}</Link>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="admin-content" key={current.id}>
+          {current.id === "overview" ? (
+            <>
+              <section className="admin-overview">
+                <h2>ภาพรวมผู้ดูแล</h2>
+                <p>เลือกส่วนที่ต้องการจัดการ</p>
+                <div className="admin-overview-grid">
+                  {sections.filter(item => item.id !== "overview").map(item => (
+                    <Link key={item.id} href={`/admin?section=${item.id}`} className="admin-overview-link">
+                      <span><strong>{item.label}</strong><small>{item.description}</small></span>
+                      {item.count !== null && <b>{item.count}<span className="sr-only"> รายการ</span></b>}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+              {permissionsGranted.audit && (
+                <details className="admin-panel">
+                  <summary>สถานะการเชื่อมต่อข้อมูล</summary>
+                  <ul>
+                    {diagnostics.map(source => (
+                      <li key={source.moduleId}><code>{source.moduleId}</code> · {source.status === "ready" ? "พร้อมใช้งาน" : "ยังไม่พร้อมใช้งาน"}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="admin-section-heading"><h2>{current.label}</h2><p>{current.description}</p></div>
+              {current.id === "audit" && permissionsGranted.audit && (
+                <form method="get" className="admin-filter-form" aria-label="ตัวกรองประวัติ">
+                  <input type="hidden" name="section" value="audit" />
+                  <label>ส่วนงาน<input name="auditModule" defaultValue={typeof params.auditModule === "string" ? params.auditModule : ""} /></label>
+                  <label>ค้นหาการเปลี่ยนแปลง<input name="auditAction" defaultValue={typeof params.auditAction === "string" ? params.auditAction : ""} /></label>
+                  <label>ผู้ดำเนินการ<select name="auditActor" defaultValue={typeof params.auditActor === "string" ? params.auditActor : ""}>
+                    <option value="">ทั้งหมด</option>
+                    {userRows.map(user => <option key={user.id} value={user.id}>{user.displayName}</option>)}
+                  </select></label>
+                  <label>ตั้งแต่<input type="date" name="auditFrom" defaultValue={typeof params.auditFrom === "string" ? params.auditFrom : ""} /></label>
+                  <label>ถึง<input type="date" name="auditTo" defaultValue={typeof params.auditTo === "string" ? params.auditTo : ""} /></label>
+                  <div className="admin-filter-actions">
+                    <button className="secondary-action">ใช้ตัวกรอง</button>
+                    <Link href="/admin?section=audit">ล้างตัวกรอง</Link>
+                  </div>
+                </form>
+              )}
+              {current.id === "modules" && (
+                <AdminModuleSettings available={moduleState.available} items={modules.map(module => {
+                  const row = moduleState.rows.find(item => item.moduleId === module.id);
+                  return { id: module.id, name: module.name, ready: module.lifecycle === "active", enabled: effectiveModuleEnabled(module, row?.enabled), version: row?.version ?? 0 };
+                })} />
+              )}
+            </>
+          )}
+          <AdminWorkspace section={current.id} users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
+            userScopes={userScopeRows} sessions={sessionRows} auditRows={auditRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))}
+            capabilities={adminCapabilityCatalog} permissionsGranted={permissionsGranted}
+          />
+          <WorkAdminPanels section={current.id} data={workAdmin} />
+        </div>
+      </div>
+    </main>
+  );
 }
