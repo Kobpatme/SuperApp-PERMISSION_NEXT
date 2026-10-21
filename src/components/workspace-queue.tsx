@@ -132,7 +132,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
   }
 
   return <>
-    {showMetrics && <section className="attention-strip" aria-label="เลือกกลุ่มงานที่ต้องติดตาม">{(Object.keys(viewLabels) as QueueView[]).map((view) => <button type="button" key={view} className={`attention-item ${settings.view === view ? "active" : ""} ${view}`} aria-pressed={settings.view === view} onClick={() => changeSettings({ view })}>
+    {showMetrics && <section className="attention-strip work-card-stagger" aria-label="เลือกกลุ่มงานที่ต้องติดตาม">{(Object.keys(viewLabels) as QueueView[]).map((view) => <button type="button" key={view} className={`attention-item ${settings.view === view ? "active" : ""} ${view}`} aria-pressed={settings.view === view} onClick={() => changeSettings({ view })}>
       <span>{view === "all" ? "รายการที่ต้องติดตาม" : viewLabels[view]}</span><strong>{hasData ? <AnimatedNumber value={counts[view]}/> : "—"}</strong><small>{hasData ? partial ? "รายการ · ข้อมูลบางส่วน" : "รายการ" : "รอข้อมูล"}<WorkspaceIcon name="arrow" size={16}/></small>
     </button>)}</section>}
     <section className="queue-section" aria-labelledby="queue-heading">

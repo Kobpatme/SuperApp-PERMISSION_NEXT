@@ -254,8 +254,11 @@ body {
 .workspace-health,
 .module-directory > a { padding: var(--space-5); }
 .metric:hover,
-.card:hover,
-.module-directory > a:hover { border-color: var(--color-border); box-shadow: var(--shadow-sm); transform: none; }
+.card:hover { border-color: var(--color-border); box-shadow: var(--shadow-sm); transform: none; }
+.module-directory > a:hover { border-color: color-mix(in srgb, var(--color-brand) 45%, var(--color-border)); box-shadow: var(--shadow-md); transform: translateY(-2px); transition: transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); }
+.module-directory > a { transition: transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); }
+.module-mark { display: grid; place-items: center; transition: transform var(--motion-fast) var(--ease-out); }
+.module-directory > a:hover .module-mark { transform: scale(1.1) rotate(-4deg); }
 .metric-icon,
 .module-mark,
 .empty-icon,
@@ -265,10 +268,14 @@ body {
 .workspace-health { background: var(--color-surface); }
 .health-icon { border-radius: var(--radius-md); background: var(--color-success-soft); color: var(--color-success); }
 .attention-strip { overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); }
-.attention-item { border-color: var(--color-border); background: var(--color-surface); }
-.attention-item:hover { background: var(--color-surface-subtle); }
+.attention-item { border-color: var(--color-border); background: var(--color-surface); transition: transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out), background var(--motion-fast) var(--ease-out); }
+.attention-item:hover { background: var(--color-surface-subtle); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.attention-item.urgent strong { color: var(--color-danger); }
+.attention-item.today strong { color: var(--color-warning); }
+.attention-item.mine strong { color: var(--color-info); }
 .attention-item.active { background: var(--color-brand-soft); box-shadow: inset 0 -3px var(--color-brand); }
 .attention-item.active strong { color: var(--color-brand); }
+.work-home-announcement { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); margin: 0 0 var(--space-4); border: 1px solid color-mix(in srgb, var(--color-info) 30%, var(--color-border)); border-radius: var(--radius-lg); background: var(--color-info-soft); color: var(--color-text); box-shadow: var(--shadow-xs); animation: card-stagger var(--motion-base) var(--ease-out) both; }
 .queue-section { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); }
 .queue-filters,
 .queue-notice,
