@@ -414,7 +414,7 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
 .work-quick-links .work-section-head p { margin: var(--space-1) 0 0; color: var(--color-text-muted); font-size: var(--text-caption); }
 .work-metric-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
 .work-metric { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); transition: transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); }
-.work-metric:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: var(--color-border-strong); }
+.work-metric:hover { transform:none; box-shadow:var(--shadow-xs); border-color:var(--color-border); }
 .work-metric span { font-size: var(--text-caption); color: var(--color-text-muted); }
 .work-metric strong { font-size: var(--text-stat); font-family: var(--font-heading); color: var(--color-text); }
 .work-metric small { font-size: var(--text-caption); color: var(--color-text-subtle); }
@@ -430,7 +430,7 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
 .work-card-stagger > *:nth-child(5) { animation-delay: 240ms; }
 
 .work-premium-card { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); transition: transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); }
-.work-premium-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: color-mix(in srgb, var(--color-brand) 30%); }
+.work-premium-card:hover { transform:none; box-shadow:var(--shadow-xs); border-color:var(--color-border); }
 .work-premium-card h2, .work-premium-card h3 { margin: 0; font-family: var(--font-heading); }
 .work-premium-card p { margin: 0; color: var(--color-text-muted); font-size: var(--text-body); }
 
@@ -440,7 +440,7 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
 .work-section-head p { margin: 0; color: var(--color-text-muted); font-size: var(--text-body); }
 .work-form-count { font-size: var(--text-caption); color: var(--color-text-muted); font-weight: 600; }
 
-.work-empty-marker { animation: marker-breathe 3s ease-in-out infinite; color: var(--color-text-muted); }
+.work-empty-marker { color:var(--color-text-muted); }
 .work-panel { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); overflow: hidden; }
 .work-panel > *:first-child { border-top: none; }
 

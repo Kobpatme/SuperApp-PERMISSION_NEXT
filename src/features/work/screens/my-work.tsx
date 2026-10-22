@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AuthorizationSubject } from "@/lib/authorization";
 import type { WorkReadModel } from "@/lib/work-read-model";
 import { personalWorkOverview } from "@/lib/work-overview";
@@ -11,7 +11,12 @@ import { WorkCreateForm } from "@/components/work-create-form";
 
 export function MyWorkDashboard({ model, subject, userId, detailId, canCreate }: { model: WorkReadModel; subject?: AuthorizationSubject; userId: string; detailId?: string; canCreate?: boolean }) {
   const [createOpen, setCreateOpen] = useState(false);
+  const createDialogRef = useRef<HTMLDialogElement>(null);
   const router = useRouter();
+  useEffect(() => {
+    const dialog = createDialogRef.current;
+    if (createOpen && dialog && !dialog.open) dialog.showModal();
+  }, [createOpen]);
   if (model.source.status !== "ready") return <WorkScreenShell title="ภาพรวมงานของฉัน" description="เห็นงานที่ต้องทำและความคืบหน้าในขอบเขตของคุณ"><WorkUnavailable message="ยังโหลดข้อมูลส่วนตัวไม่ได้" detail={model.source.message} /></WorkScreenShell>;
   const overview = personalWorkOverview(model, userId);
   const mine = overview.tasks;
@@ -23,10 +28,10 @@ export function MyWorkDashboard({ model, subject, userId, detailId, canCreate }:
       {detail ? <WorkTaskDetail task={detail} subject={subject} /> : mine.length ? <section className="work-panel work-premium-card"><div className="work-section-head"><div><h2>งานที่ต้องทำ</h2><p>เลือกงานเพื่อเปิดรายละเอียดและคำสั่งที่ทำได้</p></div><Link className="secondary-action" href="/work/mine">ดูรายการทั้งหมด</Link></div><WorkTaskTable tasks={mine.slice(0, 8)} subject={subject} showNotes /></section> : <WorkEmpty title="ยังไม่มีงานที่ได้รับมอบหมาย" detail="งานใหม่ที่อยู่ในขอบเขตของคุณจะแสดงที่นี่ เมื่อมีงานแล้วคุณจะรับงานและอัปเดตสถานะได้จากรายการนี้." action={canCreate ? <button className="secondary-action" onClick={() => setCreateOpen(true)}>เพิ่มงาน</button> : undefined} />}
       {model.activities.length > 0 && <section className="work-panel work-card-stagger"><div className="work-section-head"><div><h2>กิจกรรมล่าสุด</h2><p>การเปลี่ยนแปลงที่เกี่ยวข้องกับงานในขอบเขตของคุณ</p></div><Link className="text-btn" href="/work?view=activity">ดูทั้งหมด</Link></div><ol className="work-activity-list">{model.activities.slice(0, 6).map((event) => <li key={event.id}><span className="work-activity-dot" aria-hidden="true" /><div><strong>{event.eventLabel}</strong><span>{event.ownerName} · {new Date(event.occurredAt).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })}</span></div></li>)}</ol></section>}
       {createOpen && (
-        <dialog className="work-create-dialog" onClose={() => { setCreateOpen(false); router.refresh(); }} onCancel={(e) => { e.preventDefault(); }}>
+        <dialog ref={createDialogRef} className="work-create-dialog" aria-labelledby="work-create-title" onClose={() => { setCreateOpen(false); router.refresh(); }} onCancel={(event) => { event.preventDefault(); createDialogRef.current?.close(); }}>
           <div className="dialog-header">
-            <h3>เพิ่มงานใหม่</h3>
-            <button className="text-btn" onClick={() => setCreateOpen(false)}>ปิด</button>
+            <h3 id="work-create-title">เพิ่มงานใหม่</h3>
+            <button className="text-btn" type="button" onClick={() => createDialogRef.current?.close()}>ปิด</button>
           </div>
           <WorkCreateForm model={model} userId={userId} />
         </dialog>
