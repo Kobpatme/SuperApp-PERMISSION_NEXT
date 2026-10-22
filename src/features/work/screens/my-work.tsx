@@ -10,9 +10,9 @@ import { WorkTaskDetail, WorkTaskTable } from "@/features/work/components/task-t
 import { WorkCreateForm } from "@/components/work-create-form";
 
 export function MyWorkDashboard({ model, subject, userId, detailId, canCreate }: { model: WorkReadModel; subject?: AuthorizationSubject; userId: string; detailId?: string; canCreate?: boolean }) {
-  if (model.source.status !== "ready") return <WorkScreenShell title="ภาพรวมงานของฉัน" description="เห็นงานที่ต้องทำและความคืบหน้าในขอบเขตของคุณ"><WorkUnavailable message="ยังโหลดข้อมูลส่วนตัวไม่ได้" detail={model.source.message} /></WorkScreenShell>;
   const [createOpen, setCreateOpen] = useState(false);
   const router = useRouter();
+  if (model.source.status !== "ready") return <WorkScreenShell title="ภาพรวมงานของฉัน" description="เห็นงานที่ต้องทำและความคืบหน้าในขอบเขตของคุณ"><WorkUnavailable message="ยังโหลดข้อมูลส่วนตัวไม่ได้" detail={model.source.message} /></WorkScreenShell>;
   const overview = personalWorkOverview(model, userId);
   const mine = overview.tasks;
   const detail = detailId ? mine.find((task) => task.id === detailId) : undefined;
