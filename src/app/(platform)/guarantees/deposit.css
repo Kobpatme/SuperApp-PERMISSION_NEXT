@@ -8,7 +8,7 @@
 .deposit-banner { margin-bottom: 20px; padding: 12px 15px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface-subtle); color: var(--color-text-muted); }
 .deposit-banner a { color: var(--color-brand); font-weight: 700; text-decoration: underline; }
 .deposit-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 26px; }
-.deposit-kpis > div { display: flex; flex-direction: column; min-width: 0; padding: 18px; border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-surface); }
+.deposit-kpis > div { display: flex; flex-direction: column; min-width: 0; padding: 18px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
 .deposit-kpis span { color: var(--color-text-muted); font-size: var(--text-body); font-weight: 700; }
 .deposit-kpis strong { margin: 9px 0 4px; font-size: var(--text-stat); line-height: 1.6; font-variant-numeric: tabular-nums; }
 .deposit-kpis small { color: var(--color-text-muted); line-height: 1.6; }
@@ -23,7 +23,7 @@
 .deposit-count { margin-left: auto; color: var(--color-text-muted); white-space: nowrap; }
 .deposit-export { min-height: 42px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); color: var(--color-text); font-weight: 700; white-space: nowrap; }
 .deposit-export:disabled { opacity: .5; cursor: not-allowed; }
-.deposit-table-wrap { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-surface); }
+.deposit-table-wrap { overflow-x: auto; overflow-y: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
 .deposit-table { width: 100%; border-collapse: collapse; min-width: 970px; }
 .deposit-table th { padding: 14px 16px; border-bottom: 1px solid var(--color-border); background: var(--color-surface-subtle); color: var(--color-text-muted); font-size: var(--text-caption); text-align: left; white-space: nowrap; }
 .deposit-table td { padding: 14px 16px; border-bottom: 1px solid var(--color-border); font-size: var(--text-body); white-space: nowrap; }
@@ -34,7 +34,7 @@
 .deposit-table td small { margin-top: 2px; color: var(--color-text-muted); }
 .deposit-table td:last-child a, .deposit-link, .deposit-queue-row a { border: 0; background: transparent; color: var(--color-brand); font-weight: 700; white-space: nowrap; }
 .deposit-money { font-weight: 800; font-variant-numeric: tabular-nums; }
-.deposit-status, .deposit-priority { display: inline-flex; padding: 4px 9px; border-radius: 999px; background: var(--color-brand-soft); color: var(--color-brand); font-size: var(--text-caption); font-weight: 800; }
+.deposit-status, .deposit-priority { display: inline-flex; padding: 4px 9px; border-radius: var(--radius-pill); background: var(--color-brand-soft); color: var(--color-brand); font-size: var(--text-caption); font-weight: 800; }
 .deposit-status.status-done, .deposit-status.status-on_service { background: var(--color-success-soft); color: var(--color-success); }
 .deposit-status.status-cancel { background: var(--color-surface-subtle); color: var(--color-text-muted); }
 .deposit-status.status-off_service_pending, .deposit-priority.priority-high { background: color-mix(in srgb, var(--color-warning) 18%, var(--color-surface)); color: var(--color-warning); }
@@ -48,13 +48,13 @@
 .deposit-queue-row small { overflow: hidden; margin-top: 3px; color: var(--color-text-muted); text-overflow: ellipsis; white-space: nowrap; }
 .deposit-queue-row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .deposit-analytics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.deposit-analytics > div { padding: 20px; border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-surface); }
+.deposit-analytics > div { padding: 20px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
 .deposit-analytics h2 { margin: 0 0 15px; font-size: var(--text-h3); }
 .deposit-analytics p { display: flex; justify-content: space-between; gap: 16px; margin: 0; padding: 10px 0; border-bottom: 1px solid var(--color-border); color: var(--color-text-muted); }
 .deposit-analytics p:last-child { border: 0; }
 .deposit-analytics p strong { color: var(--color-text); text-align: right; }
-.deposit-modal-backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 20px; background: var(--color-info); }
-.deposit-modal { position: relative; width: min(560px, 100%); padding: 28px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); }
+.deposit-modal-backdrop { position:fixed; inset:0; z-index:300; display:grid; place-items:center; padding:var(--space-5); background:var(--color-overlay); }
+.deposit-modal { position:relative; width:min(560px,100%); padding:var(--space-7); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-xl); background:var(--color-surface); box-shadow:var(--shadow-md); }
 .deposit-modal h2 { margin: 0; }
 .deposit-modal-close { position: absolute; top: 15px; right: 16px; border: 0; background: transparent; color: var(--color-text-muted); font-size: 27px; }
 .deposit-modal dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0 0; }
@@ -104,7 +104,7 @@
 .deposit-transition button { min-height: 42px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface-subtle); color: var(--color-text); font-weight: 700; }
 .deposit-transition textarea { min-height: 74px; resize: vertical; }
 .deposit-transition p { margin: 0; color: var(--color-warning); }
-.deposit-form :is(input, select, button):focus-visible, .deposit-workspace :is(input, select, button, a):focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; }
+.deposit-form :is(input, select, button):focus-visible, .deposit-workspace :is(input, select, button, a):focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); }
 @media (max-width: 1100px) { .deposit-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .deposit-analytics { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 760px) { .deposit-head, .deposit-toolbar, .deposit-queue-row { flex-wrap: wrap; } .deposit-kpis, .deposit-analytics, .deposit-detail-grid { grid-template-columns: 1fr; } .deposit-search { max-width: none; flex-basis: 100%; } .deposit-count { margin-left: 0; } .deposit-form, .deposit-form fieldset { grid-template-columns: 1fr; } .deposit-queue-row > div { flex-basis: 75%; } }
 

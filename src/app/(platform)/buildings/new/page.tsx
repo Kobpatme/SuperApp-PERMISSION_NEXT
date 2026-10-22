@@ -9,6 +9,7 @@ import { getDb } from "@/db";
 import { getAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { BuildingCreateForm } from "@/features/buildings/map/building-create-form";
+import { PageHeader } from "@/components/ui/page-header";
 import "@/features/buildings/map/building-map.css";
 
 export default async function NewBuildingPage() {
@@ -23,7 +24,7 @@ export default async function NewBuildingPage() {
   const allowedTeams = grants.some((grant) => grant.scope === "ALL") ? rows : rows.filter((team) => scopeTeamIds.has(team.id));
   const canCreateWithoutTeam = grants.some((grant) => grant.scope === "ALL");
   return <main className="building-create-page">
-    <header><Link href="/buildings">← {copy.pages.buildings}</Link><h1>{copy.buildingEditor.createTitle}</h1><p>{copy.buildingEditor.createDescription}</p></header>
+    <PageHeader title={copy.buildingEditor.createTitle} description={copy.buildingEditor.createDescription} parent={{ label: copy.pages.buildings, href: "/buildings" }} className="page-enter" />
     <BuildingCreateForm apiKey={process.env.LONGDO_MAP_API_KEY ?? ""} teams={allowedTeams} canCreateWithoutTeam={canCreateWithoutTeam} />
   </main>;
 }
