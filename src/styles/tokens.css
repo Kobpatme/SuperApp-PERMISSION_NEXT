@@ -30,12 +30,16 @@
   --color-shadow-ink: rgb(18 32 52 / 15%);
   --radius-xs: 3px; --radius-sm: 5px; --radius-md: 8px; --radius-lg: 12px;
   --radius-xl: 16px;
+  --radius-pill: 999px;
   --text-micro: 11px; --text-caption: 12px; --text-body: 13px; --text-body-strong: 14px;
   --text-h3: 16px; --text-h2: 20px; --text-h1: clamp(24px, 2vw, 30px); --text-stat: 24px;
   --shadow-xs: 0 1px 2px rgb(18 32 52 / 5%);
   --shadow-sm: 0 3px 12px rgb(18 32 52 / 9%);
   --shadow-md: 0 12px 32px rgb(18 32 52 / 18%);
   --shadow-lg: 0 20px 48px rgb(18 32 52 / 22%);
+  --border-width: 1px;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
   --space-6: 24px; --space-7: 28px; --space-8: 32px; --space-9: 36px; --space-10: 40px;
   --font-ui: var(--font-nunito), var(--font-thai), sans-serif;

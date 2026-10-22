@@ -30,7 +30,7 @@
   flex-direction: column;
   width: var(--workspace-sidebar-width);
   padding: 20px 10px 16px;
-  border-right: 2px solid var(--color-border);
+  border-right: var(--border-width) solid var(--color-border);
   background: var(--color-surface);
 }
 
@@ -48,7 +48,7 @@
 
 .sidebar-heading-rule {
   flex: 1;
-  border-top: 2px dashed var(--color-border);
+  border-top: var(--border-width) solid var(--color-border);
 }
 
 .sidebar-nav {
@@ -70,12 +70,12 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 52px;
+  min-height: 48px;
   padding: 10px 14px;
-  border: 2px solid transparent;
-  border-radius: var(--radius-xl);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-md);
   color: var(--color-text-muted);
-  font-size: var(--text-h3);
+  font-size: var(--text-body-strong);
   font-weight: 700;
   line-height: 1.6;
 }
@@ -114,8 +114,8 @@
   gap: 10px;
   min-height: 40px;
   padding: 7px 12px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-lg);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-md);
   color: var(--color-text-muted);
   font-size: var(--text-body);
   font-weight: 700;
@@ -132,8 +132,8 @@
 .sidebar-link:focus-visible,
 .sidebar-collapse-button:focus-visible,
 .sidebar-mobile-toggle:focus-visible {
-  outline: 4px solid var(--color-focus-ring);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .sidebar-collapse-button {
@@ -144,8 +144,8 @@
   width: 44px;
   min-height: 44px;
   padding: 0;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text-muted);
   font-size: var(--text-body-strong);
@@ -263,8 +263,8 @@
     margin: 0;
     padding: 0;
     border: 0;
-    border-right: 2px solid var(--color-border);
-    border-radius: 0 24px 24px 0;
+    border-right: var(--border-width) solid var(--color-border);
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
     background: var(--color-surface);
     color: var(--color-text);
     box-shadow: var(--shadow-sm);
@@ -288,7 +288,7 @@
     gap: 12px;
     margin-bottom: 20px;
     padding: 0 2px 16px;
-    border-bottom: 2px dashed var(--color-border);
+    border-bottom: var(--border-width) solid var(--color-border);
     font-size: var(--text-h2);
   }
 
