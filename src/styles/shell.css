@@ -70,7 +70,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 48px;
+  min-height: 44px;
   padding: 10px 14px;
   border: var(--border-width) solid transparent;
   border-radius: var(--radius-md);
