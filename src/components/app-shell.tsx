@@ -38,7 +38,9 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
         <div className="top-actions">
           {notificationCenter}
           <WorkspaceThemeToggle />
-          <AccountControl displayName={displayName} />
+          <div className="top-account">
+            <AccountControl displayName={displayName} />
+          </div>
         </div>
       </header>
     </div>
