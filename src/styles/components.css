@@ -125,10 +125,10 @@ body {
   font-size: var(--text-body-strong);
 }
 .workspace-search .search input { border-radius: var(--radius-md); box-shadow: var(--shadow-xs); }
-:where(.workspace-search .search input, .queue-search input, .saved-views-popover input, .queue-filters select, .native-search input, .deposit-search input, .deposit-filter select, .deposit-form input, .deposit-form select, .deposit-transition textarea):focus {
-  border: 2px solid var(--color-text);
-  outline: 0;
-  box-shadow: none;
+:where(.workspace-search .search input, .queue-search input, .saved-views-popover input, .queue-filters select, .native-search input, .deposit-search input, .deposit-filter select, .deposit-form input, .deposit-form select, .deposit-transition textarea):focus-visible {
+  border-color: var(--color-focus-ring);
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 .workspace-search-results,
 .account-popover,
