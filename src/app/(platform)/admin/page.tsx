@@ -16,6 +16,7 @@ import { WorkAdminPanels } from "@/features/work/components/admin-panels";
 import { businessDateSchema } from "@/lib/work-admin-domain";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
+import { ButtonLink } from "@/components/ui/button";
 import { AdminModuleSettings } from "@/components/admin-module-settings";
 import { readModuleSettings } from "@/lib/module-lifecycle";
 import { modules } from "@/lib/module-registry";
@@ -78,8 +79,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   ].filter(item=>item.allowed);
   const current = sections.find(item=>item.id===params.section) ?? sections[0];
   return (
-    <main className="admin-page">
-      <PageHeader title="ผู้ดูแลระบบ" description="จัดการบัญชี สิทธิ์ และการตั้งค่าของพื้นที่ทำงาน" parent={{ label: "ภาพรวม", href: "/" }} actions={permissionsGranted.users ? <Link className="btn-primary" href="/admin/car-booking">สิทธิ์ระบบจองรถ</Link> : undefined} />
+    <main className="admin-page" data-ui-screen="admin">
+      <PageHeader title="ผู้ดูแลระบบ" description="จัดการบัญชี สิทธิ์ และการตั้งค่าของพื้นที่ทำงาน" parent={{ label: "ภาพรวม", href: "/" }} actions={permissionsGranted.users ? <ButtonLink variant="primary" href="/admin/car-booking">สิทธิ์ระบบจองรถ</ButtonLink> : undefined} />
       <div className="admin-layout">
         <nav className="admin-navigation" aria-label="ส่วนจัดการระบบ">
           {[...new Set(sections.map(item => item.group))].map(group => (
