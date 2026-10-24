@@ -27,6 +27,7 @@ describe("MyWorkDashboard header action", () => {
     );
 
     expect(html).toContain('class="page-heading-actions"');
+    expect(html).toContain('class="ui-button ui-button-primary"');
     expect(html).toContain(">เพิ่มงาน</button>");
   });
 

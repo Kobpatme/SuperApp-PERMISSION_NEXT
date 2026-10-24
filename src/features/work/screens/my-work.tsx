@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { AuthorizationSubject } from "@/lib/authorization";
 import type { WorkReadModel } from "@/lib/work-read-model";
 import { personalWorkOverview } from "@/lib/work-overview";
+import { Button } from "@/components/ui/button";
 import { WorkEmpty, WorkMetricStrip, WorkScreenShell, WorkUnavailable } from "@/features/work/components/work-screen-shell";
 import { WorkTaskDetail, WorkTaskTable } from "@/features/work/components/task-table";
 import { WorkCreateForm } from "@/components/work-create-form";
@@ -25,7 +26,7 @@ export function MyWorkDashboard({ model, subject, userId, detailId, canCreate }:
     <WorkScreenShell
       title="ภาพรวมงานของฉัน"
       description="จัดลำดับงานที่ต้องทำ เห็นกำหนด และไปต่อจากจุดที่ค้างอยู่"
-      action={canCreate ? <button className="btn-primary" type="button" onClick={() => setCreateOpen(true)}>เพิ่มงาน</button> : undefined}
+      action={canCreate ? <Button variant="primary" onClick={() => setCreateOpen(true)}>เพิ่มงาน</Button> : undefined}
       appearance="workspace"
     >
       <WorkMetricStrip metrics={[{ label: "งานทั้งหมด", value: mine.length, detail: "ในขอบเขตของฉัน" }, { label: "รอเริ่ม", value: overview.queued, detail: "รอรับหรือเริ่มงาน", tone: "info" }, { label: "ควรเร่ง", value: overview.overdue, detail: "เกินกำหนด", tone: "danger" }, { label: "ความคืบหน้า", value: overview.completion === null ? "—" : `${overview.completion}%`, detail: "ถ่วงน้ำหนักตามงาน", tone: "success" }]} />

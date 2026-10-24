@@ -92,6 +92,19 @@ for (const route of ["/work","/work/kpi"] as const) for (const theme of ["light"
   });
 }
 
+test("sidebar follows the workspace theme", async ({page}) => {
+  await mount(page, "/work", "light", 1440);
+  const sidebar = page.locator("[data-shell-sidebar]");
+  const light = await sidebar.evaluate(element => ({
+    background: getComputedStyle(element).backgroundColor,
+    color: getComputedStyle(element).color,
+  }));
+
+  await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; });
+  await expect.poll(() => sidebar.evaluate(element => getComputedStyle(element).backgroundColor)).not.toBe(light.background);
+  expect(await sidebar.evaluate(element => getComputedStyle(element).color)).not.toBe(light.color);
+});
+
 test("overview route uses the canonical topbar and sidebar", async ({page}) => {
   await mount(page, "/", "light", 1440);
   const shell = page.locator("[data-app-shell]");

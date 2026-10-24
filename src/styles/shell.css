@@ -382,7 +382,7 @@
   --color-border: var(--color-nav-border);
   --color-text: var(--color-nav-text);
   --color-text-muted: var(--color-nav-muted);
-  --color-brand: var(--color-nav-text);
+  --color-brand: var(--color-nav-accent);
   --color-brand-soft: var(--color-nav-active);
   --color-focus-ring: var(--color-nav-focus);
   background: var(--color-nav-surface);

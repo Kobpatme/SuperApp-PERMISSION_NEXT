@@ -446,16 +446,6 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
 .work-quick-links .work-section-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; border-bottom: 1px solid var(--color-border); }
 .work-quick-links .work-section-head h2 { margin: 0; font-size: var(--text-h3); color: var(--color-text); }
 .work-quick-links .work-section-head p { margin: var(--space-1) 0 0; color: var(--color-text-muted); font-size: var(--text-caption); }
-.work-metric-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: var(--space-3); margin-bottom: var(--space-5); }
-.work-metric { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-4) var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); transition: transform var(--motion-fast) var(--ease-out), box-shadow var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); }
-.work-metric:hover { transform:none; box-shadow:var(--shadow-xs); border-color:var(--color-border); }
-.work-metric span { font-size: var(--text-caption); color: var(--color-text-muted); }
-.work-metric strong { font-size: var(--text-stat); font-family: var(--font-heading); color: var(--color-text); }
-.work-metric small { font-size: var(--text-caption); color: var(--color-text-subtle); }
-.work-metric.info strong { color: var(--color-info); }
-.work-metric.success strong { color: var(--color-success); }
-.work-metric.warning strong { color: var(--color-warning); }
-.work-metric.danger strong { color: var(--color-danger); }
 
 .work-card-stagger > * { animation: card-stagger var(--motion-base) var(--ease-out) both; }
 .work-card-stagger > *:nth-child(2) { animation-delay: 60ms; }

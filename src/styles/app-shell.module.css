@@ -9,7 +9,7 @@
 .search { flex:1; min-width:0; margin-left:auto; max-width:480px; }
 .actions { display:flex; align-items:center; gap:var(--space-3); flex:none; }
 .sidebar,.drawer {
-  --color-surface:var(--color-nav-surface); --color-surface-subtle:var(--color-nav-subtle); --color-border:var(--color-nav-border); --color-text:var(--color-nav-text); --color-text-muted:var(--color-nav-muted); --color-brand:var(--color-nav-text); --color-brand-soft:var(--color-nav-active); --color-focus-ring:var(--color-nav-focus);
+  --color-surface:var(--color-nav-surface); --color-surface-subtle:var(--color-nav-subtle); --color-border:var(--color-nav-border); --color-text:var(--color-nav-text); --color-text-muted:var(--color-nav-muted); --color-brand:var(--color-nav-accent); --color-brand-soft:var(--color-nav-active); --color-focus-ring:var(--color-nav-focus);
   background:var(--color-nav-surface); color:var(--color-nav-text);
 }
 .sidebar { position:fixed; inset:73px auto 0 0; width:var(--app-sidebar-width); padding:var(--space-5) var(--space-3) var(--space-4); display:flex; flex-direction:column; gap:var(--space-4); overflow:hidden; border-right:var(--border-width) solid var(--color-nav-border); transition:width var(--motion-base) var(--ease-out); }
