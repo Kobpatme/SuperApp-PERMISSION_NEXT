@@ -96,15 +96,6 @@ body {
 }
 .sidebar-collapse-button:hover,
 .round-btn:hover { border-color: var(--color-text); background: var(--color-surface-subtle); color: var(--color-text); }
-.sidebar-link-row { display:flex; align-items:stretch; gap:var(--space-1); min-width:0; }
-.sidebar-link-row > .sidebar-link { flex:1 1 auto; min-width:0; }
-.sidebar-section-toggle {
-  display:grid; flex: 0 0 44px; place-items:center; min-height:44px; padding:0;
-  border:1px solid transparent; border-radius:var(--radius-md); background:transparent; color:var(--color-text-muted);
-  cursor:pointer;
-}
-.sidebar-section-toggle:hover { border-color:var(--color-border); background:var(--color-surface-subtle); color:var(--color-text); }
-.sidebar-section-toggle.is-expanded svg { transform:rotate(180deg); }
 .workspace-shell > .main { padding: var(--space-5) clamp(var(--space-4), 3vw, var(--space-5)) var(--space-5); }
 .workspace-search { width: min(var(--size-search-max), 42vw); }
 .workspace-search .search input,

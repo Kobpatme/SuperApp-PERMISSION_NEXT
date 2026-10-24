@@ -8,11 +8,10 @@ import { WorkspaceIcon } from "@/components/workspace-icon";
 
 export type WorkNavItem = { href: string; label: string; icon: "work" | "team" | "filter" | "search" | "check" | "info" | "refresh" };
 type CollapsibleModuleId = "work" | "guarantees" | "duct-rental" | "buildings" | "car-booking";
-type SectionState = Record<CollapsibleModuleId, boolean>;
+type SectionSnapshot = { open: CollapsibleModuleId | null; pathname: string };
 
-const sectionStorageKey = "permission-next-sidebar-sections";
-const defaultSections: SectionState = { work: true, guarantees: true, "duct-rental": true, buildings: true, "car-booking": true };
-const sectionChangeEvent = "permission-next-sidebar-sections-change";
+const sectionStorageKey = "permission-next-sidebar-section";
+const sectionChangeEvent = "permission-next-sidebar-section-change";
 
 function isCollapsibleModule(id: string): id is CollapsibleModuleId {
   return id === "work" || id === "guarantees" || id === "duct-rental" || id === "buildings" || id === "car-booking";
@@ -33,26 +32,34 @@ function subscribeToSectionChanges(onStoreChange: () => void) {
   };
 }
 
-function parseSectionSnapshot(snapshot: string): SectionState {
+function parseSectionSnapshot(snapshot: string): SectionSnapshot | undefined {
+  if (!snapshot) return undefined;
   try {
-    const saved = JSON.parse(snapshot) as Partial<SectionState>;
-    return {
-      work: saved.work !== false,
-      guarantees: saved.guarantees !== false,
-      "duct-rental": saved["duct-rental"] !== false,
-      buildings: saved.buildings !== false,
-      "car-booking": saved["car-booking"] !== false,
-    };
+    const saved = JSON.parse(snapshot) as Partial<SectionSnapshot>;
+    const open = saved.open;
+    if (open !== null && (typeof open !== "string" || !isCollapsibleModule(open))) return undefined;
+    return { open: open ?? null, pathname: typeof saved.pathname === "string" ? saved.pathname : "" };
   } catch {
-    return defaultSections;
+    return undefined;
   }
 }
 
-export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = false, workNavigation = [], onNavigate }: { allowedModuleIds: ModuleId[]; collapsed?: boolean; canAdmin?: boolean; workNavigation?: WorkNavItem[]; onNavigate?: () => void }) {
+function sectionForPathname(pathname: string): CollapsibleModuleId | null {
+  if (pathname === "/work" || pathname.startsWith("/work/")) return "work";
+  if (pathname === "/guarantees" || pathname.startsWith("/guarantees/")) return "guarantees";
+  if (pathname === "/duct-rental" || pathname.startsWith("/duct-rental/")) return "duct-rental";
+  if (pathname === "/buildings" || pathname.startsWith("/buildings/")) return "buildings";
+  if (pathname === "/car-booking" || pathname.startsWith("/car-booking/")) return "car-booking";
+  return null;
+}
+
+export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = false, workNavigation = [], onNavigate, idPrefix = "sidebar-section" }: { allowedModuleIds: ModuleId[]; collapsed?: boolean; canAdmin?: boolean; workNavigation?: WorkNavItem[]; onNavigate?: () => void; idPrefix?: string }) {
   const pathname = usePathname();
   const params = useSearchParams();
   const sectionSnapshot = useSyncExternalStore(subscribeToSectionChanges, readSectionSnapshot, () => "");
-  const expandedSections = useMemo(() => parseSectionSnapshot(sectionSnapshot), [sectionSnapshot]);
+  const savedSection = useMemo(() => parseSectionSnapshot(sectionSnapshot), [sectionSnapshot]);
+  const routeSection = sectionForPathname(pathname);
+  const expandedSection = savedSection?.pathname === pathname ? savedSection.open : routeSection;
   const installationTeamView = pathname.startsWith("/guarantees") && params.get("view") === "installation-team";
   const currentWorkHref = workNavigation
     .map(child => ({ href: child.href, url: new URL(child.href, "https://workspace.local") }))
@@ -71,7 +78,7 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
   const items = [{ ...overviewDestination, group: "overview" as const, icon: "home" as const }, ...modules.filter((module) => allowedModuleIds.includes(module.id))];
 
   function toggleSection(id: CollapsibleModuleId) {
-    const next = { ...expandedSections, [id]: !expandedSections[id] };
+    const next: SectionSnapshot = { open: expandedSection === id ? null : id, pathname };
     try { window.localStorage.setItem(sectionStorageKey, JSON.stringify(next)); }
     catch { /* The preference is optional. */ }
     window.dispatchEvent(new Event(sectionChangeEvent));
@@ -81,25 +88,44 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
     {items.map((item, index) => {
       const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
       const hasChildren = item.id === "work" ? workNavigation.length > 0 : item.id === "guarantees" || item.id === "duct-rental" || item.id === "buildings" || item.id === "car-booking";
-      // Icon-only rails expose all destinations; expanded/mobile menus retain saved disclosure state.
-      const expanded = isCollapsibleModule(item.id) ? collapsed || expandedSections[item.id] : false;
+      // Collapsed rails show module icons only; expanded/mobile navigation behaves as a single-open accordion.
+      const expanded = isCollapsibleModule(item.id) ? !collapsed && expandedSection === item.id : false;
       const currentChildHref = item.id === "work" ? currentWorkHref : item.id === "duct-rental" ? currentDuctHref : item.id === "guarantees" && installationTeamView ? "/guarantees?view=installation-team" : item.id === "buildings" ? currentBuildingsHref : item.id === "car-booking" ? currentCarBookingHref : undefined;
       const parentCurrent = active && (!expanded || !currentChildHref);
-      const parentLink = <Link className={`sidebar-link ${active ? "active" : ""}`} href={`${item.href}${params.get("preview") === "1" ? "?preview=1" : ""}`} aria-current={parentCurrent ? "page" : undefined} aria-label={collapsed ? item.name : undefined} title={collapsed ? item.name : undefined} onClick={onNavigate}>
+      const sectionId = hasChildren && isCollapsibleModule(item.id) ? `${idPrefix}-${item.id}` : undefined;
+      const destination = `${item.href}${params.get("preview") === "1" ? "?preview=1" : ""}`;
+      const parentControl = sectionId && !collapsed ? <button
+        className={`sidebar-link sidebar-module-trigger ${active ? "active" : ""}`}
+        type="button"
+        data-module-id={item.id}
+        aria-expanded={expanded}
+        aria-controls={sectionId}
+        onClick={() => toggleSection(item.id as CollapsibleModuleId)}
+      >
+        <WorkspaceIcon name={item.icon} size={20}/><span className="sidebar-link-label">{item.name}</span>
+      </button> : <Link
+        className={`sidebar-link ${active ? "active" : ""}`}
+        href={destination}
+        aria-current={parentCurrent ? "page" : undefined}
+        aria-label={collapsed ? item.name : undefined}
+        title={collapsed ? item.name : undefined}
+        onClick={onNavigate}
+      >
         <WorkspaceIcon name={item.icon} size={20}/><span className="sidebar-link-label">{item.name}</span>
       </Link>;
       return <div className="sidebar-nav-entry" key={item.href}>
         {!collapsed && items[index - 1]?.group !== item.group && <span className="sidebar-group-label">{groupLabels[item.group]}</span>}
-        {hasChildren ? <div className="sidebar-link-row">
-          {parentLink}
-          {!collapsed && <button className={`sidebar-section-toggle ${expanded ? "is-expanded" : ""}`} type="button" aria-label={`${expanded ? "พับ" : "ขยาย"}เมนู${item.name}`} aria-expanded={expanded} onClick={() => isCollapsibleModule(item.id) && toggleSection(item.id)}><WorkspaceIcon name="chevron" size={18}/></button>}
-        </div> : parentLink}
-        {hasChildren && expanded && <div className="sidebar-subnav" aria-label={`เมนู${item.name}`}>
+        {parentControl}
+        {hasChildren && sectionId && <div className={`sidebar-subnav-panel ${expanded ? "is-open" : ""}`} id={sectionId} aria-hidden={!expanded} inert={!expanded}>
+          <div className="sidebar-subnav" aria-label={`เมนู${item.name}`}>
           {item.id === "work" && workNavigation.map((child) => {
             const childActive = child.href === currentWorkHref;
             return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
           })}
-          {item.id === "guarantees" && <Link className={`sidebar-child-link ${installationTeamView ? "active" : ""}`} href="/guarantees?view=installation-team" aria-current={installationTeamView ? "page" : undefined} aria-label={collapsed ? "ทีมติดตั้ง" : undefined} title={collapsed ? "ทีมติดตั้ง" : undefined} onClick={onNavigate}><WorkspaceIcon name="team" size={18}/><span className="sidebar-link-label">ทีมติดตั้ง</span></Link>}
+          {item.id === "guarantees" && <>
+            <Link className={`sidebar-child-link ${active && !installationTeamView ? "active" : ""}`} href="/guarantees" aria-current={active && !installationTeamView ? "page" : undefined} onClick={onNavigate}><WorkspaceIcon name="check" size={18}/><span className="sidebar-link-label">ภาพรวมเงินประกัน</span></Link>
+            <Link className={`sidebar-child-link ${installationTeamView ? "active" : ""}`} href="/guarantees?view=installation-team" aria-current={installationTeamView ? "page" : undefined} onClick={onNavigate}><WorkspaceIcon name="team" size={18}/><span className="sidebar-link-label">ทีมติดตั้ง</span></Link>
+          </>}
           {item.id === "duct-rental" && [
             { href: "/duct-rental", label: "เช่าท่อร้อยสาย", icon: "buildings" as const },
             { href: "/duct-rental/renewal", label: "ต่อสัญญา", icon: "refresh" as const },
@@ -122,6 +148,7 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
             const childActive = child.href === currentCarBookingHref;
             return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
           })}
+          </div>
         </div>}
       </div>;
     })}

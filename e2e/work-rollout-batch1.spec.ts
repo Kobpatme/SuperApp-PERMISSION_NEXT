@@ -39,7 +39,7 @@ test.beforeAll(async () => {
   moduleCss = result.outputFiles.find(file=>file.path.endsWith(".css"))?.text ?? "";
 });
 
-async function mount(page: Page, route: "/work"|"/work/kpi", theme: "light"|"dark", width: number) {
+async function mount(page: Page, route: "/"|"/work"|"/work/kpi", theme: "light"|"dark", width: number) {
   await page.setViewportSize({ width, height: 1000 });
   await page.route("**/*", request => request.request().url() === "https://batch1.test/"
     ? request.fulfill({ contentType: "text/html", body: `<!doctype html><html lang="th" data-theme="${theme}"><head><title>Batch 1 fixture</title><style>${globalCss}${moduleCss}${fonts}</style></head><body><div id="root"></div></body></html>` })
@@ -47,7 +47,7 @@ async function mount(page: Page, route: "/work"|"/work/kpi", theme: "light"|"dar
   await page.goto("https://batch1.test/");
   await page.evaluate(routeName => { window.fixturePath = routeName; }, route);
   await page.addScriptTag({ content: script });
-  await expect(page.locator("[data-work-rollout-shell]")).toBeVisible();
+  await expect(page.locator("[data-app-shell]")).toBeVisible();
   await page.evaluate(async()=>{await document.fonts.ready;await Promise.all(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})));});
 }
 
@@ -73,6 +73,18 @@ for (const route of ["/work","/work/kpi"] as const) for (const theme of ["light"
       await expect(page.locator("thead")).toBeHidden();
       expect(await page.locator("tbody tr").first().evaluate(el=>getComputedStyle(el).display)).toBe("grid");
     }
+    if (route === "/work" && width === 1440) {
+      const sidebar = page.locator("[data-shell-sidebar]");
+      const navigation = sidebar.locator(".sidebar-nav");
+      const before = await sidebar.boundingBox();
+      const navigationWidth = await navigation.evaluate(element => element.clientWidth);
+      expect(await navigation.evaluate(element => getComputedStyle(element).scrollbarWidth)).toBe("none");
+      await page.getByRole("button", {name:"เงินประกัน", exact:true}).click();
+      await expect(page.locator("#sidebar-section-guarantees")).toHaveClass(/is-open/);
+      await page.waitForTimeout(250);
+      expect((await sidebar.boundingBox())!.width).toBe(before!.width);
+      expect(await navigation.evaluate(element => element.clientWidth)).toBe(navigationWidth);
+    }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await axe(page);
     expect(errors).toEqual([]);
@@ -80,4 +92,13 @@ for (const route of ["/work","/work/kpi"] as const) for (const theme of ["light"
   });
 }
 
-declare global { interface Window { fixturePath: "/work"|"/work/kpi"; } }
+test("overview route uses the canonical topbar and sidebar", async ({page}) => {
+  await mount(page, "/", "light", 1440);
+  const shell = page.locator("[data-app-shell]");
+  await expect(shell).toBeVisible();
+  await expect(shell).not.toHaveClass(/workspace-shell/);
+  expect((await page.locator("[data-shell-sidebar]").boundingBox())!.width).toBe(248);
+  expect(await page.locator("[data-shell-sidebar] .sidebar-nav").evaluate(element => getComputedStyle(element).scrollbarWidth)).toBe("none");
+});
+
+declare global { interface Window { fixturePath: "/"|"/work"|"/work/kpi"; } }

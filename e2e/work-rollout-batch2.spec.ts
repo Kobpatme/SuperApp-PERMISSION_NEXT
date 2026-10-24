@@ -33,7 +33,7 @@ async function mount(page:Page,route:"/work/team"|"/work/assign",theme:"light"|"
  await page.setViewportSize({width,height:1000});
  await page.route('**/*',request=>request.request().url()==='https://batch2.test/'?request.fulfill({contentType:'text/html',body:`<!doctype html><html lang="th" data-theme="${theme}"><head><title>Batch 2 fixture</title><style>${globalCss}${moduleCss}${fonts}</style></head><body><div id="root"></div></body></html>`}):request.abort());
  await page.goto('https://batch2.test/'); await page.evaluate(routeName=>{window.fixturePath=routeName},route); await page.addScriptTag({content:script});
- await expect(page.locator('[data-work-rollout-shell]')).toBeVisible(); await page.evaluate(async()=>{await document.fonts.ready});
+ await expect(page.locator('[data-app-shell]')).toBeVisible(); await page.evaluate(async()=>{await document.fonts.ready});
 }
 async function axe(page:Page){const result=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze();expect(result.violations.map(item=>({id:item.id,targets:item.nodes.map(node=>node.target)}))).toEqual([])}
 for(const route of ['/work/team','/work/assign'] as const)for(const theme of ['light','dark'] as const)for(const width of [375,768,1440])test(`${route} ${theme} ${width}`,async({page},info)=>{

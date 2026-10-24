@@ -9,7 +9,7 @@ test.use({ launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
   : {} });
 let browser: Browser;
 test.beforeAll(async ({ browser: fixtureBrowser }) => { browser = fixtureBrowser; });
-const css = () => ["src/app/globals.css", "src/styles/shell.css", "src/styles/components.css"].map(path => readFileSync(resolve(path), "utf8")).join("\n");
+const css = () => ["src/styles/tokens.css", "src/app/globals.css", "src/styles/shell.css", "src/styles/components.css"].map(path => readFileSync(resolve(path), "utf8")).join("\n");
 async function fixture(run: (page: Page) => Promise<void>) {
   const page = await browser.newPage();
   await page.route("**/*", route => route.request().url() === "https://workspace.test/" ? route.fulfill({ contentType: "text/html", body: "<div id='root'></div>" }) : route.abort());
@@ -29,6 +29,7 @@ async function mount(page: Page, component: "ModuleNav" | "WorkspaceThemeToggle"
         : `export function usePathname() { return window.fixturePath || '/'; } export function useSearchParams() { return new URLSearchParams(window.fixtureQuery || ''); }`, resolveDir: process.cwd() }));
     } }],
   });
+  await page.addStyleTag({ content: css() });
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   await page.locator("button, nav").first().waitFor();
 }
@@ -43,32 +44,52 @@ test(`does not mark a similarly prefixed route current: ${path}`, async () => {
 });
 }
 
-test("retains one current root destination when its saved disclosure is closed", async () => {
+test("opens only the current route section by default", async () => {
   await fixture(async page => {
-    await page.evaluate(() => { Object.assign(window, { fixturePath: "/duct-rental" }); localStorage.setItem("permission-next-sidebar-sections", JSON.stringify({ "duct-rental": false })); });
-    await mount(page, "ModuleNav", { allowedModuleIds: ["duct-rental"] });
-    await page.evaluate(() => new Promise<void>(done => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
-    expect(await page.locator(".sidebar-subnav").count()).toBe(0);
-    expect(await page.locator('[aria-current="page"]').count()).toBe(1);
-    expect(await page.locator('[aria-current="page"]').getAttribute("href")).toBe("/duct-rental");
+    await page.evaluate(() => { Object.assign(window, { fixturePath: "/duct-rental" }); });
+    await mount(page, "ModuleNav", { allowedModuleIds: ["work", "guarantees", "duct-rental"], workNavigation: [
+      { href: "/work", label: "ภาพรวมงาน", icon: "work" },
+    ] });
+    await expect(page.locator('[data-module-id="duct-rental"]')).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator('[data-module-id="work"]')).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator('#sidebar-section-duct-rental')).toHaveAttribute("aria-hidden", "false");
+    await expect(page.locator('#sidebar-section-work')).toHaveAttribute("aria-hidden", "true");
+    await expect(page.locator(".sidebar-section-toggle")).toHaveCount(0);
   });
 });
 
-test("keeps every saved-closed section reachable in the collapsed rail without overwriting preferences", async () => {
+test("clicking a module opens it and folds the previous module", async () => {
   await fixture(async page => {
-    const saved = JSON.stringify({ work: false, guarantees: false, "duct-rental": false });
-    await page.evaluate(value => { localStorage.setItem("permission-next-sidebar-sections", value); }, saved);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.evaluate(() => { Object.assign(window, { fixturePath: "/work" }); });
+    await mount(page, "ModuleNav", { allowedModuleIds: ["work", "guarantees"], workNavigation: [
+      { href: "/work", label: "ภาพรวมงาน", icon: "work" },
+    ] });
+    const closedHeight = await page.locator('#sidebar-section-guarantees').evaluate(element => element.getBoundingClientRect().height);
+    const transitionDuration = await page.locator('#sidebar-section-guarantees').evaluate(element => getComputedStyle(element).transitionDuration);
+    expect(transitionDuration).not.toBe("0s");
+    await page.locator('[data-module-id="guarantees"]').click();
+    await expect(page.locator('[data-module-id="guarantees"]')).toHaveAttribute("aria-expanded", "true");
+    await expect(page.locator('[data-module-id="work"]')).toHaveAttribute("aria-expanded", "false");
+    await expect(page.locator('#sidebar-section-guarantees')).toHaveClass(/is-open/);
+    await expect(page.locator('#sidebar-section-work')).not.toHaveClass(/is-open/);
+    await expect.poll(() => page.locator('#sidebar-section-guarantees').evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThan(closedHeight);
+  });
+});
+
+test("collapsed rail keeps module roots reachable and hides child destinations", async () => {
+  await fixture(async page => {
     await mount(page, "ModuleNav", { allowedModuleIds: ["work", "guarantees", "duct-rental"], collapsed: true, workNavigation: [
       { href: "/work?view=activity", label: "กิจกรรมงาน", icon: "refresh" },
     ] });
-    await page.evaluate(() => new Promise<void>(done => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
-    for (const href of ["/work?view=activity", "/guarantees?view=installation-team", "/duct-rental/renewal", "/duct-rental/communication-cable"]) {
-      expect(await page.locator(`a[href="${href}"]`).count()).toBe(1);
-      await page.locator(`a[href="${href}"]`).focus();
-      expect(await page.locator(`a[href="${href}"]`).evaluate(el => document.activeElement === el)).toBe(true);
-      expect(await page.locator(`a[href="${href}"]`).getAttribute("aria-label")).toBeTruthy();
+    for (const href of ["/work", "/guarantees", "/duct-rental"]) {
+      await page.locator(`.sidebar-link[href="${href}"]`).focus();
+      expect(await page.locator(`.sidebar-link[href="${href}"]`).evaluate(el => document.activeElement === el)).toBe(true);
+      expect(await page.locator(`.sidebar-link[href="${href}"]`).getAttribute("aria-label")).toBeTruthy();
     }
-    expect(await page.evaluate(() => localStorage.getItem("permission-next-sidebar-sections"))).toBe(saved);
+    expect(await page.locator(".sidebar-subnav-panel").evaluateAll(nodes => nodes.every(node => node.getAttribute("aria-hidden") === "true"))).toBe(true);
+    await page.locator('a[href="/work?view=activity"]').focus();
+    expect(await page.locator('a[href="/work?view=activity"]').evaluate(el => document.activeElement === el)).toBe(false);
   });
 });
 
@@ -87,8 +108,8 @@ test(`selects one detail destination and keeps its section active: ${path}`, asy
     ] });
     await expect.poll(() => page.locator('[aria-current="page"]').count()).toBe(1);
     expect(await page.locator('[aria-current="page"]').getAttribute("href")).toBe(expected);
-    const section = "/" + path.split("/")[1];
-    expect(await page.locator(`.sidebar-link[href="${section}"]`).getAttribute("class")).toContain("active");
+    const section = path.split("/")[1];
+    expect(await page.locator(`[data-module-id="${section}"]`).getAttribute("class")).toContain("active");
   });
 });
 }
@@ -102,8 +123,8 @@ test("marks only the query-specific destination current while retaining its acti
     ] });
     await expect.poll(() => page.locator('[aria-current="page"]').count()).toBe(1);
     expect(await page.locator('[aria-current="page"]').getAttribute("href")).toBe("/work?view=activity");
-    expect(await page.locator('.sidebar-link[href="/work?preview=1"]').getAttribute("class")).toContain("active");
-    expect(await page.locator('.sidebar-link[href="/work?preview=1"]').getAttribute("aria-current")).toBeNull();
+    expect(await page.locator('[data-module-id="work"]').getAttribute("class")).toContain("active");
+    expect(await page.locator('[data-module-id="work"]').getAttribute("aria-current")).toBeNull();
   });
 });
 
@@ -120,7 +141,7 @@ test("initializes and toggles the theme when storage reads are unavailable", asy
 
 test("uses the strong focus token on base keyboard controls", async () => {
   await fixture(async page => {
-    await page.setContent(`<style>${readFileSync(resolve("src/styles/tokens.css"), "utf8")}${css()}</style><button>ปุ่ม</button><a href="#">ลิงก์</a><input><select><option>เลือก</option></select><textarea></textarea><details><summary>เพิ่มเติม</summary></details>`);
+    await page.setContent(`<style>${css()}</style><button>ปุ่ม</button><a href="#">ลิงก์</a><input><select><option>เลือก</option></select><textarea></textarea><details><summary>เพิ่มเติม</summary></details>`);
     const expectedRing = await page.evaluate(() => {
       const probe = document.createElement("span");
       probe.style.color = "var(--color-focus-ring)";
