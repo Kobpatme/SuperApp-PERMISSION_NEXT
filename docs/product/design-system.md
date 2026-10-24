@@ -42,6 +42,15 @@ Verified breakpoints: 375 / 768 / 1024 / 1440px. Tables scroll horizontally with
 - TruncatedText tooltips reachable by keyboard focus.
 - Compiling CSS does not establish WCAG compliance — verify with actual tools after presentation changes.
 
+## Operational Command — local checkpoint 23 ต.ค. 2569
+
+- Direction A ใช้ navigation tokens `--color-nav-*` ที่ `tokens.css`: rail และ mobile drawer คงพื้นเข้มทั้ง light/dark workspace; active navigation ใช้ #244fb8 และ focus ใช้สีสว่างที่ผ่าน axe ใน fixture. ไม่เพิ่มไฟล์ theme override
+- `shell.css` คุม header/rail geometry ให้ตรงกัน, คงขนาด sidebar 260/80px ที่แก้ค้างมาก่อน และเพิ่ม touch-height 44px สำหรับ controls บนจอเล็ก. Persistent rail ไม่ slide เข้ามาบัง/ตัดเมนู; เปลี่ยนความกว้างโดยไม่ animate width
+- `TruncatedText` ปิด tooltip ด้วย Esc โดยไม่เสีย focus; shared disabled actions ไม่เปลี่ยนสีเมื่อ hover; PageHeader actions wrap โดยไม่ตัดปุ่มเป็นหลายบรรทัด
+- AccountControl ใช้ disclosure + named region ไม่ใช้ ARIA menu ที่ไม่มี menuitems; ปิดด้วย Esc หรือย้าย focus ออก, คืน focus เมื่อกด Esc. ไม่เปลี่ยน logout action
+- BuildingEditorForm เชื่อม error summary ผ่าน aria-describedby ในช่องค่าธรรมเนียม/คำนวณ โดยไม่เปลี่ยน validation หรือสูตรธุรกิจ
+- Browser regressions: `e2e/operational-command.spec.ts` ร่วมกับ navigation/theme/focus และ reduced-motion suites ผ่าน 59 tests; ทดสอบ real components + synthetic data เท่านั้น. ดูผล/ข้อจำกัดใน `../IMPLEMENTATION_HANDOFF.md`
+
 ## Retired / do not use
 
 Retired: `coral-stay-theme.css`, unused `bouncebox-theme.css`, old sidebar.css location. Do not append another override theme. Avoid glassmorphism, gradient/glow without meaning, stacked cards, and animations that slow down work.

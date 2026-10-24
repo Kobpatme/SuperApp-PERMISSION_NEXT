@@ -1,0 +1,27 @@
+/* Controlled rollout shell for approved Work routes only; legacy .workspace-shell remains unchanged. */
+.shell { --work-rollout-sidebar-width:248px; min-height:100dvh; background:var(--color-bg); color:var(--color-text); }
+.collapsed { --work-rollout-sidebar-width:80px; }
+.header { position:sticky; top:0; z-index:var(--z-sticky); background:var(--color-surface); border-bottom:var(--border-width) solid var(--color-border); }
+.topbar { display:flex; align-items:center; gap:var(--space-5); min-height:72px; padding:var(--space-2) var(--space-6); position:relative; }
+.brand { display:flex; align-items:center; gap:var(--space-3); flex:none; color:var(--color-text); }
+.brandMark { display:grid; place-items:center; width:40px; height:40px; border-radius:var(--radius-md); background:var(--color-nav-active); color:var(--color-nav-text); font-size:var(--text-body-strong); font-weight:800; }
+.brandText { display:grid; gap:2px; line-height:1.6; }.brandText strong { font-size:var(--text-body-strong); }.brandText small { color:var(--color-text-muted); font-size:var(--text-caption); }
+.search { flex:1; min-width:0; margin-left:auto; max-width:480px; }
+.actions { display:flex; align-items:center; gap:var(--space-3); flex:none; }
+.sidebar,.drawer {
+  --color-surface:var(--color-nav-surface); --color-surface-subtle:var(--color-nav-subtle); --color-border:var(--color-nav-border); --color-text:var(--color-nav-text); --color-text-muted:var(--color-nav-muted); --color-brand:var(--color-nav-text); --color-brand-soft:var(--color-nav-active); --color-focus-ring:var(--color-nav-focus);
+  background:var(--color-nav-surface); color:var(--color-nav-text);
+}
+.sidebar { position:fixed; inset:73px auto 0 0; width:var(--work-rollout-sidebar-width); padding:var(--space-5) var(--space-3) var(--space-4); display:flex; flex-direction:column; gap:var(--space-4); border-right:var(--border-width) solid var(--color-nav-border); }
+.sidebar :global(.sidebar-nav) { min-height:0; overflow-y:auto; padding:2px; }
+.sidebarHeading { display:flex; align-items:center; justify-content:space-between; gap:var(--space-2); padding-inline:var(--space-2); color:var(--color-nav-muted); font-size:var(--text-caption); }
+.collapse { display:grid; place-items:center; width:32px; height:32px; padding:0; border:var(--border-width) solid var(--color-nav-border); border-radius:var(--radius-sm); color:var(--color-nav-muted); background:var(--color-nav-subtle); cursor:pointer; }.collapse svg { transform:rotate(90deg); }
+.collapsed .sidebarHeading { justify-content:center; padding:0; }.collapsed .sidebarHeading > span { display:none; }.collapsed .collapse svg { transform:rotate(-90deg); }
+.collapsed .sidebar :global(.sidebar-link-label) { display:none; }.collapsed .sidebar :global(.sidebar-link),.collapsed .sidebar :global(.sidebar-child-link) { justify-content:center; padding-inline:0; }.collapsed .sidebar :global(.sidebar-subnav) { margin:0; padding:0; border-left:0; }
+.main { min-width:0; margin-left:var(--work-rollout-sidebar-width); padding:var(--space-6) clamp(20px,3vw,48px) var(--space-8); }
+.mobileToggle { display:none; place-items:center; flex:0 0 44px; width:44px; height:44px; padding:0; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-text); cursor:pointer; }
+.drawer { inset:0 auto 0 0; margin:0; border:0; width:min(328px,calc(100vw - 40px)); max-width:none; height:100dvh; max-height:none; padding:var(--space-5) var(--space-4); }
+.drawer::backdrop { background:var(--color-overlay); }.drawerHeading { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); padding-bottom:var(--space-4); margin-bottom:var(--space-4); border-bottom:var(--border-width) solid var(--color-nav-border); }.drawer :global(.sidebar-nav) { max-height:calc(100dvh - 108px); overflow:auto; }
+@media(max-width:1000px) { .topbar { gap:var(--space-3); }.brandText { display:none; } }
+@media(max-width:900px) { .sidebar { display:none; }.main { margin-left:0; padding:var(--space-6) var(--space-5) var(--space-8); }.mobileToggle { display:grid; }.topbar { min-height:72px; padding-inline:var(--space-4); }.actions { gap:var(--space-2); } }
+@media(max-width:650px) { .topbar { padding-inline:var(--space-3); gap:var(--space-2); }.brandMark { width:36px; height:36px; }.main { padding:var(--space-5) var(--space-3) var(--space-8); }.search { max-width:44px; flex:0 0 44px; }.actions { gap:var(--space-1); }.account :global(.avatar-name),.account :global(.account-trigger > svg) { display:none; }.account :global(.account-trigger) { width:44px; min-height:44px; padding:4px; }.actions button { min-width:44px; min-height:44px; } }

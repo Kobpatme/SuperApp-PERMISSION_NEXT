@@ -1,8 +1,9 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 
-export function WorkScreenShell({ title, description, parent, action, children }: { title: string; description: string; parent?: { label: string; href: string }; action?: React.ReactNode; children: React.ReactNode }) {
-  return <div className="work-native"><PageHeader title={title} description={description} parent={parent ?? { label: "ภาพรวม", href: "/" }} actions={action} className="page-enter" />{children}</div>;
+export function WorkScreenShell({ title, description, parent, action, children, appearance = "default" }: { title: string; description: string; parent?: { label: string; href: string }; action?: React.ReactNode; children: React.ReactNode; appearance?: "default" | "workspace" }) {
+  const workspace = appearance === "workspace";
+  return <div className={`work-native${workspace ? " work-rollout" : ""}`} data-work-rollout-content={workspace ? "" : undefined}><PageHeader title={title} description={description} parent={parent ?? { label: "ภาพรวม", href: "/" }} actions={action} className="page-enter" />{children}</div>;
 }
 
 export function WorkUnavailable({ message, detail }: { message: string; detail: string }) {

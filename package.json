@@ -18,7 +18,7 @@
     "pretest:e2e": "node scripts/render-ux-error-fixture.cjs",
     "test:ux:seed": "node scripts/ux-test-db.mjs init && node scripts/ux-test-db.mjs seed",
     "dev": "node scripts/run-with-nas.cjs dev",
-    "predev": "node scripts/write-build-info.mjs",
+    "predev": "node scripts/write-build-info.mjs && tsc --noEmit",
     "prebuild": "node scripts/write-build-info.mjs",
     "build": "next build",
     "start": "node scripts/run-with-nas.cjs start",

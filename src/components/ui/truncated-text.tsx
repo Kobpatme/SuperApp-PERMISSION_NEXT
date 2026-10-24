@@ -40,6 +40,7 @@ export function TruncatedText({ text, lines = 2, className = "", ...props }: Tru
       tabIndex={isTruncated ? 0 : -1}
       title={isTruncated ? text : undefined}
       aria-describedby={isTruncated ? tooltipId : undefined}
+      onKeyDown={(event) => { if (event.key === "Escape") { event.stopPropagation(); setShowTooltip(false); } props.onKeyDown?.(event); }}
       onFocus={(event) => { setShowTooltip(true); props.onFocus?.(event); }}
       onBlur={(event) => { setShowTooltip(false); props.onBlur?.(event); }}
     >{text}</span>

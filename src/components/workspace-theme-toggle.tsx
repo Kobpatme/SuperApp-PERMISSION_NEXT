@@ -7,7 +7,7 @@ import { WorkspaceIcon } from "@/components/workspace-icon";
 type WorkspaceTheme = "light" | "dark";
 const storageKey = "permission-next-workspace-theme";
 
-export function WorkspaceThemeToggle() {
+export function WorkspaceThemeToggle({ defaultTheme }: { defaultTheme?: WorkspaceTheme } = {}) {
   const [theme, setTheme] = useState<WorkspaceTheme>("light");
   const [ready, setReady] = useState(false);
 
@@ -18,12 +18,12 @@ export function WorkspaceThemeToggle() {
       catch { /* Storage is optional; keep the system preference usable. */ }
       const initial: WorkspaceTheme = saved === "dark" || saved === "light"
         ? saved
-        : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        : defaultTheme ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
       setTheme(initial);
       setReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, []);
+  }, [defaultTheme]);
 
   useEffect(() => {
     if (!ready) return;

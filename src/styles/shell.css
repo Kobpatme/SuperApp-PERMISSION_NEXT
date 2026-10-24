@@ -1,11 +1,11 @@
 /* Shared workspace navigation. Desktop uses a persistent rail; small screens
    use the same destinations in a native modal dialog. */
 .workspace-shell {
-  --workspace-sidebar-width: 224px;
+  --workspace-sidebar-width: 260px;
 }
 
 .workspace-shell.sidebar-collapsed {
-  --workspace-sidebar-width: 68px;
+  --workspace-sidebar-width: 80px;
 }
 
 .workspace-shell .shell-header {
@@ -343,5 +343,32 @@
   }
 }
 
+/* Direction A shares navigation semantics in desktop rail and mobile drawer.
+   Local semantic tokens let existing navigation controls keep their states. */
+.workspace-shell :is(.workspace-sidebar, .workspace-mobile-dialog) {
+  --color-surface: var(--color-nav-surface);
+  --color-surface-subtle: var(--color-nav-subtle);
+  --color-border: var(--color-nav-border);
+  --color-text: var(--color-nav-text);
+  --color-text-muted: var(--color-nav-muted);
+  --color-brand: var(--color-nav-text);
+  --color-brand-soft: var(--color-nav-active);
+  --color-focus-ring: var(--color-nav-focus);
+  background: var(--color-nav-surface);
+  color: var(--color-nav-text);
+}
+.workspace-shell .shell-header .topbar { min-height:var(--size-shell-header); }
+.workspace-shell > .workspace-sidebar { inset-block-start:var(--size-shell-header); }
+.workspace-shell.sidebar-collapsed > .workspace-sidebar { width:var(--workspace-sidebar-width); }
+.workspace-shell .sidebar-nav { min-height:0; }
+.workspace-shell .sidebar-scope { flex-shrink:0; overflow-wrap:anywhere; }
+.workspace-shell :is(.workspace-sidebar,.workspace-mobile-dialog) :focus-visible {
+  outline-color:var(--color-nav-focus);
+}
+html { scroll-padding-top:calc(var(--size-shell-header) + var(--space-4)); }
+@media (max-width:900px) {
+  .workspace-shell :is(button,input:not([type="checkbox"]):not([type="radio"]),select,textarea,.secondary-action,.text-btn,.sidebar-child-link) { min-height:var(--size-control-touch); }
+  .workspace-shell .text-btn { min-width:var(--size-control-touch); }
+}
 @media (prefers-reduced-motion: reduce) {
 }

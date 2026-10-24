@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const themeScript = `(function(){try{var k=['permission-next','work'+'space','theme'].join('-'),t=localStorage.getItem(k);if(t!=='dark'&&t!=='light')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}})();`;
+const themeScript = `(function(){try{var k=['permission-next','work'+'space','theme'].join('-'),t=localStorage.getItem(k),p=location.pathname,q=new URLSearchParams(location.search),r=['/work/mine','/work/kpi','/work/team','/work/assign','/work/people','/work/tracker','/work/reports','/work/new'].includes(p)||(p==='/work'&&!q.get('view'));if(t!=='dark'&&t!=='light')t=r?'light':matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="th" className={appFontClassName} suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body>{children}</body></html>;

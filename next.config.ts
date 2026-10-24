@@ -10,6 +10,8 @@ const contentSecurityPolicy = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Allow localhost for HMR and dev resources
+  allowedDevOrigins: ['127.0.0.1', 'localhost'],
   output: "standalone",
   outputFileTracingIncludes: {
     "/*": ["./src/modules/duct-rental/assets/**/*"],
