@@ -44,8 +44,10 @@ Verified breakpoints: 375 / 768 / 1024 / 1440px. Tables scroll horizontally with
 
 ## Operational Command — local checkpoint 23 ต.ค. 2569
 
-- Direction A ใช้ navigation tokens `--color-nav-*` ที่ `tokens.css`: rail และ mobile drawer คงพื้นเข้มทั้ง light/dark workspace; active navigation ใช้ #244fb8 และ focus ใช้สีสว่างที่ผ่าน axe ใน fixture. ไม่เพิ่มไฟล์ theme override
-- `shell.css` คุม header/rail geometry ให้ตรงกัน, คงขนาด sidebar 260/80px ที่แก้ค้างมาก่อน และเพิ่ม touch-height 44px สำหรับ controls บนจอเล็ก. Persistent rail ไม่ slide เข้ามาบัง/ตัดเมนู; เปลี่ยนความกว้างโดยไม่ animate width
+- Direction A ใช้ navigation tokens `--color-nav-*` ที่ `tokens.css`: rail และ mobile drawer เปลี่ยน semantic surface/text/border ตาม light/dark workspace; active navigation ใช้สี accent ของแต่ละธีมและ focus ใช้ token ที่ผ่าน contrast gate. ไม่เพิ่มไฟล์ theme override
+- `shell.css` คุม header/rail geometry ให้ตรงกัน, canonical sidebar ใช้ expanded 248px / collapsed 80px และเพิ่ม touch-height 44px สำหรับ controls บนจอเล็ก. Persistent rail ไม่ slide เข้ามาบัง/ตัดเมนู
+- Pilot และ module entry points ใช้ `data-ui-screen` เป็น presentation contract: Overview, Work, Admin, Car Booking, Guarantees, Duct Rental, Buildings และ Buildings Map. ให้คง domain composition เฉพาะทางไว้ภายใน shared shell
+- Shared primitive ownership อยู่ใน `src/components/ui` และ `src/styles/ui.css`; legacy selectors คงไว้เป็น compatibility aliases จนกว่าจะมี rollout แยกที่ได้รับอนุมัติ. ห้ามเพิ่ม duplicate primitive หรือ CSS owner ใหม่
 - `TruncatedText` ปิด tooltip ด้วย Esc โดยไม่เสีย focus; shared disabled actions ไม่เปลี่ยนสีเมื่อ hover; PageHeader actions wrap โดยไม่ตัดปุ่มเป็นหลายบรรทัด
 - AccountControl ใช้ disclosure + named region ไม่ใช้ ARIA menu ที่ไม่มี menuitems; ปิดด้วย Esc หรือย้าย focus ออก, คืน focus เมื่อกด Esc. ไม่เปลี่ยน logout action
 - BuildingEditorForm เชื่อม error summary ผ่าน aria-describedby ในช่องค่าธรรมเนียม/คำนวณ โดยไม่เปลี่ยน validation หรือสูตรธุรกิจ
