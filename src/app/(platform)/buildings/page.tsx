@@ -22,7 +22,7 @@ export default async function BuildingsPage({ searchParams }: { searchParams: Pr
   if (data.state !== "ready") return <main className="permission-buildings-state" role="status">
     {data.state === "not_configured" ? copy.feedback.unavailable : "โหลดข้อมูลอาคารไม่สำเร็จ กรุณาลองอีกครั้ง"}
   </main>;
-  return <>
+  return <main data-ui-screen="buildings">
     <PageHeader title="อาคารและค่าใช้จ่าย" description="ค้นหาข้อมูลอาคาร ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน" parent={{ label: "ภาพรวม", href: "/" }} actions={canCreate ? <Link className="btn-primary" href="/buildings/new">เพิ่มอาคาร</Link> : undefined} />
     <BuildingsWorkspace buildings={data.items} total={data.total} canCreate={canCreate} mapApiKey={process.env.LONGDO_MAP_API_KEY ?? ""} initialQuery={query.query} initialFilters={query} />
     <nav className="permission-pagination" aria-label="หน้าผลลัพธ์">
@@ -32,5 +32,5 @@ export default async function BuildingsPage({ searchParams }: { searchParams: Pr
         : `หน้า ${data.page.toLocaleString("th-TH")} · แสดงสูงสุด ${data.pageSize.toLocaleString("th-TH")} จาก ${data.total.toLocaleString("th-TH")} อาคาร`}</span>
       {data.nextCursor ? <Link href={`/buildings?${buildingQueryParams(query, { page: data.page + 1, after: data.nextCursor, before: "" })}`}>หน้าถัดไป</Link> : <span/>}
     </nav>
-  </>;
-}
+  </main>;
+  }

@@ -41,8 +41,8 @@ export default async function BuildingMapPage({ searchParams }: { searchParams: 
     locationVerified: item.locationVerified, locationSource: item.locationSource, conditionEffectiveAt: item.conditionEffectiveAt,
     canUpdateLocation: item.canUpdateLocation, boq: item.boq ? { fees: item.boq.fees.map((fee) => ({ source_field: fee.source_field, cost_type: fee.cost_type,
       revenue_period: fee.revenue_period, payable: fee.payable, amount: fee.amount })) } : null }));
-  return <MapWorkspace buildings={buildings} apiKey={process.env.LONGDO_MAP_API_KEY ?? ""} selectedBuildingId={selectedBuildingId}
+  return <main data-ui-screen="buildings-map"><MapWorkspace buildings={buildings} apiKey={process.env.LONGDO_MAP_API_KEY ?? ""} selectedBuildingId={selectedBuildingId}
     initialQuery={scalar(params, "q")} initialProvince={scalar(params, "province")} initialStatus={scalar(params, "status")}
     initialMode={scalar(params, "mode")} initialCategory={scalar(params, "category")} initialHeatMetric={scalar(params, "heatMetric")}
-    initialFromDate={scalar(params, "from")} initialToDate={scalar(params, "to")} truncated={truncated} />;
+    initialFromDate={scalar(params, "from")} initialToDate={scalar(params, "to")} truncated={truncated} /></main>;
 }

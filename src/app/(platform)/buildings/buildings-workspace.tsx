@@ -173,7 +173,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
   function setFilter(key: FilterKey, value: string) { setFilters((current) => ({ ...current, [key]: value })); }
   function reset() { setQuery(""); setFilters(emptyFilters); setFocused(false); searchRef.current?.focus(); }
 
-  return <section className="permission-workspace" aria-label="ข้อมูลอาคารและค่าใช้จ่าย">
+  return <section className="permission-workspace" data-ui-screen="buildings" aria-label="ข้อมูลอาคารและค่าใช้จ่าย">
     <header className="permission-toolbar">
       <div className="permission-toolbar-title"><h1>อาคารและค่าใช้จ่าย</h1></div>
       <div className="permission-search-actions">

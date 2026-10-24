@@ -22,7 +22,7 @@ export default async function GuaranteesPage({ searchParams }: { searchParams: P
     isAuthorized(access.subject, "guarantee.case.manage") ||
     (access.subject?.teamIds ?? []).some((teamId) => isAuthorized(access.subject, "guarantee.case.manage", { ownerId: access.userId, teamId }));
   const data = preview ? { items: installationTeamView ? depositPreviewItems.filter(isInstallationTeamPending) : depositPreviewItems, state: "ready" as const, truncated: false, generatedAt: "2026-09-29T00:00:00.000Z" } : await listDepositWorkItems(500, requestedTeamId, installationTeamView);
-  return <>
+  return <main data-ui-screen="guarantees">
     <PageHeader title="เงินประกันอาคาร" description="ติดตามเอกสาร ขั้นตอน และสถานะการขอคืนเงินประกัน" parent={{ label: "ภาพรวม", href: "/" }} />
     <DepositWorkspace items={data.items} preview={preview} state={data.state} truncated={data.truncated}
       generatedAt={data.generatedAt}
@@ -31,5 +31,5 @@ export default async function GuaranteesPage({ searchParams }: { searchParams: P
       canViewTlWorkspace={canViewTlWorkspace}
       installationTeamView={installationTeamView}
       canPreview={process.env.NODE_ENV === "development" && access.isDevelopmentSession} />
-  </>;
+  </main>;
 }
