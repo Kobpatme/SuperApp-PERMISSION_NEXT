@@ -1,5 +1,5 @@
 import { Button, ButtonLink } from "@/components/ui/button";
-import { FilterBar } from "@/components/ui/form";
+import { FilterBar, FormField } from "@/components/ui/form";
 import { WorkspaceIcon } from "@/components/workspace-icon";
 import styles from "@/features/work/screens/work-list.module.css";
 import type { WorkReadModel } from "@/lib/work-read-model";
@@ -10,7 +10,7 @@ export function WorkFiltersForm({ filters = {}, model, appearance = "default", r
   if (appearance === "workspace") {
     const count = [filters.year, filters.month, filters.status, filters.team, filters.source].filter(value => value !== undefined && value !== "").length;
     return <FilterBar method="get" className={styles.filters} aria-label="ตัวกรองงาน">
-      <label className={styles.searchField}>ค้นหา Job / ชื่องาน<span className={styles.searchControl}><WorkspaceIcon name="search" size={18}/><input type="search" name="q" defaultValue={filters.q} placeholder="ค้นหางานหรือรหัส Job…"/></span></label>
+      <FormField label="ค้นหา Job / ชื่องาน" className={styles.searchField}><input type="search" name="q" defaultValue={filters.q} placeholder="ค้นหางานหรือรหัส Job…" /></FormField>
       <div className={`${styles.filterActions} ui-filter-actions`}><Button variant="primary" type="submit">ค้นหางาน</Button><ButtonLink variant="secondary" href={resetHref}>ล้างตัวกรอง</ButtonLink></div>
       <details className={styles.advanced} open={count > 0}><summary><WorkspaceIcon name="filter" size={18}/>ตัวกรองเพิ่มเติม{count > 0 ? ` · ${count}` : ""}</summary><div className={styles.filterGrid}>{fields}</div></details>
       {filters.owner && <input type="hidden" name="owner" value={filters.owner}/>}

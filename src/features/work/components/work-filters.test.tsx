@@ -7,6 +7,9 @@ describe("WorkFiltersForm shared presentation", () => {
     const html = renderToStaticMarkup(<WorkFiltersForm appearance="workspace" resetHref="/work" />);
 
     expect(html).toContain("ui-filter");
+    expect(html).toContain("ui-field-label");
+    expect(html).toContain('name="q"');
+    expect(html).not.toContain("searchControl");
     expect(html).toContain('class="ui-button ui-button-primary"');
     expect(html).toContain('class="ui-button ui-button-secondary"');
   });
