@@ -29,14 +29,14 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
     catch { /* The preference is optional. */ }
   }
 
-  return <div className={`app ${styles.shell} ${collapsed ? styles.collapsed : ""}`} data-app-shell>
+  return <div className={`app ${styles.shell} ${collapsed ? styles.collapsed : ""} bg-[var(--color-bg)] text-[var(--color-text)]`} data-app-shell>
     <a className="skip-link" href="#workspace-content">ข้ามไปยังเนื้อหาหลัก</a>
-    <div className={styles.header} data-shell-header>
-      <header className={styles.topbar}>
-        <button className={styles.mobileToggle} type="button" aria-label="เปิดเมนูพื้นที่ทำงาน" aria-haspopup="dialog" aria-controls="mobile-workspace-menu" onClick={() => mobileDialog.current?.showModal()}><span className="sidebar-menu-icon" aria-hidden="true"><span/><span/><span/></span></button>
-        <Link className={styles.brand} href="/" aria-label="Permission Next — ภาพรวม"><span className={styles.brandMark} aria-hidden="true">PN</span><span className={styles.brandText}><strong>Permission Next</strong><small>พื้นที่ทำงานของทีม</small></span></Link>
-        <div className={styles.search}><WorkspaceSearch allowedModuleIds={allowedModuleIds} contained/></div>
-        <div className={styles.actions}>
+    <div className={`${styles.header} border-b border-[var(--color-border)] bg-[var(--color-surface)]`} data-shell-header>
+      <header className={`${styles.topbar} flex items-center gap-4`}>
+        <button className={`${styles.mobileToggle} transition-colors hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]`} type="button" aria-label="เปิดเมนูพื้นที่ทำงาน" aria-haspopup="dialog" aria-controls="mobile-workspace-menu" onClick={() => mobileDialog.current?.showModal()}><span className="sidebar-menu-icon" aria-hidden="true"><span/><span/><span/></span></button>
+        <Link className={`${styles.brand} transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2`} href="/" aria-label="Permission Next — ภาพรวม"><span className={`${styles.brandMark} shadow-sm`} aria-hidden="true">PN</span><span className={styles.brandText}><strong>Permission Next</strong><small>พื้นที่ทำงานของทีม</small></span></Link>
+        <div className={`${styles.search} min-w-0 flex-1`}><WorkspaceSearch allowedModuleIds={allowedModuleIds} contained/></div>
+        <div className={`${styles.actions} flex items-center gap-2`}>
           {notificationCenter}
           <WorkspaceThemeToggle defaultTheme="light"/>
           <div className={styles.account}>
@@ -45,21 +45,21 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
         </div>
       </header>
     </div>
-    <aside className={styles.sidebar} data-shell-sidebar aria-label="เมนูหลัก">
-      <div className={styles.sidebarHeading}><span className="sidebar-heading-label">พื้นที่ทำงาน</span>
-        <button className={styles.collapse} type="button" aria-label={collapsed ? "ขยายเมนูด้านข้าง" : "ยุบเมนูด้านข้าง"} aria-expanded={!collapsed} onClick={toggleCollapsed} title={collapsed ? "ขยายเมนู" : "ยุบเมนู"}>
+    <aside className={`${styles.sidebar} border-r border-[var(--color-nav-border)] shadow-sm`} data-shell-sidebar aria-label="เมนูหลัก">
+      <div className={`${styles.sidebarHeading} flex items-center justify-between`}><span className="sidebar-heading-label">พื้นที่ทำงาน</span>
+        <button className={`${styles.collapse} transition-colors hover:border-[var(--color-nav-accent)] hover:text-[var(--color-nav-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-nav-focus)]`} type="button" aria-label={collapsed ? "ขยายเมนูด้านข้าง" : "ยุบเมนูด้านข้าง"} aria-expanded={!collapsed} onClick={toggleCollapsed} title={collapsed ? "ขยายเมนู" : "ยุบเมนู"}>
           <WorkspaceIcon name="chevron" size={20}/>
         </button>
       </div>
       <ModuleNav allowedModuleIds={allowedModuleIds} collapsed={collapsed} canAdmin={canAdmin} workNavigation={workNavigation} />
-      {!collapsed && scopeLabel && <p className="sidebar-scope">คุณเห็นข้อมูลของ:<br/>{scopeLabel}</p>}
+      {!collapsed && scopeLabel && <p className="sidebar-scope text-xs leading-5 text-[var(--color-nav-muted)]">คุณเห็นข้อมูลของ:<br/>{scopeLabel}</p>}
     </aside>
-    <dialog className={styles.drawer} id="mobile-workspace-menu" ref={mobileDialog} aria-label="เมนูพื้นที่ทำงาน" onClick={(event) => { if (event.target === mobileDialog.current) mobileDialog.current?.close(); }}>
+    <dialog className={`${styles.drawer} shadow-lg`} id="mobile-workspace-menu" ref={mobileDialog} aria-label="เมนูพื้นที่ทำงาน" onClick={(event) => { if (event.target === mobileDialog.current) mobileDialog.current?.close(); }}>
       <div>
-        <div className={styles.drawerHeading}><strong>พื้นที่ทำงาน</strong><button className="round-btn" type="button" aria-label="ปิดเมนูพื้นที่ทำงาน" onClick={() => mobileDialog.current?.close()}><WorkspaceIcon name="close" size={20}/></button></div>
+        <div className={`${styles.drawerHeading} flex items-center justify-between`}><strong>พื้นที่ทำงาน</strong><button className="round-btn transition-colors hover:bg-[var(--color-nav-subtle)]" type="button" aria-label="ปิดเมนูพื้นที่ทำงาน" onClick={() => mobileDialog.current?.close()}><WorkspaceIcon name="close" size={20}/></button></div>
         <ModuleNav idPrefix="mobile-sidebar-section" allowedModuleIds={allowedModuleIds} canAdmin={canAdmin} workNavigation={workNavigation} onNavigate={() => mobileDialog.current?.close()} />
       </div>
     </dialog>
-    <main className={styles.main} data-shell-main id="workspace-content" tabIndex={-1}>{children}</main>
+    <main className={`${styles.main} min-w-0`} data-shell-main id="workspace-content" tabIndex={-1}>{children}</main>
   </div>;
 }
