@@ -135,9 +135,8 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
             return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
           })}
           {item.id === "buildings" && [
-            { href: "/buildings", label: "อาคารและค่าใช้จ่าย", icon: "buildings" as const },
+            { href: "/buildings", label: "ข้อมูลอาคาร", icon: "buildings" as const },
             { href: "/buildings/new", label: "เพิ่มอาคาร", icon: "info" as const },
-            { href: "/buildings/map", label: "แผนที่อาคาร", icon: "search" as const },
           ].map(child => {
             const childActive = child.href === currentBuildingsHref;
             return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;

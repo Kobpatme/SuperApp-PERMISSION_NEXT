@@ -7,7 +7,7 @@ import { escapeMapText, loadLongdoMap, normalizeLongdoStyle, subscribeMapReady, 
 
 export type MapPoint = { id: string; name: string; code: string; latitude: number; longitude: number; detail?: string; status?: string; weight?: number };
 type Props = { apiKey: string; points: MapPoint[]; selectedId?: string | null; heatmap?: boolean; onSelect?: (id: string) => void;
-  onPick?: (latitude: number, longitude: number) => void; className?: string };
+  onPick?: (latitude: number, longitude: number) => void; onFallbackToList?: () => void; className?: string };
 type Cluster = { latitude: number; longitude: number; points: MapPoint[] };
 
 function removeHeatmap(map: LongdoMapInstance) {
@@ -34,7 +34,20 @@ function features(points: MapPoint[]) {
     properties: { weight: Math.max(0.1, Math.min(point.weight ?? 1, 100)) } })) };
 }
 
-export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, onSelect, onPick, className = "" }: Props) {
+type InitialMapFit = { kind: "point"; point: MapPoint } | { kind: "bounds"; bounds: { minLon: number; minLat: number; maxLon: number; maxLat: number } };
+
+export function getInitialMapFit(points: MapPoint[], selectedId?: string | null): InitialMapFit | null {
+  const validPoints = points.filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude) && (point.latitude !== 0 || point.longitude !== 0));
+  if (!validPoints.length) return null;
+  const selected = selectedId ? validPoints.find((point) => point.id === selectedId) : undefined;
+  if (selected || validPoints.length === 1) return { kind: "point", point: selected ?? validPoints[0] };
+  return { kind: "bounds", bounds: validPoints.reduce((result, point) => ({
+    minLon: Math.min(result.minLon, point.longitude), minLat: Math.min(result.minLat, point.latitude),
+    maxLon: Math.max(result.maxLon, point.longitude), maxLat: Math.max(result.maxLat, point.latitude),
+  }), { minLon: validPoints[0].longitude, minLat: validPoints[0].latitude, maxLon: validPoints[0].longitude, maxLat: validPoints[0].latitude }) };
+}
+
+export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, onSelect, onPick, onFallbackToList, className = "" }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LongdoMapInstance | null>(null);
   const namespaceRef = useRef<LongdoNamespace | null>(null);
@@ -45,11 +58,13 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
   const [fullscreen, setFullscreen] = useState(false);
   const [zoomRevision, setZoomRevision] = useState(0);
   const [clusterIds, setClusterIds] = useState<string[]>([]);
+  const initialFitDoneRef = useRef(false);
   const clusterCandidates = points.filter((point) => clusterIds.includes(point.id));
 
   useEffect(() => { callbackRef.current = { onSelect, onPick }; }, [onPick, onSelect]);
 
   useEffect(() => {
+    initialFitDoneRef.current = false;
     if (!apiKey || !hostRef.current) { setState("missing-key"); return; }
     let disposed = false;
     let ready = false;
@@ -125,8 +140,28 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
       markersRef.current = [];
       mapRef.current = null;
       namespaceRef.current = null;
+      initialFitDoneRef.current = false;
     };
   }, [apiKey, retry]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (state !== "ready" || !map || initialFitDoneRef.current) return;
+    map.resize?.();
+    const fit = getInitialMapFit(points, selectedId);
+    if (!fit) return;
+    if (fit.kind === "point") {
+      map.location({ lat: fit.point.latitude, lon: fit.point.longitude });
+      map.zoom(Math.max(map.zoom(), 15));
+    } else if (!map.bound) {
+      map.location({ lat: fit.bounds.minLat, lon: fit.bounds.minLon });
+      map.zoom(15);
+    } else {
+      const bounds = fit.bounds;
+      map.bound(bounds, undefined, true);
+    }
+    initialFitDoneRef.current = true;
+  }, [points, selectedId, state]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -201,6 +236,7 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
     </section>}
     {state !== "ready" && <div className="building-longdo-map-state" role="status">
       {state === "loading" ? "กำลังโหลดแผนที่…" : state === "missing-key" ? <><strong>{copy.feedback.mapUnavailable}</strong><span>{copy.feedback.mapFallback}</span></> : <><strong>โหลดแผนที่ Longdo ไม่สำเร็จ</strong><span>{copy.feedback.mapRetry}</span><button type="button" onClick={() => { setState("loading"); setRetry((value) => value + 1); }}>ลองอีกครั้ง</button></>}
+      {state === "error" && onFallbackToList && <button type="button" onClick={onFallbackToList}>ดูรายการ</button>}
     </div>}
     {heatmap && points.length < 2 && <div className="building-longdo-map-hint" role="status">ต้องมีอาคารที่ระบุตำแหน่งอย่างน้อย 2 แห่ง จึงแสดงความหนาแน่นได้</div>}
   </div>;

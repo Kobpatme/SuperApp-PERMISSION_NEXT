@@ -8,23 +8,41 @@ import { listPermissionBuildings } from "@/lib/permission-building-server";
 import { buildingQueryParams, parseBuildingQuery } from "@/lib/building-query";
 import { BuildingsWorkspace } from "./buildings-workspace";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
+
 import "./permission-buildings.css";
 import "@/features/buildings/map/building-map.css";
 
-export default async function BuildingsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+type SearchParams = Record<string, string | string[] | undefined>;
+const scalar = (params: SearchParams, key: string) => typeof params[key] === "string" ? params[key] as string : "";
+
+export default async function BuildingsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const access = await getAccessContext("buildings");
-  if (!access.allowed) return <AccessDenied moduleName="อาคารและค่าใช้จ่าย" />;
+  if (!access.allowed) return <AccessDenied moduleName="ข้อมูลอาคาร" />;
   const createGrants = access.subject?.grants.filter((grant) => grant.permission === "building.record.create") ?? [];
   const canCreate = createGrants.some((grant) => grant.scope === "ALL" || grant.scope === "TEAM" && Boolean(access.subject?.teamIds.length) || grant.scope === "SELECTED_TEAMS" && Boolean(grant.selectedTeamId));
-  const query = parseBuildingQuery(await searchParams);
-  const data = await listPermissionBuildings(query);
+  const params = await searchParams;
+  const query = parseBuildingQuery(params);
+  const mapFirst = scalar(params, "view") !== "list";
+  const scopeCap = 10_000;
+  let data = await listPermissionBuildings(mapFirst ? { ...query, limit: 2000, page: 1, after: "", before: "" } : query);
+  let truncated = false;
+  if (mapFirst && data.state === "ready") {
+    const items = [...data.items];
+    let nextCursor = data.nextCursor;
+    let pageNumber = data.page;
+    for (let page = 1; nextCursor && page < 5; page += 1) {
+      const next = await listPermissionBuildings({ ...query, limit: 2000, page: pageNumber + 1, after: nextCursor, before: "" });
+      if (next.state !== "ready") break;
+      items.push(...next.items); pageNumber = next.page; nextCursor = next.nextCursor;
+    }
+    truncated = Boolean(nextCursor);
+    data = { ...data, items, nextCursor, page: pageNumber, pageSize: 2000 };
+  }
   if (data.state !== "ready") return <main className="permission-buildings-state" role="status">
     {data.state === "not_configured" ? copy.feedback.unavailable : "โหลดข้อมูลอาคารไม่สำเร็จ กรุณาลองอีกครั้ง"}
   </main>;
   return <main data-ui-screen="buildings">
-    <PageHeader title="อาคารและค่าใช้จ่าย" description="ค้นหาข้อมูลอาคาร ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน" parent={{ label: "ภาพรวม", href: "/" }} actions={canCreate ? <Link className="btn-primary" href="/buildings/new">เพิ่มอาคาร</Link> : undefined} />
-    <BuildingsWorkspace buildings={data.items} total={data.total} canCreate={canCreate} mapApiKey={process.env.LONGDO_MAP_API_KEY ?? ""} initialQuery={query.query} initialFilters={query} />
+    <BuildingsWorkspace buildings={data.items} total={data.total} canCreate={canCreate} initialQuery={query.query} initialFilters={query} apiKey={process.env.LONGDO_MAP_API_KEY ?? ""} initialView={mapFirst ? "map" : "list"} initialSelectedId={scalar(params, "buildingId")} initialProvince={scalar(params, "province")} initialMode={scalar(params, "mode")} initialCategory={scalar(params, "category")} initialHeatMetric={scalar(params, "heatMetric")} initialFromDate={scalar(params, "from")} initialToDate={scalar(params, "to")} truncated={truncated} loadedCount={data.items.length} scopeCap={scopeCap} />
     <nav className="permission-pagination" aria-label="หน้าผลลัพธ์">
       {data.previousCursor ? <Link href={`/buildings?${buildingQueryParams(query, { page: Math.max(1, data.page - 1), before: data.previousCursor, after: "" })}`}>หน้าก่อนหน้า</Link> : <span/>}
       <span>{data.items.length === data.total && !data.previousCursor && !data.nextCursor

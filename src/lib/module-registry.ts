@@ -36,7 +36,7 @@ export const modules = defineModuleRegistry([
     entryPermissions: ["building.record.read"], dashboardProvider: "buildings", searchProvider: "buildings",
     number: 2,
     href: "/buildings",
-    name: "อาคารและค่าใช้จ่าย",
+    name: "ข้อมูลอาคาร",
     shortLabel: "อาคาร",
     description: "ค้นหาข้อมูลอาคาร ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน",
     purpose: "อาคารและเอกสาร",

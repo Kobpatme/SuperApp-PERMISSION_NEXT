@@ -1,4 +1,5 @@
 export type LongdoLocation = { lat: number; lon: number };
+export type LongdoBound = { minLon: number; minLat: number; maxLon: number; maxLat: number };
 export type LongdoStyle = { layers?: Array<{ paint?: Record<string, unknown>; [key: string]: unknown }>; [key: string]: unknown };
 
 // Longdo's road opacity expressions read optional tunnel attributes as booleans.
@@ -17,6 +18,7 @@ export type LongdoMarker = { buildingId?: string; buildingIds?: string[]; cluste
 export type LongdoMapInstance = {
   location(value?: LongdoLocation | unknown): LongdoLocation;
   zoom(value?: number): number;
+  bound?(value?: LongdoBound, options?: unknown, allowZoomIn?: boolean): LongdoBound | LongdoMapInstance;
   Overlays: { add(overlay: unknown): void; remove(overlay: unknown): void; clear(): void };
   Event: { bind(name: string, listener: (event: unknown) => void): void; unbind(name: string, listener: (event: unknown) => void): void };
   Renderer?: { addSource(id: string, source: unknown): void; addLayer(layer: unknown): void; removeLayer(id: string): void; removeSource(id: string): void; getLayer(id: string): unknown; getSource(id: string): unknown; isStyleLoaded(): boolean; once(name: string, listener: () => void): void; off(name: string, listener: () => void): void; remove(): void };

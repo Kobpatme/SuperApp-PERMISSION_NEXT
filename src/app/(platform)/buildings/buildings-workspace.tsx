@@ -2,11 +2,14 @@
 import { sessionFetch } from "@/lib/session-fetch";
 
 import { copy } from "@/lib/copy";
+import Decimal from "decimal.js";
+import { summarizeBuildingMapFees, buildingMapHeatWeight, type BuildingMapExpenseCategory } from "@/lib/building-map-domain";
+import { applyBuildingMapUrlState, parseBuildingMapUrl } from "@/lib/building-map-url";
+import { LongdoMapCanvas, type MapPoint } from "@/features/buildings/map/longdo-map-canvas";
 
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { PermissionBuildingRow } from "@/lib/permission-building-server";
-import { BuildingMap } from "./building-map";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TruncatedText } from "@/components/ui/truncated-text";
 import { useDialogDismiss } from "@/components/ui/use-dialog-dismiss";
@@ -36,8 +39,19 @@ function matchesBuildingQuery(text: string, query: string) {
   return query.split(/\s+/).filter(Boolean).every((token) => text.includes(token));
 }
 
-export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApiKey = "", initialQuery = "", initialFilters = emptyFilters }: { buildings: PermissionBuildingRow[]; total: number; canCreate?: boolean; mapApiKey?: string; initialQuery?: string; initialFilters?: Filters }) {
-  const router = useRouter(), pathname = usePathname();
+export function BuildingsWorkspace({ buildings, total, canCreate = false, initialQuery = "", initialFilters = emptyFilters, apiKey = "", initialView = "map", initialSelectedId = "", initialProvince = "", initialMode = "buildings", initialCategory = "CAPEX", initialHeatMetric = "building_count", initialFromDate = "", initialToDate = "", truncated = false, loadedCount = buildings.length, scopeCap = 10000, initialFiltersOpen = false }: { buildings: PermissionBuildingRow[]; total: number; canCreate?: boolean; initialQuery?: string; initialFilters?: Filters; apiKey?: string; initialView?: "map" | "list"; initialSelectedId?: string; initialProvince?: string; initialMode?: string; initialCategory?: string; initialHeatMetric?: string; initialFromDate?: string; initialToDate?: string; truncated?: boolean; loadedCount?: number; scopeCap?: number; initialFiltersOpen?: boolean }) {
+  const router = useRouter();
+  const hydrationRef = useRef(false);
+  const suppressUrlWriteRef = useRef(false);
+  const navigationVersionRef = useRef(0);
+  const [view, setView] = useState<"map" | "list">(initialView);
+  const [province, setProvince] = useState(initialProvince);
+  const [mode, setMode] = useState<"buildings" | "status" | "expense" | "heatmap">((["buildings", "status", "expense", "heatmap"].includes(initialMode) ? initialMode : "buildings") as "buildings" | "status" | "expense" | "heatmap");
+  const categories: BuildingMapExpenseCategory[] = ["CAPEX", "OPEX_MONTHLY", "OPEX_ANNUAL", "DEPOSIT", "UNCLASSIFIED"];
+  const [category, setCategory] = useState<BuildingMapExpenseCategory>(categories.includes(initialCategory as BuildingMapExpenseCategory) ? initialCategory as BuildingMapExpenseCategory : "CAPEX");
+  const [heatMetric, setHeatMetric] = useState<"building_count" | "fee_count" | "amount">((["building_count", "fee_count", "amount"].includes(initialHeatMetric) ? initialHeatMetric : "building_count") as "building_count" | "fee_count" | "amount");
+  const [fromDate, setFromDate] = useState(initialFromDate);
+  const [toDate, setToDate] = useState(initialToDate);
   const [query, setQuery] = useState(initialQuery);
   const [previousInitialQuery, setPreviousInitialQuery] = useState(initialQuery);
   const [filters, setFilters] = useState<Filters>({
@@ -59,10 +73,10 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
     setFilters({ status: initialFilters.status ?? "", group: initialFilters.group ?? "", type: initialFilters.type ?? "",
       installType: initialFilters.installType ?? "", surveyType: initialFilters.surveyType ?? "", area: initialFilters.area ?? "" });
   }
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(initialFiltersOpen);
   const [focused, setFocused] = useState(false);
   const [suggestionIndex, setSuggestionIndex] = useState(-1);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId || null);
   const [tab, setTab] = useState<"general" | "contact" | "fee" | "documents">("general");
   const [documentState, setDocumentState] = useState<DocumentState | null>(null);
   const [documentReload, setDocumentReload] = useState(0);
@@ -85,23 +99,54 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
     return matchesBuildingQuery(text, normalizedQuery);
   }).slice(0, 10) : [];
   const activeFilterCount = (Object.keys(filters) as FilterKey[]).filter((key) => filters[key]).length;
+  const mapVisible = useMemo(() => visible.filter((item) => {
+    const matchesProvince = !province || item.province === province;
+    const date = item.conditionEffectiveAt?.slice(0, 10) ?? "";
+    return matchesProvince && (!fromDate || date >= fromDate) && (!toDate || date <= toDate);
+  }), [fromDate, province, toDate, visible]);
+  const weighted = useMemo(() => mapVisible.filter((item) => item.lat !== null && item.lng !== null).map((item) => ({ item, summary: summarizeBuildingMapFees(item.boq?.fees ?? [], category) })), [category, mapVisible]);
+  const maxFeeCount = Math.max(0, ...weighted.map(({ summary }) => summary.count));
+  const maxAmount = weighted.reduce((max, row) => row.summary.amount.greaterThan(max) ? row.summary.amount : max, new Decimal(0));
+  const mapPoints: MapPoint[] = useMemo(() => weighted.filter(({ summary }) => mode !== "heatmap" || heatMetric === "building_count" || (heatMetric === "fee_count" ? summary.count > 0 : (category === "UNCLASSIFIED" ? summary.count > 0 : summary.amount.greaterThan(0)))).map(({ item, summary }) => ({
+    id: item.id, name: item.nameTh, code: item.code, latitude: item.lat!, longitude: item.lng!, status: item.status,
+    detail: [item.area, item.province, item.locationVerified ? "ยืนยันตำแหน่งแล้ว" : "ยังไม่ยืนยันตำแหน่ง"].filter(Boolean).join(" · "),
+    weight: mode !== "heatmap" ? 1 : buildingMapHeatWeight(item.boq?.fees ?? [], category, heatMetric, maxFeeCount, maxAmount),
+  })), [category, heatMetric, maxAmount, maxFeeCount, mode, weighted]);
+  const mapProvinces = useMemo(() => [...new Set(buildings.map((item) => item.province).filter(Boolean))].sort((a, b) => a.localeCompare(b, "th")), [buildings]);
   const selectedDetailFilters = (Object.keys(filters) as FilterKey[]).filter((key) => key !== "status" && filters[key]);
-  const mappedCount = visible.filter((item) => item.lat !== null && item.lng !== null).length;
-  const unmappedCount = visible.length - mappedCount;
   const durationDays = selected && /^\d+(?:\.\d+)?$/.test(selected.duration) ? `${selected.duration} วัน` : "";
   const horizontalMeters = selected && /^\d+(?:\.\d+)?$/.test(selected.maxHorizontal) ? `${selected.maxHorizontal} เมตร` : "";
   const invalidDuration = Boolean(selected?.duration && !durationDays);
   const invalidHorizontal = Boolean(selected?.maxHorizontal && !horizontalMeters);
 
   useEffect(() => {
+    const syncFromUrl = () => {
+      navigationVersionRef.current += 1;
+      suppressUrlWriteRef.current = true;
+      const next = parseBuildingMapUrl(window.location.search);
+      setView(next.view); setQuery(next.query); setFilters(next.filters); setProvince(next.province); setMode(next.mode);
+      setCategory(next.category); setHeatMetric(next.heatMetric); setFromDate(next.fromDate); setToDate(next.toDate); setSelectedId(next.selectedId || null);
+    };
+    syncFromUrl(); hydrationRef.current = true;
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrationRef.current) return;
+    if (suppressUrlWriteRef.current) { suppressUrlWriteRef.current = false; return; }
+    const version = navigationVersionRef.current;
     const timer = window.setTimeout(() => {
-      const params = new URLSearchParams();
-      if (query.trim()) params.set("q", query.trim());
-      (Object.keys(filters) as FilterKey[]).forEach(key => { if (filters[key]) params.set(key, filters[key]); });
-      if (params.toString() !== window.location.search.slice(1)) router.replace(`${pathname}${params.size ? `?${params}` : ""}`, { scroll: false });
+      if (version !== navigationVersionRef.current) return;
+      const params = new URLSearchParams(window.location.search);
+      const current = params.toString();
+      const next = applyBuildingMapUrlState(params, { view, query, filters, province, mode, category, heatMetric, fromDate, toDate, selectedId: selectedId ?? "" });
+      if (next.toString() !== current && version === navigationVersionRef.current) {
+        router.replace(`${window.location.pathname}${next.size ? `?${next}` : ""}`, { scroll: false });
+      }
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [filters, pathname, query, router]);
+  }, [category, filters, fromDate, heatMetric, mode, province, query, router, selectedId, toDate, view]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -171,40 +216,26 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
     if (event.key === "Escape") { setFocused(false); setSuggestionIndex(-1); searchRef.current?.blur(); }
   }
   function setFilter(key: FilterKey, value: string) { setFilters((current) => ({ ...current, [key]: value })); }
+  // Search/filter reset intentionally preserves selection; drawer close owns dismissal and URL cleanup.
   function reset() { setQuery(""); setFilters(emptyFilters); setFocused(false); searchRef.current?.focus(); }
 
-  return <section className="permission-workspace" data-ui-screen="buildings" aria-label="ข้อมูลอาคารและค่าใช้จ่าย">
-    <header className="permission-toolbar">
-      <div className="permission-toolbar-title"><h1>อาคารและค่าใช้จ่าย</h1></div>
-      <div className="permission-search-actions">
-      <div className="permission-search" role="search">
-        <span aria-hidden="true">⌕</span>
-        <input ref={searchRef} value={query} onChange={(event) => { setQuery(event.target.value.slice(0, 120)); setSuggestionIndex(-1); }} onFocus={() => setFocused(true)} onKeyDown={searchKeyDown}
+  return <section className="permission-workspace" data-ui-screen="buildings" data-view={view} aria-label="จัดการข้อมูลอาคาร">
+    <header className="permission-toolbar permission-overview-toolbar">
+      <div className="permission-toolbar-title">
+        <nav className="permission-breadcrumb" aria-label="เส้นทางนำทาง"><Link href="/">ภาพรวม</Link><span aria-hidden="true"> / </span><span aria-current="page">ข้อมูลอาคาร</span></nav>
+        <h1>ข้อมูลอาคาร</h1><p>ค้นหาอาคาร ตรวจสอบตำแหน่ง ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน</p>
+      </div>
+      <div className="permission-search-actions"><div className="permission-search" role="search">
+        <span aria-hidden="true">⌕</span><input ref={searchRef} value={query} onChange={(event) => { setQuery(event.target.value.slice(0, 120)); setSuggestionIndex(-1); }} onFocus={() => setFocused(true)} onKeyDown={searchKeyDown}
           onBlur={() => window.setTimeout(() => setFocused(false), 130)} placeholder="ค้นหาอาคาร... ภาษาไทย หรือ English" aria-label="ค้นหาอาคาร" autoComplete="off" />
         {query && <button type="button" className="permission-search-clear" onClick={() => { setQuery(""); searchRef.current?.focus(); }} aria-label="ล้างการค้นหา">×</button>}
-        {focused && normalizedQuery && <div className="permission-autocomplete" role="listbox" aria-label="ผลการค้นหาอาคาร">
-          {suggestions.length ? suggestions.map((item, index) => <button type="button" role="option" aria-selected={suggestionIndex === index} key={item.id}
-            onMouseDown={(event) => event.preventDefault()} onClick={() => { openBuilding(item); }}>
-             <i className={`permission-status-dot ${statusClass(item.status)}`} /><span className="permission-autocomplete-copy"><TruncatedText text={item.nameTh} lines={1}/><TruncatedText text={[item.nameEn, item.area, item.status].filter(Boolean).join(" · ")} lines={1}/></span>
-          </button>) : <p>ไม่พบอาคารที่ตรงกับคำค้นหา</p>}
-        </div>}
-      </div>
-      {canCreate && <Link className="permission-create-building" href="/buildings/new">เพิ่มอาคาร</Link>}
-      </div>
-      <div className="permission-quick-status" aria-label="กรองตามสถานะอาคาร">
-        {statuses.map((status) => <button type="button" key={status} className={filters.status === status ? "active" : ""} aria-pressed={filters.status === status}
-          onClick={() => setFilter("status", filters.status === status ? "" : status)}>
-          <strong>{number(withoutStatus.filter((item) => item.status === status).length)}</strong><span>{statusLabel(status)}</span>
-        </button>)}
-      </div>
-      <button type="button" className="permission-filter-toggle" aria-expanded={filtersOpen} aria-controls="permission-filters" onClick={() => setFiltersOpen((open) => !open)}>
-        ตัวกรอง{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}<span aria-hidden="true">{filtersOpen ? "⌃" : "⌄"}</span>
-      </button>
-      <div className="permission-toolbar-metrics">
-        <span className="permission-result-count" aria-live="polite"><strong>{number(visible.length)}</strong><span>{query || activeFilterCount ? `จาก ${number(total)} อาคาร` : "อาคารทั้งหมด"}</span></span>
-        <span className="permission-map-count"><strong>{number(mappedCount)}</strong> มีพิกัด{unmappedCount > 0 ? ` · ${number(unmappedCount)} ไม่มีพิกัด` : ""}</span>
-      </div>
+        {focused && normalizedQuery && <div className="permission-autocomplete" role="listbox" aria-label="ผลการค้นหาอาคาร">{suggestions.length ? suggestions.map((item, index) => <button type="button" role="option" aria-selected={suggestionIndex === index} key={item.id} onMouseDown={(event) => event.preventDefault()} onClick={() => openBuilding(item)}><i className={`permission-status-dot ${statusClass(item.status)}`} /><span className="permission-autocomplete-copy"><TruncatedText text={item.nameTh} lines={1}/><TruncatedText text={[item.nameEn, item.area, item.status].filter(Boolean).join(" · ")} lines={1}/></span></button>) : <p>ไม่พบอาคารที่ตรงกับคำค้นหา</p>}</div>}
+      </div></div>
+      <div className="permission-overview-actions" aria-label="มุมมองข้อมูลอาคาร"><div className="permission-view-toggle" role="group" aria-label="สลับมุมมอง"><button type="button" aria-pressed={view === "map"} onClick={() => setView("map")}>แผนที่</button><button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}>รายการ</button></div>{canCreate && <Link className="btn-primary" href="/buildings/new">เพิ่มอาคาร</Link>}</div>
+      <button type="button" className="permission-filter-toggle" aria-expanded={filtersOpen} aria-controls="permission-filters" onClick={() => setFiltersOpen((open) => !open)}>ตัวกรอง{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}<span aria-hidden="true">{filtersOpen ? "⌃" : "⌄"}</span></button>
+
     </header>
+    <section className="permission-overview-summary" aria-label="สรุปอาคาร"><div><strong>{number(total)}</strong><span>อาคารทั้งหมด</span></div>{statuses.map((status) => <button type="button" key={status} className={filters.status === status ? "active" : ""} aria-pressed={filters.status === status} onClick={() => setFilter("status", filters.status === status ? "" : status)}><strong>{number(withoutStatus.filter((item) => item.status === status).length)}</strong><span>{statusLabel(status)}</span></button>)}<div><strong>{number(buildings.filter((item) => item.lat !== null && item.lng !== null).length)}</strong><span>มีพิกัด</span></div></section>
 
     {filtersOpen && <div id="permission-filters" className="permission-filterbar">
       {(Object.keys(fieldLabels) as FilterKey[]).map((key) => <label key={key}>
@@ -214,6 +245,12 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
           {(key === "status" ? statuses : optionsFor(buildings, key)).map((value) => <option key={value} value={value}>{value}</option>)}
         </select>
       </label>)}
+      <label className="permission-map-filter"><span className="permission-filter-label">จังหวัด</span><select value={province} onChange={(event) => setProvince(event.target.value)} aria-label="กรองตามจังหวัด"><option value="">ทุกจังหวัด</option>{mapProvinces.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label className="permission-map-filter"><span className="permission-filter-label">มุมมอง</span><select value={mode} onChange={(event) => setMode(event.target.value as typeof mode)} aria-label="เลือกมุมมองแผนที่"><option value="buildings">อาคาร</option><option value="status">สถานะอาคาร</option><option value="expense">ค่าใช้จ่ายตามเงื่อนไข</option><option value="heatmap">Heatmap</option></select></label>
+      {(mode === "expense" || mode === "heatmap") && <label className="permission-map-filter"><span className="permission-filter-label">หมวดค่าใช้จ่าย</span><select value={category} onChange={(event) => setCategory(event.target.value as BuildingMapExpenseCategory)} aria-label="กรองตามหมวดค่าใช้จ่าย">{categories.map((item) => <option key={item}>{item}</option>)}</select></label>}
+      {mode === "heatmap" && <label className="permission-map-filter"><span className="permission-filter-label">ตัวชี้วัด</span><select value={heatMetric} onChange={(event) => setHeatMetric(event.target.value as typeof heatMetric)} aria-label="เลือกตัวชี้วัดความหนาแน่น"><option value="building_count">จำนวนอาคาร</option><option value="fee_count">จำนวนรายการ</option><option value="amount">ยอดตามหมวด</option></select></label>}
+      <label className="permission-map-filter"><span className="permission-filter-label">มีผลตั้งแต่</span><input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="กรองวันที่เริ่มต้น" /></label>
+      <label className="permission-map-filter"><span className="permission-filter-label">ถึงวันที่</span><input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} aria-label="กรองวันที่สิ้นสุด" /></label>
       <button type="button" className="permission-reset" onClick={reset} disabled={!query && activeFilterCount === 0}>รีเซ็ต</button>
     </div>}
     {selectedDetailFilters.length > 0 && <div className="permission-filter-chips" aria-label="ตัวกรองที่เลือก">
@@ -221,12 +258,21 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, mapApi
     </div>}
     {copyMessage && <div className="permission-copy-status" role="status">{copyMessage}</div>}
 
-    <div className="permission-main">
-      <div className="permission-map-area">
-        <BuildingMap buildings={visible} selectedId={selectedId} apiKey={mapApiKey} onOpenDetails={(id) => { const item = buildings.find((entry) => entry.id === id); if (item) openBuilding(item); }} />
-        {visible.length === 0 && <div className="permission-map-empty" role="status"><strong>ไม่พบอาคารที่ตรงกับเงื่อนไข</strong><span>ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง</span><button type="button" onClick={reset}>ล้างการค้นหาและตัวกรอง</button></div>}
+    {view === "map" && <section className="permission-unified-map" aria-label="แผนที่และรายการข้อมูลอาคาร">
+      {truncated && <p className="permission-map-notice" role="status">โหลดแล้ว {number(loadedCount)} จาก {number(total)} อาคารในขอบเขต (สูงสุด {number(scopeCap)} อาคารต่อการโหลดแผนที่) โปรดจำกัดการค้นหาหรือจังหวัดเพื่อดูผลลัพธ์เฉพาะกลุ่ม; รายการที่เลือกอาจถูกโหลดเพิ่มเพื่อเปิดรายละเอียด</p>}
+      <div className="permission-unified-map-grid"><div className="permission-unified-map-canvas"><LongdoMapCanvas apiKey={apiKey} points={mapPoints} selectedId={selectedId} heatmap={mode === "heatmap"} onSelect={(id) => { const item = mapVisible.find((building) => building.id === id); if (item) openBuilding(item); }} onFallbackToList={() => setView("list")} /></div></div>
+    </section>}
+
+    {view === "list" && <section className="permission-overview-list" aria-label="รายการอาคาร">
+      <div className="permission-overview-list-head"><div><span>ข้อมูลอาคาร</span><h2>รายการอาคาร</h2></div><span>{number(visible.length)} รายการที่แสดง</span></div>
+      <div className="permission-overview-list-scroll">
+        {visible.length ? <div className="permission-overview-grid">{visible.map((item) => <article className="permission-overview-card" key={item.id}>
+          <button type="button" className="permission-overview-card-main" onClick={() => openBuilding(item)}><span className={`permission-status-dot ${statusClass(item.status)}`} /><span><strong><TruncatedText text={item.nameTh} lines={2}/></strong><small>{[item.code, item.nameEn, item.area].filter(Boolean).join(" · ")}</small></span></button>
+          <div className="permission-overview-card-meta"><span>{statusLabel(item.status)}</span><span>{item.boq?.fees.length ? `${item.boq.fees.length} รายการค่าใช้จ่าย` : "ยังไม่มีค่าใช้จ่าย"}</span></div>
+          <div className="permission-overview-card-actions"><Link href={`/buildings/${item.id}`}>เปิดข้อมูล</Link>{item.canUpdateLocation && <Link href={`/buildings/${item.id}/edit`}>แก้ไข</Link>}</div>
+        </article>)}</div> : <div className="permission-overview-empty" role="status"><strong>ไม่พบอาคารที่ตรงกับเงื่อนไข</strong><span>ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง</span><button type="button" onClick={reset}>ล้างการค้นหาและตัวกรอง</button></div>}
       </div>
-    </div>
+    </section>}
 
     <dialog ref={dialogRef} className={`permission-drawer ${closing ? "is-closing" : ""}`} aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onCancel={event=>{event.preventDefault();dismiss();}} onClose={() => setSelectedId(null)}>
        {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2><TruncatedText text={selected.nameTh} lines={2}/></h2><TruncatedText className="permission-drawer-name-en" text={selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"} lines={2}/><div className="permission-list-tags">{[selected.group, selected.surveyType, selected.type, selected.installType].filter(Boolean).map((tag) => <em key={tag}><TruncatedText text={tag as string} lines={1}/></em>)}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>{copy.pages.buildings_id}</Link>{selected.canUpdateLocation && <Link className="secondary-action" href={`/buildings/${selected.id}/edit`}>{copy.buildingEditor.editTitle}</Link>}</div><button type="button" onClick={dismiss} aria-label="ปิดรายละเอียด">×</button></div>

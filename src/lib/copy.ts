@@ -17,7 +17,7 @@ export const copy = {
     admin: "ผู้ดูแลระบบ",
     buildings_map: "แผนที่อาคาร",
     buildings_new: "เพิ่มอาคาร",
-    buildings: "อาคารและค่าใช้จ่าย",
+    buildings: "ข้อมูลอาคาร",
     buildings_id: "รายละเอียดอาคาร",
     guarantees_new: "เพิ่มรายการเงินประกัน",
     guarantees: "เงินประกันอาคาร",
