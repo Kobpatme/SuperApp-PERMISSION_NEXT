@@ -16,6 +16,12 @@
 /* Work/KPI recovery screens: one responsive, readable surface for domain-specific workflows. */
 .work-native { min-width:0; display:grid; gap:var(--space-4); }
 .work-native > * { min-width:0; }
+.work-native[data-work-appearance="workspace"] { gap:var(--space-5); }
+.work-native[data-work-appearance="workspace"] > .page-heading { margin-bottom:var(--space-1); }
+.work-native[data-work-appearance="workspace"] .work-metric-strip { margin-bottom:var(--space-1); }
+.work-native[data-work-appearance="workspace"] :is(.work-panel,.work-rollout-filter-panel,.work-rollout-assignment,.work-rollout-tracker-panel) { box-shadow:var(--shadow-xs); }
+.work-native :is(button,a,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); }
+.work-native .work-section-head > :first-child,.work-native .work-form-intro > :first-child { min-width:0; }
 .work-rollout { width:min(100%,1440px); margin-inline:auto; gap:var(--space-5); }
 .work-rollout > .page-heading .page-heading-row { width:100%; flex-wrap:nowrap; align-items:flex-end; justify-content:space-between; }
 .work-rollout > .page-heading .page-heading-content { flex:1 1 auto; }

@@ -7,7 +7,7 @@ import { WorkEmpty, WorkScreenShell, WorkUnavailable } from "@/features/work/com
 import { TaskKpiFields } from "@/features/work/components/task-kpi-fields";
 const initial:WorkActionState={ok:false,message:""};
 export function AssignmentCenterScreen({model,filters}:{model:WorkReadModel;filters?:ReactNode}){
- const appearance=filters?"workspace":"default";
+ const appearance="workspace";
  const [state,action,pending]=useActionState(assignWorkTasksAction,initial);
  const formRef=useRef<HTMLFormElement>(null);
  useWorkMutationSignal(state,formRef);

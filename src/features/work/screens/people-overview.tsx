@@ -6,7 +6,7 @@ import type { AuthorizationSubject } from "@/lib/authorization";
 import { WorkEmpty, WorkMetricStrip, WorkScreenShell, WorkUnavailable } from "@/features/work/components/work-screen-shell";
 
 export function PeopleOverviewScreen({ model, subject, filters }: { model: WorkReadModel; subject?: AuthorizationSubject; filters?: ReactNode }) {
-  const appearance = filters ? "workspace" : "default";
+  const appearance = "workspace";
   if (model.source.status !== "ready") return <WorkScreenShell title="บุคลากร" description="ดูภาระงานและผลการทำงานตามขอบเขตสิทธิ์" appearance={appearance}><WorkUnavailable message="ยังโหลดข้อมูลบุคลากรไม่ได้" detail={model.source.message} /></WorkScreenShell>;
   const people = model.people;
   return <WorkScreenShell title="บุคลากร" description="ดูทีม ภาระงาน สถานะ และผลการทำงาน โดยไม่เกินขอบเขตสิทธิ์ของคุณ" parent={{ label: "งานของทีม", href: "/work/team" }} appearance={appearance}>

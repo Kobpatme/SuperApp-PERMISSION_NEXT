@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { WorkReadModel } from "@/lib/work-read-model";
-import { MyWorkDashboard } from "./my-work";
+import { MyTasksScreen, MyWorkDashboard } from "./my-work";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
@@ -26,7 +26,8 @@ describe("MyWorkDashboard header action", () => {
       <MyWorkDashboard model={readyModel} userId="user-1" canCreate />,
     );
 
-    expect(html).toContain('class="page-heading-actions"');
+    const headerClass = html.match(/class="([^"]*page-heading-actions[^"]*)"/)?.[1] ?? "";
+    expect(headerClass.split(/\s+/)).toContain("page-heading-actions");
     expect(html).toContain('class="ui-button ui-button-primary"');
     expect(html).toContain(">เพิ่มงาน</button>");
   });
@@ -37,5 +38,13 @@ describe("MyWorkDashboard header action", () => {
     );
 
     expect(html).not.toContain(">เพิ่มงาน</button>");
+  });
+
+  it("keeps the legacy mine-list screen on the workspace appearance", () => {
+    const html = renderToStaticMarkup(
+      <MyTasksScreen model={readyModel} userId="user-1" canCreate={false} />,
+    );
+
+    expect(html).toContain('data-work-appearance="workspace"');
   });
 });

@@ -23,7 +23,7 @@ export function MyTasksWorkspace({ model, subject, userId, canCreate, filters }:
   const result = pageWorkItems(sorted, page, size);
   const number = (value: number) => value.toLocaleString("th-TH");
 
-  return <div className={styles.workspace} data-work-mine-prototype>
+  return <div className={`${styles.workspace} work-native work-rollout`} data-ui-screen data-work-appearance="workspace" data-work-mine-prototype>
     <PageHeader className={styles.pageHeader} title="งานของฉัน" description="จัดลำดับงาน ติดตามกำหนด และทำงานต่อจากจุดที่ค้างไว้" parent={{ label: "งานและ KPI", href: "/work" }} actions={canCreate ? <Link className="btn-primary" href="/work/new"><WorkspaceIcon name="info" size={18}/>เพิ่มงานใหม่</Link> : undefined}/>
     {model.source.status !== "ready" ? <WorkUnavailable message="ยังโหลดรายการงานไม่ได้" detail={model.source.message}/> : <>
       <section className={styles.summary} aria-label="สรุปงานในผลลัพธ์ปัจจุบัน">

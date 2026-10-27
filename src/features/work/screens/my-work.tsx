@@ -47,7 +47,7 @@ export function MyWorkDashboard({ model, subject, userId, detailId, canCreate }:
 }
 
 export function MyTasksScreen({ model, subject, userId, canCreate }: { model: WorkReadModel; subject?: AuthorizationSubject; userId: string; canCreate?: boolean }) {
-  if (model.source.status !== "ready") return <WorkScreenShell title="งานของฉัน" description="รายการงานส่วนตัวและงานที่ได้รับมอบหมาย"><WorkUnavailable message="ยังโหลดรายการงานไม่ได้" detail={model.source.message} /></WorkScreenShell>;
+  if (model.source.status !== "ready") return <WorkScreenShell title="งานของฉัน" description="รายการงานส่วนตัวและงานที่ได้รับมอบหมาย" appearance="workspace"><WorkUnavailable message="ยังโหลดรายการงานไม่ได้" detail={model.source.message} /></WorkScreenShell>;
   const mine = model.tasks.filter((task) => task.ownerId === userId);
-  return <WorkScreenShell title="งานของฉัน" description="รายการงานส่วนตัวและงานที่ได้รับมอบหมาย พร้อมสถานะที่อัปเดตได้ตามสิทธิ์" parent={{ label: "งานและ KPI", href: "/work" }}>{mine.length ? <WorkTaskTable tasks={mine} subject={subject} showNotes /> : <WorkEmpty title="ยังไม่มีงานในรายการของคุณ" detail="ลองเพิ่มงาน หรือรอหัวหน้ามอบหมายงานใหม่ให้คุณ" action={canCreate ? <Link className="secondary-action" href="/work/new">เพิ่มงาน</Link> : undefined} />}</WorkScreenShell>;
+  return <WorkScreenShell title="งานของฉัน" description="รายการงานส่วนตัวและงานที่ได้รับมอบหมาย พร้อมสถานะที่อัปเดตได้ตามสิทธิ์" parent={{ label: "งานและ KPI", href: "/work" }} appearance="workspace">{mine.length ? <WorkTaskTable tasks={mine} subject={subject} showNotes appearance="workspace" /> : <WorkEmpty title="ยังไม่มีงานในรายการของคุณ" detail="ลองเพิ่มงาน หรือรอหัวหน้ามอบหมายงานใหม่ให้คุณ" action={canCreate ? <Link className="secondary-action" href="/work/new">เพิ่มงาน</Link> : undefined} />}</WorkScreenShell>;
 }

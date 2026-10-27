@@ -17,7 +17,8 @@ describe("DashboardOverview shared presentation", () => {
     const html = renderToStaticMarkup(<DashboardOverview displayName="ผู้ใช้" userId="user-1" allowedModuleIds={[]} developmentMode={false} preview={false} snapshot={snapshot} />);
 
     expect(html).toContain("data-ui-screen");
-    expect(html).toContain('class="ui-empty overview-empty"');
+    const emptyClass = html.match(/<section[^>]*class="([^"]*)"[^>]*role="status"/)?.[1] ?? "";
+    expect(emptyClass.split(/\s+/)).toEqual(expect.arrayContaining(["ui-empty", "overview-empty"]));
     expect(html).toContain("ยังไม่มีพื้นที่ทำงานที่เข้าถึงได้");
   });
 });

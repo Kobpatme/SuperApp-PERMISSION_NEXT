@@ -6,7 +6,7 @@ import { WorkEmpty, WorkMetricStrip, WorkScreenShell, WorkUnavailable } from "@/
 import { WorkTaskTable } from "@/features/work/components/task-table";
 
 export function TeamCommandScreen({ model, subject, filters }: { model: WorkReadModel; subject?: AuthorizationSubject; filters?: ReactNode }) {
-  const appearance = filters ? "workspace" : "default";
+  const appearance = "workspace";
   if (model.source.status !== "ready") return <WorkScreenShell title="ภาพรวมทีม" description="ติดตามภาระงานและความเสี่ยงของทีม" appearance={appearance}><WorkUnavailable message="ยังโหลดข้อมูลทีมไม่ได้" detail={model.source.message} /></WorkScreenShell>;
   const teamTasks = model.tasks;
   const now = Date.parse(model.generatedAt);

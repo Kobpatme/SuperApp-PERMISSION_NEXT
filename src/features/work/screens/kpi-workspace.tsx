@@ -5,7 +5,7 @@ import { WorkEmpty, WorkScreenShell, WorkUnavailable } from "@/features/work/com
 import { formatWorkspaceDate } from "@/lib/workspace-view";
 
 export function KpiWorkspaceScreen({ model, filters }: { model: WorkReadModel; filters?: ReactNode }) {
-  const appearance = filters ? "workspace" : "default";
+  const appearance = "workspace";
   if (model.source.status !== "ready") return <WorkScreenShell title="KPI ของฉัน" description="ดูผลการทำงานและหลักฐานที่นำไปคำนวณ" appearance={appearance}><WorkUnavailable message="ยังโหลด KPI ไม่ได้" detail={model.source.message} /></WorkScreenShell>;
   return <WorkScreenShell title="KPI ของฉัน" description="เข้าใจคะแนนจากงานจริง เป้าหมาย ช่วงเวลา และ SLA โดยไม่ต้องอ่านรหัสภายใน" parent={{ label: "งานและ KPI", href: "/work" }} appearance={appearance}>
     {filters ? <section className="work-rollout-filter-panel">{filters}</section> : null}

@@ -3,8 +3,8 @@ import { WorkReportTools } from "@/features/work/components/report-tools";
 import type { WorkReadModel } from "@/lib/work-read-model";
 import { WorkEmpty, WorkMetricStrip, WorkScreenShell, WorkUnavailable } from "@/features/work/components/work-screen-shell";
 
-export function WorkReportsScreen({ model, filters, appearance = "default" }: { model: WorkReadModel; filters?: React.ReactNode; appearance?: "default" | "workspace" }) {
-  if (model.source.status !== "ready") return <WorkScreenShell title="รายงานงาน" description="สรุปงานตามสถานะ คน ทีม และ SLA"><WorkUnavailable message="ยังโหลดรายงานไม่ได้" detail={model.source.message} /></WorkScreenShell>;
+export function WorkReportsScreen({ model, filters, appearance = "workspace" }: { model: WorkReadModel; filters?: React.ReactNode; appearance?: "default" | "workspace" }) {
+  if (model.source.status !== "ready") return <WorkScreenShell title="รายงานงาน" description="สรุปงานตามสถานะ คน ทีม และ SLA" appearance={appearance}><WorkUnavailable message="ยังโหลดรายงานไม่ได้" detail={model.source.message} /></WorkScreenShell>;
   return <WorkScreenShell title="รายงานงาน" description="สรุปความคืบหน้าและ SLA ด้วยค่าที่มาจากงานในขอบเขตสิทธิ์" action={<WorkReportTools/>} parent={{ label: "งานและ KPI", href: "/work" }} appearance={appearance}>
     {filters ? <section className="work-rollout-filter-panel">{filters}</section> : null}
     <WorkMetricStrip metrics={[{ label: "งานทั้งหมด", value: model.report.taskCount, detail: "รายการที่เข้าถึงได้" }, { label: "ความสำเร็จถ่วงน้ำหนัก", value: model.report.completion === null ? "—" : `${model.report.completion}%`, detail: "ไม่รวมงานที่ยกเลิก", tone: "success" }, { label: "SLA ถ่วงน้ำหนัก", value: model.report.sla === null ? "—" : `${model.report.sla}%`, detail: "จากงานที่เสร็จสิ้น", tone: "info" }, { label: "เกินกำหนด", value: model.report.overdue, detail: "ต้องติดตาม", tone: "danger" }]} />

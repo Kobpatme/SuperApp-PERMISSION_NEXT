@@ -12,6 +12,7 @@ describe("Work shared presentation", () => {
     );
 
     expect(html).toContain("data-ui-screen");
+    expect(html).toContain('data-work-appearance="default"');
     expect(html).toContain('class="ui-metric-grid work-metric-strip"');
     expect(html).toContain('class="ui-empty work-state work-state-empty"');
   });

@@ -10,7 +10,7 @@ import { WorkTaskDetail } from "@/features/work/components/task-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 
 export function JobTrackerScreen({ model, subject, ownerId, filters }: { model: WorkReadModel; subject?: AuthorizationSubject; ownerId?: string; filters?: ReactNode }) {
-  const appearance = filters ? "workspace" : "default";
+  const appearance = "workspace";
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
   const groups = useMemo(() => model.jobGroups.filter((group) => (!ownerId || group.tasks.some((task) => task.ownerId === ownerId)) && (!query.trim() || `${group.label} ${group.tasks.map((task) => `${task.title} ${task.ownerName} ${task.jobCode ?? ""}`).join(" ")}`.toLocaleLowerCase("th-TH").includes(query.trim().toLocaleLowerCase("th-TH")))), [model.jobGroups, ownerId, query]);
