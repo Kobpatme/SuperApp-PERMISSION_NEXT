@@ -16,8 +16,8 @@ export function CableTestWorkspace({permissions}:{permissions:string[]}) {
  const [offset,setOffset]=useState(0),[query,setQuery]=useState(""),[search,setSearch]=useState("");
  const [editing,setEditing]=useState<Row|null|undefined>(undefined),[preview,setPreview]=useState(false);
  const model=useResource<Rows>(`cables?offset=${offset}&query=${encodeURIComponent(search)}`,editing!==undefined);
- if(preview)return <><button type="button" className={styles.button} onClick={()=>setPreview(false)}>กลับรายการพาดสาย</button><CommunicationCableWorkspace/></>;
- return <div className={styles.workspace}>
+ if(preview)return <div className={`${styles.workspace} ${styles.cableSurface}`} data-ui-screen="duct-rental-communication-cable-preview"><div className={styles.toolbar}><button type="button" className={styles.button} onClick={()=>setPreview(false)}>กลับรายการพาดสาย</button></div><CommunicationCableWorkspace embedded/></div>;
+ return <div className={`${styles.workspace} ${styles.cableSurface}`} data-ui-screen="duct-rental-communication-cable">
   <PageHeader title="พาดสายสื่อสาร" description="ทดสอบงาน PEA / MEA ด้วยบัญชีเดิม ข้อมูลที่บันทึกจะเก็บในระบบ" actions={permissions.includes("duct_rental.request.create")?<button className={styles.primary} onClick={()=>setEditing(null)}>สร้างคำขอพาดสาย</button>:undefined}/>
   <ModuleNav current="communication-cable"/>
   <Notice text="อยู่ระหว่างทดสอบโฟลว์ — ยังไม่มีการส่งข้อมูลให้ PEA/MEA แนบไฟล์ หรือคำนวณค่าบริการ กรุณาใช้ข้อมูลทดสอบ"/>

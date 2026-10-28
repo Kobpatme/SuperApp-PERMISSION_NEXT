@@ -62,11 +62,11 @@ export function RequestForm({ request, user, permissions, pause }: { request?: R
     } finally { setBusy(false); }
   };
   const required = ["projectName", "routeName", "ownerDuct", "routeDetail", "jobType", "serviceCenter", "cableType", "fiberType", "diameter", "distance", "startCoords", "endCoords", "district", "province"];
-  return <div className={styles.workspace}>
+  return <div className={`${styles.workspace} ${styles.formSurface}`} data-ui-screen={request ? "duct-rental-request-edit" : "duct-rental-request-new"}>
     <PageHeader title={request ? `แก้ไขคำขอ ${request.code}` : "สร้างคำขอเช่าท่อร้อยสาย"} parent={{ label: "เช่าท่อร้อยสาย", href: "/duct-rental" }} description="บันทึกร่างได้ และกรอกข้อมูลให้ครบก่อนส่งให้ทีมเขียนแบบ" />
     <ModuleNav /><Notice text={error} error /><Notice text={message} />
     {readonly && <Notice text="คำขอนี้สิ้นสุดแล้ว ข้อมูลออกแบบแสดงแบบอ่านอย่างเดียว" />}
-    <form noValidate onSubmit={event => { event.preventDefault(); setConfirm(true); }} className={styles.workspace}>
+    <form noValidate onSubmit={event => { event.preventDefault(); setConfirm(true); }} className={`${styles.workspace} ${styles.formLayout}`}>
       {!request && <section className={styles.panel}><Field label="ทีมเจ้าของคำขอ"><select value={teamId} disabled={busy || !canSave} onChange={event => setTeamId(event.target.value)}><option value="">ไม่ระบุทีม</option>{options.data?.teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></Field></section>}
       <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}><div className={styles.workspace}><DesignEditor values={values} change={change} errors={errors} readonly={!canSave && !canSubmit} />
       {!readonly && <section className={styles.panel}><h2>เลือกผู้ประสานหน้างาน</h2><Field label="ผู้ประสานงานตามศูนย์บริการ"><select value={coordinatorId} disabled={!canSave && !canSubmit} onChange={event => { const person = options.data?.coordinators.find(item => item.id === event.target.value); setCoordinatorId(event.target.value); if (person) change({ ...values, installContactName: person.display_name, installContactEmail: person.email, installContactPhone: person.phone }); }}><option value="">กรอกข้อมูลผู้ประสานงานเอง</option>{options.data?.coordinators.map(person => <option key={person.id} value={person.id}>{person.display_name}</option>)}</select></Field>{!options.data?.coordinators.length && <p className={styles.muted}>ไม่พบผู้ประสานงานในศูนย์นี้ สามารถกรอกชื่อและข้อมูลติดต่อเองได้</p>}<Notice text={options.error} error /></section>}
@@ -79,6 +79,6 @@ export function RequestForm({ request, user, permissions, pause }: { request?: R
 }
 export function RequestEdit({ id, user, permissions }: { id: string; user: FormIdentity; permissions: string[] }) {
   const [paused, setPaused] = useState(false), model = useResource<RequestDetail>(`requests/${id}`, paused);
-  if (!model.data) return <div className={styles.workspace}><Notice text={model.error || "กำลังโหลดคำขอ…"} error={!!model.error} /><Link href="/duct-rental">กลับรายการคำขอ</Link></div>;
+  if (!model.data) return <div className={`${styles.workspace} ${styles.loadingSurface}`} data-ui-state={model.error ? "error" : "loading"}><Notice text={model.error || "กำลังโหลดคำขอ…"} error={!!model.error} /><Link href="/duct-rental">กลับรายการคำขอ</Link></div>;
   return <RequestForm key={`${id}:${model.data.version}`} request={model.data} user={user} permissions={permissions} pause={setPaused} />;
 }

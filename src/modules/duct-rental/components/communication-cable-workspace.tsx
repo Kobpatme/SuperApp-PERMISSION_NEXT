@@ -15,14 +15,13 @@ const stages = [
   { title: "ตรวจรับและปิดงาน", owner: "ทีมขออนุญาต / ทีมติดตั้ง", detail: "ตรวจเอกสารปิดงานและเงื่อนไขคงค้าง เก็บข้อมูลอ้างอิงสำหรับดูแลสัญญาต่อไป", documents: "หลักฐานตรวจรับและเอกสารปิดงาน" },
 ] as const;
 
-export function CommunicationCableWorkspace() {
+export function CommunicationCableWorkspace({ embedded = false }: { embedded?: boolean }) {
   const [authority, setAuthority] = useState("PEA");
   const [step, setStep] = useState(0);
   const [revision, setRevision] = useState(false);
   const stage = stages[step];
   return <div className={styles.workspace}>
-    <PageHeader title="พาดสายสื่อสาร" description="ร่างขั้นตอนขอพาดสายกับการไฟฟ้าส่วนภูมิภาคและการไฟฟ้านครหลวง" />
-    <ModuleNav current="communication-cable" />
+    {!embedded && <><PageHeader title="พาดสายสื่อสาร" description="ร่างขั้นตอนขอพาดสายกับการไฟฟ้าส่วนภูมิภาคและการไฟฟ้านครหลวง" /><ModuleNav current="communication-cable" /></>}
     <Notice text="แบบร่างสำหรับทบทวนโฟลว์ — ทดลองเลือกขั้นตอนได้ ยังไม่บันทึกคำขอหรือส่งข้อมูลให้หน่วยงาน" />
     <div className={styles.toolbar}>
       <Field label="หน่วยงานที่ติดต่อ"><select value={authority} onChange={event => setAuthority(event.target.value)}><option value="PEA">PEA · การไฟฟ้าส่วนภูมิภาค</option><option value="MEA">MEA · การไฟฟ้านครหลวง</option></select></Field>

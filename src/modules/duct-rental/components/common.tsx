@@ -7,6 +7,7 @@ export const phaseLabels: Record<RequestPhase, string> = { DESIGN: "ออกแ
 export const phaseViews: Record<RequestPhase, string> = { DESIGN: "design", DRAFTSMAN: "draftsman", PERMISSION_1: "permission", INSTALL: "install", DRAFTSMAN_2: "draftsman2", PERMISSION_2: "permission2", "3RD_PARTY_1": "3rdparty", PERMISSION_3: "permission3", "3RD_PARTY_2": "contract", COMPLETE: "design" };
 export function ModuleNav({ current = "requests" }: { current?: string }) {
   const secondary = [
+    { key: "requests", href: "/duct-rental", label: "คำขอเช่าท่อ" },
     { key: "cancellation", href: "/duct-rental/cancellation", label: "ยกเลิกการใช้ท่อ" },
     { key: "tracking", href: "/duct-rental/tracking", label: "ติดตามต่อสัญญาและยกเลิก" },
     { key: "tasks", href: "/duct-rental/tasks", label: "งานลงนามและลายเซ็น" },
