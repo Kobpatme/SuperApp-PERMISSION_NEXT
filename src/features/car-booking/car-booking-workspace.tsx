@@ -2,7 +2,7 @@
 import { sessionFetch } from "@/lib/session-fetch";
 import Link from "next/link";
 import { useCallback,useEffect,useRef,useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
+
 import { bangkokInput,bangkokISO,bookingStatus,returnParkingFloor,thaiCarDate } from "@/lib/car-booking-display";
 import { CarBookingDialog } from "./car-booking-dialog";
 import { CarJourneyMap } from "./car-journey-map";
@@ -19,7 +19,9 @@ export async function carRequest<T>(path:string,method="GET",body?:unknown):Prom
   const response=await sessionFetch(path,{method,cache:"no-store",headers:body===undefined?undefined:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)});
   const result=await response.json();if(!response.ok)throw new Error(result.message || "ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่");return result.data;
 }
-const tabs=[{id:"book",label:"จองรถ"},{id:"mine",label:"รายการของฉัน"},{id:"return",label:"คืนรถ"},{id:"calendar",label:"ปฏิทิน"},{id:"vehicles",label:"ข้อมูลรถ"}];
+const tabs=[{id:"book",label:"จองรถ"},{id:"mine",label:"รายการของฉัน"},{id:"return",label:"คืนรถ"},{id:"calendar",label:"ปฏิทิน"},{id:"vehicles",label:"ข้อมูลรถ"}] as const;
+const adminTabs=[{id:"admin",label:"จัดการรถ"},{id:"all",label:"การจองทั้งหมด"},{id:"parking",label:"ชั้นจอด"},{id:"reports",label:"รายงาน OSP"},{id:"dashboard",label:"แดชบอร์ด"}] as const;
+export function getCarBookingTabs(admin:boolean){return admin?[...tabs,...adminTabs]:[...tabs];}
 export function CarBookingWorkspace({userId,admin,canManageAccess}:{userId:string;admin:boolean;canManageAccess:boolean}) {
  const [tab,setTab]=useState("book"),[cars,setCars]=useState<Vehicle[]>([]),[bookings,setBookings]=useState<Reservation[]>([]),[calendar,setCalendar]=useState<CalendarEvent[]>([]),[floors,setFloors]=useState<string[]>([]),[floorVersion,setFloorVersion]=useState(1);
  const [month,setMonth]=useState(()=>bangkokInput().slice(0,7)),[start,setStart]=useState(()=>bangkokInput()),[end,setEnd]=useState(()=>bangkokInput(new Date(Date.now()+3600000))),[available,setAvailable]=useState<Vehicle[]|null>(null),[availableRange,setAvailableRange]=useState(""),[selectedCar,setSelectedCar]=useState(""),[destination,setDestination]=useState("");
@@ -58,7 +60,7 @@ export function CarBookingWorkspace({userId,admin,canManageAccess}:{userId:strin
   catch(e){setError(e instanceof Error?e.message:"บันทึกไม่สำเร็จ");return false;}
   finally{setBusy(false);}
  };
- const allTabs=admin?[...tabs,{id:"admin",label:"จัดการรถ"},{id:"all",label:"การจองทั้งหมด"},{id:"parking",label:"ชั้นจอด"},{id:"reports",label:"รายงาน OSP"},{id:"dashboard",label:"แดชบอร์ด"}]:tabs;
+ const allTabs=getCarBookingTabs(admin);
  const monthRange=new URLSearchParams(range()),monthStart=Date.parse(monthRange.get("start")!),monthEnd=Date.parse(monthRange.get("end")!);
  const filtered=bookings.filter(b=>(tab==="return" || Date.parse(b.startTime)<monthEnd&&Date.parse(b.endTime)>monthStart)&&(tab==="all" || b.userId===userId)&&(tab!=="return" || b.status==="booked" && Date.parse(b.startTime)<=now)&&(status==="all" || b.status===status)&&`${cars.find(c=>c.car_id===b.carId)?.license_plate || ""} ${b.destination} ${b.employeeName}`.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
  const checkAvailable=async()=>{
@@ -70,7 +72,7 @@ export function CarBookingWorkspace({userId,admin,canManageAccess}:{userId:strin
   }catch(e){setError(e instanceof Error?e.message:"ตรวจรถว่างไม่สำเร็จ");}finally{setBusy(false);}
  };
  return <div className="cb-workspace">
-  <PageHeader title="ระบบจองรถ" description="จองและคืนรถ บันทึกการเดินทาง และตรวจสอบช่วงไม่ว่าง" actions={<span className="cb-scope">{admin?"ผู้ดูแลระบบจองรถ":"สิทธิ์ผู้ใช้ · รายการของตนเอง"}</span>}/>
+
   <div className="cb-toolbar"><nav aria-label="เมนูระบบจองรถ">{allTabs.map(item=><button key={item.id} type="button" aria-current={tab===item.id?"page":undefined} onClick={()=>{setTab(item.id);setQuery("");setStatus("all");}}>{item.label}</button>)}</nav>{canManageAccess&&<Link href="/admin/car-booking" className="cb-link">จัดสิทธิ์จองรถ</Link>}</div>
   {!["reports","dashboard"].includes(tab)&&<div className="cb-filter"><label>เดือนที่แสดง<input type="month" value={month} onChange={e=>{if(e.target.value){setMonth(e.target.value);setCalendarDate(`${e.target.value}-01`);}}}/></label><button type="button" disabled={loading || busy} onClick={()=>void refresh()}>โหลดใหม่</button><span className="cb-muted">เวลาไทย (กรุงเทพฯ)</span></div>}
   {message&&<p role="status" className="cb-success">{message}</p>}{error&&<p role="alert" className="cb-error">{error}</p>}{loading&&<p role="status">กำลังโหลดข้อมูล…</p>}

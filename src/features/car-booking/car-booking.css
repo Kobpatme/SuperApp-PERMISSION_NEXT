@@ -1,4 +1,4 @@
-.cb-workspace { max-width:1440px;margin-inline:auto; }
+.cb-workspace { min-width:0; }
 .cb-workspace h2,.cb-dialog h2 { margin:0 0 16px;font-size:var(--text-h2); }
 .cb-workspace h3 { margin:0;font-size:var(--text-h3); }
 .cb-toolbar,.cb-toolbar nav,.cb-filter,.cb-actions,.cb-section-head { display:flex;align-items:center;gap:12px;flex-wrap:wrap; }
@@ -77,3 +77,49 @@
 .cb-report .cb-osp-table th:nth-child(14),.cb-report .cb-osp-table td:nth-child(14) { min-width:320px;max-width:340px;white-space:pre-wrap;overflow-wrap:anywhere; }
 @media(max-width:700px) { .cb-panel {padding:16px}.cb-form-grid { grid-template-columns:1fr; }.cb-filter>label { flex:1;min-width:140px; }.cb-dialog { padding:18px; }.cb-actions button { flex:1; }.cb-table-wrap th,.cb-table-wrap td { white-space:nowrap; }.cb-scope { margin-top:8px; } }
 @media(max-width:1000px) { .cb-calendar-grid { grid-template-columns:minmax(0,1fr); }.cb-weekday { display:none; }.cb-calendar-cell { min-height:64px; }.cb-calendar-cell:not(:has(.cb-calendar-event)) { display:none; } }
+
+/* Presentation contract: one calm workspace, with scrolling owned by data regions. */
+.cb-workspace { min-width:0; color:var(--color-text); }
+
+.cb-toolbar { align-items:flex-start; gap:var(--space-4); padding:var(--space-3); background:var(--color-surface-subtle); border:1px solid var(--color-border); border-radius:var(--radius-lg); }
+.cb-toolbar nav { flex:1 1 560px; min-width:0; }
+.cb-toolbar nav button { border-radius:var(--radius-sm); }
+.cb-toolbar nav button[aria-current="page"] { box-shadow:inset 0 -3px 0 var(--color-on-brand); }
+.cb-scope { display:inline-flex; align-items:center; min-height:44px; padding-inline:var(--space-3); background:var(--color-surface); }
+.cb-panel { border:1px solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-xs); }
+.cb-panel > h2:first-child { margin-top:0; }
+.cb-filter { min-width:0; }
+.cb-filter > label { min-width:180px; flex:1 1 220px; }
+.cb-filter > button, .cb-filter > .cb-link { flex:0 0 auto; }
+.cb-workspace button, .cb-dialog button { cursor:pointer; }
+.cb-workspace button:focus-visible, .cb-dialog button:focus-visible, .cb-workspace input:focus-visible, .cb-workspace select:focus-visible, .cb-workspace textarea:focus-visible, .cb-dialog input:focus-visible, .cb-dialog select:focus-visible, .cb-dialog textarea:focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); }
+.cb-workspace button[disabled], .cb-dialog button[disabled] { cursor:not-allowed; }
+.cb-error, .cb-success { border-radius:var(--radius-sm); }
+.cb-table-wrap { overflow-x:auto; overflow-y:hidden; overscroll-behavior-inline:contain; }
+.cb-table-wrap table { min-width:640px; }
+.cb-table-wrap th { font-weight:700; }
+.cb-report .cb-osp-table { min-width:max-content; }
+.cb-calendar-grid { overflow:hidden; }
+.cb-calendar-event { min-height:44px; }
+.cb-log-list { margin:0; }
+.cb-map-canvas { max-width:100%; height:auto; }
+.cb-access-list { border-top:1px solid var(--color-border); }
+.cb-access-row { gap:var(--space-3)!important; }
+.cb-access-row .cb-check { flex:0 0 auto; }
+.cb-access-row button { flex:0 0 auto; }
+@media (max-width:700px) {
+  .cb-workspace > .page-heading { margin-bottom:var(--space-4); }
+  .cb-toolbar { padding:var(--space-2); }
+  .cb-toolbar nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); width:100%; }
+  .cb-toolbar nav button { width:100%; }
+  .cb-scope { width:100%; justify-content:center; }
+  .cb-panel { margin-block:var(--space-3); }
+  .cb-panel form { gap:var(--space-4); }
+  .cb-actions button, .cb-section-head > button { flex:1 1 160px; }
+  .cb-access-row > div { min-width:100%; }
+  .cb-access-row .cb-check { flex:1 1 120px; }
+  .cb-access-row button { flex:1 1 100%; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .cb-workspace *, .cb-dialog * { scroll-behavior:auto!important; transition-duration:0.01ms!important; animation-duration:0.01ms!important; animation-iteration-count:1!important; }
+}

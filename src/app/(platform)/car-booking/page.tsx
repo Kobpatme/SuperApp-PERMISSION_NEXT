@@ -10,7 +10,7 @@ export default async function CarBookingPage(){
  const access=await getAccessContext("car-booking");
  if(!access.allowed)return <AccessDenied moduleName="ระบบจองรถ"/>;
  return <main data-ui-screen="car-booking">
-   <PageHeader title="ระบบจองรถ" description="จองและคืนรถ บันทึกการเดินทาง และรายงานการใช้รถ OSP" parent={{ label: "ภาพรวม", href: "/" }} />
+   <PageHeader title="ระบบจองรถ" description="จองและคืนรถ บันทึกการเดินทาง และรายงานการใช้รถ OSP" parent={{ label: "ภาพรวม", href: "/" }} actions={<span className="cb-scope">{isAuthorized(access.subject,"car_booking.module.admin")?"ผู้ดูแลระบบจองรถ":"จัดการรายการของตนเอง"}</span>} />
    <CarBookingWorkspace userId={access.userId} admin={isAuthorized(access.subject,"car_booking.module.admin")} canManageAccess={isAuthorized(access.subject,"core.user.manage")}/>
  </main>;
 }
