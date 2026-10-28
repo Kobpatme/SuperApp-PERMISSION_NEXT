@@ -123,3 +123,10 @@
 @media (prefers-reduced-motion:reduce) {
   .cb-workspace *, .cb-dialog * { scroll-behavior:auto!important; transition-duration:0.01ms!important; animation-duration:0.01ms!important; animation-iteration-count:1!important; }
 }
+.cb-access-panel { box-shadow:var(--shadow-xs); }
+.cb-access-panel > header { align-items:flex-start; }
+.cb-access-panel > header h2 { margin-bottom:6px; }
+.cb-access-panel > header p { margin:0; line-height:1.6; }
+.cb-status-badge { display:inline-flex; align-items:center; min-height:28px; padding:4px 9px; border:1px solid color-mix(in srgb,var(--color-brand) 22%,var(--color-border)); border-radius:var(--radius-pill); background:var(--color-info-soft); color:var(--color-brand); font-size:var(--text-caption); font-weight:700; white-space:nowrap; }
+.cb-empty { margin:0; padding:24px 12px; border:1px dashed var(--color-border-strong); border-radius:var(--radius-md); color:var(--color-text-muted); text-align:center; }
+@media(max-width:420px) { .cb-access-panel > header { display:grid; } .cb-status-badge { justify-self:start; } }

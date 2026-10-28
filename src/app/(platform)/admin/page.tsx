@@ -1,3 +1,4 @@
+import "./admin.css";
 import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
 export const metadata: Metadata = { title: copy.pages.admin };
