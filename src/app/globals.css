@@ -46,7 +46,7 @@ html[data-theme="dark"] body{background:var(--color-bg);color:var(--color-text)}
 html[data-theme="dark"] .topbar{border-color:var(--color-border);background:var(--color-info-soft);box-shadow:0 1px 0 var(--color-shadow-ink)}
 html[data-theme="dark"] .top-brand-mark,html[data-theme="dark"] .brand-mark{border-color:var(--color-border);background-color:var(--color-brand)}
 html[data-theme="dark"] .module-tabs,html[data-theme="dark"] .round-btn,html[data-theme="dark"] .avatar,html[data-theme="dark"] .search input{border-color:var(--color-border-strong);background:var(--color-info-soft);color:var(--color-text)}
-html[data-theme="dark"] .module-tab{color:var(--color-text-muted)}html[data-theme="dark"] .module-tab:hover{background:var(--color-info-soft);color:var(--color-info-soft)}html[data-theme="dark"] .module-tab.active{color:var(--color-brand);background:var(--color-brand-soft)}
+html[data-theme="dark"] .module-tab{color:var(--color-text-muted)}html[data-theme="dark"] .module-tab:hover{background:var(--color-info-soft);color:var(--color-text)}html[data-theme="dark"] .module-tab.active{color:var(--color-brand);background:var(--color-brand-soft)}
 html[data-theme="dark"] .module-tab-index{color:var(--color-text-muted)}html[data-theme="dark"] .module-tab.active .module-tab-index{color:var(--color-brand)}
 html[data-theme="dark"] .metric,html[data-theme="dark"] .card{border-color:var(--color-border);background:var(--color-surface);box-shadow:var(--shadow-xs)}
 html[data-theme="dark"] .page-heading h1,html[data-theme="dark"] .metric-value{color:var(--color-text)}
