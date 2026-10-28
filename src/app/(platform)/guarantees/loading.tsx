@@ -1,2 +1,2 @@
 import { PageSkeleton } from "@/components/ui/page-skeleton";
-export default function Loading() { return <PageSkeleton shape="table"/>; }
+export default function Loading() { return <PageSkeleton shape="table" className="deposit-loading"/>; }

@@ -115,6 +115,8 @@
 .legacy-head-actions select,.legacy-filter-bar select { min-height:40px; padding:8px 34px 8px 11px; border:1px solid var(--color-border-strong); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-text); font-weight:650; }
 .executive-nav-button { min-height:40px; padding:8px 13px; border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-text-muted); font:inherit; font-size:var(--text-caption); font-weight:800; cursor:pointer; white-space:nowrap; }
 .executive-nav-button:hover { color:var(--color-text); background:var(--color-surface-subtle); }
+.analytics-back-button { min-height:42px; padding:8px 14px; border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-brand); font:inherit; font-weight:800; cursor:pointer; white-space:nowrap; }
+.analytics-back-button:hover { background:var(--color-brand-soft); }
 .executive-nav-button.active { border-color:color-mix(in srgb,var(--color-brand) 55%,var(--color-border)); background:var(--color-brand-soft); color:var(--color-brand); }
 .legacy-head-actions .primary { display:inline-flex; min-height:42px; align-items:center; justify-content:center; padding:8px 14px; border-radius:var(--radius-md); text-decoration:none; }
 .legacy-head-actions .primary:disabled { opacity:.5; }
@@ -225,3 +227,55 @@
 @media(max-width:560px) { .deposit-personal-dashboard>header { align-items:flex-start; flex-direction:column; }.deposit-personal-metrics article.financial { grid-column:span 2; }.deposit-personal-list>a { grid-template-columns:minmax(0,1fr) auto; }.deposit-personal-list>a .deposit-priority { grid-column:1/-1; justify-self:start; } }
 @media(max-width:1000px) { .deposit-on-service-list article { grid-template-columns:repeat(2,minmax(0,1fr)); }.deposit-on-service-list article>a { justify-self:start; } }
 @media(max-width:560px) { .deposit-on-service>header { align-items:flex-start; flex-direction:column; }.deposit-on-service-metrics { grid-template-columns:1fr; }.deposit-on-service-list article { grid-template-columns:1fr; gap:8px; }.deposit-on-service-list article>div { grid-template-columns:minmax(110px,.8fr) 1fr; align-items:center; }.deposit-on-service-list article>a { padding-left:0; } }
+
+/* Phase G visual adaptation: keep the canonical page header primary and make the workspace operationally dense. */
+.legacy-deposit-workspace { display:grid; gap:14px; }
+.legacy-deposit-head { margin-bottom:0; padding:0 0 14px; }
+.deposit-workspace-title { margin:3px 0 4px; color:var(--color-text); font-size:var(--text-h2); line-height:1.35; }
+.deposit-workspace .deposit-banner { margin-bottom:0; }
+.deposit-workspace .legacy-module-nav { margin-bottom:0; }
+.deposit-workspace .legacy-filter-bar { box-shadow:var(--shadow-xs); }
+.deposit-workspace .legacy-table-card { box-shadow:var(--shadow-xs); }
+.deposit-workspace .legacy-deposit-table thead { background:var(--color-surface-subtle); }
+.deposit-workspace .legacy-deposit-table tbody tr:focus-within,
+.deposit-workspace .legacy-deposit-table tbody tr:focus-visible { background:var(--color-brand-soft); }
+.deposit-workspace .deposit-panel { border:1px solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-xs); }
+.deposit-workspace .deposit-status { white-space:nowrap; }
+.deposit-workspace .deposit-empty { border:1px dashed var(--color-border-strong); border-radius:var(--radius-md); background:var(--color-surface-subtle); }
+@media (max-width:760px) {
+  .legacy-deposit-head { display:grid; gap:12px; }
+}
+
+/* Shared guarantees module treatment for list, detail, editor, TL and report branches. */
+.deposit-module-page { display:grid; gap:var(--space-4); min-width:0; }
+.deposit-module-page .deposit-detail-head { margin:0; padding:0 0 var(--space-4); border-bottom:1px solid var(--color-border); }
+.deposit-module-page .deposit-detail-head h1 { max-width:32ch; font-size:clamp(24px,2.4vw,34px); line-height:1.3; }
+.deposit-module-page .deposit-detail-head>a,
+.deposit-module-page .deposit-detail-actions>a { display:inline-flex; align-items:center; min-height:40px; padding:8px 12px; border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-brand); text-decoration:none; font-weight:750; }
+.deposit-module-page .deposit-detail-grid { gap:var(--space-4); }
+.deposit-module-page .deposit-panel { padding:var(--space-5); border:1px solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-xs); }
+.deposit-module-page .deposit-panel h2 { margin-bottom:var(--space-4); }
+.deposit-module-page .deposit-form { gap:var(--space-4); }
+.deposit-module-page .deposit-form fieldset { margin:0; background:var(--color-surface-subtle); }
+.deposit-module-page .deposit-form label { color:var(--color-text-muted); }
+.deposit-module-page .deposit-form input,
+.deposit-module-page .deposit-form select,
+.deposit-module-page .deposit-transition textarea { background:var(--color-surface); }
+.deposit-module-page .deposit-form > .primary { min-height:44px; padding-inline:var(--space-5); }
+.deposit-module-page .deposit-evidence-list { gap:0; }
+.deposit-module-page .deposit-evidence { min-height:56px; }
+.deposit-module-page .deposit-history { min-width:0; }
+.deposit-module-page .deposit-history > .truncated-text-wrap { overflow-wrap:anywhere; }
+.deposit-module-page .legacy-progress { margin:0; }
+.deposit-tl-page .deposit-panel:first-child { border-top:3px solid var(--color-brand); }
+.deposit-tl-page .deposit-transition button { min-height:44px; background:var(--color-brand-soft); color:var(--color-brand-strong); }
+.deposit-unavailable { max-width:760px; }
+.deposit-loading { max-width:1100px; }
+.deposit-workspace .guarantee-report { margin-top:var(--space-2); }
+.deposit-workspace .guarantee-report .gr-kpis article,
+.deposit-workspace .guarantee-report .gr-panel { border:1px solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-xs); }
+@media (max-width:760px) {
+  .deposit-module-page .deposit-detail-head { align-items:flex-start; flex-direction:column; }
+  .deposit-module-page .deposit-panel { padding:var(--space-4); }
+  .deposit-module-page .deposit-form fieldset { padding:var(--space-4) var(--space-3); }
+}

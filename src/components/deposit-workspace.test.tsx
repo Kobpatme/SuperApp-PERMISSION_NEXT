@@ -44,6 +44,43 @@ function showList(items: DepositItem[] = []) {
 
 afterEach(() => { harness.states = []; harness.cursor = 0; vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
+it("renders one accessible page-level heading with breadcrumb context and operational actions", () => {
+  const nodes = workspace();
+  const headings = nodes.filter((node) => node.type === "h1");
+  expect(headings).toHaveLength(1);
+  expect(headings[0].props.children).toBe("รายการขอคืนเงินประกันอาคาร");
+  const breadcrumb = nodes.find((node) => node.type === "nav" && node.props["aria-label"] === "เส้นทางนำทาง");
+  expect(breadcrumb).toBeDefined();
+  expect(breadcrumb?.props.children).toBeDefined();
+  expect(nodes.some((node) => node.type === "button" && node.props.children === "วิเคราะห์ข้อมูล")).toBe(true);
+  expect(nodes.some((node) => node.type === "button" && node.props.className === "deposit-export")).toBe(true);
+  expect(nodes.some((node) => node.type === "button" && Children.toArray(node.props.children as ReactNode)[0] === "＋ เพิ่มรายการใหม่")).toBe(true);
+ });
+
+it("switches analytics into one report heading with a clear return action", () => {
+  let nodes = workspace();
+  const analyticsButton = nodes.find((node) => node.type === "button" && node.props.children === "วิเคราะห์ข้อมูล")!;
+  (analyticsButton.props.onClick as () => void)();
+  nodes = workspace();
+  expect(nodes.filter((node) => node.type === "h1")).toHaveLength(1);
+  expect(nodes.find((node) => node.type === "h1")?.props.children).toBe("ภาพรวมเงินประกันอาคาร");
+  expect(nodes.some((node) => node.type === "button" && node.props.children === "วิเคราะห์ข้อมูล")).toBe(false);
+  expect(nodes.some((node) => node.type === "button" && node.props["aria-label"] === "กลับรายการเงินประกัน")).toBe(true);
+});
+
+it("preserves the active list tab and filters when returning from analytics", () => {
+  const items = [{ id: "one", owner: "เจ้าของ A", area: "พื้นที่ A", status: "new" } as DepositItem];
+  let nodes = showList(items);
+  select(nodes, "กรองเจ้าของงาน", "เจ้าของ A");
+  nodes = workspace(items);
+  (nodes.find((node) => node.type === "button" && node.props.children === "วิเคราะห์ข้อมูล")!.props.onClick as () => void)();
+  nodes = workspace(items);
+  (nodes.find((node) => node.type === "button" && node.props["aria-label"] === "กลับรายการเงินประกัน")!.props.onClick as () => void)();
+  nodes = workspace(items);
+  expect(nodes.find((node) => node.type === "button" && Children.toArray(node.props.children as ReactNode)[0] === "รายการเงินประกัน")?.props.className).toBe("active");
+  expect(nodes.find((node) => node.type === "select" && node.props["aria-label"] === "กรองเจ้าของงาน")?.props.value).toBe("เจ้าของ A");
+});
+
 it("offers every Thai month with an explicit zero-based calendar value", () => {
   const nodes = workspace();
   const control = nodes.find((node) => node.type === "select" && node.props["aria-label"] === "เดือนสำหรับส่งออก")!;

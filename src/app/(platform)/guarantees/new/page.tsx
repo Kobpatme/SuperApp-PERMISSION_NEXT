@@ -11,6 +11,6 @@ import "../deposit.css";
 export default async function NewDepositPage() {
   const access = await getAccessContext("guarantees");
   if (!access.allowed || !canCreateDepositWorkItem(access)) return <AccessDenied moduleName="สร้างรายการเงินประกัน" />;
-  if (!process.env.DATABASE_URL) return <div className="deposit-banner">{copy.feedback.unavailable}</div>;
+  if (!process.env.DATABASE_URL) return <div className="deposit-module-page deposit-unavailable"><div className="deposit-banner">{copy.feedback.unavailable}</div></div>;
   return <DepositEditor assignees={await listTlAssignees()} />;
 }

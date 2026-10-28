@@ -25,7 +25,7 @@ export function DepositEditor({ item, assignees = [], events = [] }: { item?: De
   useEffect(() => { if (saveState.ok && item || transitionState.ok) router.refresh(); }, [saveState, transitionState, item, router]);
   const status = item ? depositStatusSchema.safeParse(item.status) : null;
   const targets = status?.success ? availableDepositTransitions(status.data) : [];
-  return <div className="deposit-detail">
+  return <div className="deposit-detail deposit-module-page">
      <div className="deposit-detail-head"><div><p className="eyebrow">เงินประกันอาคาร / {item ? "รายละเอียดรายการ" : "สร้างรายการ"}</p><h1><TruncatedText text={item?.place || "สร้างรายการเงินประกัน"} lines={2}/></h1><TruncatedText className="sub" text={item ? workflowLabels[getWorkflowStatusKey(item)] : "เริ่มจากข้อมูลอาคารและจำนวนเงิน จากนั้นดำเนินงานตามขั้นตอน V2"} lines={2}/></div><Link href="/guarantees">← กลับรายการ</Link></div>
     <div className="deposit-detail-grid"><section className="deposit-panel"><h2>ข้อมูลรายการ</h2><form action={saveAction} className="deposit-form">
       {item && <><input type="hidden" name="id" value={item.id}/><input type="hidden" name="version" value={item.version}/></>}

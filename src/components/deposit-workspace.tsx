@@ -35,6 +35,7 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   const [ownerFilter, setOwnerFilter] = useState("");
   const [areaFilter, setAreaFilter] = useState("");
   const [view, setView] = useState<WorkspaceView>(installationTeamView ? "queue" : "dashboard");
+  const [returnView, setReturnView] = useState<WorkspaceView>(installationTeamView ? "queue" : "list");
   const [page, setPage] = useState(1);
   const [sortNo, setSortNo] = useState<"default" | "asc" | "desc">("default");
   const [exportMonth, setExportMonth] = useState("");
@@ -95,6 +96,8 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   const createUnavailableReason = preview ? "ข้อมูลตัวอย่างสร้างรายการจริงไม่ได้" : state === "not_configured" ? copy.feedback.unavailable : state === "unavailable" ? copy.feedback.unavailable : canPreview ? copy.feedback.readOnly : !canCreate ? "บัญชีนี้ไม่มีสิทธิ์สร้างรายการ" : "";
 
   function setWorkspaceView(next: WorkspaceView) { setView(next); setStatusFilter(""); setQuery(""); setOwnerFilter(""); setAreaFilter(""); setPage(1); }
+  function openAnalytics() { setReturnView(view === "analytics" ? "list" : view); setView("analytics"); }
+  function returnFromAnalytics() { setView(returnView === "analytics" ? "list" : returnView); }
   async function copyCid(cid: string) {
     if (!cid) return;
     await navigator.clipboard.writeText(cid); setCopyMessage(`คัดลอก CID ${cid} แล้ว`); window.setTimeout(() => setCopyMessage(""), 1800);
@@ -117,15 +120,16 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
       ["done", "งานสำเร็จ", items.filter((item) => getWorkflowStatusKey(item) === "done").length]];
 
   return <div className="deposit-workspace legacy-deposit-workspace">
-    <header className="deposit-head legacy-deposit-head"><div><p className="eyebrow">{installationTeamView ? "เงินประกันอาคาร / งานทีมติดตั้ง" : "เงินประกันอาคาร / งานดำเนินการ"}</p><h1>{installationTeamView ? "งานที่ทีมติดตั้งต้องดำเนินการ" : "รายการขอคืนเงินประกันอาคาร"}</h1><p className="sub">{installationTeamView ? "แสดงเฉพาะงานค้างในขั้นตอนของทีมติดตั้ง" : `ข้อมูลทั้งหมด · ${exportYear || "ทุกปี"}`} · อัปเดตล่าสุด {lastUpdated ? lastUpdated.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }) : "—"}</p></div>
-      <div className="legacy-head-actions"><button type="button" className={`executive-nav-button${view === "analytics" ? " active" : ""}`} aria-pressed={view === "analytics"} onClick={() => setWorkspaceView("analytics")}>วิเคราะห์ข้อมูล</button>
-        {view !== "analytics" && <>
+    <header className="deposit-head legacy-deposit-head"><div>
+      <nav aria-label="เส้นทางนำทาง" className="page-heading-breadcrumb flex items-center gap-1 text-xs text-[var(--color-text-muted)]"><Link className="underline-offset-4 hover:text-[var(--color-brand)] hover:underline" href="/">ภาพรวม</Link><span aria-hidden="true"> / </span><span aria-current="page" className="font-semibold text-[var(--color-text)]">เงินประกันอาคาร</span></nav>
+      <p className="eyebrow">{installationTeamView ? "เงินประกันอาคาร / งานทีมติดตั้ง" : view === "analytics" ? "เงินประกันอาคาร / รายงานวิเคราะห์" : "เงินประกันอาคาร / งานดำเนินการ"}</p><h1 className="deposit-workspace-title">{view === "analytics" ? "ภาพรวมเงินประกันอาคาร" : installationTeamView ? "งานที่ทีมติดตั้งต้องดำเนินการ" : "รายการขอคืนเงินประกันอาคาร"}</h1><p className="sub">{view === "analytics" ? "รายงานหลักสำหรับติดตามเงินประกัน การคืนเงิน และประเด็นที่ต้องดำเนินการ" : "ติดตามเอกสาร ขั้นตอน และสถานะการขอคืนเงินประกัน"}</p>{view !== "analytics" && <p className="sub">{installationTeamView ? "แสดงเฉพาะงานค้างในขั้นตอนของทีมติดตั้ง" : `ข้อมูลทั้งหมด · ${exportYear || "ทุกปี"}`} · อัปเดตล่าสุด {lastUpdated ? lastUpdated.toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }) : "—"}</p>}</div>
+      <div className="legacy-head-actions">{view === "analytics" ? <button type="button" className="analytics-back-button" aria-label="กลับรายการเงินประกัน" onClick={returnFromAnalytics}>← กลับรายการเงินประกัน</button> : <>
+        <button type="button" className="executive-nav-button" onClick={openAnalytics}>วิเคราะห์ข้อมูล</button>
         <select aria-label="เดือนสำหรับส่งออก" value={exportMonth} onChange={(event) => setExportMonth(event.target.value)}><option value="">ทุกเดือน</option>{[{ value: "0", label: "ม.ค." }, { value: "1", label: "ก.พ." }, { value: "2", label: "มี.ค." }, { value: "3", label: "เม.ย." }, { value: "4", label: "พ.ค." }, { value: "5", label: "มิ.ย." }, { value: "6", label: "ก.ค." }, { value: "7", label: "ส.ค." }, { value: "8", label: "ก.ย." }, { value: "9", label: "ต.ค." }, { value: "10", label: "พ.ย." }, { value: "11", label: "ธ.ค." }].map((month) => <option value={month.value} key={month.value}>{month.label}</option>)}</select>
         <select aria-label="ปีสำหรับส่งออก" value={exportYear} onChange={(event) => setExportYear(event.target.value)}><option value="">ทุกปี</option>{years.map((year) => <option value={year} key={year}>{year}</option>)}</select>
         <button type="button" className="deposit-export" onClick={exportCsv} disabled={!filtered.length}>⇩ Export CSV</button>
         {!installationTeamView && (createUnavailableReason ? <button className="primary" type="button" disabled title={createUnavailableReason}>＋ เพิ่มรายการใหม่</button> : <Link className="primary" href="/guarantees/new">＋ เพิ่มรายการใหม่</Link>)}
-        </>}
-      </div></header>
+      </>}</div></header>
     {installationTeamView && <div className="deposit-banner">มุมมองนี้แสดงเฉพาะงานสถานะ “รอทีมติดตั้งรับงาน”, “ทีมติดตั้งดำเนินการ” และ “รอดำเนินการ Off Service”</div>}
     {preview && <div className="deposit-banner">ข้อมูลตัวอย่างจาก workflow V2 · ไม่มีการบันทึก <Link href={installationTeamView ? "/guarantees?view=installation-team" : "/guarantees"}>กลับข้อมูลจริง</Link></div>}
     {!preview && state !== "ready" && <div className="deposit-banner">{state === "not_configured" ? copy.feedback.unavailable : "โหลดข้อมูลเงินประกันไม่สำเร็จ"} {canPreview && <Link href={`/guarantees?preview=1${installationTeamView ? "&view=installation-team" : ""}`}>ดูข้อมูลตัวอย่าง</Link>}</div>}

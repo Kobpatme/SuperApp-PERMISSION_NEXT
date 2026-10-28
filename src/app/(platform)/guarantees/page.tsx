@@ -2,7 +2,6 @@ import { copy } from "@/lib/copy";
 import type { Metadata } from "next";
 export const metadata: Metadata = { title: copy.pages.guarantees };
 import { AccessDenied } from "@/components/access-denied";
-import { PageHeader } from "@/components/ui/page-header";
 import { DepositWorkspace } from "@/components/deposit-workspace";
 import { getAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
@@ -23,7 +22,6 @@ export default async function GuaranteesPage({ searchParams }: { searchParams: P
     (access.subject?.teamIds ?? []).some((teamId) => isAuthorized(access.subject, "guarantee.case.manage", { ownerId: access.userId, teamId }));
   const data = preview ? { items: installationTeamView ? depositPreviewItems.filter(isInstallationTeamPending) : depositPreviewItems, state: "ready" as const, truncated: false, generatedAt: "2026-09-29T00:00:00.000Z" } : await listDepositWorkItems(500, requestedTeamId, installationTeamView);
   return <main data-ui-screen="guarantees">
-    <PageHeader title="เงินประกันอาคาร" description="ติดตามเอกสาร ขั้นตอน และสถานะการขอคืนเงินประกัน" parent={{ label: "ภาพรวม", href: "/" }} />
     <DepositWorkspace items={data.items} preview={preview} state={data.state} truncated={data.truncated}
       generatedAt={data.generatedAt}
       canCreate={canCreateDepositWorkItem(access)}

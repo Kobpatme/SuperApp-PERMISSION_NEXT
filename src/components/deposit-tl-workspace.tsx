@@ -14,7 +14,7 @@ export function DepositTlWorkspace({ item }: { item: DepositItem & { id: string;
   const router = useRouter();
   useEffect(() => { if (state.ok) router.refresh(); }, [state, router]);
   const targets = item.status === "tl" ? [["On Process", "รับงาน"], ["att", "ส่งกลับก่อนรับ"]] : item.status === "On Process" ? [["ret", "ส่งงานให้ตรวจรับ"]] : [];
-  return <div className="deposit-detail"><div className="deposit-detail-head"><div><p className="eyebrow">เงินประกันอาคาร / งานทีมติดตั้งที่ได้รับมอบหมาย</p><h1><TruncatedText text={item.place || "ไม่ระบุอาคาร"} lines={2}/></h1><TruncatedText className="sub" text={workflowLabels[getWorkflowStatusKey(item)]} lines={2}/></div><Link href="/guarantees">← กลับรายการ</Link></div>
+  return <div className="deposit-detail deposit-module-page deposit-tl-page"><div className="deposit-detail-head"><div><p className="eyebrow">เงินประกันอาคาร / งานทีมติดตั้งที่ได้รับมอบหมาย</p><h1><TruncatedText text={item.place || "ไม่ระบุอาคาร"} lines={2}/></h1><TruncatedText className="sub" text={workflowLabels[getWorkflowStatusKey(item)]} lines={2}/></div><Link href="/guarantees">← กลับรายการ</Link></div>
     <div className="deposit-detail-grid"><section className="deposit-panel"><h2>หลักฐานงานทีมติดตั้ง</h2><p className="sub">ทีมติดตั้งแก้ไขได้เฉพาะหลักฐานงานและขั้นตอนของรายการที่ได้รับมอบหมาย</p>
       <DepositEvidenceUpload id={item.id} version={item.version} kind="pdf_tl_work" exists={Boolean(item.pdf_tl_work)} canUpload={["tl", "On Process"].includes(item.status || "")} />
       <DepositEvidenceUpload id={item.id} version={item.version} kind="pdf_tl_extra" exists={Boolean(item.pdf_tl_extra)} canUpload={["tl", "On Process"].includes(item.status || "")} />
