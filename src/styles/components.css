@@ -9,7 +9,7 @@ body {
 
 :where(.main > *, .admin-workspace > *, .admin-grid > *, .admin-head > div) { min-width: 0; }
 
-:where(h1, h2, h3, h4, .top-brand-copy strong, .metric-value, .attention-item strong) {
+:where(h1, h2, h3, h4, .top-brand-copy strong, .metric-value) {
   font-family: var(--font-heading);
   line-height: 1.35;
 }
@@ -304,18 +304,6 @@ body {
 .owner-dot { border-radius: var(--radius-md); background: var(--color-brand-soft); color: var(--color-brand); }
 .workspace-health { background: var(--color-surface); }
 .health-icon { border-radius: var(--radius-md); background: var(--color-success-soft); color: var(--color-success); }
-.attention-strip { overflow:visible; gap:var(--space-3); border:0; border-radius:0; background:transparent; box-shadow:none; }
-.attention-item { position:relative; overflow:hidden; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-xs); transition:transform var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast) var(--ease-out),border-color var(--motion-fast) var(--ease-out),background var(--motion-fast) var(--ease-out); }
-.attention-item::before { content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--color-brand); }
-.attention-item:hover { border-color:color-mix(in srgb,var(--color-brand) 35%,var(--color-border)); background:var(--color-surface); transform:translateY(-2px); box-shadow:var(--shadow-sm); }
-.attention-item.urgent::before { background:var(--color-danger); }
-.attention-item.today::before { background:var(--color-warning); }
-.attention-item.mine::before { background:var(--color-info); }
-.attention-item.urgent strong { color:var(--color-danger); }
-.attention-item.today strong { color:var(--color-warning); }
-.attention-item.mine strong { color:var(--color-info); }
-.attention-item.active { border-color:color-mix(in srgb,var(--color-brand) 40%,var(--color-border)); background:var(--color-brand-soft); box-shadow:var(--shadow-xs); }
-.attention-item.active strong { color:var(--color-brand); }
 .work-home-announcement { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); margin: 0 0 var(--space-4); border: 1px solid color-mix(in srgb, var(--color-info) 30%, var(--color-border)); border-radius: var(--radius-lg); background: var(--color-info-soft); color: var(--color-text); box-shadow: var(--shadow-xs); animation: card-stagger var(--motion-base) var(--ease-out) both; }
 .queue-section { overflow:hidden; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-xs); }
 .queue-section > :where(.section-heading-row,.queue-views,.queue-toolbar,.queue-filters,.queue-notice,.batch-toolbar,.inline-feedback,.queue-footer) { margin-inline:var(--space-4); }
@@ -326,15 +314,6 @@ body {
 .next-step,
 .environment-banner,
 .deposit-banner { border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-subtle); }
-.workspace-table th,
-.deposit-table th { background: var(--color-surface-subtle); color: var(--color-text-muted); font-size: var(--text-caption); font-weight: 600; }
-.workspace-table tbody tr:hover,
-.workspace-table tbody tr.selected,
-.deposit-table tbody tr:hover { background: var(--color-surface-subtle); }
-.workspace-table td,
-.deposit-table td { border-color: var(--color-border); }
-.workspace-table th { height: 48px; }
-.workspace-table td { height: 52px; }
 .record-title:hover,
 .deposit-table td:last-child a,
 .deposit-link,
@@ -406,7 +385,7 @@ body {
 .saved-view-link > .truncated-text-wrap { display: block; }
 .permission-drawer-head h2,
 .permission-list-head h2 { font-family: var(--font-ui); }
-.html[data-theme="dark"] :where(.workspace-table th, .deposit-table th) { background: var(--color-surface-subtle); }
+.html[data-theme="dark"] :where(.deposit-table th) { background: var(--color-surface-subtle); }
 html[data-theme="dark"] .workspace-health { background: var(--color-surface); border-color: var(--color-border); }
 html[data-theme="dark"] .health-modules span { background: var(--color-surface-subtle); }
 
@@ -432,7 +411,6 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
   .access-denied,
   .workspace-health,
   .module-directory > a { padding: 16px; }
-  .attention-item { min-height: 92px; padding: 16px; }
   .detail-panel { border-radius: var(--radius-xl) 16px 0 0; }
 }
 

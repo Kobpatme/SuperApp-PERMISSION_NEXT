@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TruncatedText } from "@/components/ui/truncated-text";
 import { useDialogDismiss } from "@/components/ui/use-dialog-dismiss";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type FilterKey = "status" | "group" | "type" | "installType" | "surveyType" | "area";
 type Filters = Record<FilterKey, string>;
@@ -221,10 +223,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
 
   return <section className="permission-workspace" data-ui-screen="buildings" data-view={view} aria-label="จัดการข้อมูลอาคาร">
     <header className="permission-toolbar permission-overview-toolbar">
-      <div className="permission-toolbar-title">
-        <nav className="permission-breadcrumb" aria-label="เส้นทางนำทาง"><Link href="/">ภาพรวม</Link><span aria-hidden="true"> / </span><span aria-current="page">ข้อมูลอาคาร</span></nav>
-        <h1>ข้อมูลอาคาร</h1><p>ค้นหาอาคาร ตรวจสอบตำแหน่ง ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน</p>
-      </div>
+      <PageHeader parent={{ label: "ภาพรวม", href: "/" }} title="ข้อมูลอาคาร" description="ค้นหาอาคาร ตรวจสอบตำแหน่ง ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน" />
       <div className="permission-search-actions"><div className="permission-search" role="search">
         <span aria-hidden="true">⌕</span><input ref={searchRef} value={query} onChange={(event) => { setQuery(event.target.value.slice(0, 120)); setSuggestionIndex(-1); }} onFocus={() => setFocused(true)} onKeyDown={searchKeyDown}
           onBlur={() => window.setTimeout(() => setFocused(false), 130)} placeholder="ค้นหาอาคาร... ภาษาไทย หรือ English" aria-label="ค้นหาอาคาร" autoComplete="off" />
@@ -235,7 +234,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
       <button type="button" className="permission-filter-toggle" aria-expanded={filtersOpen} aria-controls="permission-filters" onClick={() => setFiltersOpen((open) => !open)}>ตัวกรอง{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}<span aria-hidden="true">{filtersOpen ? "⌃" : "⌄"}</span></button>
 
     </header>
-    <section className="permission-overview-summary" aria-label="สรุปอาคาร"><div><strong>{number(total)}</strong><span>อาคารทั้งหมด</span></div>{statuses.map((status) => <button type="button" key={status} className={filters.status === status ? "active" : ""} aria-pressed={filters.status === status} onClick={() => setFilter("status", filters.status === status ? "" : status)}><strong>{number(withoutStatus.filter((item) => item.status === status).length)}</strong><span>{statusLabel(status)}</span></button>)}<div><strong>{number(buildings.filter((item) => item.lat !== null && item.lng !== null).length)}</strong><span>มีพิกัด</span></div></section>
+    <section className="permission-overview-summary" aria-label="สรุปอาคาร"><div><strong>{number(total)}</strong><span>อาคารทั้งหมด</span></div>{statuses.map((status) => <button type="button" key={status} className={filters.status === status ? "active" : ""} aria-pressed={filters.status === status} onClick={() => setFilter("status", filters.status === status ? "" : status)}><strong>{number(withoutStatus.filter((item) => item.status === status).length)}</strong><StatusBadge label={statusLabel(status)} tone={statusTone(status)} /></button>)}<div><strong>{number(buildings.filter((item) => item.lat !== null && item.lng !== null).length)}</strong><span>มีพิกัด</span></div></section>
 
     {filtersOpen && <div id="permission-filters" className="permission-filterbar">
       {(Object.keys(fieldLabels) as FilterKey[]).map((key) => <label key={key}>
@@ -268,7 +267,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
       <div className="permission-overview-list-scroll">
         {visible.length ? <div className="permission-overview-grid">{visible.map((item) => <article className="permission-overview-card" key={item.id}>
           <button type="button" className="permission-overview-card-main" onClick={() => openBuilding(item)}><span className={`permission-status-dot ${statusClass(item.status)}`} /><span><strong><TruncatedText text={item.nameTh} lines={2}/></strong><small>{[item.code, item.nameEn, item.area].filter(Boolean).join(" · ")}</small></span></button>
-          <div className="permission-overview-card-meta"><span>{statusLabel(item.status)}</span><span>{item.boq?.fees.length ? `${item.boq.fees.length} รายการค่าใช้จ่าย` : "ยังไม่มีค่าใช้จ่าย"}</span></div>
+          <div className="permission-overview-card-meta"><StatusBadge label={statusLabel(item.status)} tone={statusTone(item.status)} /><span>{item.boq?.fees.length ? `${item.boq.fees.length} รายการค่าใช้จ่าย` : "ยังไม่มีค่าใช้จ่าย"}</span></div>
           <div className="permission-overview-card-actions"><Link href={`/buildings/${item.id}`}>เปิดข้อมูล</Link>{item.canUpdateLocation && <Link href={`/buildings/${item.id}/edit`}>แก้ไข</Link>}</div>
         </article>)}</div> : <div className="permission-overview-empty" role="status"><strong>ไม่พบอาคารที่ตรงกับเงื่อนไข</strong><span>ลองเปลี่ยนคำค้นหาหรือล้างตัวกรอง</span><button type="button" onClick={reset}>ล้างการค้นหาและตัวกรอง</button></div>}
       </div>
@@ -276,7 +275,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
 
     <dialog ref={dialogRef} className={`permission-drawer ${closing ? "is-closing" : ""}`} aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onCancel={event=>{event.preventDefault();dismiss();}} onClose={() => setSelectedId(null)}>
        {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2><TruncatedText text={selected.nameTh} lines={2}/></h2><TruncatedText className="permission-drawer-name-en" text={selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"} lines={2}/><div className="permission-list-tags">{[selected.group, selected.surveyType, selected.type, selected.installType].filter(Boolean).map((tag) => <em key={tag}><TruncatedText text={tag as string} lines={1}/></em>)}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>{copy.pages.buildings_id}</Link>{selected.canUpdateLocation && <Link className="secondary-action" href={`/buildings/${selected.id}/edit`}>{copy.buildingEditor.editTitle}</Link>}</div><button type="button" onClick={dismiss} aria-label="ปิดรายละเอียด">×</button></div>
-         <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><strong className={statusClass(selected.status)}><TruncatedText text={selected.status || "—"} lines={1}/></strong></div><div><span>พื้นที่ / จังหวัด</span><TruncatedText text={[selected.area, selected.province].filter(Boolean).join(" · ") || "—"} lines={2}/></div><div><span>ข้อมูลล่าสุด</span><TruncatedText text={selected.updateDate || "ไม่ระบุวันที่"} lines={1}/></div></div>
+         <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><StatusBadge label={selected.status || "—"} tone={statusTone(selected.status)} /></div><div><span>พื้นที่ / จังหวัด</span><TruncatedText text={[selected.area, selected.province].filter(Boolean).join(" · ") || "—"} lines={2}/></div><div><span>ข้อมูลล่าสุด</span><TruncatedText text={selected.updateDate || "ไม่ระบุวันที่"} lines={1}/></div></div>
         {(!selected.wmPoint || selected.feeReviewRequired || invalidDuration || invalidHorizontal) && <div className="permission-drawer-alert" role="status"><strong>ข้อมูลที่ควรตรวจสอบ</strong>{!selected.wmPoint && <span>ยังไม่มีข้อมูลจุดเชื่อมต่อ WM</span>}{invalidDuration && <span>ระยะดำเนินการไม่ใช่จำนวนวัน</span>}{invalidHorizontal && <span>ระยะสายแนวนอนไม่ใช่จำนวนเมตร</span>}{selected.feeReviewRequired && <span>{copy.feedback.feeReview}</span>}</div>}
         <div className="permission-drawer-tabs" role="tablist" aria-label="รายละเอียดอาคาร">
           {([ ["general", "ภาพรวม"], ["contact", "ผู้ติดต่อ"], ["fee", "ค่าใช้จ่าย"], ["documents", "เอกสาร"] ] as const).map(([key, label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} onClick={() => selectTab(key)}>{label}{key === "documents" && documentState?.key === selected.id && documentState.status === "ready" ? ` (${documentState.files.length})` : ""}</button>)}
@@ -319,6 +318,7 @@ function feeInGroup(fee: NonNullable<PermissionBuildingRow["boq"]>["fees"][numbe
   if (group === "OPEX_MONTHLY") return fee.cost_type === "OPEX" && fee.source_field !== "annual_fee" && fee.revenue_period !== "annual";
   return fee.cost_type === group;
 }
+function statusTone(status: string) { return status === "Permission Confirmed" ? "success" : status === "อาคารปิดถาวร" ? "danger" : status === "Check Permission" ? "warning" : "neutral"; }
 function statusLabel(status: string) { return status === "Permission Confirmed" ? "ยืนยันแล้ว" : status === "MOU" ? "MOU" : status === "Check Permission" ? "รอตรวจสอบ" : "ปิดถาวร"; }
 function statusClass(status: string) { return status === "Permission Confirmed" ? "status-confirmed" : status === "MOU" ? "status-mou" : status === "อาคารปิดถาวร" ? "status-closed" : "status-check"; }
 

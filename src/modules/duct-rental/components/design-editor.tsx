@@ -1,7 +1,7 @@
 "use client";
 import { CABLE_TYPE_OPTIONS, OWNER_DUCT_OPTIONS, REQUEST_TYPE_OPTIONS, JOB_TYPE_OPTIONS, SERVICE_CENTER_OPTIONS, getDiameterForCable, getFiberTypeOptions } from "../schemas/design";
 import { Field } from "./common";
-import styles from "./workspace.module.css";
+import styles from "../ui-shared/ui-shared.module.css";
 export type DesignValues = Record<string, string | number>;
 export const designSections: { title: string; fields: { name: string; label: string; options?: readonly string[]; area?: boolean; number?: boolean; optional?: boolean }[] }[] = [
  { title: "ข้อมูลโครงการและประเภทคำขอ", fields: [{ name: "requestType", label: "ประเภทคำขอ", options: REQUEST_TYPE_OPTIONS.map(item => item.value) }, { name: "projectName", label: "ชื่อโครงการ" }, { name: "routeName", label: "ชื่อเส้นทาง / ถนน" }, { name: "ownerDuct", label: "เจ้าของท่อ", options: OWNER_DUCT_OPTIONS }, { name: "memoNumber", label: "เลขที่ Memo", optional: true }, { name: "routeDetail", label: "รายละเอียดเส้นทาง", area: true }, { name: "jobType", label: "ประเภทของงาน", options: JOB_TYPE_OPTIONS }, { name: "serviceCenter", label: "ศูนย์บริการ", options: SERVICE_CENTER_OPTIONS }, { name: "supportInfo", label: "รองรับ / Support", optional: true }] },

@@ -4,7 +4,7 @@ import type { RequestDetail } from "./api-client";
 import { documentUrl } from "./api-client";
 import { Modal, Field, phaseLabels } from "./common";
 import { PdfViewer } from "./pdf-viewer";
-import styles from "./workspace.module.css";
+import styles from "../ui-shared/ui-shared.module.css";
 const kindLabels: Record<string, string> = { memo: "Memo", duct_drawing: "แบบท่อจากออกแบบ", drawing: "แบบท่อ / แบบหลังติดตั้ง", permission_letter: "หนังสืออนุญาต", confirmation_form: "แบบยืนยัน", nt_form: "NT Form", signed_nt_form: "NT Form ลงนามแล้ว", rate_notice: "หนังสือแจ้งอัตรา", invoice: "ใบแจ้งค่าใช้บริการ", signed_copy: "ฉบับลงนาม", contract: "สัญญา", receipt: "ใบเสร็จ / BG", renewal_contract: "สัญญารายปี", cad: "แบบ CAD", kmz: "เส้นทาง KMZ / KML", other: "เอกสารอื่น" };
 export function FileList({ files, canExport }: { files: RequestDetail["files"]; canExport: boolean }) {
   const [query, setQuery] = useState(""), [phase, setPhase] = useState(""), [sort, setSort] = useState("latest"), [preview, setPreview] = useState<RequestDetail["files"][number] | null>(null), [limit, setLimit] = useState(50);

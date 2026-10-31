@@ -12,6 +12,10 @@ import { RefreshButton } from "@/components/workspace-feedback";
 import { TruncatedText } from "@/components/ui/truncated-text";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { useDialogDismiss } from "@/components/ui/use-dialog-dismiss";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { TableRegion } from "@/components/ui/table-region";
+
+const priorityTone = (priority: DashboardItem["priority"]): "neutral" | "warning" | "danger" => priority === "urgent" ? "danger" : priority === "attention" ? "warning" : "neutral";
 
 const viewLabels: Record<QueueView, string> = { all: "ทั้งหมด", urgent: "เร่งด่วน", today: "ครบกำหนดวันนี้", mine: "งานของฉัน" };
 
@@ -31,7 +35,7 @@ function DetailPanel({ item, preview, onClose, opener }: { item: DashboardItem; 
       <div className="detail-top"><span><WorkspaceIcon name={getModule(item.moduleId)!.icon}/>{moduleInfo.name}</span><button type="button" className="round-btn" aria-label="ปิดรายละเอียด" onClick={dismiss} autoFocus><WorkspaceIcon name="close"/></button></div>
       <p className="eyebrow">{item.code || item.id}</p>
        <h2 id="detail-title"><TruncatedText text={item.moduleId === "buildings" && item.buildingName ? item.buildingName : item.title} lines={2}/></h2>
-      <div className="detail-badges"><span className={`status-badge ${item.priority}`}>{priorityLabels[item.priority]}</span><span className="status-badge neutral">{item.statusLabel}</span></div>
+      <div className="detail-badges"><StatusBadge label={priorityLabels[item.priority]} tone={priorityTone(item.priority)} /><StatusBadge label={item.statusLabel} tone="neutral" /></div>
       {preview && <p className="preview-caption">ข้อมูลตัวอย่าง · ไม่มีผลต่อข้อมูลจริง</p>}
       <dl className="detail-fields">
          <div><dt>อาคาร</dt><dd><TruncatedText text={item.buildingName || "ยังไม่ระบุ"} lines={2}/></dd></div>
@@ -132,7 +136,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
   }
 
   return <>
-    {showMetrics && <section className="attention-strip work-card-stagger" aria-label="เลือกกลุ่มงานที่ต้องติดตาม">{(Object.keys(viewLabels) as QueueView[]).map((view) => <button type="button" key={view} className={`attention-item ${settings.view === view ? "active" : ""} ${view}`} aria-pressed={settings.view === view} onClick={() => changeSettings({ view })}>
+    {showMetrics && <section className="ui-metric-grid work-metric-strip" aria-label="เลือกกลุ่มงานที่ต้องติดตาม">{(Object.keys(viewLabels) as QueueView[]).map((view) => <button type="button" key={view} className={`ui-metric ${view === "urgent" ? "ui-metric-danger" : view === "today" ? "ui-metric-warning" : view === "mine" ? "ui-metric-info" : ""} ${settings.view === view ? "is-active" : ""}`} aria-pressed={settings.view === view} onClick={() => changeSettings({ view })}>
       <span>{view === "all" ? "รายการที่ต้องติดตาม" : viewLabels[view]}</span><strong>{hasData ? <AnimatedNumber value={counts[view]}/> : "—"}</strong><small>{hasData ? partial ? "รายการ · ข้อมูลบางส่วน" : "รายการ" : "รอข้อมูล"}<WorkspaceIcon name="arrow" size={16}/></small>
     </button>)}</section>}
     <section className="queue-section" aria-labelledby="queue-heading">
@@ -151,8 +155,8 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
         catch { setMessage("คัดลอกไม่สำเร็จ กรุณาลองอีกครั้ง"); }
       }}><WorkspaceIcon name="copy" size={18}/>คัดลอกรหัสที่เลือก</button><button type="button" className="text-btn" onClick={() => setSelection(new Set())}>ยกเลิกการเลือก</button></div>}
       <p role="status" className="inline-feedback">{message}</p>
-      <div className="table-scroll" role="region" aria-label="ตารางรายการติดตาม เลื่อนแนวนอนได้" tabIndex={0}>
-        <table className="workspace-table"><caption className="sr-only">รายการติดตามที่คุณมีสิทธิ์ดู เปิดรายละเอียดด้วยปุ่มชื่อรายการ</caption><thead><tr>
+      <TableRegion label="ตารางรายการติดตาม เลื่อนแนวนอนได้">
+        <table className="ui-table workspace-queue-table"><caption className="sr-only">รายการติดตามที่คุณมีสิทธิ์ดู เปิดรายละเอียดด้วยปุ่มชื่อรายการ</caption><thead><tr>
           <th className="selection-cell"><input type="checkbox" ref={selectAllRef} aria-label="เลือกทุกรายการในหน้านี้" checked={visible.length > 0 && selected.length === visible.length} disabled={!visible.length} onChange={(event) => { setSelection(event.target.checked ? new Set(visible.map(recordKey)) : new Set()); setSelectionScope(scope); }}/></th>
           <th scope="col" aria-sort={settings.sort === "title" ? "ascending" : "none"}><button type="button" onClick={() => changeSettings({ sort: "title" })}>{moduleId === "buildings" ? "อาคาร / รายการติดตาม" : "รายการ / อาคาร"}{settings.sort === "title" && " ↑"}</button></th>
           <th scope="col">ผู้รับผิดชอบ</th><th scope="col" aria-sort={settings.sort === "due" ? "ascending" : "none"}><button type="button" onClick={() => changeSettings({ sort: "due" })}>กำหนด{settings.sort === "due" && " ↑"}</button></th><th scope="col">สถานะ</th>
@@ -160,13 +164,13 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
           {visible.map((item) => <tr key={recordKey(item)} className={selectedKeys.has(recordKey(item)) ? "selected" : ""}>
             <td className="selection-cell"><input type="checkbox" aria-label={`เลือก ${item.code || item.title}`} checked={selectedKeys.has(recordKey(item))} onChange={() => toggleItem(item)}/></td>
              <td className="record-cell"><button className="record-title" type="button" onClick={event => { openerRef.current=event.currentTarget; update({ record: item.id, module: item.moduleId }, true); }}><TruncatedText text={moduleId === "buildings" && item.buildingName ? item.buildingName : item.title} lines={1}/><WorkspaceIcon name="arrow" size={16}/></button><div className="record-subtitle"><span className="record-code">{item.code || kindLabels[item.kind]}</span><TruncatedText text={moduleId === "buildings" ? item.title : item.buildingName || getModule(item.moduleId)?.name || ""} lines={1}/>{!moduleId && <TruncatedText className="record-source" text={getModule(item.moduleId)?.name || ""} lines={1}/>}</div></td>
-             <td className="owner-cell"><span className="owner-dot" aria-hidden="true">{(item.ownerName || "—").slice(0, 1)}</span><TruncatedText text={item.ownerName || "ยังไม่ระบุ"} lines={1}/></td>
-            <td><span className="due-date">{formatWorkspaceDate(item.dueAt)}</span><span className={`priority-label ${item.priority}`}>{priorityLabels[item.priority]}</span></td>
-             <td><span className="status-badge neutral"><TruncatedText text={item.statusLabel} lines={1}/></span></td>
+             <td className="owner-cell"><span className="owner-cell-content"><span className="owner-dot" aria-hidden="true">{(item.ownerName || "—").slice(0, 1)}</span><TruncatedText text={item.ownerName || "ยังไม่ระบุ"} lines={1}/></span></td>
+            <td><span className="due-date">{formatWorkspaceDate(item.dueAt)}</span><StatusBadge label={priorityLabels[item.priority]} tone={priorityTone(item.priority)} /></td>
+             <td><StatusBadge label={item.statusLabel} tone="neutral" /></td>
           </tr>)}
           {!visible.length && <tr><td colSpan={5}><div className="queue-empty"><span className="empty-icon"><WorkspaceIcon name={hasData ? "search" : unavailable ? "refresh" : (getModule(moduleId ?? "")?.icon ?? "work")} size={28}/></span><h3>{hasData ? items.length ? "ไม่พบรายการที่ตรงกับตัวกรอง" : "ไม่มีรายการที่ต้องติดตาม" : unavailable ? "เชื่อมต่อข้อมูลไม่สำเร็จ" : "อยู่ระหว่างเตรียมข้อมูล"}</h3><p>{hasData ? items.length ? "ลองเปลี่ยนคำค้นหรือเลือกมุมมองทั้งหมด" : copy.feedback.queueEmpty : unavailable ? "ข้อมูลอาจไม่พร้อมใช้งานชั่วคราว ลองอัปเดตอีกครั้ง" : copy.feedback.queuePreparingHint}</p>{hasData && items.length > 0 ? <button className="secondary-action" type="button" onClick={() => changeSettings({ query: "", status: "", view: "all" })}>แสดงรายการทั้งหมด</button> : unavailable ? <RefreshButton/> : null}</div></td></tr>}
         </tbody></table>
-      </div>
+      </TableRegion>
       <footer className="queue-footer"><span role="status">{hasData ? rows.length ? `แสดง ${(page - 1) * size + 1}–${Math.min(page * size, rows.length)} จาก ${rows.length} รายการ` : "0 รายการ" : "ยังไม่มีข้อมูลพร้อมแสดง"}</span><div className="pagination"><button className="secondary-action" type="button" disabled={page <= 1} onClick={() => update({ page: String(page - 1) })}>ก่อนหน้า</button><span>หน้า {page} / {pageCount}</span><button className="secondary-action" type="button" disabled={page >= pageCount} onClick={() => update({ page: String(page + 1) })}>ถัดไป</button></div></footer>
     </section>
     {activeRecord && <DetailPanel key={recordKey(activeRecord)} item={activeRecord} preview={preview} opener={openerRef} onClose={() => update({ record: null, module: null })}/>}

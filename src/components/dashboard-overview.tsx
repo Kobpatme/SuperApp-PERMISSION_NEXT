@@ -16,7 +16,7 @@ export function DashboardOverview({ displayName, userId, allowedModuleIds, devel
   displayName: string; userId: string; allowedModuleIds: ModuleId[]; developmentMode: boolean; preview: boolean; snapshot: DashboardSnapshot;
 }) {
   const hasLiveData = snapshot.sources.some((source) => source.status === "ready");
-  return <div className="operational-home mx-auto w-full max-w-[1440px]" data-ui-screen>
+  return <div className="work-native overview-screen" data-ui-screen="overview">
     <PreviewNotice developmentMode={developmentMode} preview={preview}/>
     <PageHeader className="page-enter" eyebrow="ภาพรวมการทำงาน" title="วันนี้ต้องจัดการอะไรบ้าง" description={`สวัสดี ${displayName} · รวมงานและรายการสำคัญที่คุณต้องติดตาม`} actions={<><RefreshButton/><span className="updated-at whitespace-nowrap text-xs text-[var(--color-text-muted)]">{hasLiveData ? `ข้อมูล ณ ${formatWorkspaceDate(snapshot.generatedAt, true)}` : copy.feedback.dataPreparing}</span></>}/>
     {allowedModuleIds.length ? <WorkspaceQueue snapshot={snapshot} userId={userId} preview={preview} showMetrics/> : <EmptyState className="overview-empty rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-sm" title="ยังไม่มีพื้นที่ทำงานที่เข้าถึงได้" description="กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์ตามหน้าที่ของคุณ" badge={<WorkspaceIcon name="guarantees" size={32}/>} />}

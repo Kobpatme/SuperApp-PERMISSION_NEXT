@@ -67,7 +67,7 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
     .sort((a, b) => b.url.pathname.length - a.url.pathname.length || b.url.searchParams.size - a.url.searchParams.size)[0]?.href;
   const currentDuctHref = pathname === "/duct-rental" || /^\/duct-rental\/(new|[0-9a-f-]{36})(\/|$)/i.test(pathname)
     ? "/duct-rental"
-    : ["/duct-rental/renewal", "/duct-rental/communication-cable"].find(href => pathname === href || pathname.startsWith(`${href}/`));
+    : ["/duct-rental/renewal", "/duct-rental/cancellation", "/duct-rental/tracking", "/duct-rental/communication-cable"].find(href => pathname === href || pathname.startsWith(`${href}/`));
   const currentBuildingsHref = pathname === "/buildings" || /^\/buildings\/(new|[0-9a-f-]{36})(\/|$)/i.test(pathname)
     ? "/buildings"
     : ["/buildings/map"].find(href => pathname === href || pathname.startsWith(`${href}/`));
@@ -129,6 +129,8 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
           {item.id === "duct-rental" && [
             { href: "/duct-rental", label: "เช่าท่อร้อยสาย", icon: "buildings" as const },
             { href: "/duct-rental/renewal", label: "ต่อสัญญา", icon: "refresh" as const },
+            { href: "/duct-rental/cancellation", label: "ยกเลิกการใช้ท่อ", icon: "close" as const },
+            { href: "/duct-rental/tracking", label: "ติดตามต่อสัญญาและยกเลิก", icon: "check" as const },
             { href: "/duct-rental/communication-cable", label: "พาดสายสื่อสาร", icon: "work" as const },
           ].map(child => {
             const childActive = child.href === currentDuctHref;

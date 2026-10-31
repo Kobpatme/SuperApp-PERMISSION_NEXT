@@ -7,7 +7,7 @@ import { apiPost, errorText } from "./api-client";
 import { useResource } from "./use-resource";
 import { Field, Modal, ModuleNav, Notice, RefreshBar } from "./common";
 import { CommunicationCableWorkspace } from "./communication-cable-workspace";
-import styles from "./workspace.module.css";
+import styles from "../ui-shared/ui-shared.module.css";
 type Rows=Awaited<ReturnType<typeof listCables>>;
 type Row=Rows["rows"][number];
 const empty: CableInput={authority:"PEA",projectName:"",routeName:"",startPoint:"",endPoint:"",cableType:"",contact:"",submissionNumber:"",permitNumber:"",notes:""};

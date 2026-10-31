@@ -29,7 +29,7 @@ function render(canCreate: boolean, scope?: { truncated: boolean; loadedCount: n
 describe("BuildingsWorkspace rendered contract", () => {
   it("renders one heading, search/filter controls, map action, and record fallback", () => {
     const html = render(false);
-    expect((html.match(/<h1>/g) ?? []).length).toBe(1);
+    expect((html.match(/<h1/g) ?? []).length).toBe(1);
     expect(html).toContain('role="search"');
     expect(html).toContain('aria-label="ค้นหาอาคาร"');
     expect(html).toContain('aria-controls="permission-filters"');

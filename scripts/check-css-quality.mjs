@@ -7,6 +7,20 @@ const definitions = new Set(files.flatMap(file => [...fs.readFileSync(file,'utf8
 // next/font/local defines these generated variables in the root layout in CP3.
 for (const file of files.filter(file=>/\.tsx?$/.test(file))) for (const m of fs.readFileSync(file,'utf8').matchAll(/variable:\s*["'](--[\w-]+)["']/g)) definitions.add(m[1]);
 const errors=[];
+for (const file of files.filter(file=>file.endsWith('.css'))) {
+  const source=fs.readFileSync(file,'utf8');
+  let depth=0, quote='', escaped=false, comment=false;
+  for (let i=0;i<source.length;i++) {
+    const c=source[i], next=source[i+1];
+    if (comment) { if (c==='*' && next==='/') { comment=false; i++; } continue; }
+    if (quote) { if (escaped) escaped=false; else if (c==='\\\\') escaped=true; else if (c===quote) quote=''; continue; }
+    if (c==='/' && next==='*') { comment=true; i++; continue; }
+    if (c==='"' || c==="'") { quote=c; continue; }
+    if (c==='{') depth++;
+    else if (c==='}' && --depth < 0) { errors.push(`${file}: extra closing brace`); depth=0; }
+  }
+  if (depth>0) errors.push(`${file}: ${depth} unclosed brace(s)`);
+}
 for (const file of files) {
   const text=fs.readFileSync(file,'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
   if (!file.endsWith('tokens.css')) for (const m of text.matchAll(/#[\da-f]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\([^)]*\)/gi)) errors.push(`${file}: literal ${m[0]}`);

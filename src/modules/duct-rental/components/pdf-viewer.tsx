@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PDFDocumentLoadingTask, RenderTask } from "pdfjs-dist";
 import { Notice } from "./common";
-import styles from "./workspace.module.css";
+import styles from "../ui-shared/ui-shared.module.css";
 export function PdfViewer({ url, blob, name = "เอกสาร PDF", initialPage = 1 }: { url: string; blob?: Blob; name?: string; initialPage?: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const [page, setPage] = useState(initialPage), [total, setTotal] = useState(0), [zoom, setZoom] = useState(1), [rotation, setRotation] = useState(0), [error, setError] = useState("");

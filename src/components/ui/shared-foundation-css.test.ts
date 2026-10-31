@@ -3,7 +3,10 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const css = readFileSync(resolve(process.cwd(), "src/styles/ui.css"), "utf8");
+const workCss = readFileSync(resolve(process.cwd(), "src/styles/work.css"), "utf8");
 const legacyComponentsCss = readFileSync(resolve(process.cwd(), "src/styles/components.css"), "utf8");
+
+const countOccurrences = (source: string, needle: string) => source.split(needle).length - 1;
 
 describe("shared button interaction states", () => {
   it("applies hover styling only to enabled canonical buttons", () => {
@@ -13,9 +16,39 @@ describe("shared button interaction states", () => {
     }
   });
 
-  it("keeps metric primitive ownership out of the legacy component stylesheet", () => {
-    expect(legacyComponentsCss).not.toMatch(/\.work-metric(?:-strip)?(?:[\s.:,{]|$)/);
-    expect(css).toContain(".ui-metric-grid");
+  it("keeps overview metric and table geometry in canonical owners", () => {
+    expect(css).toContain(".ui-metric-grid > .ui-metric:is(button)");
     expect(css).toContain(".ui-metric {");
+    expect(css).toContain(".ui-metric-grid > .ui-metric:is(button).is-active");
+    expect(css).toContain(".ui-table.workspace-queue-table");
+    expect(css).toContain(".ui-table.workspace-queue-table th:nth-child(2)");
+    expect(legacyComponentsCss).not.toMatch(/\.attention-(?:strip|item)(?:[\s.:,{]|$)/);
+    expect(legacyComponentsCss).not.toMatch(/\.workspace-table(?:[\s.:,{]|$)/);
+  });
+
+  it("declares the shared table base exactly once", () => {
+    expect(countOccurrences(css, ".ui-table-scroll {"), "canonical table scroll owner").toBe(1);
+    expect(countOccurrences(css, ".ui-table {"), "canonical table owner").toBe(1);
+  });
+
+  it("owns overview header alignment inside the overview scope and wraps only on narrow screens", () => {
+    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-row { width:100%; flex-wrap:nowrap; align-items:flex-start; justify-content:space-between; }");
+    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-content { flex:1 1 auto; }");
+    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-actions { flex:0 0 auto; width:auto; margin-left:auto; align-items:center; }");
+    expect(workCss).toContain("@media (max-width: 650px)");
+    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-row { align-items:stretch; flex-direction:column; gap:var(--space-3); }");
+    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-actions { width:100%; margin-left:0; justify-content:flex-start; }");
+    expect(workCss).not.toMatch(/(^|\n)\.page-heading-actions\s*\{[^}]*justify-content/);
+  });
+
+  it("preserves queue descendant presentation without changing table-cell layout", () => {
+    expect(css).toContain(".ui-table.workspace-queue-table .record-title");
+    expect(css).toContain("appearance:none");
+    expect(css).toContain(".ui-table.workspace-queue-table .record-subtitle");
+    expect(css).toContain(".ui-table.workspace-queue-table .record-code");
+    expect(css).toContain(".ui-table.workspace-queue-table .record-source");
+    expect(css).toContain(".ui-table.workspace-queue-table .owner-cell > .owner-cell-content");
+    expect(css).toContain("display:flex; align-items:center; gap:var(--space-1)");
+    expect(css).not.toContain(".ui-table.workspace-queue-table .owner-cell { display:flex");
   });
 });

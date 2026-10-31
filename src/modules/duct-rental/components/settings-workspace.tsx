@@ -6,7 +6,7 @@ import { apiPost, errorText } from "./api-client";
 import { Field, ModuleNav, Notice, RefreshBar } from "./common";
 import { useResource } from "./use-resource";
 import type { FormOptions } from "./request-form";
-import styles from "./workspace.module.css";
+import styles from "../ui-shared/ui-shared.module.css";
 type Settings = { version: number; service_center_teams: Record<string, string>; coordinator_phones: Record<string, string> };
 export function DuctSettings() {
  const [paused, setPaused] = useState(false), model = useResource<Settings>("settings", paused), options = useResource<FormOptions>("options");

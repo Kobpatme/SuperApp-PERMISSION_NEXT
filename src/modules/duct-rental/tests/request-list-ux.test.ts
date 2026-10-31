@@ -15,8 +15,12 @@ describe("Duct Rental request-list production composition", () => {
     expect(html).toContain("คำขอเช่าท่อร้อยสาย");
     expect(html).toContain("สร้างคำขอ");
     expect(html).toContain("ตั้งค่าผู้ประสานงาน");
-    expect(html).toContain("ติดตามกระบวนการ");
-    expect(html).toContain("ไม่พบคำขอที่ตรงเงื่อนไข");
+    expect(html).toContain("ติดตามทั้งหมด");
+    expect(html).toContain("ยังไม่มีคำขอเช่าท่อ");
+    expect(html).toContain('aria-labelledby="request-list-title"');
+    expect(html.indexOf('aria-labelledby="request-list-title"') < html.indexOf("metricStrip")).toBe(true);
+    expect(html).toContain("ขั้นตอนงาน · 10 ขั้นตอน");
+    expect(html).not.toContain("📭");
   });
 
   it("preserves the denied-role control surface in the real production component", () => {

@@ -21,4 +21,13 @@ describe("DashboardOverview shared presentation", () => {
     expect(emptyClass.split(/\s+/)).toEqual(expect.arrayContaining(["ui-empty", "overview-empty"]));
     expect(html).toContain("ยังไม่มีพื้นที่ทำงานที่เข้าถึงได้");
   });
+
+  it("renders the overview heading without a redundant home breadcrumb and keeps the module directory", () => {
+    const html = renderToStaticMarkup(<DashboardOverview displayName="ผู้ใช้" userId="user-1" allowedModuleIds={["guarantees"]} developmentMode={false} preview={false} snapshot={snapshot} />);
+
+    expect((html.match(/<h1(?:\s|>)/g) ?? []).length).toBe(1);
+    expect(html).toContain("วันนี้ต้องจัดการอะไรบ้าง");
+    expect(html).not.toContain("aria-label=\"เส้นทางนำทาง\"");
+    expect(html).toContain("ทำงานต่อในพื้นที่ของคุณ");
+  });
 });

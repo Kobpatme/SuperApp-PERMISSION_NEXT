@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { submissionDocumentsReady } from "../domain/submission-gates";
 import { phaseResource } from "../domain/workflow";
 import { hasIncompleteRequiredDocuments, requestPhases, type RequestPhase } from "../domain/source-policy";
@@ -14,8 +15,9 @@ import { DesignEditor } from "./design-editor";
 import { AttachmentPicker } from "./attachment-picker";
 import { FileList } from "./file-list";
 import { PdfViewer } from "./pdf-viewer";
-import { Field, Modal, ModuleNav, Notice, PhaseTabs, RefreshBar, phaseLabels, phaseViews } from "./common";
-import styles from "./workspace.module.css";
+import { Field, Modal, ModuleNav, Notice, RefreshBar, phaseLabels, phaseViews } from "./common";
+import { PhaseTabs } from "../ui-request";
+import styles from "../ui-shared/ui-shared.module.css";
 
 const installFields = [{ name: "actualStartCoords", label: "พิกัดต้นทางจริง", type: "text" }, { name: "actualEndCoords", label: "พิกัดปลายทางจริง", type: "text" }, { name: "actualDistance", label: "ระยะทางจริง (m)", type: "number" }, { name: "markLength", label: "Mark length (ML)", type: "text" }, { name: "pipeCount", label: "จำนวนท่อ (ถ้ามี)", type: "number" }, { name: "installDate", label: "วันที่ติดตั้ง", type: "date" }, { name: "supervisorName", label: "ชื่อผู้ควบคุมงาน", type: "text" }, { name: "installNotes", label: "หมายเหตุ / บันทึกหน้างาน", type: "text" }];
 const uploadSlots: Partial<Record<RequestPhase, { kind: string; label: string; accept?: string }[]>> = {
@@ -26,13 +28,13 @@ const uploadSlots: Partial<Record<RequestPhase, { kind: string; label: string; a
 export function RequestWorkspace({ id, view, userId, compact = false, created = false }: { id: string; view?: string; userId: string; compact?: boolean; created?: boolean }) {
   const router = useRouter(), [showCreated, setShowCreated] = useState(created);
   const [paused, setPaused] = useState(false), model = useResource<RequestDetail>(`requests/${id}`, paused);
-  if (!model.data) return <div className={`${styles.workspace} ${styles.loadingSurface}`} data-ui-state={model.error ? "error" : "loading"}><Notice text={model.error || "กำลังโหลดคำขอ…"} error={!!model.error} /><button className={styles.button} type="button" onClick={() => void model.refresh()}>ลองโหลดอีกครั้ง</button><Link href="/duct-rental">กลับรายการคำขอ</Link></div>;
+  if (!model.data) return model.loading ? <PageSkeleton shape="detail" /> : <div className={`${styles.workspace} ${styles.loadingSurface}`} data-ui-state="error"><Notice text={model.error || "กำลังโหลดคำขอ…"} error /><button className={styles.button} type="button" onClick={() => void model.refresh()}>ลองโหลดอีกครั้ง</button><Link href="/duct-rental">กลับรายการคำขอ</Link></div>;
   const row = model.data, owned = requestPhases.filter(phase => phase !== "COMPLETE" && row.capabilities.some(code => code === `duct_rental.${phaseResource[phase as Exclude<RequestPhase, "COMPLETE">]}.accept` || code === `duct_rental.${phaseResource[phase as Exclude<RequestPhase, "COMPLETE">]}.submit`));
   const preferred = preferredPhase(owned, { currentPhase: row.phase, phaseStatuses: row.phaseStatuses }, !owned.length || row.capabilities.includes("duct_rental.request.archive") || row.capabilities.includes("duct_rental.settings.manage"));
   const phase = (view === "missing-docs" ? row.phase : Object.entries(phaseViews).find(([key, value]) => key !== "COMPLETE" && value === view)?.[0] ?? preferred) as RequestPhase;
-  return <div className={`${styles.workspace} ${styles.detailSurface}`} data-ui-screen="duct-rental-request-detail"><RefreshBar {...model} paused={paused} refresh={() => model.refresh()} />{showCreated && !compact && <section className={styles.panel} role="status"><strong>สร้างคำขอสำเร็จ และส่งต่อให้ Draftsman แล้ว</strong><p>คำขอ {row.code} บันทึกในระบบแล้ว ข้อมูลและไฟล์แนบจะอัปเดตให้ผู้ใช้อื่นผ่านการเชื่อมต่อสด</p><div className={styles.actions}><Link className={styles.button} href="/duct-rental">กลับหน้ารายการ</Link><button className={styles.primary} onClick={() => { setShowCreated(false); router.replace(`/duct-rental/${id}/draftsman`); }}>ทำงานต่อ</button></div></section>}<RequestPane key={`${id}:${row.version}:${view ?? "default"}`} row={row} phase={phase} missingView={view === "missing-docs"} userId={userId} compact={compact} pause={setPaused} reload={async () => { setPaused(false); await model.refresh(); }} /></div>;
+  return <div className={`${styles.workspace} ${styles.ductSurface} ${styles.ductDetail}`} data-ui-screen="duct-rental-request-detail"><RequestPane key={`${id}:${row.version}:${view ?? "default"}`} row={row} phase={phase} missingView={view === "missing-docs"} userId={userId} compact={compact} model={model} paused={paused} pause={setPaused} showCreated={showCreated && !compact} setShowCreated={setShowCreated} reload={async () => { setPaused(false); await model.refresh(); }} /></div>;
 }
-function RequestPane({ row, phase, missingView, userId, compact, pause, reload }: { row: RequestDetail; phase: RequestPhase; missingView: boolean; userId: string; compact: boolean; pause: (value: boolean) => void; reload: () => Promise<void> }) {
+function RequestPane({ row, phase, missingView, userId, compact, model, paused, pause, showCreated, setShowCreated, reload }: { row: RequestDetail; phase: RequestPhase; missingView: boolean; userId: string; compact: boolean; model: any; paused: boolean; pause: (value: boolean) => void; showCreated: boolean; setShowCreated: (value: boolean) => void; reload: () => Promise<void> }) {
   const router = useRouter(), notesTimer = useRef<ReturnType<typeof setTimeout> | null>(null), versionRef = useRef(row.version), notesSave = useRef<Promise<void> | null>(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState(""), [message, setMessage] = useState(""), [errors, setErrors] = useState<Record<string, string>>({}), [dirty, setDirty] = useState(false);
   const [phaseStatuses, setPhaseStatuses] = useState(row.phaseStatuses);
@@ -82,7 +84,7 @@ function RequestPane({ row, phase, missingView, userId, compact, pause, reload }
     notesTimer.current = setTimeout(() => { notesSave.current = (async () => { setBusy(true); try { const result = await apiPost(`requests/${row.id}/save`, { version: versionRef.current, data: { notes: value } }); versionRef.current = result.version; setMessage("บันทึกหมายเหตุอัตโนมัติแล้ว · ข้อมูลช่องอื่นยังคงอยู่ในร่าง"); } catch (reason) { setError(errorText(reason)); } finally { setBusy(false); } })(); }, 1000);
   };
   return <div className={styles.workspace}>
-    {!compact && <><PageHeader title={`${row.code} · ${phaseLabels[phase]}`} description={row.projectName || "ร่างคำขอ"} parent={{ label: "เช่าท่อร้อยสาย", href: "/duct-rental" }} actions={<Link className={styles.button} href={`/duct-rental/${row.id}/edit`}>ข้อมูลออกแบบ</Link>} /><ModuleNav /></>}
+    {!compact && <><PageHeader title={`${row.code} · ${phaseLabels[phase]}`} description={row.projectName || "ร่างคำขอ"} parent={{ label: "เช่าท่อร้อยสาย", href: "/duct-rental" }} actions={<Link className={styles.button} href={`/duct-rental/${row.id}/edit`}>ข้อมูลออกแบบ</Link>} /><ModuleNav /><RefreshBar {...model} paused={paused} refresh={() => model.refresh()} />{showCreated && <section className={styles.panel} role="status"><strong>สร้างคำขอสำเร็จ และส่งต่อให้ Draftsman แล้ว</strong><p>คำขอ {row.code} บันทึกในระบบแล้ว ข้อมูลและไฟล์แนบจะอัปเดตให้ผู้ใช้อื่นผ่านการเชื่อมต่อสด</p><div className={styles.actions}><Link className={styles.button} href="/duct-rental">กลับหน้ารายการ</Link><button className={styles.primary} onClick={() => { setShowCreated(false); router.replace(`/duct-rental/${row.id}/draftsman`); }}>ทำงานต่อ</button></div></section>}</>}
     <PhaseTabs id={row.id} phase={phase === "COMPLETE" ? "DESIGN" : phase} statuses={row.phaseStatuses} />
     <Notice text={error} error /><Notice text={message} />
     {!current && <Notice text={`แสดงแบบอ่านอย่างเดียว · ขั้นตอนปัจจุบัน: ${phaseLabels[row.phase]}`} />}

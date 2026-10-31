@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { Children, isValidElement, type ReactNode } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { DepositWorkspace } from "./deposit-workspace";
 import type { DepositItem } from "@/lib/deposit-v2-domain";
 
@@ -31,6 +32,11 @@ function workspace(items: DepositItem[] = []) {
   return elements(DepositWorkspace({ items, preview: false, state: "ready", truncated: false,
     generatedAt: "2026-01-01T12:00:00", canCreate: false, canPreview: false }));
 }
+function renderedWorkspace(items: DepositItem[] = []) {
+  harness.cursor = 0;
+  return renderToStaticMarkup(DepositWorkspace({ items, preview: false, state: "ready", truncated: false,
+    generatedAt: "2026-01-01T12:00:00", canCreate: false, canPreview: false }));
+}
 function select(nodes: Element[], label: string, value: string) {
   const control = nodes.find((node) => node.type === "select" && node.props["aria-label"] === label)!;
   (control.props.onChange as (event: unknown) => void)({ target: { value } });
@@ -46,12 +52,10 @@ afterEach(() => { harness.states = []; harness.cursor = 0; vi.unstubAllGlobals()
 
 it("renders one accessible page-level heading with breadcrumb context and operational actions", () => {
   const nodes = workspace();
-  const headings = nodes.filter((node) => node.type === "h1");
-  expect(headings).toHaveLength(1);
-  expect(headings[0].props.children).toBe("รายการขอคืนเงินประกันอาคาร");
-  const breadcrumb = nodes.find((node) => node.type === "nav" && node.props["aria-label"] === "เส้นทางนำทาง");
-  expect(breadcrumb).toBeDefined();
-  expect(breadcrumb?.props.children).toBeDefined();
+  const html = renderedWorkspace();
+  expect(html.match(/<h1(?:\s|>)/g) ?? []).toHaveLength(1);
+  expect(html).toContain("รายการขอคืนเงินประกันอาคาร");
+  expect(html).toContain('aria-label="เส้นทางนำทาง"');
   expect(nodes.some((node) => node.type === "button" && node.props.children === "วิเคราะห์ข้อมูล")).toBe(true);
   expect(nodes.some((node) => node.type === "button" && node.props.className === "deposit-export")).toBe(true);
   expect(nodes.some((node) => node.type === "button" && Children.toArray(node.props.children as ReactNode)[0] === "＋ เพิ่มรายการใหม่")).toBe(true);
@@ -62,8 +66,9 @@ it("switches analytics into one report heading with a clear return action", () =
   const analyticsButton = nodes.find((node) => node.type === "button" && node.props.children === "วิเคราะห์ข้อมูล")!;
   (analyticsButton.props.onClick as () => void)();
   nodes = workspace();
-  expect(nodes.filter((node) => node.type === "h1")).toHaveLength(1);
-  expect(nodes.find((node) => node.type === "h1")?.props.children).toBe("ภาพรวมเงินประกันอาคาร");
+  const html = renderedWorkspace();
+  expect(html.match(/<h1(?:\s|>)/g) ?? []).toHaveLength(1);
+  expect(html).toContain("ภาพรวมเงินประกันอาคาร");
   expect(nodes.some((node) => node.type === "button" && node.props.children === "วิเคราะห์ข้อมูล")).toBe(false);
   expect(nodes.some((node) => node.type === "button" && node.props["aria-label"] === "กลับรายการเงินประกัน")).toBe(true);
 });
@@ -159,14 +164,13 @@ it("keeps export on all filtered pages with CSV escaping and independent year/mo
 
 it("names a keyboard-focusable overflow region and associates every column with its captioned table", () => {
   const nodes = showList();
-  const region = nodes.find((node) => node.props.className === "deposit-table-wrap")!;
-  expect(region.props).toMatchObject({ role: "region", "aria-label": "รายการเงินประกัน เลื่อนแนวนอนได้", tabIndex: 0 });
-  const tableNodes = elements(region.props.children as ReactNode);
-  const caption = tableNodes.find((node) => node.type === "caption")!;
-  expect(caption.props).toMatchObject({ className: "sr-only", children: "รายการเงินประกันตามตัวกรองในขอบเขตสิทธิ์ของคุณ" });
-  const headers = tableNodes.filter((node) => node.type === "th");
-  expect(headers).toHaveLength(12);
-  expect(headers.every((node) => node.props.scope === "col")).toBe(true);
+  const html = renderedWorkspace();
+  expect(html).toContain('class="ui-table-scroll deposit-table-wrap"');
+  expect(html).toContain('role="region" aria-label="รายการเงินประกัน เลื่อนแนวนอนได้" tabindex="0"');
+  expect(html).toContain("รายการเงินประกันตามตัวกรองในขอบเขตสิทธิ์ของคุณ");
+  expect((html.match(/<th(?:\s|>)/g) ?? []).length).toBe(12);
+  expect((html.match(/scope="col"/g) ?? []).length).toBe(12);
+  expect(nodes.some((node) => node.props.className === "deposit-table-wrap")).toBe(true);
 });
 
 it("announces the real number-column sort direction through both toggles", () => {

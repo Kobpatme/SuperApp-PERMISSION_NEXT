@@ -30,8 +30,8 @@ describe("Buildings specialized workspace contract", () => {
 
   it("renders one list heading while retaining scoped actions and controls", () => {
     expect(sources[0]).not.toContain("<PageHeader");
-    expect(sources[1]).toContain('href="/"');
-    expect((sources[1].match(/<h1>/g) ?? []).length).toBe(1);
+    expect(sources[1]).toContain("<PageHeader");
+    expect(sources[1]).toContain('parent={{ label: "ภาพรวม", href: "/" }}');
     expect(sources[1]).toContain("ค้นหาอาคาร ตรวจสอบตำแหน่ง ค่าใช้จ่าย");
     expect(sources[1]).toContain('data-view={view}');
     expect(sources[1]).toContain('canCreate &&');

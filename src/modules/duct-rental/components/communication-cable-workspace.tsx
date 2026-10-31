@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Field, ModuleNav, Notice } from "./common";
-import styles from "./workspace.module.css";
+import styles from "../ui-shared/ui-shared.module.css";
 
 const stages = [
   { title: "ออกแบบเส้นทาง", owner: "ทีมออกแบบ", detail: "ระบุโครงการ เส้นทาง จุดต้นทาง–ปลายทาง จำนวนเสา และข้อมูลสายสื่อสาร", documents: "แบบเส้นทางและรายละเอียดสาย" },
