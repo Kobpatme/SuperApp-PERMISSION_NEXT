@@ -368,6 +368,8 @@ describe("MetricGrid interactive metrics (shared button pattern mirrored from wo
 ].join("\n");
     expect(css).toContain("height:66px;min-height:66px");
     expect(css).toContain("transform:none");
+    expect(css).toContain(".requestTabs{display:block;min-width:0}");
+    expect(css).toContain(".requestTabPanel{display:block;min-width:0");
   });
 
   it("keeps plain metrics as cards with the same numeric hierarchy", () => {
