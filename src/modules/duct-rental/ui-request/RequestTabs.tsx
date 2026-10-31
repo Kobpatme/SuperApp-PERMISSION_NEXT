@@ -8,7 +8,7 @@ export type RequestTab = { id: string; label: string; disabled?: boolean; conten
 
 const defaultTabs: RequestTab[] = ["overview", "design", "documents", "permission", "install", "tracking", "activity", "files", "signing", "summary"].map(id => ({ id, label: id }));
 
-export function RequestTabs({ tabs = defaultTabs, activeTab, value, onChange, label = "มุมมองคำขอ" }: { tabs?: RequestTab[]; activeTab?: string; value?: string; onChange?: (id: string) => void; label?: string }) {
+export function RequestTabs({ tabs = defaultTabs, activeTab, value, onChange, label = "มุมมองคำขอ", selectionMode = "tab" }: { tabs?: RequestTab[]; activeTab?: string; value?: string; onChange?: (id: string) => void; label?: string; selectionMode?: "tab" | "radiogroup" }) {
   const active = value ?? activeTab ?? tabs[0]?.id;
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
   const select = (tab: RequestTab) => { if (!tab.disabled) { onChange?.(tab.id); announce(`เปิดมุมมอง ${tab.label}`); } };
@@ -21,9 +21,10 @@ export function RequestTabs({ tabs = defaultTabs, activeTab, value, onChange, la
     const next = event.key === "Home" ? 0 : event.key === "End" ? enabled.length - 1 : (current + (event.key === "ArrowLeft" ? -1 : 1) + enabled.length) % enabled.length;
     const target = enabled[next]; refs.current[target.itemIndex]?.focus(); select(target.tab);
   };
+  const isRadioGroup = selectionMode === "radiogroup";
   return <div className={styles.requestTabs}>
-    <div className={styles.requestTabList} role="tablist" aria-label={label}>
-      {tabs.map((tab, index) => <button key={tab.id} ref={node => { refs.current[index] = node; }} type="button" role="tab" id={`request-tab-${tab.id}`} aria-selected={active === tab.id} aria-controls={`request-panel-${tab.id}`} aria-disabled={tab.disabled || undefined} tabIndex={active === tab.id ? 0 : -1} disabled={tab.disabled} className={[styles.requestTab, active === tab.id && styles.requestTabActive].filter(Boolean).join(" ")} onKeyDown={event => move(event, index)} onClick={() => select(tab)}>{tab.label}</button>)}
+    <div className={styles.requestTabList} role={isRadioGroup ? "radiogroup" : "tablist"} aria-label={label}>
+      {tabs.map((tab, index) => <button key={tab.id} ref={node => { refs.current[index] = node; }} type="button" role={isRadioGroup ? "radio" : "tab"} id={`request-tab-${tab.id}`} aria-selected={!isRadioGroup ? active === tab.id : undefined} aria-checked={isRadioGroup ? active === tab.id : undefined} aria-controls={!isRadioGroup && tab.content !== undefined && tab.id === active ? `request-panel-${tab.id}` : undefined} aria-disabled={tab.disabled || undefined} tabIndex={active === tab.id ? 0 : -1} disabled={tab.disabled} className={[styles.requestTab, active === tab.id && styles.requestTabActive].filter(Boolean).join(" ")} onKeyDown={event => move(event, index)} onClick={() => select(tab)}>{tab.label}</button>)}
     </div>
     {tabs.map(tab => tab.content !== undefined && tab.id === active ? <div key={tab.id} id={`request-panel-${tab.id}`} role="tabpanel" aria-labelledby={`request-tab-${tab.id}`} className={styles.requestTabPanel}>{tab.content}</div> : null)}
   </div>;

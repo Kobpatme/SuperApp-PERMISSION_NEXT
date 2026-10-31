@@ -54,6 +54,16 @@
   --focus-ring-width: 3px;
   --focus-ring-offset: 2px;
   --size-control-touch: 44px;
+  --size-metric-min-height: 66px;
+  --size-form-panel-min: 280px;
+  --size-form-panel-max: 320px;
+  --size-panel-min: 240px;
+  --size-panel-max: 300px;
+  --size-canvas-min-height: 320px;
+  --opacity-disabled: .55;
+  --breakpoint-tablet: 1023px;
+  --breakpoint-mobile: 359px;
+  --breakpoint-form-collapse: 860px;
   --size-search-max: 520px;
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
   --space-6: 24px; --space-7: 28px; --space-8: 32px; --space-9: 36px; --space-10: 40px;

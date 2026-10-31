@@ -1,7 +1,7 @@
 "use client";
 import { CABLE_TYPE_OPTIONS, OWNER_DUCT_OPTIONS, REQUEST_TYPE_OPTIONS, JOB_TYPE_OPTIONS, SERVICE_CENTER_OPTIONS, getDiameterForCable, getFiberTypeOptions } from "../schemas/design";
 import { Field } from "./common";
-import styles from "../ui-shared/ui-shared.module.css";
+import styles from "../ui-request/ui-request.module.css";
 export type DesignValues = Record<string, string | number>;
 export const designSections: { title: string; fields: { name: string; label: string; options?: readonly string[]; area?: boolean; number?: boolean; optional?: boolean }[] }[] = [
  { title: "ข้อมูลโครงการและประเภทคำขอ", fields: [{ name: "requestType", label: "ประเภทคำขอ", options: REQUEST_TYPE_OPTIONS.map(item => item.value) }, { name: "projectName", label: "ชื่อโครงการ" }, { name: "routeName", label: "ชื่อเส้นทาง / ถนน" }, { name: "ownerDuct", label: "เจ้าของท่อ", options: OWNER_DUCT_OPTIONS }, { name: "memoNumber", label: "เลขที่ Memo", optional: true }, { name: "routeDetail", label: "รายละเอียดเส้นทาง", area: true }, { name: "jobType", label: "ประเภทของงาน", options: JOB_TYPE_OPTIONS }, { name: "serviceCenter", label: "ศูนย์บริการ", options: SERVICE_CENTER_OPTIONS }, { name: "supportInfo", label: "รองรับ / Support", optional: true }] },
@@ -16,7 +16,7 @@ export function DesignEditor({ values, change, errors = {}, readonly = false }: 
     else if (name === "fiberType") change({ ...values, fiberType: value, diameter: getDiameterForCable(String(values.cableType), value) ?? "" });
     else change({ ...values, [name]: value });
   };
-  return <>{designSections.map(section => <section key={section.title} className={styles.panel}><h2>{section.title}</h2><div className={styles.grid}>{section.fields.map(field => <Field key={field.name} label={`${field.label}${field.optional ? "" : " *"}`} full={field.area} error={errors[field.name]}>
+  return <>{designSections.map((section, index) => <details key={section.title} className={styles.panel} open={index < 2}><summary>{section.title}</summary><div className={styles.grid}>{section.fields.map(field => <Field key={field.name} label={`${field.label}${field.optional ? "" : " *"}`} full={field.area} error={errors[field.name]}>
     {field.area ? <textarea name={field.name} value={values[field.name] ?? ""} readOnly={readonly} onChange={event => set(field.name, event.target.value)} /> : field.options ? <select name={field.name} value={values[field.name] ?? ""} disabled={readonly} aria-invalid={!!errors[field.name]} onChange={event => set(field.name, event.target.value)}><option value="">เลือก{field.label}</option>{(field.name === "fiberType" ? getFiberTypeOptions(String(values.cableType ?? "")).map(item => item.fiberType) : field.options).map(value => <option key={value} value={value}>{field.name === "requestType" ? REQUEST_TYPE_OPTIONS.find(item => item.value === value)?.label : value}</option>)}</select> : <input name={field.name} type={field.number ? "number" : "text"} step={field.name === "cableCount" ? "1" : "any"} onBlur={event => { if (field.name === "distance" && event.target.value !== "" && Number.isFinite(Number(event.target.value))) set(field.name, Number(event.target.value).toFixed(2)); }} value={values[field.name] ?? ""} readOnly={readonly || field.name === "diameter"} aria-invalid={!!errors[field.name]} onChange={event => set(field.name, event.target.value)} />}
-  </Field>)}</div></section>)}</>;
+  </Field>)}</div></details>)}</>;
 }

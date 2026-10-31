@@ -2,10 +2,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ProcessShell, PhaseProgress, StatusBadge as ProcessStatusBadge } from "../ui-process";
+import { DuctModuleNav, announce } from "../ui-shared";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { TableRegion } from "@/components/ui/table-region";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { FormField } from "@/components/ui/form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
@@ -13,7 +14,8 @@ import { cancellationTransitions, renewalTransitions } from "../domain/workflow"
 import { addDays, formatDate, getCancelOwner, getRenewOwner, getSlaStatus } from "../domain/source-policy";
 import { apiPost, documentUrl, errorText, type Cancellation, type Processes, type Renewal, type RequestDetail, type RequestList } from "./api-client";
 import { AttachmentPicker } from "./attachment-picker";
-import { Modal, ModuleNav, Notice, RefreshBar } from "./common";
+import { Modal, Notice, RefreshBar } from "./common";
+const ModuleNav = DuctModuleNav;
 import { PdfViewer } from "./pdf-viewer";
 import { useResource } from "./use-resource";
 import styles from "../ui-shared/ui-shared.module.css";
@@ -25,7 +27,7 @@ function ProcessInfo({ start, days, completed }: { start: string; days: number; 
   const status = getSlaStatus(start, days, completed);
   return (
     <div className={styles.actions}>
-      <StatusBadge label={slaLabels[status]} tone={status === "Overdue" ? "warning" : "neutral"} />
+      <ProcessStatusBadge label={slaLabels[status]} tone={status === "Overdue" ? "action-required" : status === "Completed" ? "complete" : "pending"} />
       <span className={styles.muted}>ครบกำหนด {formatDate(addDays(start, days))} · {days} วัน</span>
     </div>
   );
@@ -58,9 +60,10 @@ export function ProcessList({ kind, permissions }: { kind: "renewal" | "cancella
           : undefined}
       />
       <ModuleNav current={kind} />
-      <RefreshBar {...model} refresh={model.refresh} />
-      <Notice text={error || model.error} error />
-      <section className={styles.ductFilterToolbar} aria-label="ค้นหาและกรองรายการ" role="search">
+      <ProcessShell>
+        <RefreshBar {...model} refresh={model.refresh} />
+        <Notice text={error || model.error} error />
+        <section className={styles.ductFilterToolbar} aria-label="ค้นหาและกรองรายการ" role="search">
         <form className="ui-filter" onSubmit={event => { event.preventDefault(); setOffset(0); }}>
           <FormField
             label={kind === "renewal" ? "ค้นหาปีสัญญา (ค.ศ.)" : "ค้นหาคำขอ / โครงการ / เส้นทาง"}
@@ -77,7 +80,8 @@ export function ProcessList({ kind, permissions }: { kind: "renewal" | "cancella
           <button className={styles.button} type="submit">ค้นหา</button>
           <button className={styles.button} type="button" onClick={() => { setQuery(""); setStatus(""); setOffset(0); }}>รีเซ็ต</button>
         </form>
-      </section>
+        </section>
+      </ProcessShell>
       {model.loading ? (
         <PageSkeleton shape="table" />
       ) : (
@@ -93,7 +97,7 @@ export function ProcessList({ kind, permissions }: { kind: "renewal" | "cancella
                 {rows.filter(row => (!status || row.status === status) && ("year" in row ? String(row.year) : Object.values(row.snapshot).join(" ")).toLocaleLowerCase().includes(query.toLocaleLowerCase())).map(row => (
                   <tr key={row.id}>
                     <td>{"year" in row ? `ปี ${row.year + 543} (${row.year})` : <>{row.snapshot.code}<div>{row.snapshot.projectName}</div></>}</td>
-                    <td><StatusBadge label={labels[row.status]} tone="neutral" /><div className={styles.muted}>{ownerLabels["year" in row ? getRenewOwner(row.status) : getCancelOwner(row.status)]}</div></td>
+                    <td><ProcessStatusBadge label={labels[row.status]} tone={row.status === "rejected" ? "blocked" : ["completed", "contracted"].includes(row.status) ? "complete" : "in-progress"} /><div className={styles.muted}>{ownerLabels["year" in row ? getRenewOwner(row.status) : getCancelOwner(row.status)]}</div></td>
                     <td>{"year" in row ? `${row.totalYearlyCost} บาท/ปี` : <>{row.yearlyFee} บาท/ปี<div className={styles.muted}>{row.monthlyFee} บาท/เดือน</div></>}</td>
                     <td><ProcessInfo start={row.createdAt} days={kind === "renewal" ? 7 : 5} completed={"year" in row ? row.contractedAt ?? (row.status === "contracted" ? row.updatedAt : null) : row.completedAt ?? row.rejectedAt ?? (row.status === "rejected" ? row.updatedAt : null)} /></td>
                     <td><ButtonLink variant="secondary" href={`/duct-rental/${kind}/${row.id}`}>เปิดงาน</ButtonLink></td>
@@ -148,7 +152,7 @@ function RenewalPane({ row, model, paused, pause, reload }: { row: Renewal; mode
     setBusy(true); setError("");
     try {
       await apiPost(`renewals/${row.id}/review`, { version: row.version, routeId: review.id, reviewStatus: review.status, notes: review.notes });
-      setReview(null); await reload();
+      setReview(null); announce("บันทึกผลการตรวจแล้ว"); await reload();
     } catch (reason) {
       setError(errorText(reason));
     } finally {
@@ -183,7 +187,12 @@ function RenewalPane({ row, model, paused, pause, reload }: { row: Renewal; mode
         <ProcessInfo start={row.createdAt} days={7} completed={row.contractedAt ?? (row.status === "contracted" ? row.updatedAt : null)} />
         <strong>ค่าเช่ารวมที่คงไว้ {row.totalYearlyCost} บาท/ปี · รอตรวจ {pending} เส้นทาง</strong>
       </div>
-      <div className={styles.steps}>{Object.entries(renewalLabels).map(([code, label]) => <span key={code} className={`${styles.step} ${row.status === code ? styles.current : ""}`}>{label}</span>)}</div>
+      <PhaseProgress
+        value={row.status}
+        items={Object.entries(renewalLabels).map(([id, label]) => ({ id, label, description: id === row.status ? "สถานะปัจจุบัน" : undefined }))}
+        onChange={id => announce(`สถานะกระบวนการ ${renewalLabels[id]}`)}
+        label="ความคืบหน้าการต่อสัญญา"
+      />
       <div className={styles.toolbar}>
         <FormField label="ค้นหาเส้นทาง"><input className={styles.input} value={query} onChange={event => { setQuery(event.target.value); setLimit(50); }} /></FormField>
         <FormField label="ผลการตรวจ"><select className={styles.input} value={filter} onChange={event => { setFilter(event.target.value); setLimit(50); }}>

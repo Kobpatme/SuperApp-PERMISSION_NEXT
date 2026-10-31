@@ -1,6 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { TrackingShell } from "../ui-process";
+import { announce, DuctModuleNav, DuctSyncUtility } from "../ui-shared";
+const SyncUtility = DuctSyncUtility;
 import { PageHeader } from "@/components/ui/page-header";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { TableRegion } from "@/components/ui/table-region";
@@ -11,7 +14,8 @@ import { MetricGrid } from "@/components/ui/metric-grid";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { formatDate } from "../domain/source-policy";
 import type { readTracking } from "../server/tracking";
-import { ModuleNav, Notice, RefreshBar } from "./common";
+import { Notice } from "./common";
+const TrackingNav = DuctModuleNav;
 import { useResource } from "./use-resource";
 import styles from "../ui-shared/ui-shared.module.css";
 type Tracking = Awaited<ReturnType<typeof readTracking>>;
@@ -20,12 +24,13 @@ const statusLabels: Record<string,string> = { draft:"ตรวจเส้นท
 const slaLabels: Record<string,string> = { "On Track": "อยู่ในกำหนด", "Near Due": "ใกล้ครบกำหนด", Overdue: "เกินกำหนด", Completed: "เสร็จแล้ว" };
 export function TrackingWorkspace({ initialSla = "" }: { initialSla?: string } = {}) {
   const [filters,setFilters] = useState({query:"",kind:"",owner:"",sla:initialSla}), [offset,setOffset] = useState(0), model = useResource<Tracking>(`tracking?${new URLSearchParams({...filters,offset:String(offset)})}`);
-  const filter = (key:keyof typeof filters,value:string) => { setFilters(previous=>({...previous,[key]:value})); setOffset(0); };
+  const filter = (key:keyof typeof filters,value:string) => { setFilters(previous=>({...previous,[key]:value})); setOffset(0); announce(`กรองติดตามงานด้วย ${key}: ${value || "ทั้งหมด"}`); };
   return (
     <div className={`${styles.workspace} ${styles.ductSurface}`} data-ui-screen="duct-rental-tracking">
       <PageHeader title="ติดตามงานต่อสัญญาและยกเลิก" description="คิวรวม ผู้รับผิดชอบ และกำหนด SLA" parent={{label:"เช่าท่อร้อยสาย",href:"/duct-rental"}} />
-      <ModuleNav current="tracking" />
-      <RefreshBar {...model} refresh={model.refresh} />
+      <TrackingNav current="tracking" />
+      <TrackingShell>
+      <SyncUtility {...model} refresh={model.refresh} />
       <Notice text={model.error} error />
       <MetricGrid label="สรุปจำนวนรายการตามตัวกรอง" metrics={[
         { label: "รายการที่ตรงตัวกรอง", value: model.data?.counts.total ?? 0, tone: "neutral" },
@@ -89,6 +94,7 @@ export function TrackingWorkspace({ initialSla = "" }: { initialSla?: string } =
           <Button variant="secondary" type="button" disabled={model.data?.nextOffset==null} onClick={()=>setOffset(model.data!.nextOffset!)}>ถัดไป</Button>
         </div>
       </div>
+      </TrackingShell>
     </div>
   );
 }

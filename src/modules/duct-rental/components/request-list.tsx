@@ -1,11 +1,10 @@
 "use client";
 import { useState } from "react";
 import { WorkspaceIcon } from "@/components/workspace-icon";
-import { PageHeader } from "@/components/ui/page-header";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { MetricStrip } from "@/modules/duct-rental/ui-request";
+import { MetricStrip, PhaseTabs, RequestShell, RequestStatusBadge, RequestTabs } from "@/modules/duct-rental/ui-request";
+import { announce } from "@/modules/duct-rental/ui-shared";
 import { TableRegion } from "@/components/ui/table-region";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { FormField } from "@/components/ui/form";
 
 import { PageSkeleton } from "@/components/ui/page-skeleton";
@@ -24,18 +23,22 @@ export function RequestListWorkspace({ permissions, userId }: { permissions: str
   const [filters, setFilters] = useState(emptyFilters), [query, setQuery] = useState(""), [offset, setOffset] = useState(0), [advancedOpen, setAdvancedOpen] = useState(false);
   const model = useResource<RequestList>(`requests?${new URLSearchParams({ ...filters, offset: String(offset), limit: "50" })}`);
   const [detail, setDetail] = useState<string | null>(null);
-  const filter = (name: keyof typeof filters, value: string) => { setFilters(previous => ({ ...previous, [name]: value })); setOffset(0); };
+  const filter = (name: keyof typeof filters, value: string) => {
+    setFilters(previous => ({ ...previous, [name]: value }));
+    setOffset(0);
+    announce(value ? `กรองตาม${name === "phase" ? "ขั้นตอน" : name === "workflow" ? "สถานะงาน" : name === "documents" ? "เอกสาร" : name}: ${value}` : `ล้างตัวกรอง ${name}`);
+  };
   const rows = model.data?.rows ?? [];
   const activeFilters = (Object.keys(filters) as (keyof typeof filters)[]).filter(key => filters[key] !== "");
   const activeCount = activeFilters.length;
   const hasActiveFilters = activeCount > 0 || query.trim() !== "";
-  const clearFilters = () => { setFilters(emptyFilters); setQuery(""); setOffset(0); };
+  const clearFilters = () => { setFilters(emptyFilters); setQuery(""); setOffset(0); announce("ล้างตัวกรองทั้งหมด"); };
   const panel = <section className={styles.requestPanel} aria-labelledby="request-list-title">
       <header className={styles.requestPanelHeader}>
         <div className={styles.panelTitle}><h2 id="request-list-title">รายการคำขอ</h2><span className={styles.countBadge}>{model.data?.counts.total ?? "—"}</span></div>
         <div className={styles.trackingSummary} aria-label="สรุปการติดตามงาน"><TrackingSummary /></div>
       </header>
-      <MetricStrip label="สรุปจำนวนคำขอตามตัวกรอง" metrics={[
+      <MetricStrip className={styles.ductMetricStrip} label="สรุปจำนวนคำขอตามตัวกรอง" metrics={[
                     { id: "filtered", label: "รายการที่ตรงตัวกรอง", value: model.data?.counts.total ?? "—" },
                     { id: "waiting", label: "คิวรอรับงาน", value: model.data?.queues.waiting ?? "—", onClick: () => { setFilters({ ...emptyFilters, workflow: "PENDING" }); setOffset(0); }, active: filters.workflow === "PENDING" },
                     { id: "missing", label: "เอกสารค้าง", value: model.data?.queues.missing ?? "—", onClick: () => { setFilters({ ...emptyFilters, documents: "incomplete" }); setOffset(0); }, active: filters.documents === "incomplete" },
@@ -43,7 +46,12 @@ export function RequestListWorkspace({ permissions, userId }: { permissions: str
                   ]} />
       <details className={styles.workflowDisclosure}>
         <summary><WorkspaceIcon name="chevron" size={16} /><strong>ขั้นตอนงาน · 10 ขั้นตอน</strong>{filters.phase && <span>เลือก: {phaseLabels[filters.phase as keyof typeof phaseLabels]}</span>}</summary>
-        <div className={styles.steps}>{requestPhases.map(phase => <button key={phase} type="button" className={`${styles.step} ${filters.phase === phase ? styles.current : ""}`} aria-pressed={filters.phase === phase} onClick={() => filter("phase", phase)}>{phaseLabels[phase]} <strong>{model.data?.pipeline.find(item => item.phase === phase)?.count ?? 0}</strong></button>)}</div>
+        <PhaseTabs
+          phase={(filters.phase || "DESIGN") as keyof typeof phaseLabels}
+          tabs={requestPhases.map(phase => ({ phase, label: phaseLabels[phase], status: String(model.data?.pipeline.find(item => item.phase === phase)?.count ?? 0) }))}
+          onChange={phase => filter("phase", phase)}
+          label="กรองตามขั้นตอนคำขอ"
+        />
       </details>
       <section className={styles.filterSection} aria-label="ค้นหาและกรองคำขอ" role="search">
         <form className={`ui-filter ${styles.searchRow}`} onSubmit={event => { event.preventDefault(); filter("query", query); }}>
@@ -72,8 +80,8 @@ export function RequestListWorkspace({ permissions, userId }: { permissions: str
               <td><button className={styles.recordLink} type="button" onClick={() => setDetail(row.id)} aria-label={`ดูรายละเอียด ${row.code}`}>{row.code}</button><div>{row.projectName || "ร่างคำขอ"}</div></td>
               <td>{row.routeName || "—"}<div className={styles.muted}>{row.ownerDuct || "—"} · {row.province || "—"}</div></td>
               <td>{row.serviceCenter || "—"}</td>
-              <td>{phaseLabels[row.phase]}<div><StatusBadge label={workflowLabels[workflowStatus({ currentPhase: row.phase, cancelledAt: row.cancelledAt ?? undefined, phaseStatuses: row.phaseStatuses })] ?? "กำลังดำเนินการ"} tone="neutral" /></div></td>
-              <td><StatusBadge label={row.documentsIncomplete ? "เอกสารค้าง" : "เอกสารครบ"} tone={row.documentsIncomplete ? "warning" : "success"} /></td>
+              <td>{phaseLabels[row.phase]}<div><RequestStatusBadge label={workflowLabels[workflowStatus({ currentPhase: row.phase, cancelledAt: row.cancelledAt ?? undefined, phaseStatuses: row.phaseStatuses })] ?? "กำลังดำเนินการ"} tone="neutral" /></div></td>
+              <td><RequestStatusBadge label={row.documentsIncomplete ? "เอกสารค้าง" : "เอกสารครบ"} tone={row.documentsIncomplete ? "warning" : "success"} /></td>
               <td>{formatDate(row.updatedAt)}</td><td><ButtonLink variant="ghost" href={`/duct-rental/${row.id}`}>เปิดงาน</ButtonLink></td>
             </tr>)}</tbody>
           </table> : <div className={styles.embeddedEmpty} role={model.error ? "alert" : "status"}>
@@ -87,8 +95,9 @@ export function RequestListWorkspace({ permissions, userId }: { permissions: str
       </>}
     </section>;
   return (
-    <div className={styles.ductList} data-ui-screen="duct-rental-request-list">
-      <PageHeader
+    <div data-ui-screen="duct-rental-request-list">
+      <RequestShell
+        className={styles.ductList}
         title="เช่าท่อร้อยสาย"
         description="สร้างคำขอ ติดตามการอนุญาตและติดตั้ง และดูเส้นทางเช่าท่อที่ใช้งานอยู่"
         actions={(
@@ -101,11 +110,15 @@ export function RequestListWorkspace({ permissions, userId }: { permissions: str
             )}
           </>
         )}
-      />
-      <ModuleNav current="requests" />
-      <RefreshBar {...model} busy={model.loading} refresh={() => model.refresh()} />
-      {panel}
-      {detail && <Modal title="รายละเอียดคำขอเช่าท่อ" close={() => setDetail(null)}><RequestWorkspace id={detail} userId={userId} compact /></Modal>}
+      >
+        <RefreshBar {...model} busy={model.loading} refresh={() => model.refresh()} />
+        <RequestTabs
+          value="requests"
+          label="มุมมองรายการคำขอ"
+          tabs={[{ id: "requests", label: "รายการคำขอ", content: panel }]}
+        />
+        {detail && <Modal title="รายละเอียดคำขอเช่าท่อ" close={() => setDetail(null)}><RequestWorkspace id={detail} userId={userId} compact /></Modal>}
+      </RequestShell>
     </div>
   );
 }
