@@ -8,7 +8,7 @@ import { RequestListWorkspace } from "../components/request-list";
 
 describe("Duct Rental request-list production composition", () => {
   it("renders the real workspace surface, filters, table, tracking summary, and allowed actions", () => {
-    const html = renderToStaticMarkup(createElement(RequestListWorkspace, { permissions: ["duct_rental.request.create", "duct_rental.settings.manage"], userId: "user-1" }));
+    const html = renderToStaticMarkup(createElement(RequestListWorkspace, { permissions: ["duct_rental.request.create", "duct_rental.settings.manage", "duct_rental.module.view"], userId: "user-1" }));
     expect(html.match(/<h1/g)?.length).toBe(1);
     expect(html).toContain("เช่าท่อร้อยสาย");
     expect(html).toContain('role="search"');

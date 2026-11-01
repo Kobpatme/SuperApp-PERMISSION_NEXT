@@ -3,7 +3,7 @@ import { copy } from "@/lib/copy";
 import { getServerEnv } from "@/lib/env";
 
 export function AccessDenied({ moduleName }: { moduleName: string }) {
-  return <section className="access-denied" role="alert">
+  return <section className="access-denied core-utility-state ui-panel" role="alert">
     <span className="access-denied-mark" aria-hidden="true">!</span>
     <div>
       <p className="eyebrow">สิทธิ์การใช้งาน</p>

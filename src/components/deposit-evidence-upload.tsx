@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import type { EvidenceKind } from "@/lib/guarantee-evidence";
 import { TruncatedText } from "@/components/ui/truncated-text";
 
@@ -17,6 +18,7 @@ export function DepositEvidenceUpload({ id, version, kind, exists, canUpload = t
   const [file, setFile] = useState<File | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   async function upload() {
     if (!file) return;
     setPending(true); setMessage("");
@@ -25,14 +27,14 @@ export function DepositEvidenceUpload({ id, version, kind, exists, canUpload = t
       const response = await fetch(`/api/guarantees/${id}/documents/${kind}`, { method: "POST", body: form });
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || "อัปโหลดไม่สำเร็จ");
-      setFile(null); setMessage("อัปโหลดแล้ว"); router.refresh();
+      setFile(null); if (inputRef.current) inputRef.current.value = ""; setMessage("อัปโหลดแล้ว"); router.refresh();
     } catch (error) { setMessage(error instanceof Error ? error.message : "อัปโหลดไม่สำเร็จ"); }
     finally { setPending(false); }
   }
   return <div className="deposit-evidence"><div><TruncatedText text={labels[kind]} lines={2}/><small>{exists ? "มีไฟล์แล้ว" : "ยังไม่มีไฟล์"}</small></div>
     {exists && <a href={`/api/guarantees/${id}/documents/${kind}`} target="_blank" rel="noreferrer">เปิดไฟล์</a>}
-    {canUpload && <><input type="file" accept="application/pdf,image/jpeg,image/png" aria-label={`เลือก${labels[kind]}`} onChange={(event) => setFile(event.target.files?.[0] || null)}/>
-      <button type="button" disabled={!file || pending} onClick={upload}>{pending ? "กำลังอัปโหลด…" : "อัปโหลด"}</button></>}
+    {canUpload && <><input ref={inputRef} disabled={pending} type="file" accept="application/pdf,image/jpeg,image/png" aria-label={`เลือก${labels[kind]}`} onChange={(event) => { setFile(event.target.files?.[0] || null); setMessage(""); }}/>
+      <Button type="button" variant="secondary" disabled={!file || pending} onClick={upload}>{pending ? "กำลังอัปโหลด…" : "อัปโหลด"}</Button></>}
     {message && <small role="status">{message}</small>}
   </div>;
 }

@@ -5,6 +5,7 @@ import { FilterBar, FormField } from "./form";
 import { MetricGrid } from "./metric-grid";
 import { Panel } from "./panel";
 import { TableRegion } from "./table-region";
+import { Dialog } from "./dialog";
 
 describe("shared UI foundation", () => {
   it("renders buttons and links with one canonical variant contract", () => {
@@ -14,6 +15,20 @@ describe("shared UI foundation", () => {
     expect(html).toContain('class="ui-button ui-button-primary"');
     expect(html).toContain('href="/work"');
     expect(html).toContain('class="ui-button ui-button-secondary"');
+  });
+
+  it("renders a pending button with stable busy semantics", () => {
+    const html = renderToStaticMarkup(<Button variant="primary" pending pendingLabel="กำลังบันทึก…">บันทึก</Button>);
+
+    expect(html).toContain('aria-busy="true"');
+    expect(html).toContain('disabled=""');
+    expect(html).toContain("กำลังบันทึก…");
+  });
+
+  it("preserves an explicit aria-busy value when the button is idle", () => {
+    const html = renderToStaticMarkup(<Button aria-busy="false">พร้อม</Button>);
+
+    expect(html).toContain('aria-busy="false"');
   });
 
   it("renders an accessible panel heading and action region", () => {
@@ -48,5 +63,14 @@ describe("shared UI foundation", () => {
     expect(html).toContain("ค้นหา");
     expect(html).toContain('class="ui-table-scroll"');
     expect(html).toContain('tabindex="0"');
+  });
+
+  it("renders shared native dialog anatomy with a labelled close action", () => {
+    const html = renderToStaticMarkup(<Dialog open title="ยืนยันรายการ" onOpenChange={() => undefined}>รายละเอียด</Dialog>);
+
+    expect(html).toContain("<dialog");
+    expect(html).toContain("aria-labelledby=");
+    expect(html).toContain("ยืนยันรายการ");
+    expect(html).toContain("ปิดหน้าต่าง");
   });
 });

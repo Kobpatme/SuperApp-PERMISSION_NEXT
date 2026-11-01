@@ -59,7 +59,9 @@ describe("Buildings specialized workspace contract", () => {
   it("keeps search-only reset separate from selection dismissal", () => {
     expect(sources[1]).toContain("function reset() { setQuery(\"\"); setFilters(emptyFilters)");
     expect(sources[1]).not.toMatch(/function reset\(\)[^}]*setSelectedId/);
-    expect(sources[1]).toContain('onClose={() => setSelectedId(null)}');
+    expect(sources[1]).toContain('const dismiss = () => setSelectedId(null)');
+    expect(sources[1]).toContain('onOpenChange={open => { if (!open) dismiss(); }}');
+    expect(sources[1]).toContain('<Dialog open={Boolean(selected)}');
   });
 
 });

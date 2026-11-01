@@ -11,5 +11,7 @@ describe("owner-approved Core lifecycle contract",()=>{
     expect(effectiveModuleEnabled(work,false)).toBe(false);
     expect(effectiveModuleEnabled({...work,enabledByDefault:false},true)).toBe(true);
     expect(effectiveModuleEnabled({...work,lifecycle:"development"},true)).toBe(false);
+    expect(effectiveModuleEnabled({...work,lifecycle:"active",enabledByDefault:false},false,true)).toBe(true);
+    expect(effectiveModuleEnabled({...work,lifecycle:"active"},false,false)).toBe(false);
   });
 });

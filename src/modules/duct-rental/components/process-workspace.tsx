@@ -59,7 +59,7 @@ export function ProcessList({ kind, permissions }: { kind: "renewal" | "cancella
             : <ButtonLink variant="primary" href="/duct-rental/cancellation/new">ขอยกเลิกการใช้ท่อ</ButtonLink>
           : undefined}
       />
-      <ModuleNav current={kind} />
+      <ModuleNav current="requests" />
       <ProcessShell>
         <RefreshBar {...model} refresh={model.refresh} />
         <Notice text={error || model.error} error />
@@ -117,7 +117,7 @@ export function ProcessList({ kind, permissions }: { kind: "renewal" | "cancella
         </div>
       </div>
       {create && (
-        <Modal title="สร้างงานต่อสัญญารายปี" close={() => setCreate(false)}>
+        <Modal busy={busy} title="สร้างงานต่อสัญญารายปี" close={() => setCreate(false)}><Notice text={error} error />
           <p>ระบบจะเก็บรายการเส้นทางที่ใช้งานอยู่เป็น snapshot และให้ตรวจทุกเส้นทางก่อนส่งต่อ</p>
           <FormField label="ปีสัญญา (ค.ศ.)">
             <input className={styles.input} type="number" min={2000} max={9999} value={year} onChange={event => setYear(Number(event.target.value))} />
@@ -179,7 +179,7 @@ function RenewalPane({ row, model, paused, pause, reload }: { row: Renewal; mode
   return (
     <>
       <PageHeader title={`ต่อสัญญาปี ${row.year + 543} (${row.year})`} description={renewalLabels[row.status]} parent={{ label: "ต่อสัญญารายปี", href: "/duct-rental/renewal" }} />
-      <ModuleNav current="renewal" />
+      <ModuleNav current="requests" />
       <RefreshBar {...model} paused={paused} refresh={model.refresh} />
       <Notice text={error} error />
       {row.archivedAt && <Notice text="งานนี้เก็บเข้าประวัติแล้ว" />}
@@ -271,7 +271,7 @@ function RenewalPane({ row, model, paused, pause, reload }: { row: Renewal; mode
         <ButtonLink variant="secondary" href="/duct-rental/renewal">กลับรายการ</ButtonLink>
       </div>
       {review && (
-        <Modal title={review.status === "keep" ? "ยืนยันคงเส้นทางไว้" : "ยืนยันตัดเส้นทางออก"} close={() => { setReview(null); pause(false); }}>
+        <Modal busy={busy} title={review.status === "keep" ? "ยืนยันคงเส้นทางไว้" : "ยืนยันตัดเส้นทางออก"} close={() => { setReview(null); pause(false); }}><Notice text={error} error />
           <FormField label="หมายเหตุผลการตรวจ">
             <textarea className={styles.input} value={review.notes} maxLength={10000} onChange={event => setReview(previous => previous ? { ...previous, notes: event.target.value } : null)} />
           </FormField>
@@ -279,13 +279,13 @@ function RenewalPane({ row, model, paused, pause, reload }: { row: Renewal; mode
         </Modal>
       )}
       {confirm && (
-        <Modal title={confirm === "archive" ? "ยืนยันเก็บเข้าประวัติ" : "ยืนยันเปลี่ยนสถานะ"} close={() => setConfirm(null)}>
+        <Modal busy={busy} title={confirm === "archive" ? "ยืนยันเก็บเข้าประวัติ" : "ยืนยันเปลี่ยนสถานะ"} close={() => setConfirm(null)}>
           <p>ระบบจะบันทึกสถานะและประวัติผู้ดำเนินการ</p>
           <Button variant="primary" type="button" disabled={busy} onClick={() => { const action = confirm; setConfirm(null); void advance(action); }}>ยืนยัน</Button>
         </Modal>
       )}
       {preview && (
-        <Modal title="สัญญารายปี" close={() => setPreview(null)}>
+        <Modal busy={busy} title="สัญญารายปี" close={() => setPreview(null)}>
           <PdfViewer url={documentUrl(preview)} name="สัญญารายปี" />
         </Modal>
       )}
@@ -310,7 +310,7 @@ export function CancellationForm({ selected }: { selected?: string }) {
   return (
     <div className={`${styles.workspace} ${styles.ductSurface} ${styles.ductForm}`} data-ui-screen="duct-rental-cancellation-new">
       <PageHeader title="ขอยกเลิกการใช้ท่อ" parent={{ label: "ยกเลิกการใช้ท่อ", href: "/duct-rental/cancellation" }} />
-      <ModuleNav current="cancellation" />
+      <ModuleNav current="requests" />
       <Notice text={error || list.error || request.error} error />
       <section className={styles.panel}>
         <div className={styles.grid}>
@@ -340,7 +340,7 @@ export function CancellationForm({ selected }: { selected?: string }) {
         <Button variant="primary" type="submit" disabled={busy || !row || !date || !reason || !row.capabilities.includes("duct_rental.cancellation.create")}>ขอยกเลิกการใช้ท่อ</Button>
       </form>
       {confirm && (
-        <Modal title="ยืนยันคำขอยกเลิก" close={() => setConfirm(false)}>
+        <Modal busy={busy} title="ยืนยันคำขอยกเลิก" close={() => setConfirm(false)}>
           <p>เส้นทางยังใช้งานอยู่จนกว่างานยกเลิกจะเสร็จสมบูรณ์ โดยใช้วันที่มีผลตามที่กรอก</p>
           <div className={styles.actions}>
             <Button variant="secondary" type="button" disabled={busy} onClick={() => setConfirm(false)}>ยกเลิก</Button>
@@ -379,7 +379,7 @@ function CancellationPane({ row, model, paused, pause, reload }: { row: Cancella
   return (
     <>
       <PageHeader title={`ยกเลิกการใช้ท่อ ${row.snapshot.code}`} description={row.snapshot.projectName} parent={{ label: "ยกเลิกการใช้ท่อ", href: "/duct-rental/cancellation" }} />
-      <ModuleNav current="cancellation" />
+      <ModuleNav current="requests" />
       <RefreshBar {...model} paused={paused} refresh={model.refresh} />
       <Notice text={error} error />
       <div className={styles.toolbar}>
@@ -416,7 +416,7 @@ function CancellationPane({ row, model, paused, pause, reload }: { row: Cancella
         <ButtonLink variant="secondary" href="/duct-rental/cancellation">กลับรายการ</ButtonLink>
       </div>
       {confirm && (
-        <Modal title={confirm === "reject" ? "ยืนยันปฏิเสธคำขอ" : confirm === "archive" ? "ยืนยันเก็บเข้าประวัติ" : "ยืนยันเปลี่ยนสถานะยกเลิก"} close={() => setConfirm(null)}>
+        <Modal busy={busy} title={confirm === "reject" ? "ยืนยันปฏิเสธคำขอ" : confirm === "archive" ? "ยืนยันเก็บเข้าประวัติ" : "ยืนยันเปลี่ยนสถานะยกเลิก"} close={() => setConfirm(null)}>
           <p>{confirm === "advance" && row.status === "tracking" ? "เมื่อยืนยัน ระบบจะบันทึกงานและเปลี่ยนเส้นทางเป็นยกเลิกโดยใช้วันที่มีผลตามคำขอ" : "ระบบจะเก็บสถานะ หมายเหตุ และประวัติผู้ดำเนินการ"}</p>
           <div className={styles.actions}>
             <Button variant="secondary" type="button" disabled={busy} onClick={() => setConfirm(null)}>ยกเลิก</Button>

@@ -86,8 +86,8 @@ function SavedViews({ storageKey, settings, apply }: { storageKey: string; setti
   </details>;
 }
 
-export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetrics = false }: {
-  snapshot: DashboardSnapshot; userId: string; moduleId?: ModuleId; preview: boolean; showMetrics?: boolean;
+export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetrics = false, appearance }: {
+  snapshot: DashboardSnapshot; userId: string; moduleId?: ModuleId; preview: boolean; showMetrics?: boolean; appearance?: "overview";
 }) {
   const openerRef = useRef<HTMLElement | null>(null);
   const params = useSearchParams();
@@ -136,6 +136,7 @@ export function WorkspaceQueue({ snapshot, userId, moduleId, preview, showMetric
   }
 
   return <>
+    {appearance === "overview" && showMetrics && <div className="overview-metric-heading"><h2>สรุปรายการติดตาม</h2><span>เลือกกลุ่มงานเพื่อกรองรายการด้านล่าง</span></div>}
     {showMetrics && <section className="ui-metric-grid work-metric-strip" aria-label="เลือกกลุ่มงานที่ต้องติดตาม">{(Object.keys(viewLabels) as QueueView[]).map((view) => <button type="button" key={view} className={`ui-metric ${view === "urgent" ? "ui-metric-danger" : view === "today" ? "ui-metric-warning" : view === "mine" ? "ui-metric-info" : ""} ${settings.view === view ? "is-active" : ""}`} aria-pressed={settings.view === view} onClick={() => changeSettings({ view })}>
       <span>{view === "all" ? "รายการที่ต้องติดตาม" : viewLabels[view]}</span><strong>{hasData ? <AnimatedNumber value={counts[view]}/> : "—"}</strong><small>{hasData ? partial ? "รายการ · ข้อมูลบางส่วน" : "รายการ" : "รอข้อมูล"}<WorkspaceIcon name="arrow" size={16}/></small>
     </button>)}</section>}

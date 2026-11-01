@@ -86,4 +86,14 @@
 .building-map-cluster-picker button:focus-visible{outline:var(--focus-ring-width) solid var(--color-focus-ring);outline-offset:-2px}
 .building-map-cluster-picker strong{font-size:var(--text-body-strong);line-height:1.6}.building-map-cluster-picker li span{font-size:var(--text-body);color:var(--color-text-muted);line-height:1.6}
 .building-longdo-map .building-map-marker{padding:0;border:0;cursor:pointer}
+/* Map and location presentation adapts the same primitives without changing provider math. */
+.building-location-picker,.building-map-page :is(.building-map-list,.building-map-canvas-panel,.building-map-summary>div){box-shadow:var(--shadow-raised)}
+.building-location-picker :is(input,select),.building-map-filters :is(input,select){background:var(--color-surface-subtle);box-shadow:var(--shadow-inset)}
+.building-location-picker button,.building-map-page button{min-height:var(--size-control-touch)}
+.building-location-actions button:last-child:hover:not(:disabled){background:var(--color-brand);color:var(--color-on-brand)}
+.building-location-confirm{overflow-wrap:anywhere}
+.building-map-page .building-map-list li{border-radius:0;box-shadow:none}
+.building-map-page .building-map-detail{box-shadow:var(--shadow-md)}
+.building-map-page .building-map-detail-close{z-index:1}
+.building-map-page .building-map-detail h2{padding-right:var(--size-control-touch)}
 .building-map-cluster-picker{left:auto;right:12px}

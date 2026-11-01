@@ -383,8 +383,11 @@ describe("Phase 2 duct-rental visual unification — regression tests", () => {
       const fs = require("fs");
       const commonPath = require("path").resolve(__dirname, "../components/common.tsx");
       const raw = fs.readFileSync(commonPath, "utf8");
-      expect(raw).toContain("trigger.focus");
-      expect(raw).toContain("preventScroll");
+      expect(raw).toContain('import { ConfirmDialog, Dialog } from "@/components/ui/dialog"');
+      expect(raw).toContain("<Dialog open title={title}");
+      const core = fs.readFileSync(require("path").resolve(__dirname, "../../../components/ui/dialog.tsx"), "utf8");
+      expect(core).toContain("openerRef.current");
+      expect(core).toContain("?.focus()");
     });
   });
 

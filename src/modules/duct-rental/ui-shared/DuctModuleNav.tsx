@@ -9,11 +9,8 @@ export type DuctModuleNavProps = { current?: string };
 type NavItem = { key: string; href: string; label: string };
 
 const items: NavItem[] = [
-  { key: "requests", href: "/duct-rental", label: "คำขอเช่าท่อ" },
-  { key: "renewal", href: "/duct-rental/renewal", label: "ต่อสัญญารายปี" },
-  { key: "cancellation", href: "/duct-rental/cancellation", label: "ยกเลิกการใช้ท่อ" },
-  { key: "tracking", href: "/duct-rental/tracking", label: "ติดตามต่อสัญญาและยกเลิก" },
-  { key: "tasks", href: "/duct-rental/tasks", label: "งานลงนามและลายเซ็น" },
+  { key: "requests", href: "/duct-rental", label: "เช่าท่อร้อยสาย" },
+  { key: "communication-cable", href: "/duct-rental/communication-cable", label: "พาดสายสื่อสาร" },
 ];
 
 function ModuleNav({ current = "requests" }: DuctModuleNavProps) {

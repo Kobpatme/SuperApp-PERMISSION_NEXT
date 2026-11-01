@@ -3,11 +3,13 @@ import { capabilities, getModule, modules } from "@/lib/module-registry";
 import { isModuleEnabled, visibleModules } from "@/lib/module-contract";
 import { parseCatalogCapabilities } from "@/lib/admin-access-contract";
 import { ductRentalCapabilities, ductPhaseResources } from "../capabilities";
+import { effectiveModuleEnabled } from "@/lib/module-lifecycle-contract";
 
 describe("duct rental registration", () => {
-  it("stays closed even when a user has every duct grant", () => {
+  it("is active only for admins while disabled by default for regular users", () => {
     const manifest = getModule("duct-rental")!;
     expect(isModuleEnabled(manifest)).toBe(false);
+    expect(effectiveModuleEnabled(manifest, false, true)).toBe(true);
     expect(visibleModules(modules, ductRentalCapabilities.map(c => c.code)).some(m => m.id === manifest.id)).toBe(false);
   });
   it("exposes separate phase actions in the existing administrator catalog", () => {
@@ -21,5 +23,15 @@ describe("duct rental registration", () => {
   });
   it("preserves the existing active navigation order", () => {
     expect(modules.filter(isModuleEnabled).map(m => m.id)).toEqual(["work", "buildings", "guarantees", "car-booking"]);
+  });
+  it("owns static child navigation metadata in its manifest", () => {
+    const manifest = getModule("duct-rental")!;
+    expect(manifest.navigationItems).toBeDefined();
+    expect(manifest.navigationItems?.map((item) => item.href)).toEqual([
+      "/duct-rental",
+      "/duct-rental/communication-cable",
+    ]);
+    expect(manifest.navigationItems?.every((item) => item.activeMatch === "prefix")).toBe(true);
+    expect(manifest.navigationItems).toHaveLength(2);
   });
 });

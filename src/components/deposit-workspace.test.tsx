@@ -24,8 +24,8 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 type Element = { type: unknown; props: Record<string, unknown> };
 function elements(node: ReactNode): Element[] {
-  return Children.toArray(node).flatMap((child) => isValidElement<{ children?: ReactNode }>(child)
-    ? [child as Element, ...elements(child.props.children)] : []);
+  return Children.toArray(node).flatMap((child) => isValidElement<{ children?: ReactNode; actions?: ReactNode }>(child)
+    ? [child as Element, ...elements(child.props.children), ...elements(child.props.actions)] : []);
 }
 function workspace(items: DepositItem[] = []) {
   harness.cursor = 0;

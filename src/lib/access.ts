@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { dataScopeGrants, profiles, rolePermissions, roles as rolesTable, userRoleAssignments, userTeams } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth";
 import { dataScopeTypes, type AuthorizationSubject, type DataScopeType, type Role } from "@/lib/authorization";
-import { getModule, type ModuleId } from "@/lib/module-registry";
+import { getModule, modules, type ModuleId } from "@/lib/module-registry";
 import { moduleEnabled } from "@/lib/module-lifecycle";
 import { cache } from "react";
 import { headers } from "next/headers";
@@ -20,6 +20,7 @@ export type AccessContext = {
   allowed: boolean;
   passwordChangeRequired: boolean;
   isDevelopmentSession: boolean;
+  isPlatformAdmin?: boolean;
 };
 
 function isDataScope(value: string): value is DataScopeType {
@@ -38,7 +39,7 @@ async function loadSubject(userId: string) {
   if (!process.env.DATABASE_URL) return undefined;
   try {
     const now = new Date();
-    const [grantRows, teamRows] = await Promise.all([
+    const [grantRows, teamRows, roleRows] = await Promise.all([
       getDb().select({ permission: rolePermissions.permissionCode, scope: dataScopeGrants.scopeType, selectedTeamId: dataScopeGrants.selectedTeamId, roleCode: rolesTable.code })
         .from(userRoleAssignments)
         .innerJoin(profiles, and(eq(profiles.id, userRoleAssignments.userId), eq(profiles.status, "active")))
@@ -47,11 +48,18 @@ async function loadSubject(userId: string) {
         .innerJoin(dataScopeGrants, and(eq(dataScopeGrants.assignmentId, userRoleAssignments.id), or(isNull(dataScopeGrants.permissionCode), eq(dataScopeGrants.permissionCode, rolePermissions.permissionCode))))
         .where(and(eq(userRoleAssignments.userId, userId), lte(userRoleAssignments.validFrom, now), or(isNull(userRoleAssignments.validUntil), gt(userRoleAssignments.validUntil, now)))),
       getDb().select({ teamId: userTeams.teamId }).from(userTeams).where(eq(userTeams.userId, userId)),
+      getDb().select({ roleCode: rolesTable.code })
+        .from(userRoleAssignments)
+        .innerJoin(profiles, and(eq(profiles.id, userRoleAssignments.userId), eq(profiles.status, "active")))
+        .innerJoin(rolesTable, eq(rolesTable.id, userRoleAssignments.roleId))
+        .where(and(eq(userRoleAssignments.userId, userId), lte(userRoleAssignments.validFrom, now), or(isNull(userRoleAssignments.validUntil), gt(userRoleAssignments.validUntil, now)))),
     ]);
+    const isPlatformAdmin = roleRows.some((row) => row.roleCode === "platform_admin");
     const grants = grantRows.flatMap((row) => isDataScope(row.scope) ? [{ permission: row.permission, scope: row.scope, selectedTeamId: row.selectedTeamId ?? undefined }] : []);
     return {
-      subject: { userId, teamIds: teamRows.map((row) => row.teamId), grants } satisfies AuthorizationSubject,
-      role: legacyUiRole(grantRows.map((row) => row.roleCode)),
+      subject: { userId, teamIds: teamRows.map((row) => row.teamId), grants, isPlatformAdmin } satisfies AuthorizationSubject,
+      role: legacyUiRole(roleRows.map((row) => row.roleCode)),
+      isPlatformAdmin,
     };
   } catch (error) {
     console.error("Unable to load server-side authorization grants", error);
@@ -62,12 +70,14 @@ async function loadSubject(userId: string) {
 export const getIdentityAccessContext = cache(async function getIdentityAccessContext() {
   const user = await getCurrentUser();
   if (!user && (await headers()).has("next-action")) redirect(`/login?reason=${await getSessionFailureReason()}`);
-  if (!user) return { userId: "", email: "", displayName: "", permissions: [] as string[], subject: undefined, role: undefined, passwordChangeRequired: false, isDevelopmentSession: false };
+  if (!user) return { userId: "", email: "", displayName: "", permissions: [] as string[], subject: undefined, role: undefined, passwordChangeRequired: false, isDevelopmentSession: false, isPlatformAdmin: false };
   const authorization = await loadSubject(user.id);
   const email = user.email || "";
+  const isPlatformAdmin = Boolean(authorization?.isPlatformAdmin);
+  const permissions = authorization ? [...new Set(authorization.subject.grants.map((grant) => grant.permission))] : [];
   return { userId: user.id, email, displayName: String(user.user_metadata?.display_name || email.split("@")[0] || "ผู้ใช้งาน"),
-    role: authorization?.role, permissions: authorization ? [...new Set(authorization.subject.grants.map((grant) => grant.permission))] : [],
-    subject: authorization?.subject, passwordChangeRequired: Boolean(user.mustChangePassword), isDevelopmentSession: false };
+    role: authorization?.role, permissions: isPlatformAdmin ? ["*", ...modules.flatMap((module) => module.capabilities.map((capability) => capability.code))] : permissions,
+    subject: authorization?.subject, passwordChangeRequired: Boolean(user.mustChangePassword), isDevelopmentSession: false, isPlatformAdmin };
 });
 
 export const getAccessContext = cache(async function getAccessContext(moduleId: ModuleId): Promise<AccessContext> {
@@ -77,6 +87,6 @@ export const getAccessContext = cache(async function getAccessContext(moduleId: 
   return {
     ...identity,
     // Module visibility requires the action grant; row queries still enforce its data scope.
-    allowed: Boolean(manifest && await moduleEnabled(manifest) && identity.subject?.grants.some((grant) => manifest.entryPermissions.includes(grant.permission))),
+    allowed: Boolean(manifest && await moduleEnabled(manifest, identity.isPlatformAdmin) && (identity.isPlatformAdmin || identity.subject?.grants.some((grant) => manifest.entryPermissions.includes(grant.permission)))),
   };
 });

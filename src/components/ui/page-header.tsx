@@ -5,8 +5,8 @@ export function PageHeader({ title, description, eyebrow, parent, actions, class
  title: string; description?: string; eyebrow?: string; parent?: { label: string; href: string }; actions?: React.ReactNode; className?: string; rowClassName?: string;
 }) {
   return (
-    <header className={`page-heading border-b border-[var(--color-border)] pb-6 ${className ?? ""}`.trim()}>
-      <div className={`page-heading-row flex flex-wrap items-start gap-5 ${rowClassName ?? "justify-between"}`}>
+    <header className={`page-heading border-b border-[var(--color-border)] pb-2 ${className ?? ""}`.trim()}>
+      <div className={`page-heading-row flex flex-wrap items-start gap-2 ${rowClassName ?? "justify-between"}`}>
         <div className="page-heading-content min-w-0 flex-1">
           {parent && (
             <nav aria-label="เส้นทางนำทาง" className="page-heading-breadcrumb flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
@@ -16,7 +16,7 @@ export function PageHeader({ title, description, eyebrow, parent, actions, class
             </nav>
           )}
           {eyebrow && <p className="eyebrow text-sm font-bold text-[var(--color-brand)]">{eyebrow}</p>}
-          <h1 className="my-1 text-2xl font-extrabold leading-tight tracking-tight text-[var(--color-text)] sm:text-3xl"><TruncatedText text={title} lines={2}/></h1>
+          <h1 className="my-0 text-xl font-extrabold leading-tight tracking-tight text-[var(--color-text)] sm:text-2xl"><TruncatedText text={title} lines={2}/></h1>
           {description && <TruncatedText className="text-sm leading-6 text-[var(--color-text-muted)]" text={description} lines={2}/>}
         </div>
         {actions && <div className="page-heading-actions ml-auto flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}

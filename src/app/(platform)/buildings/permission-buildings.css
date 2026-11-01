@@ -1,9 +1,4 @@
-html:has(.permission-workspace){overflow-x:clip}
-[data-app-shell] > [data-shell-main]:has(.permission-workspace){padding:0;overflow:hidden}
-/* Buildings uses a viewport workspace; keep the sticky shell in normal flow so
-   its controls cannot be covered by the module toolbar. */
-[data-app-shell]:has(.permission-workspace) [data-shell-header]{box-sizing:border-box;height:calc(var(--size-shell-header) + var(--border-width));min-height:calc(var(--size-shell-header) + var(--border-width));overflow:visible}
-[data-app-shell]:has(.permission-workspace) [data-shell-header]>header{box-sizing:border-box;height:var(--size-shell-header);min-height:var(--size-shell-header);overflow:visible}
+/* Buildings content stays in normal document flow; shared shell owns geometry. */
 .permission-workspace{position:relative;z-index:0;isolation:isolate;display:flex;flex-direction:column;height:calc(100dvh - var(--size-shell-header) - var(--border-width));min-height:0;overflow:hidden;color:var(--color-text);background:var(--color-surface)}
 .permission-toolbar{position:relative;z-index:700;display:flex;align-items:center;gap:16px;min-height:66px;padding:10px 20px;border-bottom:1px solid var(--color-border);background:var(--color-surface)}
 .permission-toolbar-title{min-width:162px;line-height:1.35}.permission-toolbar-title span{font-size:var(--text-caption);color:var(--color-text-muted)}.permission-toolbar-title h1{font-size:var(--text-h2);margin:3px 0 0;letter-spacing:normal}

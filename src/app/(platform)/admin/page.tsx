@@ -67,28 +67,28 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     { id:"users", label:"ผู้ใช้", group:"บัญชีและองค์กร", allowed:canReadUsers, description:"จัดการบัญชีและทบทวนสิทธิ์ของผู้ใช้", count:userRows.length },
     { id:"positions", label:"ตำแหน่ง", group:"บัญชีและองค์กร", allowed:permissionsGranted.positions, description:"กำหนดตำแหน่ง บทบาท และขอบเขตข้อมูลเริ่มต้น", count:positionRows.length },
     { id:"teams", label:"ทีม", group:"บัญชีและองค์กร", allowed:permissionsGranted.teams, description:"จัดทีมสำหรับมอบหมายงานและกำหนดขอบเขตข้อมูล", count:teamRows.length },
-    { id:"roles", label:"บทบาทและสิทธิ์", group:"บัญชีและองค์กร", allowed:permissionsGranted.roles, description:"กำหนดสิทธิ์การใช้งานให้เหมาะกับแต่ละบทบาท", count:roleRows.length },
-    { id:"kpi", label:"KPI / SLA", group:"งานและ KPI", allowed:workAdmin.granted.kpi, description:"จัดการ Main KPI, Sub KPI และจำนวนวัน SLA", count:workAdmin.catalog.length },
-    { id:"personal-kpi", label:"KPI รายบุคคล", group:"งานและ KPI", allowed:workAdmin.granted.kpi, description:"กำหนด KPI และน้ำหนักของผู้รับผิดชอบแต่ละคน", count:null },
-    { id:"calendar", label:"วันหยุด", group:"งานและ KPI", allowed:workAdmin.granted.calendar, description:"จัดการวันหยุดที่ใช้คำนวณกำหนดส่งงาน", count:workAdmin.calendar.length },
-    { id:"recalculate", label:"คำนวณงานใหม่", group:"งานและ KPI", allowed:workAdmin.granted.kpi, description:"ตรวจผลกระทบก่อนคำนวณกำหนดส่ง หรือดูตัวอย่าง KPI งานเก่า", count:null },
-    { id:"systems", label:"ลิงก์ระบบ", group:"พื้นที่ทำงาน", allowed:workAdmin.granted.systems, description:"จัดการทางลัดและผู้ที่มองเห็นแต่ละระบบ", count:workAdmin.links.length },
-    { id:"modules", label:"เปิดหรือปิดโมดูล", group:"พื้นที่ทำงาน", allowed:permissionsGranted.modules, description:"ควบคุมการเปิดใช้งาน โดยเก็บสิทธิ์และประวัติข้อมูลไว้", count:modules.length },
-    { id:"announcement", label:"ประกาศ", group:"พื้นที่ทำงาน", allowed:workAdmin.granted.announcement, description:"จัดการข้อความประกาศบนหน้าแรก", count:workAdmin.announcements.length },
-    { id:"audit", label:"ประวัติการเปลี่ยนแปลง", group:"ตรวจสอบ", allowed:permissionsGranted.audit, description:"ค้นหาและตรวจการเปลี่ยนแปลงในระบบ", count:null },
-    { id:"restore", label:"กู้คืนงาน", group:"ตรวจสอบ", allowed:access.permissions.includes("work.task.delete") && access.permissions.includes("work.task.manage"), description:"ตรวจและกู้คืนงานที่ถูกซ่อนจากรายการ", count:workAdmin.deleted.length },
+    { id:"roles", label:"บทบาทและสิทธิ์", group:"สิทธิ์และการเข้าถึง", allowed:permissionsGranted.roles, description:"กำหนดสิทธิ์การใช้งานให้เหมาะกับแต่ละบทบาท", count:roleRows.length },
+    { id:"kpi", label:"KPI / SLA", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.kpi, description:"จัดการ Main KPI, Sub KPI และจำนวนวัน SLA", count:workAdmin.catalog.length },
+        { id:"personal-kpi", label:"KPI รายบุคคล", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.kpi, description:"กำหนด KPI และน้ำหนักของผู้รับผิดชอบแต่ละคน", count:null },
+        { id:"calendar", label:"วันหยุด", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.calendar, description:"จัดการวันหยุดที่ใช้คำนวณกำหนดส่งงาน", count:workAdmin.calendar.length },
+        { id:"recalculate", label:"คำนวณงานใหม่", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.kpi, description:"ตรวจผลกระทบก่อนคำนวณกำหนดส่ง หรือดูตัวอย่าง KPI งานเก่า", count:null },
+        { id:"systems", label:"ลิงก์ระบบ", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.systems, description:"จัดการทางลัดและผู้ที่มองเห็นแต่ละระบบ", count:workAdmin.links.length },
+        { id:"modules", label:"โมดูล", group:"สิทธิ์และการเข้าถึง", allowed:permissionsGranted.modules, description:"ควบคุมการเปิดใช้งาน โดยเก็บสิทธิ์และประวัติข้อมูลไว้", count:modules.length },
+        { id:"announcement", label:"ประกาศ", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.announcement, description:"จัดการข้อความประกาศบนหน้าแรก", count:workAdmin.announcements.length },
+        { id:"audit", label:"ประวัติการเปลี่ยนแปลง", group:"ตรวจสอบและกู้คืน", allowed:permissionsGranted.audit, description:"ค้นหาและตรวจการเปลี่ยนแปลงในระบบ", count:null },
+        { id:"restore", label:"กู้คืนงาน", group:"ตรวจสอบและกู้คืน", allowed:access.permissions.includes("work.task.delete") && access.permissions.includes("work.task.manage"), description:"ตรวจและกู้คืนงานที่ถูกซ่อนจากรายการ", count:workAdmin.deleted.length },
   ].filter(item=>item.allowed);
   const current = sections.find(item=>item.id===params.section) ?? sections[0];
   return (
     <main className="admin-page" data-ui-screen="admin">
-      <PageHeader title="ผู้ดูแลระบบ" description="จัดการบัญชี สิทธิ์ และการตั้งค่าของพื้นที่ทำงาน" parent={{ label: "ภาพรวม", href: "/" }} actions={permissionsGranted.users ? <ButtonLink variant="primary" href="/admin/car-booking">สิทธิ์ระบบจองรถ</ButtonLink> : undefined} />
+      <PageHeader title="ผู้ดูแลระบบ" description="การจัดการภายในแอป: บัญชี สิทธิ์ และการตั้งค่าพื้นที่ทำงาน" parent={{ label: "ภาพรวม", href: "/" }} actions={permissionsGranted.users ? <ButtonLink variant="primary" href="/admin/car-booking">สิทธิ์ระบบจองรถ</ButtonLink> : undefined} />
       <div className="admin-layout">
         <nav className="admin-navigation" aria-label="ส่วนจัดการระบบ">
           {[...new Set(sections.map(item => item.group))].map(group => (
             <div className="admin-navigation-group" key={group}>
               <span>{group}</span>
               {sections.filter(item => item.group === group).map(item => (
-                <Link key={item.id} href={`/admin?section=${item.id}`} aria-current={current.id === item.id ? "page" : undefined} className={current.id === item.id ? "btn-primary" : "btn-ghost"}>{item.label}</Link>
+                <Link key={item.id} href={`/admin?section=${item.id}`} aria-current={current.id === item.id ? "page" : undefined}>{item.label}</Link>
               ))}
             </div>
           ))}
@@ -98,14 +98,21 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             <>
               <section className="admin-overview">
                 <h2>ภาพรวมผู้ดูแล</h2>
-                <p>เลือกส่วนที่ต้องการจัดการ</p>
-                <div className="admin-overview-grid">
-                  {sections.filter(item => item.id !== "overview").map(item => (
-                    <Link key={item.id} href={`/admin?section=${item.id}`} className="admin-overview-link">
-                      <span><strong>{item.label}</strong><small>{item.description}</small></span>
-                      {item.count !== null && <b>{item.count}<span className="sr-only"> รายการ</span></b>}
-                      <span aria-hidden="true">→</span>
-                    </Link>
+                <p>เลือกงานตามหมวดการดูแลระบบ · แสดงเฉพาะส่วนที่คุณมีสิทธิ์เข้าถึง</p>
+                <div className="admin-overview-groups">
+                  {[...new Set(sections.filter(item => item.id !== "overview").map(item => item.group))].map(group => (
+                    <section className="admin-overview-group" key={group} aria-labelledby={`overview-${group}`}>
+                      <h3 id={`overview-${group}`}>{group}</h3>
+                      <div className="admin-overview-grid">
+                        {sections.filter(item => item.id !== "overview" && item.group === group).map(item => (
+                          <Link key={item.id} href={`/admin?section=${item.id}`} className="admin-overview-link">
+                            <span><strong>{item.label}</strong><small>{item.description}</small></span>
+                            {item.count !== null && <b>{item.count}<span className="sr-only"> รายการ</span></b>}
+                            <span aria-hidden="true">→</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
                   ))}
                 </div>
               </section>

@@ -38,7 +38,7 @@
 .work-rollout-filter-panel { min-width:0; overflow:hidden; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-xl); background:var(--color-surface); box-shadow:var(--shadow-sm); }
 .work-rollout-filter-panel .ui-filter { margin:0; }
 .work-rollout .work-empty { min-height:220px; }
-.work-panel { min-width:0; padding:var(--space-5); }
+.work-panel { min-width:0; padding:var(--space-5); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-xs); }
 .work-section-head,.work-form-intro,.work-task-detail-head,.work-kpi-card-head,.work-person-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; min-width: 0; }
 .work-section-head h2,.work-form-intro h2,.work-task-detail h2,.work-kpi-business-card h2 { margin: 0; color: var(--color-text); font-size: var(--text-h2); line-height: 1.35; }
 .work-section-head p,.work-form-intro p,.work-task-detail-head p { margin: 5px 0 0; color: var(--color-text-muted); font-size: var(--text-body-strong); line-height: 1.6; overflow-wrap: anywhere; }
@@ -61,6 +61,26 @@
 .work-detail-grid,.work-report-detail { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 18px; margin: 22px 0 0; }.work-detail-grid div,.work-report-detail div { min-width: 0; padding: 12px 0; border-top: 1px solid var(--color-border); }.work-detail-grid dt,.work-report-detail dt { color: var(--color-text-muted); font-size: var(--text-body); }.work-detail-grid dd,.work-report-detail dd { margin: 4px 0 0; color: var(--color-text); font-size: var(--text-body-strong); font-weight: 700; overflow-wrap: anywhere; }
 .work-activity-list { display: grid; gap: 0; margin: 20px 0 0; padding: 0; list-style: none; }.work-activity-list li { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-border); }.work-activity-list li:last-child { border-bottom: 0; }.work-activity-dot { flex: 0 0 auto; width: 10px; height: 10px; margin-top: 7px; border-radius: 50%; background: var(--color-brand); }.work-activity-list div { min-width: 0; }.work-activity-list strong,.work-activity-list span,.work-activity-list time { display: block; overflow-wrap: anywhere; }.work-activity-list span,.work-activity-list time { margin-top: 3px; color: var(--color-text-muted); font-size: var(--text-body); }.work-activity-list-expanded li { padding-block: 16px; }
 .work-form-count { flex: 0 0 auto; color: var(--color-text-muted); font-size: var(--text-body-strong); }.work-assignment-form { display: grid; gap: 20px; }.work-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }.work-form-span-2 { grid-column: 1 / -1; }.work-form-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }.work-form-actions p { margin: 0; color: var(--color-text-muted); font-size: var(--text-body); line-height: 1.6; overflow-wrap: anywhere; }
+/* Work create dialog — wider than default ui-dialog (560px) so the form is easy to read */
+.work-create-dialog[open] { width: min(800px, calc(100vw - 32px)); }
+/* Work create form uses distinct information sections, not a scoring strip. */
+.work-create-form .work-create-header { margin-bottom: var(--space-5); }
+.work-create-form .work-create-header h2 { margin: 0 0 var(--space-1) 0; font-size: var(--text-h2); font-weight: 800; }
+.work-create-form .work-create-guidance { margin: 0; color: var(--color-text-muted); font-size: var(--text-body); line-height: 1.6; }
+.work-create-form .work-create-fieldset { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: var(--space-4); margin: 0 0 var(--space-4) 0; background: var(--color-surface); }
+.work-create-form .work-create-fieldset legend { padding: 0 var(--space-2); font-size: var(--text-h3); font-weight: 700; color: var(--color-text); }
+.work-create-form .work-create-grid,
+.work-create-form .work-create-details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-items: start; }
+.work-create-form .work-create-col-2 { min-width: 0; grid-column: 1 / -1; }
+.work-create-form .work-create-details-grid label { min-width: 0; }
+.work-create-form .work-create-details-grid textarea { width: 100%; min-height: 120px; box-sizing: border-box; }
+.work-create-form .work-create-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
+.work-create-form .work-create-actions .work-create-preview-msg,
+.work-create-form .work-create-actions .work-create-status-msg { margin: 0 0 0 var(--space-3); color: var(--color-text-muted); font-size: var(--text-body); line-height: 1.6; }
+@media (max-width: 640px) {
+  .work-create-form .work-create-grid,
+  .work-create-form .work-create-details-grid { grid-template-columns: 1fr; }
+}
 .work-rollout-assignment { border:var(--border-width) solid var(--color-border); border-radius:var(--radius-xl); background:var(--color-surface); box-shadow:var(--shadow-sm); }
 .work-rollout-assignment fieldset { min-inline-size:0; margin:0; }
 .work-rollout-form-actions { padding-top:var(--space-4); border-top:var(--border-width) solid var(--color-border); }

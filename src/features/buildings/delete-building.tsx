@@ -5,6 +5,7 @@ import { copy } from "@/lib/copy";
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Dialog } from "@/components/ui/dialog";
 import "./delete-building.css";
 
 const errors: Record<string, string> = {
@@ -18,7 +19,8 @@ const errors: Record<string, string> = {
 
 export function DeleteBuilding({ id, name, version }: { id: string; name: string; version: number }) {
   const router = useRouter();
-  const dialog = useRef<HTMLDialogElement>(null);
+  const [open, setOpen] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
   const pendingRef = useRef(false);
   const [confirmation, setConfirmation] = useState("");
   const [pending, setPending] = useState(false);
@@ -34,7 +36,7 @@ export function DeleteBuilding({ id, name, version }: { id: string; name: string
         body: JSON.stringify({ confirmationName: confirmation.trim(), version }) });
       const result = await response.json();
       if (!response.ok || result.deleted !== true) { setMessage(errors[result.error] ?? "ลบอาคารไม่สำเร็จ ข้อมูลยังไม่ถูกลบ กรุณาลองอีกครั้ง"); return; }
-      dialog.current?.close();
+      setOpen(false);
       router.replace("/buildings");
       router.refresh();
     } catch { setMessage("เชื่อมต่อระบบไม่ได้ กรุณาตรวจสถานะอาคารก่อนลองอีกครั้ง"); }
@@ -42,16 +44,14 @@ export function DeleteBuilding({ id, name, version }: { id: string; name: string
   }
 
   return <>
-    <button type="button" className="building-delete-trigger" onClick={() => { setConfirmation(""); setMessage(""); dialog.current?.showModal(); }}>ลบอาคาร</button>
-    <dialog ref={dialog} className="building-delete-dialog" aria-labelledby="building-delete-title" aria-describedby="building-delete-description" onCancel={(event) => { if (pendingRef.current) event.preventDefault(); }}>
+    <button ref={trigger} type="button" className="building-delete-trigger" onClick={() => { setConfirmation(""); setMessage(""); setOpen(true); }}>ลบอาคาร</button>
+    <Dialog open={open} onOpenChange={setOpen} busy={pending} beforeClose={() => !pendingRef.current} returnFocusRef={trigger} className="building-delete-dialog" title="ยืนยันลบอาคาร" description={copy.feedback.deleteBuildingWarning}>
       <form onSubmit={submit}>
-        <h2 id="building-delete-title">ยืนยันลบอาคาร</h2>
-        <p id="building-delete-description">{copy.feedback.deleteBuildingWarning}</p>
         <strong className="building-delete-name">{name}</strong>
         <label>พิมพ์ชื่ออาคารให้ตรงเพื่อยืนยัน<input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" disabled={pending} required /></label>
         {message && <p className="building-delete-error" role="alert">{message}</p>}
-        <div className="building-delete-actions"><button type="button" disabled={pending} onClick={() => dialog.current?.close()}>ยกเลิก</button><button type="submit" className="building-delete-confirm" disabled={pending || confirmation.trim() !== name}>{pending ? "กำลังลบ…" : "ยืนยันลบอาคารถาวร"}</button></div>
+        <div className="building-delete-actions"><button type="button" disabled={pending} onClick={() => setOpen(false)}>ยกเลิก</button><button type="submit" className="building-delete-confirm" disabled={pending || confirmation.trim() !== name}>{pending ? "กำลังลบ…" : "ยืนยันลบอาคารถาวร"}</button></div>
       </form>
-    </dialog>
+    </Dialog>
   </>;
 }

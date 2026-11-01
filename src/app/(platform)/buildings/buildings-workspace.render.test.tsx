@@ -89,19 +89,20 @@ describe("BuildingsWorkspace rendered contract", () => {
   });
 
 
-  it("uses shell geometry and one effective overview toolbar height", () => {
-    expect(css).toContain("height:calc(100dvh - var(--size-shell-header) - var(--border-width))");
-    expect(css).toContain("min-height:0;overflow:hidden");
-    expect(css).not.toContain("100vh - 80px");
-    expect(css).not.toContain("min-height:590px");
-    expect(css).not.toContain("min-height:112px");
-    expect((css.match(/\.permission-overview-toolbar\{[^}]*min-height:72px/g) ?? []).length).toBe(1);
+  it("uses shared depth only on outer surfaces and keeps data rows flat", () => {
+    const presentation = readFileSync(new URL("./buildings-presentation.css", import.meta.url), "utf8");
+    expect(presentation).toContain("box-shadow:var(--shadow-raised)");
+    expect(presentation).toContain("box-shadow:var(--shadow-inset)");
+    expect(presentation).toMatch(/\.permission-workspace \.permission-overview-card \{[^}]*box-shadow:none/);
+    expect(presentation).toContain("height:auto; overflow:visible");
+    expect(presentation).not.toContain(":root");
   });
 
-  it("reserves the canonical shell header before the Buildings workspace", () => {
-    expect(css).toContain("[data-app-shell]:has(.permission-workspace) [data-shell-header]");
-    expect(css).toContain("height:var(--size-shell-header)");
-    expect(css).toContain("overflow:visible");
+  it("leaves canonical shell geometry to the shared shell and allows content scrolling", () => {
+    const presentation = readFileSync(new URL("./buildings-presentation.css", import.meta.url), "utf8");
+    expect(css).not.toContain("[data-app-shell]:has(.permission-workspace) [data-shell-header]");
+    expect(presentation).toContain("height:auto; overflow:visible");
+    expect(presentation).toContain(".permission-workspace[data-ui-screen]");
     expect(css).toContain("position:relative;z-index:0;isolation:isolate");
   });
 

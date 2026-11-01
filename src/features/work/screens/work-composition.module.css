@@ -1,0 +1,76 @@
+/* Work composition only. Semantic palette/depth remain owned by core tokens. */
+.workspace { min-width:0; }
+.workspace > :global(.page-heading) { padding-block:var(--space-2) var(--space-5); border-bottom:var(--border-width) solid var(--color-border); }
+.workspace > :global(.page-heading) :global(h1) { line-height:1.4; }
+.workspace :global(.work-metric-strip) { gap:var(--space-3); }
+.workspace :global(.work-metric-strip .ui-metric) { min-height:0; padding:var(--space-4); gap:var(--space-1); box-shadow:var(--shadow-raised); }
+.workspace :global(.work-panel), .workspace :global(.work-rollout-filter-panel) { border-radius:var(--radius-xl); box-shadow:var(--shadow-raised); }
+.workspace :global(.work-section-head) { align-items:center; padding-bottom:var(--space-4); border-bottom:var(--border-width) solid var(--color-border); }
+.workspace :global(.work-section-head h2), .workspace :global(.work-form-intro h2) { font-size:var(--text-h3); line-height:1.6; }
+.workspace :global(.work-section-head p), .workspace :global(.work-form-intro p) { font-size:var(--text-body); }
+.workspace :global(.work-eyebrow), .workspace :global(.work-technical-details summary) { color:var(--color-brand); }
+.workspace :global(.work-activity-list) { margin-top:0; }
+.workspace :global(.work-activity-list li) { padding-block:var(--space-4); }
+.workspace :global(.work-people-grid) { grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr)); gap:var(--space-4); }
+.workspace :global(.work-person-card) { padding:var(--space-4); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:none; }
+.workspace :global(.work-person-head) { gap:var(--space-3); flex-wrap:wrap; }
+.workspace :global(.work-person-head p) { display:flex; flex-wrap:wrap; gap:var(--space-1); }
+.workspace :global(.work-person-head > strong) { display:grid; gap:var(--space-1); text-align:end; color:var(--color-text); font-variant-numeric:tabular-nums; }
+.workspace :global(.work-person-head > strong small) { font-size:var(--text-caption); font-weight:400; color:var(--color-text-muted); }
+.workspace :global(.work-person-card dl) { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.workspace :global(.work-person-card dd) { font-variant-numeric:tabular-nums; }
+.workspace :global(.work-job-group) { background:var(--color-surface); box-shadow:none; overflow:hidden; }
+.workspace :global(.work-job-toggle) { background:var(--color-surface); min-height:var(--size-control-touch); }
+.workspace :global(.work-job-toggle[aria-expanded="true"]) { background:var(--color-brand-soft); }
+.workspace :global(.work-search-field input) { box-shadow:var(--shadow-inset); }
+.workspace :global(.work-search-field) { padding:0; border:0; background:transparent; box-shadow:none; }
+.workspace :global(.work-job-details) { padding-inline:var(--space-4); }
+.workspace :global(.work-job-task details) { min-width:0; flex:1; }
+.workspace :global(.work-job-task > div > span) { display:flex; flex-wrap:wrap; gap:var(--space-1); }
+.workspace :global(.work-job-task .ui-status) { display:inline-flex; align-items:center; align-self:flex-start; gap:var(--space-1); }
+.workspace :global(.work-job-task .ui-status > span) { display:inline; margin:0; }
+.workspace :global(.work-job-task summary), .workspace :global(.work-technical-details summary) { min-height:var(--size-control-touch); align-content:center; cursor:pointer; }
+.workspace :global(.work-task-detail) { min-width:0; padding:var(--space-5); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); }
+.workspace :global(.work-task-detail .work-action-stack) { margin-top:var(--space-4); }
+.workspace :global(.work-kpi-business-grid) { grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); }
+.workspace :global(.work-kpi-business-card) { padding:var(--space-5); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-xl); background:var(--color-surface); box-shadow:var(--shadow-raised); }
+.workspace :global(.work-kpi-business-card h2) { font-size:var(--text-h3); }
+.workspace :global(.work-kpi-card-head > strong) { display:inline-flex; align-items:baseline; gap:var(--space-2); color:var(--color-text); font-variant-numeric:tabular-nums; }
+.workspace :global(.work-kpi-business-card progress) { display:block; width:100%; height:var(--space-2); margin-top:var(--space-5); accent-color:var(--color-brand); overflow:hidden; border:0; border-radius:var(--radius-pill); background:var(--color-surface-subtle); }
+.workspace :global(.work-kpi-business-card progress::-webkit-progress-bar) { background:var(--color-surface-subtle); }
+.workspace :global(.work-kpi-business-card progress::-webkit-progress-value) { background:var(--color-brand); border-radius:var(--radius-pill); }
+.workspace :global(.work-kpi-business-card progress::-moz-progress-bar) { background:var(--color-brand); }
+.workspace :global(.work-kpi-rules) { margin:var(--space-4) 0; padding:0; list-style:none; display:grid; gap:0; }
+.workspace :global(.work-kpi-rules li) { padding-block:var(--space-3); border-bottom:var(--border-width) solid var(--color-border); }
+.workspace :global(.work-report-detail) { grid-template-columns:1fr; margin-top:var(--space-3); }
+.workspace :global(.work-report-detail > div) { display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); }
+.workspace :global(.work-report-detail dd) { margin:0; font-size:var(--text-h2); font-variant-numeric:tabular-nums; }
+.workspace :global(.work-assignment-form) { gap:var(--space-4); }
+.workspace :global(.work-assignment-form > h2) { margin:0; font-size:var(--text-h3); }
+.workspace :global(.work-assignment-form fieldset) { border:0; padding:var(--space-4) 0; border-block:var(--border-width) solid var(--color-border); }
+.workspace :global(.work-assignment-form legend) { padding-inline:0 var(--space-3); color:var(--color-text-muted); font-size:var(--text-body); font-weight:700; }
+.workspace :global(.work-assignment-form > p:empty) { display:none; }
+.workspace :global(.work-form-guidance) { margin:0; max-width:70ch; font-size:var(--text-body); color:var(--color-text-muted); line-height:1.7; }
+.workspace :global(.work-assignment-form > .ui-button) { justify-self:start; min-width:180px; }
+.workspace :global(.work-assignment-form > .ui-button-primary) { justify-self:end; }
+/* The legacy modal-scale animation replaces native Dialog's centering transform.
+   Work's migrated modal animates opacity only; shared geometry stays canonical. */
+.workspace :global(.work-create-dialog) { animation-name:workDialogEnter; }
+.workspace :global(.work-create-dialog .work-panel) { padding:0; border:0; border-radius:0; box-shadow:none; background:transparent; }
+@keyframes workDialogEnter { from { opacity:0; } to { opacity:1; } }
+.commandForm { display:grid; gap:var(--space-4); min-width:0; }
+.commandForm label { display:grid; gap:var(--space-2); min-width:0; font-size:var(--text-body-strong); }
+.commandForm :is(input,select,textarea) { width:100%; min-width:0; min-height:var(--size-control-touch); padding:var(--space-2) var(--space-3); border:var(--border-width) solid var(--color-border-strong); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-text); font:inherit; }
+.commandForm textarea { resize:vertical; }
+.commandForm > p { margin:0; color:var(--color-text-muted); overflow-wrap:anywhere; }
+@media(max-width:650px) {
+  .workspace :global(.work-action-row) :is(button,a) { min-height:var(--size-control-touch); }
+  .workspace :global(.work-section-head) { align-items:start; }
+  .workspace :global(.work-person-head) { display:flex; }
+  .workspace :global(.work-panel), .workspace :global(.work-task-detail), .workspace :global(.work-kpi-business-card) { padding:var(--space-4); }
+  .workspace :global(.work-assignment-form > .ui-button) { width:100%; justify-self:stretch; }
+  .workspace :global(.work-job-task) { gap:var(--space-3); }
+  .workspace :global(.work-job-task details) { width:100%; }
+  .workspace :global(.work-inline-links) { gap:var(--space-3); }
+}
+@media(forced-colors:active) { .workspace :global(progress) { border:var(--border-width) solid CanvasText; } }

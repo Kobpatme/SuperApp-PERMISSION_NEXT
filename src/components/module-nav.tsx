@@ -3,19 +3,16 @@
 import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { modules, overviewDestination, type ModuleId } from "@/lib/module-registry";
-import { WorkspaceIcon } from "@/components/workspace-icon";
+import { modules, overviewDestination, type ModuleId, getModule } from "@/lib/module-registry";
+import { WorkspaceIcon, type IconName } from "@/components/workspace-icon";
 
 export type WorkNavItem = { href: string; label: string; icon: "work" | "team" | "filter" | "search" | "check" | "info" | "refresh" };
-type CollapsibleModuleId = "work" | "guarantees" | "duct-rental" | "buildings" | "car-booking";
-type SectionSnapshot = { open: CollapsibleModuleId | null; pathname: string };
+type SectionSnapshot = { open: string | null; pathname: string };
+type NavChildItem = { href: string; label: string; icon: string; activeMatch?: "exact" | "prefix" | "query" };
 
 const sectionStorageKey = "permission-next-sidebar-section";
 const sectionChangeEvent = "permission-next-sidebar-section-change";
 
-function isCollapsibleModule(id: string): id is CollapsibleModuleId {
-  return id === "work" || id === "guarantees" || id === "duct-rental" || id === "buildings" || id === "car-booking";
-}
 
 function readSectionSnapshot() {
   try { return window.localStorage.getItem(sectionStorageKey) || ""; }
@@ -37,20 +34,71 @@ function parseSectionSnapshot(snapshot: string): SectionSnapshot | undefined {
   try {
     const saved = JSON.parse(snapshot) as Partial<SectionSnapshot>;
     const open = saved.open;
-    if (open !== null && (typeof open !== "string" || !isCollapsibleModule(open))) return undefined;
+    if (open !== null && typeof open !== "string") return undefined;
     return { open: open ?? null, pathname: typeof saved.pathname === "string" ? saved.pathname : "" };
   } catch {
     return undefined;
   }
 }
 
-function sectionForPathname(pathname: string): CollapsibleModuleId | null {
-  if (pathname === "/work" || pathname.startsWith("/work/")) return "work";
-  if (pathname === "/guarantees" || pathname.startsWith("/guarantees/")) return "guarantees";
-  if (pathname === "/duct-rental" || pathname.startsWith("/duct-rental/")) return "duct-rental";
-  if (pathname === "/buildings" || pathname.startsWith("/buildings/")) return "buildings";
-  if (pathname === "/car-booking" || pathname.startsWith("/car-booking/")) return "car-booking";
-  return null;
+function sectionForPathname(pathname: string): string | null {
+  const candidates = modules
+    .filter(module => pathname === module.href || pathname.startsWith(`${module.href}/`))
+    .sort((a, b) => b.href.length - a.href.length);
+  return candidates[0]?.id ?? null;
+}
+
+/** Resolve static child navigation items for a module from registry metadata. */
+function getNavItems(moduleId: string): NavChildItem[] | undefined {
+  const registryModule = getModule(moduleId);
+  return registryModule?.navigationItems;
+}
+
+/**
+ * Compute which child href is active for the current route using activeMatch
+ * and longest-path-wins resolution. Query matches take precedence over prefix,
+ * which takes precedence over exact. Among equal specificity, longest href wins.
+ */
+function computeActiveChildHref(
+  navigationItems: NavChildItem[] | undefined,
+  pathname: string,
+  params: URLSearchParams
+): string | undefined {
+  if (!navigationItems) return undefined;
+
+  const matches: Array<{ href: string; score: number }> = [];
+
+  for (const item of navigationItems) {
+    const match = item.activeMatch ?? "exact";
+    const itemPathname = item.href.split("?")[0];
+    let matched = false;
+
+    if (match === "query") {
+      const itemUrl = new URL(item.href, "https://workspace.local");
+      if (itemUrl.pathname === pathname) {
+        const allParamsMatch = Array.from(itemUrl.searchParams).every(([key, value]) => params.get(key) === value);
+        if (allParamsMatch) matched = true;
+      }
+    } else if (match === "exact") {
+      if (pathname === itemPathname) matched = true;
+    } else if (match === "prefix") {
+      if (pathname === itemPathname || pathname.startsWith(`${itemPathname}/`)) matched = true;
+    }
+
+    if (matched) {
+      const score = match === "query" ? 2 : match === "prefix" ? 1 : 0;
+      matches.push({ href: item.href, score });
+    }
+  }
+
+  if (matches.length === 0) return undefined;
+
+  matches.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return b.href.length - a.href.length;
+  });
+
+  return matches[0].href;
 }
 
 export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = false, workNavigation = [], onNavigate, idPrefix = "sidebar-section" }: { allowedModuleIds: ModuleId[]; collapsed?: boolean; canAdmin?: boolean; workNavigation?: WorkNavItem[]; onNavigate?: () => void; idPrefix?: string }) {
@@ -65,19 +113,10 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
     .map(child => ({ href: child.href, url: new URL(child.href, "https://workspace.local") }))
     .filter(child => (child.url.pathname === pathname || (child.url.pathname !== "/work" && pathname.startsWith(`${child.url.pathname}/`))) && Array.from(child.url.searchParams).every(([key, value]) => params.get(key) === value))
     .sort((a, b) => b.url.pathname.length - a.url.pathname.length || b.url.searchParams.size - a.url.searchParams.size)[0]?.href;
-  const currentDuctHref = pathname === "/duct-rental" || /^\/duct-rental\/(new|[0-9a-f-]{36})(\/|$)/i.test(pathname)
-    ? "/duct-rental"
-    : ["/duct-rental/renewal", "/duct-rental/cancellation", "/duct-rental/tracking", "/duct-rental/communication-cable"].find(href => pathname === href || pathname.startsWith(`${href}/`));
-  const currentBuildingsHref = pathname === "/buildings" || /^\/buildings\/(new|[0-9a-f-]{36})(\/|$)/i.test(pathname)
-    ? "/buildings"
-    : ["/buildings/map"].find(href => pathname === href || pathname.startsWith(`${href}/`));
-  const currentCarBookingHref = pathname === "/car-booking" || pathname.startsWith("/car-booking/")
-    ? "/car-booking"
-    : undefined;
   const groupLabels = { overview: "ภาพรวม", work: "งานของฉัน", operations: "การดำเนินงาน", finance: "การเงิน", reports: "รายงาน", management: "การจัดการ" };
   const items = [{ ...overviewDestination, group: "overview" as const, icon: "home" as const }, ...modules.filter((module) => allowedModuleIds.includes(module.id))];
 
-  function toggleSection(id: CollapsibleModuleId) {
+  function toggleSection(id: string) {
     const next: SectionSnapshot = { open: expandedSection === id ? null : id, pathname };
     try { window.localStorage.setItem(sectionStorageKey, JSON.stringify(next)); }
     catch { /* The preference is optional. */ }
@@ -87,12 +126,13 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
   return <nav className="sidebar-nav" aria-label="พื้นที่ทำงาน">
     {items.map((item, index) => {
       const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
-      const hasChildren = item.id === "work" ? workNavigation.length > 0 : item.id === "guarantees" || item.id === "duct-rental" || item.id === "buildings" || item.id === "car-booking";
+      const navItems = getNavItems(item.id);
+      const hasChildren = item.id === "work" ? workNavigation.length > 0 : !!navItems?.length;
       // Collapsed rails show module icons only; expanded/mobile navigation behaves as a single-open accordion.
-      const expanded = isCollapsibleModule(item.id) ? !collapsed && expandedSection === item.id : false;
-      const currentChildHref = item.id === "work" ? currentWorkHref : item.id === "duct-rental" ? currentDuctHref : item.id === "guarantees" && installationTeamView ? "/guarantees?view=installation-team" : item.id === "buildings" ? currentBuildingsHref : item.id === "car-booking" ? currentCarBookingHref : undefined;
+      const expanded = hasChildren && !collapsed && expandedSection === item.id;
+      const currentChildHref = item.id === "work" ? currentWorkHref : computeActiveChildHref(navItems, pathname, params);
       const parentCurrent = active && (!expanded || !currentChildHref);
-      const sectionId = hasChildren && isCollapsibleModule(item.id) ? `${idPrefix}-${item.id}` : undefined;
+      const sectionId = hasChildren ? `${idPrefix}-${item.id}` : undefined;
       const destination = `${item.href}${params.get("preview") === "1" ? "?preview=1" : ""}`;
       const parentControl = sectionId && !collapsed ? <button
         className={`sidebar-link sidebar-module-trigger ${active ? "active" : ""}`}
@@ -100,7 +140,7 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
         data-module-id={item.id}
         aria-expanded={expanded}
         aria-controls={sectionId}
-        onClick={() => toggleSection(item.id as CollapsibleModuleId)}
+        onClick={() => toggleSection(item.id)}
       >
         <WorkspaceIcon name={item.icon} size={20}/><span className="sidebar-link-label">{item.name}</span>
       </button> : <Link
@@ -120,34 +160,11 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
           <div className="sidebar-subnav" aria-label={`เมนู${item.name}`}>
           {item.id === "work" && workNavigation.map((child) => {
             const childActive = child.href === currentWorkHref;
-            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
+            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon as IconName} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
           })}
-          {item.id === "guarantees" && <>
-            <Link className={`sidebar-child-link ${active && !installationTeamView ? "active" : ""}`} href="/guarantees" aria-current={active && !installationTeamView ? "page" : undefined} onClick={onNavigate}><WorkspaceIcon name="check" size={18}/><span className="sidebar-link-label">ภาพรวมเงินประกัน</span></Link>
-            <Link className={`sidebar-child-link ${installationTeamView ? "active" : ""}`} href="/guarantees?view=installation-team" aria-current={installationTeamView ? "page" : undefined} onClick={onNavigate}><WorkspaceIcon name="team" size={18}/><span className="sidebar-link-label">ทีมติดตั้ง</span></Link>
-          </>}
-          {item.id === "duct-rental" && [
-            { href: "/duct-rental", label: "เช่าท่อร้อยสาย", icon: "buildings" as const },
-            { href: "/duct-rental/renewal", label: "ต่อสัญญา", icon: "refresh" as const },
-            { href: "/duct-rental/cancellation", label: "ยกเลิกการใช้ท่อ", icon: "close" as const },
-            { href: "/duct-rental/tracking", label: "ติดตามต่อสัญญาและยกเลิก", icon: "check" as const },
-            { href: "/duct-rental/communication-cable", label: "พาดสายสื่อสาร", icon: "work" as const },
-          ].map(child => {
-            const childActive = child.href === currentDuctHref;
-            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
-          })}
-          {item.id === "buildings" && [
-            { href: "/buildings", label: "ข้อมูลอาคาร", icon: "buildings" as const },
-            { href: "/buildings/new", label: "เพิ่มอาคาร", icon: "info" as const },
-          ].map(child => {
-            const childActive = child.href === currentBuildingsHref;
-            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
-          })}
-          {item.id === "car-booking" && [
-            { href: "/car-booking", label: "ระบบจองรถ", icon: "car" as const },
-          ].map(child => {
-            const childActive = child.href === currentCarBookingHref;
-            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
+          {item.id !== "work" && navItems?.map((child) => {
+            const childActive = child.href === currentChildHref;
+            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon as IconName} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
           })}
           </div>
         </div>}

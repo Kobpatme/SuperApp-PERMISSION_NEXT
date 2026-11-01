@@ -28,7 +28,7 @@ export function TrackingWorkspace({ initialSla = "" }: { initialSla?: string } =
   return (
     <div className={`${styles.workspace} ${styles.ductSurface}`} data-ui-screen="duct-rental-tracking">
       <PageHeader title="ติดตามงานต่อสัญญาและยกเลิก" description="คิวรวม ผู้รับผิดชอบ และกำหนด SLA" parent={{label:"เช่าท่อร้อยสาย",href:"/duct-rental"}} />
-      <TrackingNav current="tracking" />
+      <TrackingNav current="requests" />
       <TrackingShell>
       <SyncUtility {...model} refresh={model.refresh} />
       <Notice text={model.error} error />
@@ -98,14 +98,15 @@ export function TrackingWorkspace({ initialSla = "" }: { initialSla?: string } =
     </div>
   );
 }
-export function TrackingSummary() {
-  const model=useResource<Tracking>("tracking?limit=1");
+export function TrackingSummary({ canView = false }: { canView?: boolean }) {
+  const model = useResource<Tracking>(canView ? "tracking?limit=1" : null, !canView);
+  if (!canView) return null;
   return (
     <div className={styles.actions}>
-      <ButtonLink variant="ghost" href="/duct-rental/tracking">ติดตามทั้งหมด {model.data?.counts.total?? "—"}</ButtonLink>
-      <ButtonLink variant="ghost" href="/duct-rental/tracking?sla=Completed">เสร็จแล้ว {model.data?.counts.completed?? "—"}</ButtonLink>
-      <ButtonLink variant="ghost" href="/duct-rental/tracking?sla=Near%20Due">ใกล้ครบกำหนด {model.data?.counts.nearDue?? "—"}</ButtonLink>
-      <ButtonLink variant="ghost" href="/duct-rental/tracking?sla=Overdue">เกินกำหนด {model.data?.counts.overdue?? "—"}</ButtonLink>
+      <ButtonLink variant="ghost" href="/duct-rental/tracking">ติดตามทั้งหมด {model.data?.counts.total ?? "—"}</ButtonLink>
+      <ButtonLink variant="ghost" href="/duct-rental/tracking?sla=Completed">เสร็จแล้ว {model.data?.counts.completed ?? "—"}</ButtonLink>
+      <ButtonLink variant="ghost" href="/duct-rental/tracking?sla=Near%20Due">ใกล้ครบกำหนด {model.data?.counts.nearDue ?? "—"}</ButtonLink>
+      <ButtonLink variant="ghost" href="/duct-rental/tracking?sla=Overdue">เกินกำหนด {model.data?.counts.overdue ?? "—"}</ButtonLink>
     </div>
   );
 }

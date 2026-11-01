@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { loginAction } from "@/app/login/actions";
@@ -24,9 +25,9 @@ export function LoginForm({ next = "" }: { next?: string }) {
     {state.error && !pending && <div className="auth-error" role="alert"><span aria-hidden="true">!</span> {state.error}</div>}
     <div className="auth-field"><label htmlFor="login-email">{copy.auth.email}</label><input id="login-email" ref={emailRef} name="email" type="email" autoComplete="email" placeholder={copy.auth.emailPlaceholder} defaultValue={state.email || ""} aria-invalid={Boolean(errors.email)} aria-describedby="login-email-error" required autoFocus/><span id="login-email-error" className="auth-field-hint" aria-live="polite">{errors.email && `! ${errors.email}`}</span></div>
     <PasswordField label={copy.auth.password} inputRef={passwordRef} name="password" autoComplete="current-password" placeholder={copy.auth.passwordPlaceholder} minLength={8} maxLength={256} required error={errors.password}/>
-    <button className="button auth-submit-button" disabled={pending} type="submit">
+    <Button variant="primary" className="auth-submit-button" disabled={pending} type="submit">
       {pending && <span className="auth-spinner" aria-hidden="true"/>}{pending ? copy.auth.pending : copy.auth.login}
       {!pending && <span aria-hidden="true">→</span>}
-    </button>
+    </Button>
   </form>;
 }

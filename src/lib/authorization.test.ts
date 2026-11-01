@@ -42,6 +42,13 @@ describe("server authorization policy", () => {
     expect(isAuthorized(subject, "core.audit.read", { ownerId: "another-user" })).toBe(true);
   });
 
+  it("grants a server-resolved platform admin every capability and scope", () => {
+    const subject = { userId: "admin-1", teamIds: [], grants: [], isPlatformAdmin: true };
+    for (const permission of ["work.task.read", "building.record.update", "guarantee.case.manage", "car_booking.module.admin", "duct_rental.settings.manage", "core.module.manage"]) {
+      expect(isAuthorized(subject, permission, { ownerId: "other-user", teamId: "other-team" })).toBe(true);
+    }
+  });
+
   it("throws a typed error when a server guard rejects access", () => {
     expect(() => assertAuthorized(null, "core.role.manage")).toThrow(AuthorizationError);
   });

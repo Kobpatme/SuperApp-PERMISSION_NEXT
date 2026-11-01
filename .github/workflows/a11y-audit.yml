@@ -1,0 +1,78 @@
+name: Accessibility Audit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  a11y-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run dev &
+        env:
+          PORT: 3000
+      - run: sleep 10
+      - name: Run Axe Accessibility Audit
+        run: |
+          npx playwright install --with-deps chromium
+          if [ -z "${TEST_EMAIL:-}" ] || [ -z "${TEST_PASSWORD:-}" ]; then
+            echo 'Required protected a11y test secrets are unavailable.' >&2
+            exit 1
+          fi
+          node -e "
+            const { chromium } = require('playwright');
+            const { injectAxe, checkA11y } = require('axe-playwright');
+
+
+            async function runA11yAudit() {
+              const browser = await chromium.launch({ headless: true });
+              const page = await browser.newPage();
+
+
+              // Login first
+              await page.goto('http://127.0.0.1:3000/login');
+              await page.fill('input[name="email"]', process.env.TEST_EMAIL);
+              await page.fill('input[name="password"]', process.env.TEST_PASSWORD);
+              await page.click('button[type="submit"]');
+              await page.waitForURL('**/duct-rental');
+
+
+              // Test pages
+              const pages = [
+                '/duct-rental',
+                '/duct-rental/new',
+                '/duct-rental/renewal',
+                '/duct-rental/tracking',
+                '/duct-rental/tasks',
+              ];
+
+
+              for (const url of pages) {
+                await page.goto('http://127.0.0.1:3000' + url);
+                await page.waitForLoadState('networkidle');
+                await page.injectScript('axe-core');
+                const results = await page.evaluate(() => axe.run());
+                console.log('Page:', page.url());
+                console.log('Violations:', results.violations.length);
+                results.violations.forEach(v => {
+                  console.log('  -', v.id, v.impact, v.description);
+                  v.nodes.forEach(n => console.log('    ', n.target));
+                });
+              }
+
+
+              await browser.close();
+            }
+            runA11yAudit().catch(console.error);
+          "
+      env:
+        TEST_EMAIL: ${{ secrets.A11Y_TEST_EMAIL }}
+        TEST_PASSWORD: ${{ secrets.A11Y_TEST_PASSWORD }}

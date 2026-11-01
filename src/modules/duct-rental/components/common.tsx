@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { cloneElement, isValidElement, useEffect, useId, useRef, type ReactNode } from "react";
+import { cloneElement, createContext, isValidElement, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { ConfirmDialog, Dialog } from "@/components/ui/dialog";
 import { requestPhases, type RequestPhase } from "../domain/source-policy";
 import styles from "../ui-shared/ui-shared.module.css";
 export const phaseLabels: Record<RequestPhase, string> = { DESIGN: "ออกแบบ", DRAFTSMAN: "เขียนแบบ", PERMISSION_1: "ขออนุญาต 1", INSTALL: "ติดตั้ง", DRAFTSMAN_2: "แบบหลังติดตั้ง", PERMISSION_2: "ขออนุญาต 2", "3RD_PARTY_1": "แจ้งอัตรา", PERMISSION_3: "ชำระเงิน", "3RD_PARTY_2": "สัญญา", COMPLETE: "เสร็จสมบูรณ์" };
@@ -100,17 +101,28 @@ export function Field({ label, children, error, full }: { label: string; childre
   return <div className={`${styles.field} ${full ? styles.full : ""}`}><label htmlFor={controlId}>{label}</label>{control}{error && <small id={id} className={styles.error}>{error}</small>}</div>;
 }
 export function Notice({ text, error = false }: { text?: string; error?: boolean }) { return text ? <div className={`${styles.notice} ${error ? styles.alert : ""}`} role={error ? "alert" : "status"}>{text}</div> : null; }
-export function Modal({ title, close, children }: { title: string; close: () => void; children: ReactNode }) {
-  const ref = useRef<HTMLDialogElement>(null), titleId = useId();
-  useEffect(() => {
-    const dialog = ref.current, trigger = document.activeElement;
-    dialog?.showModal();
-    return () => {
-      dialog?.close();
-      queueMicrotask(() => { if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus({ preventScroll: true }); });
-    };
-  }, []);
-  return <dialog ref={ref} className={styles.modal} aria-labelledby={titleId} onCancel={event => { event.preventDefault(); close(); }}><div className={styles.toolbar}><h2 id={titleId}>{title}</h2><button className={styles.button} type="button" onClick={close}>ปิด</button></div><div className={styles.modalBody}>{children}</div></dialog>;
+const ModalState = createContext<((state: { busy: boolean; dirty: boolean }) => void) | null>(null);
+/** Child editors retain ownership of their draft and pending state; no API contracts change. */
+export function useDuctModalState(busy: boolean, dirty: boolean) {
+  const update = useContext(ModalState);
+  useEffect(() => { update?.({ busy, dirty }); return () => update?.({ busy: false, dirty: false }); }, [update, busy, dirty]);
+}
+/** Compatibility adapter for all existing Duct popup callers. Native top-layer/focus is Core-owned. */
+export function Modal({ title, close, children, busy = false }: { title: string; close: () => void; children: ReactNode; busy?: boolean }) {
+  const [editor, setEditor] = useState({ busy: false, dirty: false });
+  const [discard, setDiscard] = useState(false);
+  const answer = useRef<((value: boolean) => void) | null>(null);
+  const pending = busy || editor.busy;
+  useEffect(() => () => { answer.current?.(false); }, []);
+  const finish = (value: boolean) => { setDiscard(false); answer.current?.(value); answer.current = null; };
+  return <ModalState.Provider value={setEditor}>
+    <Dialog open title={title} busy={pending} className={styles.modal} onOpenChange={open => { if (!open) close(); }} beforeClose={() => {
+      if (!editor.dirty) return true;
+      setDiscard(true);
+      return new Promise<boolean>(resolve => { answer.current = resolve; });
+    }}><fieldset className={styles.modalFieldset} disabled={pending}>{children}</fieldset></Dialog>
+    <ConfirmDialog open={discard} title="ทิ้งข้อมูลที่ยังไม่ได้บันทึกหรือไม่" consequence="ข้อมูลในหน้าต่างนี้จะไม่ถูกบันทึก" confirmLabel="ทิ้งข้อมูล" pending={pending} onCancel={() => finish(false)} onConfirm={() => finish(true)} />
+  </ModalState.Provider>;
 }
 export function PhaseTabs({ id, phase, statuses }: { id: string; phase: RequestPhase; statuses: Record<string, string> }) {
   return <nav className={styles.steps} aria-label="ขั้นตอนคำขอ">{requestPhases.filter(item => item !== "COMPLETE").map(item => <Link key={item} className={`${styles.step} ${phase === item ? styles.current : ""}`} href={`/duct-rental/${id}/${phaseViews[item]}`} aria-current={phase === item ? "page" : undefined}>{phaseLabels[item]} · {statuses[item] === "done" ? "เสร็จ" : statuses[item] === "accepted" ? "รับแล้ว" : "รอรับ"}</Link>)}</nav>;

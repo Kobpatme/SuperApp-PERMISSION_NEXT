@@ -1,6 +1,6 @@
 /* Shared authentication presentation. */
 .auth-page { min-height:100dvh; display:grid; place-items:center; padding:clamp(var(--space-5),5vw,var(--space-10)); background:var(--color-bg); }
-.auth-shell { width:min(1080px,100%); min-height:640px; display:grid; grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-xl); overflow:hidden; background:var(--color-surface); box-shadow:var(--shadow-lg); }
+.auth-shell { width:min(1080px,100%); min-height:640px; display:grid; grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-xl); overflow:hidden; background:var(--color-surface); box-shadow:var(--shadow-raised); }
 .auth-intro { display:flex; flex-direction:column; padding:clamp(var(--space-8),5vw,var(--space-10)); color:var(--color-on-brand-deep); background:var(--color-brand-deep); }
 .auth-brand { display:flex; align-items:center; gap:var(--space-3); font-family:var(--font-heading); font-size:var(--text-h2); line-height:1.35; }
 .auth-brand-mark { display:grid; place-items:center; width:40px; height:40px; flex:0 0 40px; border:var(--border-width) solid currentColor; border-radius:var(--radius-md); font-size:var(--text-body-strong); font-weight:800; letter-spacing:.02em; }
@@ -15,7 +15,7 @@
 .auth-form { display:grid; gap:var(--space-4); margin-top:var(--space-7); }
 .auth-field { min-width:0; display:grid; gap:var(--space-2); }
 .auth-field label { font-size:var(--text-body-strong); font-weight:600; color:var(--color-text); }
-.auth-form input:not([type=hidden]) { width:100%; min-width:0; height:48px; border:var(--border-width) solid var(--color-border-strong); border-radius:var(--radius-md); padding:0 var(--space-3); background:var(--color-surface); color:var(--color-text); font:inherit; font-size:var(--text-body-strong); transition:border-color var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast) var(--ease-out); }
+.auth-form input:not([type=hidden]) { width:100%; min-width:0; height:48px; border:var(--border-width) solid var(--color-border-strong); border-radius:var(--radius-md); padding:0 var(--space-3); background:var(--color-surface-subtle); box-shadow:var(--shadow-inset); color:var(--color-text); font:inherit; font-size:var(--text-body-strong); transition:border-color var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast) var(--ease-out); }
 .auth-form input::placeholder { color:var(--color-text-muted); opacity:.9; }
 .auth-form input:hover { border-color:var(--color-text-muted); }
 .auth-form input[aria-invalid="true"] { border-color:var(--color-danger); }
@@ -26,10 +26,8 @@
 .auth-visibility { position:absolute; inset-inline-end:4px; top:2px; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:var(--radius-md); background:transparent; color:var(--color-text-muted); cursor:pointer; }
 .auth-field-hint { color:var(--color-danger); font-size:var(--text-caption); line-height:1.6; overflow-wrap:anywhere; }
 .auth-field-hint:empty { display:none; }
-.button { display:inline-flex; align-items:center; justify-content:center; gap:12px; border:0; border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); background:var(--color-brand); color:var(--color-on-brand); font-weight:600; }
-.auth-page .button { gap:var(--space-3); font:inherit; font-weight:700; }
-.auth-submit-button { width:100%; min-height:48px; cursor:pointer; font-size:var(--text-body-strong); transition:background var(--motion-fast) var(--ease-out),transform var(--motion-fast) var(--ease-out); }
-.auth-submit-button:hover { background:var(--color-brand-hover); }
+.auth-page .auth-submit-button { width:100%; min-height:48px; cursor:pointer; font-size:var(--text-body-strong); transition:background var(--motion-fast) var(--ease-out),transform var(--motion-fast) var(--ease-out); }
+.auth-submit-button:hover { background:var(--color-brand-hover); color:var(--color-on-brand); }
 .auth-submit-button:active:not(:disabled) { transform:translateY(1px); }
 .auth-submit-button:disabled { cursor:wait; opacity:.75; }
 .auth-error { display:flex; gap:var(--space-2); border:var(--border-width) solid var(--color-danger); border-radius:var(--radius-md); padding:var(--space-3); color:var(--color-danger); background:var(--color-danger-soft); font-size:var(--text-body-strong); line-height:1.7; overflow-wrap:anywhere; }

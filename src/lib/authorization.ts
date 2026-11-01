@@ -21,6 +21,8 @@ export type AuthorizationSubject = {
   userId: string;
   teamIds: readonly string[];
   grants: readonly PermissionGrant[];
+  /** Derived only from the server-loaded canonical platform_admin role. */
+  isPlatformAdmin?: boolean;
 };
 
 export function isRole(value: unknown): value is Role {
@@ -57,6 +59,7 @@ export function isAuthorized(
   resource: ResourceScope = {},
 ) {
   if (!subject || !permission) return false;
+  if (subject.isPlatformAdmin) return true;
   return subject.grants.some((grant) => grant.permission === permission && grantCoversResource(grant, subject, resource));
 }
 

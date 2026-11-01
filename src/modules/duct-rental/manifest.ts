@@ -10,4 +10,8 @@ export const ductRentalManifest: ModuleManifest = {
   lifecycle: "active", enabledByDefault: false,
   capabilities: ductRentalCapabilities, entryPermissions: ["duct_rental.module.view"],
   searchTerms: ["METRIX", "เช่าท่อ", "ท่อร้อยสาย", "ต่อสัญญา", "พาดสาย", "PEA", "MEA"],
+  navigationItems: [
+    { href: "/duct-rental", label: "เช่าท่อร้อยสาย", icon: "buildings", activeMatch: "prefix" },
+    { href: "/duct-rental/communication-cable", label: "พาดสายสื่อสาร", icon: "work", activeMatch: "prefix" },
+  ],
 };

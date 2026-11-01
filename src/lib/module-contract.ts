@@ -19,6 +19,12 @@ export const moduleManifestSchema = z.object({
   enabledByDefault: z.boolean(), capabilities: z.array(capabilitySchema).min(1),
   entryPermissions: z.array(z.string()).min(1),
   dashboardProvider: z.string().optional(), searchProvider: z.string().optional(),
+  navigationItems: z.array(z.object({
+    href: z.string().regex(/^\/[a-z][a-z0-9/?=&_-]*$/),
+    label: z.string().min(1),
+    icon: z.string().min(1),
+    activeMatch: z.enum(["exact", "prefix", "query"]).optional().default("exact"),
+  })).optional(),
 });
 export type ModuleManifest = z.infer<typeof moduleManifestSchema>;
 

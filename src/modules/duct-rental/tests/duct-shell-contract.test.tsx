@@ -94,11 +94,13 @@ describe("duct shell contract: composition and nav ownership", () => {
     expect(markup).toContain('data-ui-screen="duct-rental-request-list"');
     // No giant bordered action band / no dependency on .moduleHeaderActions
     expect(markup).not.toContain("moduleHeaderActions");
-    // ModuleNav is rendered standalone (full-width lightweight), owns its links
-    expect(markup).toContain("คำขอเช่าท่อ");
-    expect(markup).toContain("ยกเลิกการใช้ท่อ");
-    expect(markup).toContain("ติดตามต่อสัญญาและยกเลิก");
-    expect(markup).toContain("งานลงนามและลายเซ็น");
+    // ModuleNav is rendered standalone (full-width lightweight), owns its links — two children only
+    expect(markup).toContain("เช่าท่อร้อยสาย");
+    expect(markup).toContain("พาดสายสื่อสาร");
+    expect(markup).toContain("ต่อสัญญารายปี");
+    expect(markup).toContain("ขอยกเลิกการใช้ท่อ");
+    expect(markup).toContain("ติดตามงานต่อสัญญาและยกเลิก");
+    expect(markup).not.toContain("งานลงนามและลายเซ็น");
     // RefreshBar present (refresh button text)
     expect(markup).toContain("อัปเดตข้อมูล");
   });
@@ -109,7 +111,7 @@ describe("duct shell contract: composition and nav ownership", () => {
     expect(markup).toContain("aria-current=\"page\"");
     expect(markup).toContain("aria-current=\"page\"");
     // active link is the request list entry
-    expect(markup.indexOf("คำขอเช่าท่อ")).toBeGreaterThan(-1);
+    expect(markup.indexOf("เช่าท่อร้อยสาย")).toBeGreaterThan(-1);
   });
 
   it("gates PageHeader create (primary) and settings (secondary) behind permissions", () => {
@@ -125,6 +127,27 @@ describe("duct shell contract: composition and nav ownership", () => {
     expect(denied).not.toContain('href="/duct-rental/new"');
     expect(denied).not.toContain('href="/duct-rental/settings"');
   });
+
+  it("shows renewal/cancellation/tracking entry points to module-view-only users, hides them without module view", () => {
+      const viewOnly = renderToStaticMarkup(<RequestListWorkspace permissions={["duct_rental.module.view"]} userId="u-1" />);
+      expect(viewOnly).toContain('href="/duct-rental/renewal"');
+      expect(viewOnly).toContain("ต่อสัญญารายปี");
+      expect(viewOnly).toContain('href="/duct-rental/cancellation"');
+      expect(viewOnly).toContain("ขอยกเลิกการใช้ท่อ");
+      expect(viewOnly).toContain('href="/duct-rental/tracking"');
+      expect(viewOnly).toContain("ติดตามงานต่อสัญญาและยกเลิก");
+      // create/settings mutation links remain gated behind their own perms
+      expect(viewOnly).not.toContain('href="/duct-rental/new"');
+      expect(viewOnly).not.toContain("ตั้งค่าผู้ประสานงาน");
+
+      const noView = renderToStaticMarkup(<RequestListWorkspace permissions={[]} userId="u-1" />);
+      expect(noView).not.toContain('href="/duct-rental/renewal"');
+      expect(noView).not.toContain("ต่อสัญญารายปี");
+      expect(noView).not.toContain('href="/duct-rental/cancellation"');
+      expect(noView).not.toContain("ขอยกเลิกการใช้ท่อ");
+      // TrackingSummary renders tracking links regardless of permissions; header action link is gated
+      expect(noView).not.toContain("ติดตามงานต่อสัญญาและยกเลิก");
+    });
 
   it("process / tracking create actions remain in PageHeader (not in nav wrapper)", () => {
     const renewal = renderToStaticMarkup(<ProcessList kind="renewal" permissions={["duct_rental.module.view", "duct_rental.renewal.create"]} />);
@@ -237,7 +260,7 @@ describe("signature compact tools (deleg_8aa6d18e): PageHeader → ModuleNav →
   it("renders PageHeader, ModuleNav, then signatureTools grouping RefreshBar, notices, signatureSearch + manage action in exact order", () => {
     const markup = renderToStaticMarkup(<SignatureWorkspace userId="u-1" permissions={accessState.permissions} />);
     const header = markup.indexOf("งานลงนาม NT Form");
-    const nav = markup.indexOf("งานลงนามและลายเซ็น");
+    const nav = markup.indexOf("พาดสายสื่อสาร");
     const refresh = markup.indexOf("อัปเดตข้อมูล");
     const search = markup.indexOf("ค้นหางานลงนาม");
     const manage = markup.indexOf("จัดการลายเซ็นของฉัน");
@@ -253,7 +276,7 @@ describe("signature compact tools (deleg_8aa6d18e): PageHeader → ModuleNav →
     expect(raw).toContain("styles.signatureTools");
     expect(raw).not.toMatch(/<PageHeader[^>]*\bactions\b/);
     // ModuleNav is self-closing (owns its links only); the manage action is not a child of it
-    expect(raw).toContain('<ModuleNav current="tasks" />');
+    expect(raw).toContain('<ModuleNav current="requests" />');
     expect(raw).not.toMatch(/<ModuleNav\b[^>]*>[^<]*จัดการลายเซ็นของฉัน/);
     const allowed = renderToStaticMarkup(<SignatureWorkspace userId="u-1" permissions={accessState.permissions} />);
     const denied = renderToStaticMarkup(<SignatureWorkspace userId="u-1" permissions={["duct_rental.module.view"]} />);
@@ -355,7 +378,7 @@ describe("duct phase 2: detail shell order (PageHeader → ModuleNav → SyncUti
     const markup = renderToStaticMarkup(<RequestWorkspace id="r-1" userId="u-1" created />);
     detailRequestsHolder.value = null;
     const header = markup.indexOf("เช่าท่อร้อยสาย");
-    const nav = markup.indexOf("คำขอเช่าท่อ");
+    const nav = markup.indexOf("พาดสายสื่อสาร");
     const refresh = markup.indexOf("อัปเดตข้อมูล");
     const tabs = markup.indexOf("ขั้นตอนคำขอ");
     expect(header).toBeGreaterThan(-1);
@@ -377,7 +400,7 @@ describe("duct phase 2: detail shell order (PageHeader → ModuleNav → SyncUti
     const paneStart = raw.indexOf("function RenewalPane");
     const paneReturn = raw.slice(paneStart, raw.indexOf("function CancellationForm"));
     const h1 = paneReturn.indexOf("<PageHeader");
-    const nav = paneReturn.indexOf('<ModuleNav current="renewal" />');
+    const nav = paneReturn.indexOf('<ModuleNav current="requests" />');
     const refresh = paneReturn.indexOf("<RefreshBar");
     expect(h1).toBeGreaterThan(-1);
     expect(nav).toBeGreaterThan(h1);
@@ -393,7 +416,7 @@ describe("duct phase 2: detail shell order (PageHeader → ModuleNav → SyncUti
     const paneStart = raw.indexOf("function CancellationPane");
     const paneReturn = raw.slice(paneStart);
     const h1 = paneReturn.indexOf("<PageHeader");
-    const nav = paneReturn.indexOf('<ModuleNav current="cancellation" />');
+    const nav = paneReturn.indexOf('<ModuleNav current="requests" />');
     const refresh = paneReturn.indexOf("<RefreshBar");
     expect(h1).toBeGreaterThan(-1);
     expect(nav).toBeGreaterThan(h1);
@@ -481,9 +504,11 @@ describe("duct phase 2: current renewal/cancellation/tracking nav", () => {
     expect(markup).toContain("ยกเลิกการใช้ท่อ");
   });
 
-  it("ModuleNav includes tracking destination", () => {
+  it("tracking workspace shows เช่าท่อร้อยสาย as active nav entry", () => {
     const markup = renderToStaticMarkup(<TrackingWorkspace />);
-    expect(markup).toContain("ติดตามต่อสัญญาและยกเลิก");
+    expect(markup).toContain("เช่าท่อร้อยสาย");
+    expect(markup).toContain("พาดสายสื่อสาร");
+    expect(markup).not.toContain("ติดตามต่อสัญญาและยกเลิก");
   });
 });
 

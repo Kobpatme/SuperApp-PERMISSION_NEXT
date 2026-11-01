@@ -17,6 +17,7 @@
   --color-on-brand-deep: #FFFFFF;
   --color-focus-ring: #244fb8;
   --color-brand-strong: #1E40AF;
+  --color-brand-mark: #1E40AF;
   --color-brand-hover: #2563EB;
   --color-brand-soft: #DBEAFE;
   --color-on-brand: #FFFFFF;
@@ -41,6 +42,9 @@
   --color-nav-accent: #244fb8;
   --color-nav-focus: #244fb8;
   --size-shell-header: 64px;
+  --size-shell-header-mobile: 72px;
+  --size-shell-sidebar-expanded: 248px;
+  --size-shell-sidebar-collapsed: 80px;
   --radius-xs: 3px; --radius-sm: 5px; --radius-md: 8px; --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-pill: 999px;
@@ -50,6 +54,8 @@
   --shadow-sm: 0 3px 12px rgb(15 23 42 / 9%);
   --shadow-md: 0 12px 32px rgb(15 23 42 / 18%);
   --shadow-lg: 0 20px 48px rgb(15 23 42 / 22%);
+  --shadow-raised: -3px -3px 8px var(--color-highlight), 3px 3px 8px var(--color-shadow-ink);
+  --shadow-inset: inset 2px 2px 4px var(--color-shadow-ink), inset -2px -2px 4px var(--color-highlight);
   --border-width: 1px;
   --focus-ring-width: 3px;
   --focus-ring-offset: 2px;
@@ -70,7 +76,7 @@
   --font-ui: var(--font-nunito), var(--font-thai), sans-serif;
   --font-heading: var(--font-manrope), var(--font-thai), sans-serif;
   --font-mono: var(--font-code), monospace;
-  --z-sticky: 100; --z-dropdown: 220; --z-module: 90; --z-skip: 1000;
+  --z-sticky: 100; --z-dropdown: 220; --z-popover: 220; --z-toast: 300; --z-module: 90; --z-skip: 1000;
   --motion-fast: 120ms; --motion-base: 200ms; --motion-slow: 320ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
@@ -92,6 +98,7 @@ html[data-theme="dark"] {
   --color-on-brand-deep: #F8FAFC;
   --color-focus-ring: #93C5FD;
   --color-brand-strong: #3B82F6;
+  --color-brand-mark: #BFDBFE;
   --color-brand-hover: #60A5FA;
   --color-brand-soft: #173A5E;
   --color-on-brand: #0F172A;
@@ -118,6 +125,8 @@ html[data-theme="dark"] {
   --shadow-sm: 0 3px 12px rgb(0 0 0 / 22%);
   --shadow-md: 0 12px 32px rgb(0 0 0 / 35%);
   --shadow-lg: 0 20px 48px rgb(0 0 0 / 40%);
+  --shadow-raised: -3px -3px 8px var(--color-highlight), 3px 3px 8px var(--color-shadow-ink);
+  --shadow-inset: inset 2px 2px 4px var(--color-shadow-ink), inset -2px -2px 4px var(--color-highlight);
 }
 
 @media (prefers-reduced-motion: reduce) {

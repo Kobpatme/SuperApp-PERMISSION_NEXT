@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { matchesBuildingMapCategory, summarizeBuildingMapFees, type BuildingMapExpenseCategory } from "@/lib/building-map-domain";
 import { LongdoMapCanvas, type MapPoint } from "./longdo-map-canvas";
+import { PageHeader } from "@/components/ui/page-header";
 
 type Mode = "buildings" | "status" | "expense" | "heatmap";
 type HeatMetric = "building_count" | "fee_count" | "amount";
@@ -94,7 +95,7 @@ export function MapWorkspace({ buildings, apiKey, selectedBuildingId = "", initi
   }, []);
 
   return <main className="building-map-page">
-    <header className="building-map-header"><div><Link href="/buildings" className="building-map-back">← อาคารและค่าใช้จ่าย</Link><h1>แผนที่อาคาร</h1><p>ค้นหาอาคารและตรวจสอบข้อมูลค่าใช้จ่ายตามเงื่อนไขปัจจุบัน</p></div>
+    <header className="building-map-header"><PageHeader title="แผนที่อาคาร" description="ค้นหาอาคารและตรวจสอบข้อมูลค่าใช้จ่ายตามเงื่อนไขปัจจุบัน" parent={{label:"ข้อมูลอาคาร",href:"/buildings"}} />
       <div className="building-map-summary" aria-live="polite"><div><strong>{visible.length.toLocaleString("th-TH")}</strong><span>อาคารมีพิกัด</span></div><div><strong>{buildings.length.toLocaleString("th-TH")}</strong><span>อาคารในขอบเขต</span></div>
         {(mode === "expense" || mode === "heatmap") && <div><strong>{summary.count.toLocaleString("th-TH")}</strong><span>รายการตามเงื่อนไข · {money(summary.amount)}</span></div>}</div>
     </header>

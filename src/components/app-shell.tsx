@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ModuleNav, type WorkNavItem } from "@/components/module-nav";
 import { WorkspaceThemeToggle } from "@/components/workspace-theme-toggle";
 import { AccountControl } from "@/components/account-control";
 import { WorkspaceSearch } from "@/components/workspace-search";
 import type { ModuleId } from "@/lib/module-registry";
 import { WorkspaceIcon } from "@/components/workspace-icon";
+
 import Link from "next/link";
 import styles from "@/styles/app-shell.module.css";
+import { Dialog } from "@/components/ui/dialog";
 
 export function AppShell({ children, displayName = "ผู้ใช้งาน", allowedModuleIds, canAdmin = false, workNavigation = [], notificationCenter, scopeLabel }: { children: React.ReactNode; displayName?: string; allowedModuleIds: ModuleId[]; canAdmin?: boolean; workNavigation?: WorkNavItem[]; notificationCenter?: React.ReactNode; scopeLabel?: string }) {
   const [collapsed, setCollapsed] = useState(false);
-  const mobileDialog = useRef<HTMLDialogElement>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
@@ -33,7 +35,7 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
     <a className="skip-link" href="#workspace-content">ข้ามไปยังเนื้อหาหลัก</a>
     <div className={`${styles.header} border-b border-[var(--color-border)] bg-[var(--color-surface)]`} data-shell-header>
       <header className={`${styles.topbar} flex items-center gap-4`}>
-        <button className={`${styles.mobileToggle} transition-colors hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]`} type="button" aria-label="เปิดเมนูพื้นที่ทำงาน" aria-haspopup="dialog" aria-controls="mobile-workspace-menu" onClick={() => mobileDialog.current?.showModal()}><span className="sidebar-menu-icon" aria-hidden="true"><span/><span/><span/></span></button>
+        <button className={`${styles.mobileToggle} transition-colors hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]`} type="button" aria-label="เปิดเมนูพื้นที่ทำงาน" aria-haspopup="dialog" onClick={() => setMobileOpen(true)}><span className="sidebar-menu-icon" aria-hidden="true"><span/><span/><span/></span></button>
         <Link className={`${styles.brand} transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2`} href="/" aria-label="Permission Next — ภาพรวม"><span className={`${styles.brandMark} shadow-sm`} aria-hidden="true">PN</span><span className={styles.brandText}><strong>Permission Next</strong><small>พื้นที่ทำงานของทีม</small></span></Link>
         <div className={`${styles.search} min-w-0 flex-1`}><WorkspaceSearch allowedModuleIds={allowedModuleIds} contained/></div>
         <div className={`${styles.actions} flex items-center gap-2`}>
@@ -54,12 +56,9 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
       <ModuleNav allowedModuleIds={allowedModuleIds} collapsed={collapsed} canAdmin={canAdmin} workNavigation={workNavigation} />
       {!collapsed && scopeLabel && <p className="sidebar-scope text-xs leading-5 text-[var(--color-nav-muted)]">คุณเห็นข้อมูลของ:<br/>{scopeLabel}</p>}
     </aside>
-    <dialog className={`${styles.drawer} shadow-lg`} id="mobile-workspace-menu" ref={mobileDialog} aria-label="เมนูพื้นที่ทำงาน" onClick={(event) => { if (event.target === mobileDialog.current) mobileDialog.current?.close(); }}>
-      <div>
-        <div className={`${styles.drawerHeading} flex items-center justify-between`}><strong>พื้นที่ทำงาน</strong><button className="round-btn transition-colors hover:bg-[var(--color-nav-subtle)]" type="button" aria-label="ปิดเมนูพื้นที่ทำงาน" onClick={() => mobileDialog.current?.close()}><WorkspaceIcon name="close" size={20}/></button></div>
-        <ModuleNav idPrefix="mobile-sidebar-section" allowedModuleIds={allowedModuleIds} canAdmin={canAdmin} workNavigation={workNavigation} onNavigate={() => mobileDialog.current?.close()} />
-      </div>
-    </dialog>
+    <Dialog open={mobileOpen} title="พื้นที่ทำงาน" className={styles.drawer} onOpenChange={setMobileOpen}>
+      <ModuleNav idPrefix="mobile-sidebar-section" allowedModuleIds={allowedModuleIds} canAdmin={canAdmin} workNavigation={workNavigation} onNavigate={() => setMobileOpen(false)} />
+    </Dialog>
     <main className={`${styles.main} min-w-0`} data-shell-main id="workspace-content" tabIndex={-1}>{children}</main>
   </div>;
 }

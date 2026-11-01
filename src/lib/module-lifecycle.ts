@@ -25,7 +25,7 @@ export const readModuleSettings = cache(async () => {
     throw new Error("Module lifecycle state unavailable");
   }
 });
-export async function moduleEnabled(module: ModuleManifest) {
-  try { const settings = await readModuleSettings(); return effectiveModuleEnabled(module, settings.rows.find(row => row.moduleId === module.id)?.enabled); }
+export async function moduleEnabled(module: ModuleManifest, isPlatformAdmin = false) {
+  try { const settings = await readModuleSettings(); return effectiveModuleEnabled(module, settings.rows.find(row => row.moduleId === module.id)?.enabled, isPlatformAdmin); }
   catch { return false; }
 }

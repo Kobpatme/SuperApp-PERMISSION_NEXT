@@ -13,6 +13,9 @@ export const modules = defineModuleRegistry([
     description: "จองและคืนรถ บันทึกระหว่างทาง และรายงานการใช้รถ OSP",
     purpose: "การใช้รถของทีม", repository: "docs/legacy-car-booking",
     accent: "blue", searchTerms: ["จองรถ", "คืนรถ", "OSP"],
+    navigationItems: [
+      { href: "/car-booking", label: "ระบบจองรถ", icon: "car", activeMatch: "prefix" },
+    ],
   },
   {
     id: "work",
@@ -43,6 +46,10 @@ export const modules = defineModuleRegistry([
     repository: "Kobpatme/Permission_Next",
     accent: "blue",
     searchTerms: ["permission", "อาคาร", "ค่าใช้จ่าย", "เอกสาร", "nas", "drawing"],
+    navigationItems: [
+      { href: "/buildings", label: "ข้อมูลอาคาร", icon: "buildings", activeMatch: "prefix" },
+      { href: "/buildings/new", label: "เพิ่มอาคาร", icon: "info", activeMatch: "exact" },
+    ],
   },
   {
     id: "guarantees",
@@ -58,6 +65,10 @@ export const modules = defineModuleRegistry([
     repository: "Kobpatme/maxiwa",
     accent: "amber",
     searchTerms: ["คืนเงิน", "ประกัน", "อาคาร", "ติดตาม", "เอกสาร"],
+    navigationItems: [
+      { href: "/guarantees", label: "ภาพรวมเงินประกัน", icon: "check", activeMatch: "prefix" },
+      { href: "/guarantees?view=installation-team", label: "ทีมติดตั้ง", icon: "team", activeMatch: "query" },
+    ],
   },
 ]);
 

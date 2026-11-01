@@ -46,13 +46,13 @@ beforeEach(() => {
 });
 
 describe("Phase 1: ModuleNav renewal destination and aria-current", () => {
-  it("renders the renewal destination /duct-rental/renewal with current=renewal active", () => {
-    const markup = renderToStaticMarkup(<DuctModuleNav current="renewal" />);
-    expect(markup).toContain("ต่อสัญญารายปี");
-    expect(markup).toContain('href="/duct-rental/renewal"');
-    expect(markup).toContain("aria-current=\"page\"");
+  it("renders the requests destination /duct-rental with current=requests active", () => {
+    const markup = renderToStaticMarkup(<DuctModuleNav current="requests" />);
+    expect(markup).toContain("เช่าท่อร้อยสาย");
     expect(markup).toContain('href="/duct-rental"');
-    expect(markup).toContain("คำขอเช่าท่อ");
+    expect(markup).toContain("aria-current=\"page\"");
+    expect(markup).toContain("พาดสายสื่อสาร");
+    expect(markup).toContain('href="/duct-rental/communication-cable"');
   });
 
   it("uses semantic nav with aria-label and no text-link underlines", () => {
@@ -65,11 +65,8 @@ describe("Phase 1: ModuleNav renewal destination and aria-current", () => {
 
   it("ModuleNav exposes aria-current on active link for every destination", () => {
     for (const [current, label] of [
-      ["requests", "คำขอเช่าท่อ"],
-      ["renewal", "ต่อสัญญารายปี"],
-      ["cancellation", "ยกเลิกการใช้ท่อ"],
-      ["tracking", "ติดตามต่อสัญญาและยกเลิก"],
-      ["tasks", "งานลงนามและลายเซ็น"],
+      ["requests", "เช่าท่อร้อยสาย"],
+      ["communication-cable", "พาดสายสื่อสาร"],
     ] as const) {
       const markup = renderToStaticMarkup(<DuctModuleNav current={current} />);
       expect(markup).toContain(label);
@@ -146,7 +143,11 @@ describe("Phase 1: Request List metric and filter interactions", () => {
     expect(markup).toContain("ductFilterSearch");
     expect(markup).toContain(">ค้นหา<");
     expect(markup).toContain("ตัวกรองขั้นสูง");
-    expect(markup).toContain("disabled=\"\" type=\"button\" class=\"ui-button ui-button-ghost\">ล้างตัวกรองทั้งหมด");
+    const clearButton = markup.match(/<button\b[^>]*>ล้างตัวกรองทั้งหมด<\/button>/)?.[0];
+    expect(clearButton).toBeDefined();
+    expect(clearButton).toMatch(/\bdisabled=""/);
+    expect(clearButton).toMatch(/\btype="button"/);
+    expect(clearButton).toMatch(/\bclass="ui-button ui-button-ghost"/);
     // desktop toolbar order: search, Search, Advanced Filter, Clear (all one row)
     expect(markup.indexOf(">ค้นหา<") < markup.indexOf("ตัวกรองขั้นสูง")).toBe(true);
     expect(markup.indexOf("ตัวกรองขั้นสูง") < markup.indexOf("ล้างตัวกรองทั้งหมด")).toBe(true);
@@ -161,7 +162,7 @@ describe("Phase 1: Request List metric and filter interactions", () => {
 describe("Phase 1: NT Form single DuctTaskToolbar, permission, and order", () => {
   it("renders ONE DuctTaskToolbar after ModuleNav: sync | divider | search | manage action", () => {
     const markup = renderToStaticMarkup(<SignatureWorkspace userId="u-1" permissions={accessState.permissions} />);
-    const nav = markup.indexOf("งานลงนามและลายเซ็น");
+    const nav = markup.indexOf("เช่าท่อร้อยสาย");
     const refresh = markup.indexOf("อัปเดตข้อมูล");
     const search = markup.indexOf("ค้นหางานลงนาม");
     const manage = markup.indexOf("จัดการลายเซ็นของฉัน");

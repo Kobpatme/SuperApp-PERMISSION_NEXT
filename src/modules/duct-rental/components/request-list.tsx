@@ -35,10 +35,15 @@ export function RequestListWorkspace({ permissions, userId }: { permissions: str
   const clearFilters = () => { setFilters(emptyFilters); setQuery(""); setOffset(0); announce("ล้างตัวกรองทั้งหมด"); };
   const panel = <section className={styles.requestPanel} aria-labelledby="request-list-title">
       <header className={styles.requestPanelHeader}>
-        <div className={styles.panelTitle}><h2 id="request-list-title">รายการคำขอ</h2><span className={styles.countBadge}>{model.data?.counts.total ?? "—"}</span></div>
-        <div className={styles.trackingSummary} aria-label="สรุปการติดตามงาน"><TrackingSummary /></div>
-      </header>
-      <MetricStrip className={styles.ductMetricStrip} label="สรุปจำนวนคำขอตามตัวกรอง" metrics={[
+              <div className={styles.panelTitle}><h2 id="request-list-title">รายการคำขอ</h2><span className={styles.countBadge}>{model.data?.counts.total ?? "—"}</span></div>
+              <div className={styles.trackingSummary} aria-label="สรุปการติดตามงาน"><TrackingSummary canView={permissions.includes("duct_rental.module.view")} /></div>
+            </header>
+            {permissions.includes("duct_rental.request.create") && (
+                <div className={styles.requestPanelActions}>
+                    <ButtonLink className={styles.requestAddButton} variant="primary" href="/duct-rental/new">＋ เพิ่มรายการ</ButtonLink>
+                </div>
+            )}
+            <MetricStrip className={styles.ductMetricStrip} label="สรุปจำนวนคำขอตามตัวกรอง" metrics={[
                     { id: "filtered", label: "รายการที่ตรงตัวกรอง", value: model.data?.counts.total ?? "—" },
                     { id: "waiting", label: "คิวรอรับงาน", value: model.data?.queues.waiting ?? "—", onClick: () => { setFilters({ ...emptyFilters, workflow: "PENDING" }); setOffset(0); }, active: filters.workflow === "PENDING" },
                     { id: "missing", label: "เอกสารค้าง", value: model.data?.queues.missing ?? "—", onClick: () => { setFilters({ ...emptyFilters, documents: "incomplete" }); setOffset(0); }, active: filters.documents === "incomplete" },
@@ -107,6 +112,15 @@ export function RequestListWorkspace({ permissions, userId }: { permissions: str
             )}
             {permissions.includes("duct_rental.request.create") && (
               <ButtonLink variant="primary" href="/duct-rental/new">สร้างคำขอ</ButtonLink>
+            )}
+            {permissions.includes("duct_rental.module.view") && (
+              <ButtonLink variant="secondary" href="/duct-rental/renewal">ต่อสัญญารายปี</ButtonLink>
+            )}
+            {permissions.includes("duct_rental.module.view") && (
+                          <ButtonLink variant="secondary" href="/duct-rental/cancellation">ขอยกเลิกการใช้ท่อ</ButtonLink>
+                        )}
+            {permissions.includes("duct_rental.module.view") && (
+              <ButtonLink variant="ghost" href="/duct-rental/tracking">ติดตามงานต่อสัญญาและยกเลิก</ButtonLink>
             )}
           </>
         )}

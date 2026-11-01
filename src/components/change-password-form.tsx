@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { changePasswordAction } from "@/app/login/actions";
@@ -21,6 +22,6 @@ export function ChangePasswordForm() {
     {state.error && !pending && <div className="auth-error" role="alert">! {state.error}</div>}
     <ChangePasswordFields password={password} confirm={confirm} errors={errors} passwordRef={passwordRef} confirmRef={confirmRef} onPasswordChange={value => { setPassword(value); setErrors({}); }} onConfirmChange={value => { setConfirm(value); setErrors(current => ({ ...current, confirm: undefined })); }}/>
     <div className="auth-hint"><strong>{copy.auth.passwordChecklist}</strong><ul aria-live="polite">{checks.map(([met, label]) => <li key={label} className={met ? "is-met" : ""}><span aria-hidden="true">{met ? "✓" : "○"}</span> {label}</li>)}</ul><span aria-live="polite">{confirm && password === confirm && copy.auth.passwordMatch}</span></div>
-    <button className="button auth-submit-button" disabled={pending}>{pending && <span className="auth-spinner" aria-hidden="true"/>}{pending ? copy.auth.savingPassword : copy.auth.savePassword}<span aria-hidden="true">→</span></button>
+    <Button variant="primary" className="auth-submit-button" disabled={pending} type="submit">{pending && <span className="auth-spinner" aria-hidden="true"/>}{pending ? copy.auth.savingPassword : copy.auth.savePassword}<span aria-hidden="true">→</span></Button>
   </form>;
 }

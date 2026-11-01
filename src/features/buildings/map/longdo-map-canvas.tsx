@@ -59,7 +59,18 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
   const [zoomRevision, setZoomRevision] = useState(0);
   const [clusterIds, setClusterIds] = useState<string[]>([]);
   const initialFitDoneRef = useRef(false);
+  const clusterPickerRef = useRef<HTMLElement>(null);
+
   const clusterCandidates = points.filter((point) => clusterIds.includes(point.id));
+
+  function closeCluster() {
+    setClusterIds([]);
+    // Zoom rebuilds provider markers after a debounce; their DOM is not a stable return target.
+    hostRef.current?.focus();
+  }
+  useEffect(() => {
+    if (clusterIds.length > 1) clusterPickerRef.current?.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [clusterIds]);
 
   useEffect(() => { callbackRef.current = { onSelect, onPick }; }, [onPick, onSelect]);
 
@@ -87,6 +98,7 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
       const data = event as LongdoMarker & { overlay?: LongdoMarker; data?: LongdoMarker };
       const marker = data.overlay ?? data.data ?? data;
       if (marker.buildingIds && marker.clusterLocation && map) {
+
         setClusterIds(marker.buildingIds);
         map.location(marker.clusterLocation);
         map.zoom(Math.min(19, map.zoom() + 2));
@@ -228,11 +240,11 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
   }
 
   return <div className={`building-longdo-map ${className}`}>
-    <div ref={hostRef} className="building-longdo-map-canvas" role="region" aria-label="แผนที่อาคาร Longdo" />
+    <div ref={hostRef} tabIndex={-1} className="building-longdo-map-canvas" role="region" aria-label="แผนที่อาคาร Longdo" />
     {state === "ready" && <button type="button" className="building-longdo-fullscreen" onClick={toggleFullscreen} aria-label={fullscreen ? "ออกจากเต็มหน้าจอ" : "แสดงแผนที่เต็มหน้าจอ"}>{fullscreen ? "ย่อแผนที่" : "เต็มหน้าจอ"}</button>}
-    {clusterCandidates.length > 1 && !heatmap && <section className="building-map-cluster-picker" aria-label="เลือกอาคารในกลุ่ม">
-      <header><strong>เลือกอาคาร ({clusterCandidates.length})</strong><button type="button" aria-label="ปิดรายชื่อกลุ่มอาคาร" onClick={() => setClusterIds([])}>×</button></header>
-      <ul>{clusterCandidates.map((point) => <li key={point.id}><button type="button" onClick={() => { setClusterIds([]); callbackRef.current.onSelect?.(point.id); }}><strong>{point.name}</strong><span>{[point.code, point.status].filter(Boolean).join(" · ")}</span></button></li>)}</ul>
+    {clusterCandidates.length > 1 && !heatmap && <section ref={clusterPickerRef} className="building-map-cluster-picker" aria-label="เลือกอาคารในกลุ่ม" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeCluster(); } }}>
+      <header><strong>เลือกอาคาร ({clusterCandidates.length})</strong><button type="button" aria-label="ปิดรายชื่อกลุ่มอาคาร" onClick={closeCluster}>×</button></header>
+      <ul>{clusterCandidates.map((point) => <li key={point.id}><button type="button" onClick={() => { closeCluster(); callbackRef.current.onSelect?.(point.id); }}><strong>{point.name}</strong><span>{[point.code, point.status].filter(Boolean).join(" · ")}</span></button></li>)}</ul>
     </section>}
     {state !== "ready" && <div className="building-longdo-map-state" role="status">
       {state === "loading" ? "กำลังโหลดแผนที่…" : state === "missing-key" ? <><strong>{copy.feedback.mapUnavailable}</strong><span>{copy.feedback.mapFallback}</span></> : <><strong>โหลดแผนที่ Longdo ไม่สำเร็จ</strong><span>{copy.feedback.mapRetry}</span><button type="button" onClick={() => { setState("loading"); setRetry((value) => value + 1); }}>ลองอีกครั้ง</button></>}

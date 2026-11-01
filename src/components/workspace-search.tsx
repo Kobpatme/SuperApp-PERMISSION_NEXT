@@ -61,7 +61,7 @@ export function WorkspaceSearch({ allowedModuleIds, contained = false }: { allow
   const loading = needle.length >= 2 && !data && !error;
   function goTo(href: string) { setOpen(false); setQuery(""); inputRef.current?.blur(); router.push(href); }
 
-  return <div className="workspace-search" style={contained ? { maxWidth: "100%" } : undefined} ref={rootRef} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false); }}>
+  return <div className="workspace-search core-utility-search" style={contained ? { maxWidth: "100%" } : undefined} ref={rootRef} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false); }}>
     <label className="search" htmlFor="workspace-search-input"><WorkspaceIcon name="search" size={20}/>
       <input ref={inputRef} id="workspace-search-input" value={query} maxLength={200} placeholder="ค้นหาเมนูและรายการติดตาม…" aria-label="ค้นหาเมนูและรายการติดตาม" role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={open ? listboxId : undefined} aria-activedescendant={open && results[active] ? `${listboxId}-${active}` : undefined} autoComplete="off"
         onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); setOpen(true); }} onFocus={() => setOpen(true)}
@@ -72,7 +72,7 @@ export function WorkspaceSearch({ allowedModuleIds, contained = false }: { allow
           if (event.key === "Enter" && open && results[active]) { event.preventDefault(); goTo(results[active].href); }
         }}/><kbd>Ctrl K</kbd>
     </label>
-    {open && <div className="workspace-search-popover">
+    {open && <div className="workspace-search-popover core-utility-popover">
       <p className="workspace-search-heading">{needle ? "ผลการค้นหาตามสิทธิ์ของคุณ" : "ไปยังพื้นที่ทำงาน"}</p>
       <div id={listboxId} role="listbox" aria-label="ผลการค้นหา" className="workspace-search-results">
         {results.map((result, index) => <div key={result.id} id={`${listboxId}-${index}`} role="option" aria-selected={active === index} className={`workspace-search-result ${active === index ? "active" : ""}`} onMouseEnter={() => setActiveIndex(index)} onMouseDown={(event) => event.preventDefault()} onClick={() => goTo(result.href)}>

@@ -58,7 +58,7 @@ vi.mock("@/modules/duct-rental/components/use-resource", () => ({
 }));
 
 import { ProcessList, CancellationForm, CancellationWorkspace, RenewalWorkspace } from "../components/process-workspace";
-import { TrackingWorkspace } from "../components/tracking-workspace";
+import { TrackingWorkspace, TrackingSummary } from "../components/tracking-workspace";
 import { RequestListWorkspace } from "../components/request-list";
 import { MetricGrid } from "@/components/ui/metric-grid";
 
@@ -175,6 +175,23 @@ describe("tracking (/duct-rental/tracking)", () => {
     expect(markup).toContain('href="/duct-rental/cancellation/t-2">เปิดงาน</a>');
     expect(markup).toContain('class="ui-metric ui-metric-neutral"');
   });
+
+  it("TrackingSummary hides links and avoids data fetch when canView is false", () => {
+      trackingHolder.value = null;
+      const markup = renderToStaticMarkup(<TrackingSummary canView={false} />);
+      expect(markup).toBe("");
+      // Verify useResource for tracking was NOT called (trackingHolder.value remains null)
+      expect(trackingHolder.value).toBeNull();
+    });
+
+  it("TrackingSummary renders four tracking links when canView is true", () => {
+    trackingHolder.value = trackingData;
+    const markup = renderToStaticMarkup(<TrackingSummary canView={true} />);
+    expect(markup).toContain('href="/duct-rental/tracking">ติดตามทั้งหมด 3</a>');
+    expect(markup).toContain('href="/duct-rental/tracking?sla=Completed">เสร็จแล้ว 1</a>');
+    expect(markup).toContain('href="/duct-rental/tracking?sla=Near%20Due">ใกล้ครบกำหนด 0</a>');
+    expect(markup).toContain('href="/duct-rental/tracking?sla=Overdue">เกินกำหนด 1</a>');
+  });
 });
 
 describe("cancellation new (/duct-rental/cancellation/new)", () => {
@@ -258,6 +275,32 @@ describe("request list (/duct-rental)", () => {
     expect(allowed).toContain("สร้างคำขอ");
     expect(allowed).toContain("ตั้งค่าผู้ประสานงาน");
   });
+
+  it("shows renewal/cancellation/tracking entry points to module-view-only users", () => {
+      const viewOnly = renderToStaticMarkup(<RequestListWorkspace permissions={["duct_rental.module.view"]} userId="u-1" />);
+      expect(viewOnly).toContain('href="/duct-rental/renewal"');
+      expect(viewOnly).toContain("ต่อสัญญารายปี");
+      expect(viewOnly).toContain('href="/duct-rental/cancellation"');
+      expect(viewOnly).toContain("ขอยกเลิกการใช้ท่อ");
+      expect(viewOnly).toContain('href="/duct-rental/tracking"');
+      expect(viewOnly).toContain("ติดตามงานต่อสัญญาและยกเลิก");
+      // create/settings mutation links remain gated behind their own perms
+      expect(viewOnly).not.toContain('href="/duct-rental/new"');
+      expect(viewOnly).not.toContain("ตั้งค่าผู้ประสานงาน");
+    });
+
+    it("hides renewal/cancellation/tracking entry points without module view", () => {
+      const noView = renderToStaticMarkup(<RequestListWorkspace permissions={[]} userId="u-1" />);
+      expect(noView).not.toContain('href="/duct-rental/renewal"');
+      expect(noView).not.toContain("ต่อสัญญารายปี");
+      expect(noView).not.toContain('href="/duct-rental/cancellation"');
+      expect(noView).not.toContain("ขอยกเลิกการใช้ท่อ");
+      // TrackingSummary renders tracking links regardless of permissions; header action link is gated
+      expect(noView).not.toContain("ติดตามงานต่อสัญญาและยกเลิก");
+      // create/settings mutation links remain gated behind their own perms
+      expect(noView).not.toContain('href="/duct-rental/new"');
+      expect(noView).not.toContain("ตั้งค่าผู้ประสานงาน");
+    });
 
   it("renders metric strip with queue/action buttons", () => {
       const markup = renderToStaticMarkup(<RequestListWorkspace permissions={listPermissions} userId="u-1" />);

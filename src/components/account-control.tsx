@@ -48,7 +48,7 @@ export function AccountControl({ displayName }: { displayName: string }) {
       </button>
       <div
         ref={popoverRef}
-        className={`account-popover${open ? " open" : ""}`}
+        className={`account-popover core-utility-popover${open ? " open" : ""}`}
         id={popoverId}
         role="region"
         aria-label="บัญชีผู้ใช้"

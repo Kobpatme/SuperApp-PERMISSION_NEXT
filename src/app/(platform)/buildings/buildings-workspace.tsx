@@ -12,9 +12,10 @@ import type { PermissionBuildingRow } from "@/lib/permission-building-server";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TruncatedText } from "@/components/ui/truncated-text";
-import { useDialogDismiss } from "@/components/ui/use-dialog-dismiss";
+import { Dialog } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
+import "./buildings-presentation.css";
 
 type FilterKey = "status" | "group" | "type" | "installType" | "surveyType" | "area";
 type Filters = Record<FilterKey, string>;
@@ -30,6 +31,7 @@ const feeGroups = [
 type DocumentFile = { name: string; category: "dwg" | "pdf" | "image"; extension: string; size: number; modifiedAt: string; href: string };
 type DocumentState = { key: string; status: "loading" | "ready" | "empty" | "error"; files: DocumentFile[]; message: string };
 const categoryLabels: Record<DocumentFile["category"], string> = { dwg: "แบบ DWG", pdf: "เอกสาร PDF", image: "รูปภาพ" };
+const detailTabs = [["general", "ภาพรวม"], ["contact", "ผู้ติดต่อ"], ["fee", "ค่าใช้จ่าย"], ["documents", "เอกสาร"]] as const;
 const formatBytes = (size: number) => size < 1024 ? `${number(size)} B` : size < 1024 ** 2 ? `${number(size / 1024)} KB` : `${number(size / 1024 ** 2)} MB`;
 const formatDate = (value: string) => { const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("th-TH"); };
 
@@ -84,8 +86,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
   const [documentReload, setDocumentReload] = useState(0);
   const [copyMessage, setCopyMessage] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const {closing,dismiss}=useDialogDismiss(dialogRef,()=>dialogRef.current?.close());
+  const dismiss = () => setSelectedId(null);
   const selected = buildings.find((item) => item.id === selectedId) ?? null;
   const deferredQuery = useDeferredValue(query);
   const normalizedQuery = deferredQuery.trim().normalize("NFC").toLocaleLowerCase("th-TH");
@@ -150,11 +151,6 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
     return () => window.clearTimeout(timer);
   }, [category, filters, fromDate, heatMetric, mode, province, query, router, selectedId, toDate, view]);
 
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (selected && dialog && !dialog.open) dialog.showModal();
-    if (!selected && dialog?.open) dialog.close();
-  }, [selected]);
 
   useEffect(() => {
     if (tab !== "documents" || !selected) return;
@@ -178,7 +174,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
           size: Number(file.size) || 0, modifiedAt: String(file.modified_at || ""), href }];
       });
       setDocumentState({ key: building.id, status: files.length ? "ready" : "empty", files, message: files.length ? "" : "พบโฟลเดอร์แล้ว แต่ยังไม่มีเอกสารที่ระบบรองรับ" });
-    }).catch(() => { if (timedOut || !controller.signal.aborted) setDocumentState({ key: building.id, status: "error", files: [], message: timedOut ? copy.feedback.documentTimeout : copy.feedback.documentsUnavailable });
+    }).catch((error: unknown) => { if (timedOut || !controller.signal.aborted) setDocumentState({ key: building.id, status: "error", files: [], message: timedOut ? copy.feedback.documentTimeout : error instanceof Error && error.message === "บัญชีนี้ไม่มีสิทธิ์ดูเอกสาร" ? "บัญชีนี้ไม่มีสิทธิ์ดูเอกสาร" : copy.feedback.documentsUnavailable });
     }).finally(() => window.clearTimeout(timer));
     return () => { window.clearTimeout(timer); controller.abort(); };
   }, [selected, tab, documentReload]);
@@ -201,6 +197,15 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
   function retryDocuments() {
     if (selected) setDocumentState({ key: selected.id, status: "loading", files: [], message: copy.feedback.documentLoading });
     setDocumentReload((current) => current + 1);
+  }
+  function tabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: typeof tab) {
+    const index = detailTabs.findIndex(([key]) => key === current);
+    const next = event.key === "Home" ? 0 : event.key === "End" ? detailTabs.length - 1 : event.key === "ArrowRight" ? (index + 1) % detailTabs.length : event.key === "ArrowLeft" ? (index + detailTabs.length - 1) % detailTabs.length : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    const key = detailTabs[next][0];
+    selectTab(key);
+    event.currentTarget.parentElement?.querySelector<HTMLButtonElement>(`#building-detail-tab-${key}`)?.focus();
   }
   async function copyValue(label: string, value: string) {
     try {
@@ -255,7 +260,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
     {selectedDetailFilters.length > 0 && <div className="permission-filter-chips" aria-label="ตัวกรองที่เลือก">
        {selectedDetailFilters.map((key) => <button type="button" key={key} onClick={() => setFilter(key, "")}>{fieldLabels[key]}: <TruncatedText text={filters[key]} lines={1}/> ×</button>)}
     </div>}
-    {copyMessage && <div className="permission-copy-status" role="status">{copyMessage}</div>}
+
 
     {view === "map" && <section className="permission-unified-map" aria-label="แผนที่และรายการข้อมูลอาคาร">
       {truncated && <p className="permission-map-notice" role="status">โหลดแล้ว {number(loadedCount)} จาก {number(total)} อาคารในขอบเขต (สูงสุด {number(scopeCap)} อาคารต่อการโหลดแผนที่) โปรดจำกัดการค้นหาหรือจังหวัดเพื่อดูผลลัพธ์เฉพาะกลุ่ม; รายการที่เลือกอาจถูกโหลดเพิ่มเพื่อเปิดรายละเอียด</p>}
@@ -273,14 +278,15 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
       </div>
     </section>}
 
-    <dialog ref={dialogRef} className={`permission-drawer ${closing ? "is-closing" : ""}`} aria-label={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} onCancel={event=>{event.preventDefault();dismiss();}} onClose={() => setSelectedId(null)}>
+    <Dialog open={Boolean(selected)} title={selected ? `รายละเอียด ${selected.nameTh}` : "รายละเอียดอาคาร"} className="permission-drawer" onOpenChange={open => { if (!open) dismiss(); }}>
        {selected && <><div className="permission-drawer-head"><div><small>รายละเอียดอาคาร</small><h2><TruncatedText text={selected.nameTh} lines={2}/></h2><TruncatedText className="permission-drawer-name-en" text={selected.nameEn || "ไม่มีชื่อภาษาอังกฤษ"} lines={2}/><div className="permission-list-tags">{[selected.group, selected.surveyType, selected.type, selected.installType].filter(Boolean).map((tag) => <em key={tag}><TruncatedText text={tag as string} lines={1}/></em>)}</div><Link className="secondary-action" href={`/buildings/${selected.id}`}>{copy.pages.buildings_id}</Link>{selected.canUpdateLocation && <Link className="secondary-action" href={`/buildings/${selected.id}/edit`}>{copy.buildingEditor.editTitle}</Link>}</div><button type="button" onClick={dismiss} aria-label="ปิดรายละเอียด">×</button></div>
          <div className="permission-drawer-summary"><div><span>สถานะ Permission</span><StatusBadge label={selected.status || "—"} tone={statusTone(selected.status)} /></div><div><span>พื้นที่ / จังหวัด</span><TruncatedText text={[selected.area, selected.province].filter(Boolean).join(" · ") || "—"} lines={2}/></div><div><span>ข้อมูลล่าสุด</span><TruncatedText text={selected.updateDate || "ไม่ระบุวันที่"} lines={1}/></div></div>
         {(!selected.wmPoint || selected.feeReviewRequired || invalidDuration || invalidHorizontal) && <div className="permission-drawer-alert" role="status"><strong>ข้อมูลที่ควรตรวจสอบ</strong>{!selected.wmPoint && <span>ยังไม่มีข้อมูลจุดเชื่อมต่อ WM</span>}{invalidDuration && <span>ระยะดำเนินการไม่ใช่จำนวนวัน</span>}{invalidHorizontal && <span>ระยะสายแนวนอนไม่ใช่จำนวนเมตร</span>}{selected.feeReviewRequired && <span>{copy.feedback.feeReview}</span>}</div>}
         <div className="permission-drawer-tabs" role="tablist" aria-label="รายละเอียดอาคาร">
-          {([ ["general", "ภาพรวม"], ["contact", "ผู้ติดต่อ"], ["fee", "ค่าใช้จ่าย"], ["documents", "เอกสาร"] ] as const).map(([key, label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} onClick={() => selectTab(key)}>{label}{key === "documents" && documentState?.key === selected.id && documentState.status === "ready" ? ` (${documentState.files.length})` : ""}</button>)}
+          {detailTabs.map(([key, label]) => <button type="button" role="tab" id={`building-detail-tab-${key}`} aria-controls="building-detail-panel" tabIndex={tab === key ? 0 : -1} aria-selected={tab === key} key={key} onKeyDown={event => tabKeyDown(event, key)} onClick={() => selectTab(key)}>{label}{key === "documents" && documentState?.key === selected.id && documentState.status === "ready" ? ` (${documentState.files.length})` : ""}</button>)}
         </div>
-        <div className="permission-drawer-content" role="tabpanel">
+        {copyMessage && <div className="permission-copy-status" role="status">{copyMessage}</div>}
+        <div className="permission-drawer-content" role="tabpanel" id="building-detail-panel" aria-labelledby={`building-detail-tab-${tab}`} tabIndex={0}>
           {tab === "general" && <><h3>ข้อมูลการติดตั้ง</h3><dl className="permission-info-grid">
             <Info label="ทำเล / โซน" value={selected.location}/><Info label="ระยะดำเนินการ Permission" value={durationDays}/>
            <Info label="จุดเชื่อมต่อ (WM)" value={selected.wmPoint}/><Info label="ตู้เชื่อมต่อ" value={selected.enclosure}/>
@@ -307,7 +313,7 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
         </div>
         <div className="permission-drawer-actions"><span>{copy.feedback.readOnly}</span><div><button type="button" onClick={dismiss}>ปิด</button></div></div>
       </>}
-    </dialog>
+    </Dialog>
   </section>;
 }
 

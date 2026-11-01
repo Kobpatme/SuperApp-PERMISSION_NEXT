@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
@@ -34,6 +35,7 @@ export function RequestForm({ request, user, permissions, pause, sync }: { reque
   const [busy, setBusy] = useState(false), [dirty, setDirty] = useState(false), [error, setError] = useState(""), [message, setMessage] = useState(""), [errors, setErrors] = useState<Record<string, string>>({}), [confirm, setConfirm] = useState(false), [section, setSection] = useState("design");
   const readonly = !!request && (request.phase === "COMPLETE" || request.archivedAt != null || request.cancelledAt != null);
   const autoCoordinator = useRef("");
+  const [leaveTo, setLeaveTo] = useState<string | null>(null);
   const options = useResource<FormOptions>(`options?center=${encodeURIComponent(String(values.serviceCenter ?? ""))}`);
   useEffect(() => {
     const people = options.data?.coordinators;
@@ -81,7 +83,7 @@ export function RequestForm({ request, user, permissions, pause, sync }: { reque
       setError(errorText(reason)); announce(`บันทึกไม่สำเร็จ: ${errorText(reason)}`, "assertive"); if (reason instanceof ApiError) setErrors(Object.fromEntries(reason.fields.map(field => [field.path.replace(/^design\./, ""), field.message])));
     } finally { setBusy(false); }
   };
-  const leave = (event: MouseEvent<HTMLAnchorElement>) => { if (dirty && !window.confirm("มีข้อมูลที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่")) event.preventDefault(); };
+  const leave = (event: MouseEvent<HTMLAnchorElement>) => { if (busy || dirty) { event.preventDefault(); if (!busy) setLeaveTo(event.currentTarget.href); } };
   const sectionTabs: RequestTab[] = [
     { id: "design", label: "Design" }, { id: "documents", label: "Documents" }, { id: "review", label: "Review" },
     { id: "nt-form", label: "NT Form" }, { id: "signing", label: "Signing" }, { id: "complete", label: "Complete", disabled: !request || request.phase !== "COMPLETE" },
@@ -111,7 +113,8 @@ export function RequestForm({ request, user, permissions, pause, sync }: { reque
       </fieldset>
       <div className={`${styles.formToolbar} ${styles.sticky}`}><span className={styles.muted}>กรอกแล้ว {required.filter(name => !!values[name]).length}/{required.length} ช่องที่จำเป็น · {busy ? "กำลังบันทึก…" : dirty ? "ยังไม่ได้บันทึก" : message || "พร้อมดำเนินการ"}</span><div className={styles.actions}><ButtonLink variant="ghost" href={savedId ? `/duct-rental/${savedId}` : "/duct-rental"} onClick={leave}>กลับ</ButtonLink><Button disabled={busy || !canSave} onClick={() => void save(false)}>บันทึกร่าง</Button><Button variant="primary" type="submit" disabled={busy || !canSubmit}>ส่งให้ทีมเขียนแบบ</Button></div></div>
     </form>
-    {confirm && <Modal title="ยืนยันส่งคำขอ" close={() => setConfirm(false)}><p>ตรวจสอบข้อมูลและไฟล์แนบก่อนส่งให้ทีมเขียนแบบ เมื่อส่งแล้วข้อมูลออกแบบจะเป็นอ่านอย่างเดียว</p><div className={styles.actions}><Button variant="ghost" onClick={() => setConfirm(false)}>กลับไปตรวจข้อมูล</Button><Button variant="primary" onClick={() => { setConfirm(false); void save(true); }}>ยืนยันส่งคำขอ</Button></div></Modal>}
+    {confirm && <Modal title="ยืนยันส่งคำขอ" busy={busy} close={() => setConfirm(false)}><p>ตรวจสอบข้อมูลและไฟล์แนบก่อนส่งให้ทีมเขียนแบบ เมื่อส่งแล้วข้อมูลออกแบบจะเป็นอ่านอย่างเดียว</p><div className={styles.actions}><Button variant="ghost" disabled={busy} onClick={() => setConfirm(false)}>กลับไปตรวจข้อมูล</Button><Button variant="primary" disabled={busy} onClick={() => { setConfirm(false); void save(true); }}>ยืนยันส่งคำขอ</Button></div></Modal>}
+    <ConfirmDialog open={!!leaveTo} title="ทิ้งข้อมูลที่ยังไม่ได้บันทึกหรือไม่" consequence="ข้อมูลและไฟล์ที่ยังไม่บันทึกจะไม่ถูกเก็บ" confirmLabel="ทิ้งข้อมูล" pending={busy} onCancel={() => setLeaveTo(null)} onConfirm={() => { if (leaveTo) router.push(leaveTo); }} />
   </div>;
 }
 export function RequestEdit({ id, user, permissions }: { id: string; user: FormIdentity; permissions: string[] }) {

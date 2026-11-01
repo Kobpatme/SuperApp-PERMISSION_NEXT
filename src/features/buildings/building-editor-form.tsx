@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { buildingEditorSchema, buildingFeeDefinitions, installationKeys } from "@/lib/building-editor";
 import { copy } from "@/lib/copy";
 import { BuildingLocationPicker, type BuildingLocationCandidate } from "./map/location-picker";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import "./building-editor.css";
 
 const c = copy.buildingEditor;
@@ -35,6 +36,8 @@ export function BuildingEditorForm({ id, initial, apiKey, teams, canCreateWithou
   apiKey: string; teams: { id: string; name: string }[]; canCreateWithoutTeam: boolean }) {
   const router = useRouter();
   const form = useRef<HTMLFormElement>(null);
+  const errorSummary = useRef<HTMLDivElement>(null);
+  const leaveApproved = useRef(false);
   const [identity, setIdentity] = useState({ code: initial?.code ?? "", nameTh: initial?.nameTh ?? "", nameEn: initial?.nameEn ?? "", ownerTeamId: initial?.ownerTeamId ?? teams[0]?.id ?? "" });
   const [values, setValues] = useState<Record<string, string>>(initial?.conditions ?? { status: "Check Permission", group: "X", type: "L2", install_type: "Building", survey_type: "Need Survey", wm_point: "No", enclosure: "No" });
   const [fees, setFees] = useState<Record<string, string>>(initial?.fees ?? {});
@@ -44,8 +47,10 @@ export function BuildingEditorForm({ id, initial, apiKey, teams, canCreateWithou
   const [candidate, setCandidate] = useState<BuildingLocationCandidate | null>(null);
   const [dirty, setDirty] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState(""), [conflict, setConflict] = useState(false);
   const [invalid, setInvalid] = useState<string[]>([]);
+  const [leaveIntent, setLeaveIntent] = useState<"cancel" | "reload" | null>(null);
   const cancel = id ? `/buildings/${id}` : "/buildings";
-  useEffect(() => { const warn = (event: BeforeUnloadEvent) => { if (dirty && !busy) { event.preventDefault(); } }; window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn); }, [dirty, busy]);
+  useEffect(() => { const warn = (event: BeforeUnloadEvent) => { if (dirty && !busy && !leaveApproved.current) { event.preventDefault(); } }; window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn); }, [dirty, busy]);
+  useEffect(() => { if (error && invalid.length === 0) errorSummary.current?.focus(); }, [error, invalid.length]);
   function changeField(key: string, value: string) { setDirty(true); setValues(old => ({ ...old, [key]: value })); if (["lat", "lng", "address", "province"].includes(key)) setCandidate(null); }
   function field(field: Field) {
     const value = values[field.key] ?? "";
@@ -76,7 +81,8 @@ export function BuildingEditorForm({ id, initial, apiKey, teams, canCreateWithou
     } catch { setError(c.unavailable); } finally { setBusy(false); }
   }
   return <form ref={form} className="building-editor-form" onSubmit={submit} noValidate aria-busy={busy}>
-    {error && <div id="building-editor-error" className="building-editor-error" role="alert">{error}{conflict && <button type="button" onClick={() => { if (!dirty || window.confirm(c.leave)) window.location.reload(); }}>{c.reload}</button>}</div>}
+    {error && <div ref={errorSummary} tabIndex={-1} id="building-editor-error" className="building-editor-error" role="alert">{error}{conflict && <button type="button" className="ui-button ui-button-secondary" onClick={() => { if (dirty) setLeaveIntent("reload"); else window.location.reload(); }}>{c.reload}</button>}</div>}
+    <fieldset className="building-editor-fields" disabled={busy}>
     <fieldset className="building-editor-section"><legend>{c.general}</legend><div className="building-editor-grid">
       {([ ["code", c.code], ["nameTh", c.nameTh], ["nameEn", c.nameEn] ] as const).map(([key, label]) => <label key={key}>{label}<input name={key} value={identity[key]} required={key === "nameTh"} maxLength={key === "code" ? 40 : 240} onChange={event => { setDirty(true); setIdentity(old => ({ ...old, [key]: event.target.value })); }} aria-invalid={invalid.includes(key)} aria-describedby={invalid.includes(key) ? "building-editor-error" : key === "code" ? "building-code-hint" : undefined}/>{key === "code" && <small id="building-code-hint">{c.codeHint}</small>}</label>)}
       <label>{c.team}<select name="ownerTeamId" value={identity.ownerTeamId} disabled={Boolean(id)} onChange={event => { setDirty(true); setIdentity(old => ({ ...old, ownerTeamId: event.target.value })); }}><option value="" disabled={!canCreateWithoutTeam && !id}>{c.noTeam}</option>{identity.ownerTeamId && !teams.some(team => team.id === identity.ownerTeamId) && <option value={identity.ownerTeamId}>{c.team}</option>}{teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
@@ -94,6 +100,8 @@ export function BuildingEditorForm({ id, initial, apiKey, teams, canCreateWithou
       <label>{c.feeNote}<input value={fee.note} maxLength={500} onChange={event => updateOther(index, { note: event.target.value })}/></label><button type="button" aria-label={`${c.removeFee} ${index + 1}`} onClick={() => { setDirty(true); setOtherFees(old => old.filter((_, position) => position !== index)); }}>{c.removeFee}</button>
     </div>)}<button type="button" disabled={otherFees.length >= 50} onClick={() => { setDirty(true); setOtherFees(old => [...old, { key: `other_fee_${crypto.randomUUID()}`, label: "", calculationType: "fixed", value: "", revenuePeriod: "monthly", note: "" }]); }}>{c.addFee}</button></fieldset>
     <fieldset className="building-editor-section"><legend>{c.contact}</legend><div className="building-editor-grid">{contacts.map(field)}</div>{id && <label>{c.reason}<textarea name="reason" value={reason} maxLength={500} rows={2} onChange={event => { setDirty(true); setReason(event.target.value); }}/></label>}</fieldset>
-    <div className="building-editor-actions"><span role="status">{busy ? c.savingHint : ""}</span><Link href={cancel} onClick={event => { if (dirty && !window.confirm(c.leave)) event.preventDefault(); }}>{c.cancel}</Link><button className="button" type="submit" disabled={busy}>{busy ? c.saving : c.save}</button></div>
+    </fieldset>
+    <div className="building-editor-actions"><span role="status">{busy ? c.savingHint : dirty ? "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก" : ""}</span><Link className="ui-button ui-button-ghost" href={cancel} aria-disabled={busy} onClick={event => { if (busy || dirty) { event.preventDefault(); if (!busy) setLeaveIntent("cancel"); } }}>{c.cancel}</Link><button className="ui-button ui-button-primary" type="submit" disabled={busy}>{busy ? c.saving : c.save}</button></div>
+    <ConfirmDialog open={leaveIntent !== null} title="ทิ้งข้อมูลที่ยังไม่ได้บันทึกหรือไม่" consequence={c.leave} confirmLabel="ทิ้งข้อมูล" pending={busy} onCancel={() => setLeaveIntent(null)} onConfirm={() => { const intent = leaveIntent; leaveApproved.current = true; setLeaveIntent(null); setDirty(false); if (intent === "reload") window.location.reload(); else router.push(cancel); }} />
   </form>;
 }

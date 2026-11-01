@@ -1,3 +1,7 @@
+.building-delete-dialog.ui-dialog{padding:0;animation:none}
+.building-delete-dialog.ui-dialog .ui-dialog-header h2{font-size:var(--text-h3)}
+.building-delete-dialog.ui-dialog .ui-dialog-body{padding:var(--space-4)}
+.building-delete-dialog.ui-dialog input{background:var(--color-surface-subtle);box-shadow:var(--shadow-inset)}
 .building-delete-trigger{min-height:44px;padding:8px 14px;border:1px solid var(--color-danger);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-danger);font:700 14px/1.5 var(--font-ui);cursor:pointer;white-space:nowrap}
 .building-delete-dialog{width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:24px;border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-surface);color:var(--color-text);box-shadow:var(--shadow-sm);box-sizing:border-box}
 .building-delete-dialog::backdrop{background:color-mix(in srgb,var(--color-text) 45%,transparent)}

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { LongdoMapCanvas, type MapPoint } from "./longdo-map-canvas";
+import { ConfirmDialog } from "@/components/ui/dialog";
 
 type Source = "gps" | "manual_pin" | "search";
 export type BuildingLocationCandidate = { latitude: number; longitude: number; accuracy: number | null; source: Source | "import"; placeId: string | null;
@@ -16,6 +17,7 @@ export function BuildingLocationPicker({ buildingId, apiKey, initial, canUpdate,
   const [searchState, setSearchState] = useState("");
   const [geocoding, setGeocoding] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [revision, setRevision] = useState(0);
   const points: MapPoint[] = useMemo(() => candidate ? [{ id: "candidate", code: "", name: "ตำแหน่งที่เลือก", latitude: candidate.latitude, longitude: candidate.longitude }] : [], [candidate]);
 
@@ -75,32 +77,36 @@ export function BuildingLocationPicker({ buildingId, apiKey, initial, canUpdate,
   }
   async function save() {
     if (!candidate || !canUpdate || saving) return;
-    const place = [candidate.address, candidate.province].filter(Boolean).join(" · ") || `${candidate.latitude.toFixed(6)}, ${candidate.longitude.toFixed(6)}`;
-    if (!window.confirm(`ยืนยันบันทึกตำแหน่งอาคารนี้?\n${place}\nพิกัด ${candidate.latitude.toFixed(6)}, ${candidate.longitude.toFixed(6)}`)) return;
-    if (!buildingId && onConfirmCandidate) { onConfirmCandidate(candidate); setState("ยืนยันตำแหน่งสำหรับแบบฟอร์มแล้ว ตำแหน่งจะบันทึกพร้อมข้อมูลอาคาร"); return; }
+    if (!buildingId && onConfirmCandidate) { onConfirmCandidate(candidate); setConfirmOpen(false); setState("ยืนยันตำแหน่งสำหรับแบบฟอร์มแล้ว ตำแหน่งจะบันทึกพร้อมข้อมูลอาคาร"); return; }
     if (!buildingId) return;
     setSaving(true); setState("กำลังบันทึกตำแหน่ง…");
     try {
       const response = await fetch(`/api/buildings/${buildingId}/location`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...candidate, verified: true }) });
       if (!response.ok) throw new Error(response.status === 403 ? "บัญชีนี้ไม่มีสิทธิ์แก้ไขตำแหน่งอาคาร" : "บันทึกตำแหน่งไม่สำเร็จ กรุณาลองอีกครั้ง");
       setState("บันทึกและยืนยันตำแหน่งแล้ว");
+      setConfirmOpen(false);
     } catch (error) { setState(error instanceof Error ? error.message : "บันทึกตำแหน่งไม่สำเร็จ กรุณาลองอีกครั้ง"); }
     finally { setSaving(false); }
   }
 
   return <section className="building-location-picker" aria-labelledby="building-location-title">
     <div className="building-location-heading"><div><h2 id="building-location-title">ตำแหน่งอาคาร</h2><p>เลือกตำแหน่ง ตรวจสอบที่อยู่ แล้วกดยืนยันก่อนบันทึก</p></div><button type="button" onClick={useCurrentLocation} disabled={!canUpdate || saving}>◎ ใช้ตำแหน่งปัจจุบัน</button></div>
-    <label className="building-location-search">ค้นหาสถานที่ / ที่อยู่<input value={query} onChange={(event) => changeQuery(event.target.value)} placeholder="พิมพ์ชื่ออาคาร ถนน หรือสถานที่" disabled={!canUpdate || saving} /></label>
+    <label className="building-location-search">ค้นหาสถานที่ / ที่อยู่<input value={query} onChange={(event) => changeQuery(event.target.value)} placeholder="พิมพ์ชื่ออาคาร ถนน หรือสถานที่" disabled={!apiKey || !canUpdate || saving} aria-describedby={!apiKey ? "building-location-unavailable" : undefined} /></label>
+    {!apiKey && <p id="building-location-unavailable" className="building-location-message" role="status">บริการค้นหาที่อยู่และแผนที่ยังไม่พร้อมใช้งาน{canUpdate ? " คุณยังใช้ตำแหน่งปัจจุบันจากอุปกรณ์ได้" : " ข้อมูลตำแหน่งที่บันทึกไว้ยังแสดงด้านล่าง"}</p>}
     {(searchState || places.length > 0) && <div className="building-location-results" role="listbox" aria-label="ผลการค้นหาสถานที่">
       {places.map((place, index) => <button type="button" role="option" aria-selected="false" key={`${place.id ?? place.name}-${index}`} onClick={() => { choose(place.latitude, place.longitude, "search", null, place.id); setQuery(place.name); setPlaces([]); }}><strong>{place.name}</strong><span>{place.address || "ไม่มีรายละเอียดที่อยู่"}</span></button>)}
       {searchState && <p role="status">{searchState}</p>}
     </div>}
-    <p className="building-location-map-hint">คลิกแผนที่เพื่อวางหมุดด้วยตนเอง</p>
-    <LongdoMapCanvas apiKey={apiKey} points={points} selectedId={candidate ? "candidate" : null} onPick={(latitude, longitude) => choose(latitude, longitude, "manual_pin")} />
+    <p className="building-location-map-hint">{canUpdate ? "คลิกแผนที่เพื่อวางหมุดด้วยตนเอง" : "ดูตำแหน่งอาคาร · บัญชีนี้ไม่มีสิทธิ์แก้ไขตำแหน่ง"}</p>
+    <LongdoMapCanvas apiKey={apiKey} points={points} selectedId={candidate ? "candidate" : null} onPick={canUpdate && !saving ? (latitude, longitude) => choose(latitude, longitude, "manual_pin") : undefined} />
     {candidate ? <dl className="building-location-values"><div><dt>ละติจูด</dt><dd>{candidate.latitude.toFixed(6)}</dd></div><div><dt>ลองจิจูด</dt><dd>{candidate.longitude.toFixed(6)}</dd></div>
       <div><dt>ความแม่นยำ</dt><dd>{candidate.accuracy === null ? "ไม่ระบุ" : `${Math.round(candidate.accuracy)} เมตร`}</dd></div><div><dt>แหล่งตำแหน่ง</dt><dd>{candidate.source === "gps" ? "GPS" : candidate.source === "search" ? "ค้นหาสถานที่" : "ปักหมุด"}</dd></div>
       <div className="building-location-address"><dt>ที่อยู่</dt><dd>{geocoding ? "กำลังค้นหาที่อยู่…" : candidate.address || "ไม่พบข้อมูลที่อยู่ · พิกัดยังบันทึกได้"}</dd></div></dl> : <p className="building-location-empty">ยังไม่ได้เลือกตำแหน่งอาคาร</p>}
     {state && <p className="building-location-message" role="status">{state}</p>}
-    {canUpdate && <div className="building-location-actions"><button type="button" className="secondary-action" disabled={!candidate || saving} onClick={() => { setCandidate(null); setState("ล้างตำแหน่งที่เลือกแล้ว"); }}>ล้างตำแหน่งที่เลือก</button><button type="button" disabled={!candidate || saving} onClick={save}>{saving ? "กำลังบันทึก…" : "ยืนยันและบันทึกตำแหน่ง"}</button></div>}
+    {canUpdate && <div className="building-location-actions"><button type="button" className="secondary-action" disabled={!candidate || saving} onClick={() => { setCandidate(null); setState("ล้างตำแหน่งที่เลือกแล้ว"); }}>ล้างตำแหน่งที่เลือก</button><button type="button" disabled={!candidate || saving} onClick={() => setConfirmOpen(true)}>{saving ? "กำลังบันทึก…" : "ยืนยันและบันทึกตำแหน่ง"}</button></div>}
+    <ConfirmDialog open={confirmOpen} title="ยืนยันบันทึกตำแหน่งอาคารนี้" consequence={buildingId ? "ตำแหน่งนี้จะแทนที่ตำแหน่งอาคารที่บันทึกไว้" : "ตำแหน่งจะบันทึกพร้อมข้อมูลอาคาร เมื่อกดบันทึกแบบฟอร์ม"} confirmLabel="ยืนยันตำแหน่ง" intent="primary" pending={saving} onCancel={() => setConfirmOpen(false)} onConfirm={() => void save()}>
+      {candidate && <p className="building-location-confirm">{[candidate.address, candidate.province].filter(Boolean).join(" · ")}<br/>พิกัด {candidate.latitude.toFixed(6)}, {candidate.longitude.toFixed(6)}</p>}
+      {state && <p role="status">{state}</p>}
+    </ConfirmDialog>
   </section>;
 }
