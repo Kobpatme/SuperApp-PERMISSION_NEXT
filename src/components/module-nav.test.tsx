@@ -176,4 +176,23 @@ describe("collapsed and mobile accessibility", () => {
     expect(html).toContain('id="mobile-sidebar-section-buildings"');
     expect(html).not.toContain('id="sidebar-section-buildings"');
   });
+
+  it("removes the requested group captions while keeping /work/mine accessible", () => {
+    const html = renderToStaticMarkup(
+      <ModuleNav
+        allowedModuleIds={["work", "car-booking", "buildings", "guarantees"]}
+        workNavigation={[
+          { href: "/work", label: "ภาพรวมงาน", icon: "work" },
+          { href: "/work/mine", label: "งานของฉัน", icon: "check" },
+        ]}
+      />,
+    );
+
+    expect(html).not.toContain('class="sidebar-group-label">งานของฉัน</span>');
+    expect(html).not.toContain('class="sidebar-group-label">การดำเนินงาน</span>');
+    expect(html).not.toContain('<span class="sidebar-link-label">งานของฉัน</span>');
+    expect(html).toContain('href="/work/mine"');
+    expect(html).toContain('aria-label="งานของฉัน"');
+    expect(html).toContain("ระบบจองรถ");
+  });
 });

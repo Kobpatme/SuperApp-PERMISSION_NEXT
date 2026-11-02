@@ -1,6 +1,7 @@
 import { test, expect, type Browser, type Page } from "@playwright/test";
 import { build } from "esbuild";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 // CI uses Playwright-managed Chromium; local installations may opt into an executable.
@@ -9,7 +10,13 @@ test.use({ launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
   : {} });
 let browser: Browser;
 test.beforeAll(async ({ browser: fixtureBrowser }) => { browser = fixtureBrowser; });
-const css = () => ["src/styles/tokens.css", "src/app/globals.css", "src/styles/shell.css", "src/styles/components.css", "src/styles/ui.css", "src/styles/app-shell.module.css"].map(path => readFileSync(resolve(path), "utf8")).join("\n");
+const artifactDir = resolve(process.env.SHELL_COPY_ARTIFACT_DIR ?? resolve(process.env.TMPDIR ?? tmpdir(), "permission-next-shell-copy"));
+mkdirSync(artifactDir, { recursive: true });
+// The fixture uses identity CSS-module names; unwrap module-only global selectors too.
+const css = () => ["src/styles/tokens.css", "src/app/globals.css", "src/styles/shell.css", "src/styles/components.css", "src/styles/ui.css", "src/styles/app-shell.module.css"].map(path => {
+  const source = readFileSync(resolve(path), "utf8");
+  return path.endsWith(".module.css") ? source.replace(/:global\(([^)]+)\)/g, "$1") : source;
+}).join("\n");
 const aliasPath = (specifier: string) => {
   const base = resolve(process.cwd(), "src", specifier.slice(2));
   return [base, `${base}.tsx`, `${base}.ts`, `${base}.jsx`, `${base}.js`].find(candidate => existsSync(candidate)) ?? base;
@@ -47,26 +54,21 @@ async function mount(page: Page, component: "ModuleNav" | "WorkspaceThemeToggle"
 async function mountRealShell(page: Page, props = {}) {
   const bundle = await build({
     stdin: { contents: `import React from 'react'; import { createRoot } from 'react-dom/client'; import { AppShell } from './src/components/app-shell'; createRoot(document.getElementById('root')).render(React.createElement(AppShell, ${JSON.stringify({ allowedModuleIds: ["work", "guarantees", "duct-rental"], canAdmin: true, workNavigation: [{ href: "/work", label: "ภาพรวมงาน", icon: "work" }], ...props })}, React.createElement('section', { 'data-fixture-content': true }, React.createElement('h1', null, 'Actual shell fixture'))));`, resolveDir: process.cwd(), loader: "tsx" },
-    bundle: true, write: false, platform: "browser", jsx: "automatic", define: { "process.env.NODE_ENV": '"development"' },
+    bundle: true, write: false, outfile: "shell-fixture.js", platform: "browser", jsx: "automatic", define: { "process.env.NODE_ENV": '"development"' },
     plugins: [{ name: "real-shell-fixture", setup(build) {
-      build.onResolve({ filter: /^@\/components\/(workspace-search|account-control)$/ }, args => ({ path: args.path, namespace: "shellstub" }));
-      build.onLoad({ filter: /.*/, namespace: "shellstub" }, args => ({ contents: args.path.endsWith("workspace-search")
-        ? `import React from 'react'; export function WorkspaceSearch() { return React.createElement('input', { 'aria-label': 'ค้นหา' }); }`
-        : `import React from 'react'; export function AccountControl({ displayName }) { return React.createElement('button', { className: 'account-trigger' }, displayName); }`, loader: "js", resolveDir: process.cwd() }));
-      build.onResolve({ filter: /^@\// }, args => args.path.endsWith(".module.css") ? ({ path: aliasPath(args.path), namespace: "cssmodule" }) : ({ path: aliasPath(args.path) }));
-      build.onResolve({ filter: /\.module\.css$/ }, args => ({ path: resolve(args.resolveDir, args.path), namespace: "cssmodule" }));
-      build.onLoad({ filter: /.*/, namespace: "cssmodule" }, args => {
-        const names = [...readFileSync(args.path, "utf8").matchAll(/\.([A-Za-z_][A-Za-z0-9_-]*)\s*\{/g)].map(match => match[1]).concat("drawer");
-        return { contents: `export default { ${[...new Set(names)].map(name => `${JSON.stringify(name)}: ${JSON.stringify(name)}`).join(", ")} };`, loader: "js" };
-      });
+      build.onResolve({ filter: /^@\/app\/login\/actions$/ }, args => ({ path: args.path, namespace: "shellstub" }));
+      build.onLoad({ filter: /.*/, namespace: "shellstub" }, () => ({ contents: `export async function logoutAction() { throw new Error('Authentication is outside this fixture'); }`, loader: "js" }));
+      // Preserve actual CSS-module scoping; identity names collide with legacy .search/.topbar rules.
+      build.onResolve({ filter: /^@\// }, args => ({ path: aliasPath(args.path) }));
       build.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "fixture" }));
       build.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: args.path === "next/link"
         ? `import React from 'react'; export default function Link(props) { return React.createElement('a', props); }`
-        : `export function usePathname() { return window.fixturePath || '/work'; } export function useSearchParams() { return new URLSearchParams(window.fixtureQuery || ''); }`, resolveDir: process.cwd() }));
+        : `export function useRouter() { return { push() { throw new Error('Route loading is outside this fixture'); } }; } export function usePathname() { return window.fixturePath || '/work'; } export function useSearchParams() { return new URLSearchParams(window.fixtureQuery || ''); }`, resolveDir: process.cwd() }));
     } }],
   });
   await page.addStyleTag({ content: css() });
-  await page.addScriptTag({ content: bundle.outputFiles[0].text });
+  await page.addStyleTag({ content: bundle.outputFiles.find(file => file.path.endsWith(".css"))!.text });
+  await page.addScriptTag({ content: bundle.outputFiles.find(file => file.path.endsWith(".js"))!.text });
   await page.locator('[data-app-shell]').waitFor();
 }
 
@@ -126,6 +128,40 @@ test("collapsed rail keeps module roots reachable and hides child destinations",
     expect(await page.locator(".sidebar-subnav-panel").evaluateAll(nodes => nodes.every(node => node.getAttribute("aria-hidden") === "true"))).toBe(true);
     await page.locator('a[href="/work?view=activity"]').focus();
     expect(await page.locator('a[href="/work?view=activity"]').evaluate(el => document.activeElement === el)).toBe(false);
+  });
+});
+
+test("removes the requested sidebar labels without removing /work/mine", async () => {
+  await fixture(async page => {
+    await page.evaluate(() => { Object.assign(window, { fixturePath: "/work" }); });
+    await mountRealShell(page, { workNavigation: [
+      { href: "/work", label: "ภาพรวมงาน", icon: "work" },
+      { href: "/work/mine", label: "งานของฉัน", icon: "check" },
+    ] });
+
+    const sidebar = page.locator("[data-shell-sidebar]");
+    const mine = sidebar.getByRole("link", { name: "งานของฉัน", exact: true });
+    await expect(mine).toHaveAttribute("href", "/work/mine");
+    await expect(mine).not.toHaveAttribute("title");
+    expect(await sidebar.locator(".sidebar-group-label").allTextContents()).not.toContain("งานของฉัน");
+    expect(await sidebar.locator(".sidebar-group-label").allTextContents()).not.toContain("การดำเนินงาน");
+    expect(await sidebar.locator(".sidebar-link-label").allTextContents()).not.toContain("งานของฉัน");
+
+    await sidebar.getByRole("button", { name: "ยุบเมนูด้านข้าง", exact: true }).click();
+    const collapsedMine = sidebar.locator('a[href="/work/mine"]');
+    await expect(collapsedMine).toHaveAttribute("aria-label", "งานของฉัน");
+    await expect(collapsedMine).toHaveAttribute("href", "/work/mine");
+    await expect(collapsedMine).not.toHaveAttribute("title");
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("button", { name: "เปิดเมนูนำทาง", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "Permission Next", exact: true });
+    const drawerMine = drawer.getByRole("link", { name: "งานของฉัน", exact: true });
+    await expect(drawerMine).toHaveAttribute("href", "/work/mine");
+    await expect(drawerMine).not.toHaveAttribute("title");
+    expect(await drawer.locator(".sidebar-group-label").allTextContents()).not.toContain("งานของฉัน");
+    expect(await drawer.locator(".sidebar-group-label").allTextContents()).not.toContain("การดำเนินงาน");
+    expect(await drawer.locator(".sidebar-link-label").allTextContents()).not.toContain("งานของฉัน");
   });
 });
 
@@ -210,13 +246,13 @@ test("actual AppShell fixture proves themed surfaces, drawer geometry, and deskt
     const shell = page.locator("[data-app-shell]");
     const surface = await page.locator("[data-shell-sidebar]").evaluate(element => getComputedStyle(element).backgroundColor);
     expect(surface).not.toBe("rgba(0, 0, 0, 0)");
-    await page.screenshot({ path: "docs/quality/dialog-shell/actual-shell-light-expanded.png", animations: "disabled" });
+    await page.screenshot({ path: resolve(artifactDir, "actual-shell-light-expanded.png"), animations: "disabled" });
 
     await page.locator("[data-shell-header] .workspace-theme-toggle").click();
     await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe("dark");
     const darkSurface = await page.locator("[data-shell-sidebar]").evaluate(element => getComputedStyle(element).backgroundColor);
     expect(darkSurface).not.toBe(surface);
-    await page.screenshot({ path: "docs/quality/dialog-shell/actual-shell-dark-expanded.png", animations: "disabled" });
+    await page.screenshot({ path: resolve(artifactDir, "actual-shell-dark-expanded.png"), animations: "disabled" });
 
     const expandedGeometry = await page.evaluate(() => {
       const sidebar = document.querySelector<HTMLElement>("[data-shell-sidebar]")!.getBoundingClientRect();
@@ -226,12 +262,12 @@ test("actual AppShell fixture proves themed surfaces, drawer geometry, and deskt
     expect(expandedGeometry.mainLeft).toBeGreaterThanOrEqual(expandedGeometry.sidebarRight);
     await page.locator("[data-shell-sidebar] button[aria-label*='ยุบ']").click();
     await expect(shell).toHaveClass(/collapsed/);
-    await page.screenshot({ path: "docs/quality/dialog-shell/actual-shell-dark-rail.png", animations: "disabled" });
+    await page.screenshot({ path: resolve(artifactDir, "actual-shell-dark-rail.png"), animations: "disabled" });
     const railWidth = await page.locator("[data-shell-sidebar]").evaluate(element => element.getBoundingClientRect().width);
     expect(railWidth).toBeLessThan(expandedGeometry.width);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator("button[aria-label='เปิดเมนูพื้นที่ทำงาน']").click();
+    await page.locator("button[aria-label='เปิดเมนูนำทาง']").click();
     const drawer = page.getByRole("dialog");
     await expect(drawer).toBeVisible();
     const drawerGeometry = await drawer.evaluate(element => { const rect = element.getBoundingClientRect(); return { width: rect.width, height: rect.height, x: rect.x, y: rect.y }; });
@@ -239,10 +275,131 @@ test("actual AppShell fixture proves themed surfaces, drawer geometry, and deskt
     expect(drawerGeometry.y).toBe(0);
     expect(drawerGeometry.width).toBeLessThanOrEqual(390);
     expect(drawerGeometry.height).toBe(844);
-    await page.screenshot({ path: "docs/quality/dialog-shell/actual-shell-mobile-390.png", animations: "disabled" });
+    await page.screenshot({ path: resolve(artifactDir, "actual-shell-mobile-390.png"), animations: "disabled" });
   });
 });
 
+
+for (const theme of ["light", "dark"] as const) {
+  test(`minimal shell copy preserves responsive controls and drawer semantics: ${theme}`, async () => {
+    await fixture(async page => {
+      const errors: string[] = [];
+      page.on("pageerror", error => errors.push(error.message));
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.evaluate(theme => localStorage.setItem("permission-next-workspace-theme", theme), theme);
+      await mountRealShell(page, { displayName: "TEST Account", scopeLabel: "TEST Team" });
+      await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
+      const header = page.locator("[data-shell-header]");
+      const sidebar = page.locator("[data-shell-sidebar]");
+      const opener = page.getByRole("button", { name: "เปิดเมนูนำทาง", exact: true });
+      const brand = header.getByRole("link", { name: "Permission Next — ภาพรวม", exact: true });
+      for (const width of [320, 390, 650, 651, 900, 901, 1000, 1001, 1280, 1440]) {
+        await page.setViewportSize({ width, height: 844 });
+        await expect(header).not.toContainText(/พื้นที่ทำงาน|เมนูหลัก/);
+        await expect(sidebar).not.toContainText(/พื้นที่ทำงาน|เมนูหลัก/);
+        await expect(brand).toBeVisible();
+        await expect(brand).toHaveAttribute("href", "/");
+        await expect(header.getByRole("combobox", { name: "ค้นหาเมนูและรายการติดตาม", exact: true })).toBeVisible();
+        await expect(header.locator(".workspace-theme-toggle")).toBeVisible();
+        await expect(header.getByRole("button", { name: "บัญชีผู้ใช้ TEST Account", exact: true })).toBeVisible();
+        await expect(brand.locator("strong")).toBeVisible({ visible: width > 1000 });
+        if (width > 1000) {
+          const brandAlignment = await brand.evaluate(element => {
+            const mark = element.firstElementChild!.getBoundingClientRect();
+            const text = element.querySelector("strong")!.getBoundingClientRect();
+            return Math.abs((mark.top + mark.bottom) / 2 - (text.top + text.bottom) / 2);
+          });
+          expect(brandAlignment).toBeLessThan(1);
+        }
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        if (width > 900) {
+          await expect(sidebar).toBeVisible();
+          await expect(opener).toBeHidden();
+          await expect(sidebar).toContainText("คุณเห็นข้อมูลของ:");
+          await expect(sidebar).toContainText("TEST Team");
+          const geometry = await sidebar.evaluate(element => {
+            const heading = element.firstElementChild as HTMLElement;
+            const button = heading.querySelector("button")!;
+            const row = heading.getBoundingClientRect();
+            const control = button.getBoundingClientRect();
+            const nav = element.querySelector("nav")!.getBoundingClientRect();
+            return { height: row.height, buttonWidth: control.width, buttonHeight: control.height,
+              rightInset: row.right - control.right, padding: parseFloat(getComputedStyle(heading).paddingRight),
+              navTop: nav.top, rowBottom: row.bottom };
+          });
+          expect(geometry.height).toBe(36);
+          expect(geometry.buttonWidth).toBe(36);
+          expect(geometry.buttonHeight).toBe(36);
+          expect(geometry.rightInset).toBeCloseTo(geometry.padding, 1);
+          expect(geometry.navTop).toBeGreaterThan(geometry.rowBottom);
+          for (const moduleId of ["work", "guarantees", "duct-rental"]) await expect(sidebar.locator(`[data-module-id="${moduleId}"]`)).toBeVisible();
+        } else {
+          await expect(sidebar).toBeHidden();
+          await expect(opener).toBeVisible();
+          await expect(opener).toHaveAttribute("aria-haspopup", "dialog");
+          await opener.click();
+          const drawer = page.getByRole("dialog", { name: "Permission Next", exact: true });
+          await expect(drawer).toBeVisible();
+          await expect(drawer).toHaveAttribute("aria-modal", "true");
+          await expect(drawer.getByRole("heading", { name: "Permission Next", exact: true })).toBeVisible();
+          await expect(drawer).not.toContainText(/พื้นที่ทำงาน|เมนูหลัก/);
+          const close = drawer.getByRole("button", { name: "ปิดหน้าต่าง", exact: true });
+          await expect(close).toBeVisible();
+          await expect(close).toBeFocused();
+          const bounds = await drawer.boundingBox();
+          expect(bounds).toMatchObject({ x: 0, y: 0, height: 844 });
+          expect(bounds!.width).toBeLessThanOrEqual(width - 40);
+          const moduleTrigger = drawer.locator('[data-module-id="guarantees"]');
+          await expect(moduleTrigger).toBeVisible();
+          if (await moduleTrigger.getAttribute("aria-expanded") === "true") {
+            await moduleTrigger.click();
+            await expect(moduleTrigger).toHaveAttribute("aria-expanded", "false");
+          }
+          await moduleTrigger.click();
+          await expect(moduleTrigger).toHaveAttribute("aria-expanded", "true");
+          if (width === 390) await page.screenshot({ path: resolve(artifactDir, `minimal-shell-${theme}-mobile-390.png`), animations: "disabled" });
+          await page.keyboard.press("Escape");
+          await expect(drawer).toBeHidden();
+          await expect(opener).toBeFocused();
+          await opener.click();
+          await close.click();
+          await expect(drawer).toBeHidden();
+          await expect(opener).toBeFocused();
+          await opener.click();
+          // Keep this isolated fixture on its synthetic origin while exercising real onNavigate.
+          const destination = drawer.locator('a[href="/"]').first();
+          await destination.evaluate(element => element.addEventListener("click", event => event.preventDefault(), { once: true }));
+          await destination.click();
+          await expect(drawer).toBeHidden();
+          await expect(opener).toBeFocused();
+        }
+      }
+      await page.screenshot({ path: resolve(artifactDir, `minimal-shell-${theme}-desktop-1440.png`), animations: "disabled" });
+      const collapse = sidebar.getByRole("button", { name: "ยุบเมนูด้านข้าง", exact: true });
+      await collapse.click();
+      const expand = sidebar.getByRole("button", { name: "ขยายเมนูด้านข้าง", exact: true });
+      await expect(expand).toHaveAttribute("aria-expanded", "false");
+      expect(await page.evaluate(() => localStorage.getItem("permission-next-sidebar-collapsed"))).toBe("1");
+      const centered = await sidebar.evaluate(element => {
+        const rail = element.getBoundingClientRect();
+        const button = element.querySelector("button")!.getBoundingClientRect();
+        return Math.abs((rail.left + rail.right) / 2 - (button.left + button.right) / 2);
+      });
+      expect(centered).toBeLessThan(1);
+      for (const href of ["/work", "/guarantees", "/duct-rental"]) {
+        const root = sidebar.locator(`.sidebar-link[href="${href}"]`);
+        await root.focus();
+        await expect(root).toBeFocused();
+        expect(await root.getAttribute("aria-label")).toBeTruthy();
+      }
+      await expand.click();
+      await expect(collapse).toHaveAttribute("aria-expanded", "true");
+      expect(await page.evaluate(() => localStorage.getItem("permission-next-sidebar-collapsed"))).toBe("0");
+      await expect(page.locator('.skip-link')).toHaveAttribute("href", "#workspace-content");
+      expect(errors).toEqual([]);
+    });
+  });
+}
 
 test("native Dialog preserves the interior boundary and drawer geometry", async () => {
   await fixture(async page => {
@@ -263,7 +420,7 @@ test("native Dialog preserves the interior boundary and drawer geometry", async 
     expect(geometry.y).toBe(0);
     expect(geometry.width).toBeLessThanOrEqual(390);
     expect(geometry.height).toBeGreaterThan(0);
-    await page.screenshot({ path: "docs/quality/dialog-shell/mobile-390.png", animations: "disabled" });
+    await page.screenshot({ path: resolve(artifactDir, "mobile-390.png"), animations: "disabled" });
 
     await page.mouse.click(10, 422);
     await expect(dialog).toBeVisible();

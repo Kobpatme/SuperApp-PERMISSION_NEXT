@@ -12,6 +12,23 @@ vi.mock("@/components/workspace-theme-toggle", () => ({ WorkspaceThemeToggle: ()
 vi.mock("@/components/account-control", () => ({ AccountControl: () => <button>บัญชี</button> }));
 
 describe("AppShell", () => {
+  it("omits generic shell copy while retaining identity, accessible controls and scope", () => {
+    const html = renderToStaticMarkup(<AppShell allowedModuleIds={[]} scopeLabel="ทีมทดสอบ" notificationCenter={<button>การแจ้งเตือน</button>}>เนื้อหา</AppShell>);
+
+    expect(html).not.toContain("พื้นที่ทำงาน");
+    expect(html).not.toContain(">เมนูหลัก<");
+    expect(html).toContain("Permission Next");
+    expect(html).toContain('aria-label="เปิดเมนูนำทาง"');
+    expect(html).toContain('aria-haspopup="dialog"');
+    expect(html).toContain('aria-modal="true"');
+    expect(html).toContain('aria-labelledby=');
+    expect(html).toContain("ปิดหน้าต่าง");
+    expect(html).toContain('aria-label="ยุบเมนูด้านข้าง"');
+    expect(html).toContain("ข้ามไปยังเนื้อหาหลัก");
+    expect(html).toContain("คุณเห็นข้อมูลของ:");
+    expect(html).toContain("ทีมทดสอบ");
+    for (const label of ["เมนู", "ค้นหา", "ธีม", "บัญชี", "การแจ้งเตือน", "เนื้อหา"]) expect(html).toContain(label);
+  });
   it("uses the canonical shell on the overview route", () => {
     const html = renderToStaticMarkup(<AppShell allowedModuleIds={[]}>เนื้อหา</AppShell>);
 

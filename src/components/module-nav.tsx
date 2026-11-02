@@ -113,7 +113,7 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
     .map(child => ({ href: child.href, url: new URL(child.href, "https://workspace.local") }))
     .filter(child => (child.url.pathname === pathname || (child.url.pathname !== "/work" && pathname.startsWith(`${child.url.pathname}/`))) && Array.from(child.url.searchParams).every(([key, value]) => params.get(key) === value))
     .sort((a, b) => b.url.pathname.length - a.url.pathname.length || b.url.searchParams.size - a.url.searchParams.size)[0]?.href;
-  const groupLabels = { overview: "ภาพรวม", work: "งานของฉัน", operations: "การดำเนินงาน", finance: "การเงิน", reports: "รายงาน", management: "การจัดการ" };
+  const groupLabels: Record<string, string> = { overview: "ภาพรวม", finance: "การเงิน", reports: "รายงาน", management: "การจัดการ" };
   const items = [{ ...overviewDestination, group: "overview" as const, icon: "home" as const }, ...modules.filter((module) => allowedModuleIds.includes(module.id))];
 
   function toggleSection(id: string) {
@@ -154,13 +154,14 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
         <WorkspaceIcon name={item.icon} size={20}/><span className="sidebar-link-label">{item.name}</span>
       </Link>;
       return <div className="sidebar-nav-entry" key={item.href}>
-        {!collapsed && items[index - 1]?.group !== item.group && <span className="sidebar-group-label">{groupLabels[item.group]}</span>}
+        {!collapsed && items[index - 1]?.group !== item.group && groupLabels[item.group] && <span className="sidebar-group-label">{groupLabels[item.group]}</span>}
         {parentControl}
         {hasChildren && sectionId && <div className={`sidebar-subnav-panel ${expanded ? "is-open" : ""}`} id={sectionId} aria-hidden={!expanded} inert={!expanded}>
           <div className="sidebar-subnav" aria-label={`เมนู${item.name}`}>
           {item.id === "work" && workNavigation.map((child) => {
             const childActive = child.href === currentWorkHref;
-            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={collapsed ? child.label : undefined} title={collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon as IconName} size={18}/><span className="sidebar-link-label">{child.label}</span></Link>;
+            const visuallyHidden = child.href === "/work/mine";
+            return <Link className={`sidebar-child-link ${childActive ? "active" : ""}`} href={child.href} key={child.href} aria-current={childActive ? "page" : undefined} aria-label={visuallyHidden || collapsed ? child.label : undefined} title={visuallyHidden ? undefined : collapsed ? child.label : undefined} onClick={onNavigate}><WorkspaceIcon name={child.icon as IconName} size={18}/>{visuallyHidden ? null : <span className="sidebar-link-label">{child.label}</span>}</Link>;
           })}
           {item.id !== "work" && navItems?.map((child) => {
             const childActive = child.href === currentChildHref;
