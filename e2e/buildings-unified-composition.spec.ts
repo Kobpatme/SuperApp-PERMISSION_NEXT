@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { build } from 'esbuild';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 import { buildingsTestMap } from './buildings-test-map';
 
 // Actual five server-route compositions + client components/CSS/fonts. TEST only.
@@ -71,6 +72,38 @@ async function mount(page:Page,route:string,theme='light',width=1440){
 async function shot(page:Page,name:string){await page.screenshot({path:resolve(evidence,name+'.png'),fullPage:!name.includes('overlay')});}
 async function bounds(page:Page){const rect=await page.locator('dialog[open]').boundingBox();expect(rect).not.toBeNull();expect(rect!.x).toBeGreaterThanOrEqual(-1);expect(rect!.y).toBeGreaterThanOrEqual(-1);const size=page.viewportSize()!;expect(rect!.x+rect!.width).toBeLessThanOrEqual(size.width+1);expect(rect!.y+rect!.height).toBeLessThanOrEqual(size.height+1);}
 async function axe(page:Page,name:string){const full=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze();writeFileSync(resolve(evidence,'axe-'+name+'.json'),JSON.stringify(full.violations,null,2));expect(full.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)}))).toEqual([]);}
+
+// Keep visual artifacts outside the repository; callers may choose the output directory.
+const visualEvidence = resolve(process.env.LAYOUT_REGRESSION_EVIDENCE_DIR ?? process.env.TMPDIR ?? tmpdir());
+
+test('layout regression: create fills main, edit stays capped, and both fit narrow viewports', async ({ page }) => {
+  mkdirSync(visualEvidence, { recursive: true });
+  await mount(page, '/buildings/new', 'light', 1920);
+  const create = page.locator('[data-ui-screen="building-create"]');
+  const main = page.locator('[data-shell-main]');
+  const createLayout = await create.evaluate((element, mainElement) => {
+    const style = getComputedStyle(element), mainStyle = getComputedStyle(mainElement);
+    const mainBox = mainElement.getBoundingClientRect(), box = element.getBoundingClientRect();
+    return { width: box.width, available: mainBox.width - parseFloat(mainStyle.paddingLeft) - parseFloat(mainStyle.paddingRight), maxWidth: style.maxWidth, marginLeft: style.marginLeft, marginRight: style.marginRight };
+  }, await main.elementHandle());
+  expect(createLayout.maxWidth).toBe('none');
+  expect(createLayout.width).toBeCloseTo(createLayout.available, 0);
+  await page.screenshot({ path: resolve(visualEvidence, 'building-create-wide.png'), fullPage: true });
+
+  await mount(page, detail + '/edit', 'light', 1920);
+  const edit = page.locator('[data-ui-screen="building-edit"]');
+  const editLayout = await edit.evaluate(element => ({ width: element.getBoundingClientRect().width, maxWidth: getComputedStyle(element).maxWidth }));
+  expect(editLayout.maxWidth).toBe('1280px');
+  expect(editLayout.width).toBeLessThanOrEqual(1280);
+
+  for (const width of [760, 390]) {
+    await mount(page, '/buildings/new', 'light', width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await mount(page, detail + '/edit', 'light', width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
 for(const [i,route] of routes.entries())for(const [theme,width] of [['light',1440],['dark',1440],['light',390],['dark',390]] as const)test(`${families[i]} actual route ${theme} ${width}`,async({page})=>{
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await mount(page,route,theme,width);await expect(page.locator('#workspace-content h1')).toHaveCount(1);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  if(i===1)await expect(page.locator('.TEST-map-label').last()).toContainText('ผู้ให้บริการจริงยังไม่ยืนยัน');

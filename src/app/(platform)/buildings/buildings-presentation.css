@@ -68,6 +68,9 @@
 
 .building-detail-page,
 .building-form-page { min-width:0; max-width:1280px; margin:0 auto; padding:var(--space-5); color:var(--color-text); }
+/* The shared map form class is also used by edit; keep its cap after that rule. */
+.building-form-page.building-create-page { max-width:1280px; margin:0 auto; }
+.building-form-page.building-create-page[data-ui-screen="building-create"] { max-width:none; margin-inline:0; }
 .building-detail-page > .page-heading,
 .building-form-page > .page-heading { margin-bottom:var(--space-4); }
 .building-detail-page .page-heading-actions { min-width:0; max-width:100%; flex-shrink:1; }

@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { build } from "esbuild";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { depositPreviewItems } from "../src/lib/deposit-v2-preview";
 import { availableDepositTransitions, depositStatuses } from "../src/lib/deposit-v2-workflow";
 import { workflowLabels } from "../src/lib/deposit-v2-domain";
@@ -74,7 +75,91 @@ async function check(page: Page, name: string) {
   expect(result.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.target) }))).toEqual([]);
 }
 async function snapshot(page: Page, name: string, overlay = false) { await page.screenshot({ path: resolve(evidence, `${name}.png`), fullPage: !overlay }); }
+
+// Keep visual artifacts outside the repository; callers may choose the output directory.
+const visualEvidence = resolve(process.env.LAYOUT_REGRESSION_EVIDENCE_DIR ?? process.env.TMPDIR ?? tmpdir());
+
+test('layout regression: deposit create is one track, edit keeps side panel, and both fit narrow viewports', async ({ page }) => {
+  mkdirSync(visualEvidence, { recursive: true });
+  await mount(page, { path: '/guarantees/new', width: 1920, theme: 'light' });
+  const createGrid = page.locator('.deposit-detail-grid');
+  await expect(createGrid).toHaveClass(/deposit-detail-grid-create/);
+  const createColumns = await createGrid.evaluate(element => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
+  expect(createColumns).toBe(1);
+  await expect(createGrid.locator(':scope > aside.deposit-side')).toHaveCount(0);
+  await page.screenshot({ path: resolve(visualEvidence, 'deposit-create-wide.png'), fullPage: true });
+
+  await mount(page, { path: `/guarantees/${id}`, width: 1920, theme: 'light' });
+  const editGrid = page.locator('.deposit-detail-grid');
+  await expect(editGrid).toHaveClass(/deposit-detail-grid-edit/);
+  const editColumns = await editGrid.evaluate(element => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
+  expect(editColumns).toBe(2);
+  await expect(editGrid.locator(':scope > aside.deposit-side')).toHaveCount(1);
+
+  for (const width of [760, 390]) {
+    await mount(page, { path: '/guarantees/new', width, theme: 'light' });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await mount(page, { path: `/guarantees/${id}`, width, theme: 'light' });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
 function clean(guard: Awaited<ReturnType<typeof mount>>) { expect(guard.errors).toEqual([]); expect(guard.unexpected).toEqual([]); }
+
+test("create form: approved four groups preserve every field and normal-flow save row", async ({ page }) => {
+  const guard = await mount(page, { path: "/guarantees/new", width: 1440, theme: "light" });
+  const groups = [
+    ["รายการและผู้เกี่ยวข้อง", ["place", "area", "tl_team", "customer", "cid", "no", "project", "deal", "pr", "contact", "tel", "mobile", "payTo", "payType", "tlAssigneeId", "detail", "note"]],
+    ["จำนวนเงิน", ["deposit", "demolish", "fee", "other", "other_desc"]],
+    ["กำหนดการ", ["dateReq", "dateDue", "install_date", "tl_due_date"]],
+    ["ข้อมูลติดตาม/คืนเงิน", ["dateCheck", "dateAcc", "service_cancel_date", "date_return", "inspected_by", "depReturn", "demoReturn"]],
+  ] as const;
+  const form = page.locator(".deposit-form");
+  await expect(form.locator(":scope > fieldset.deposit-fields > .deposit-form-section")).toHaveCount(4);
+  const sectionGridExpectations = [
+    ["deposit-form-section-related", 3],
+    ["deposit-form-section-money", 4],
+    ["deposit-form-section-schedule", 4],
+    ["deposit-form-section-followup", 4],
+  ] as const;
+  for (const [className, columns] of sectionGridExpectations) {
+    await expect(form.locator(`.${className} .deposit-form-fields`)).toHaveCount(1);
+    await expect.poll(async () => form.locator(`.${className} .deposit-form-fields`).evaluate(element => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length)).toBe(columns);
+  }
+  await expect(page.getByText("ต้องระบุเมื่อค่าใช้จ่ายอื่นมากกว่า 0", { exact: true })).toBeVisible();
+  await expect(page.locator('[name="other_desc"]')).toHaveAttribute("aria-describedby", "other-desc-hint");
+  for (const [heading, fields] of groups) {
+    const section = form.locator(".deposit-form-section", { has: page.getByRole("heading", { name: heading, exact: true }) });
+    await expect(section).toHaveCount(1);
+    await expect(section.locator("input,select")).toHaveCount(fields.length);
+    for (const name of fields) await expect(section.locator(`[name="${name}"]`)).toHaveCount(1);
+  }
+  await expect(page.getByLabel("อาคาร *", { exact: true })).toHaveAttribute("required", "");
+  await expect(page.getByRole("combobox", { name: "พื้นที่ / ทีมติดตั้ง", exact: true })).toHaveAttribute("required", "");
+  await expect(page.locator('[name="tl_team"]')).toHaveAttribute("readonly", "");
+  const savebar = page.locator(".deposit-savebar");
+  await expect(savebar).toHaveCSS("position", "static");
+  const geometry = await page.evaluate(() => {
+    const save = document.querySelector<HTMLElement>(".deposit-savebar")!.getBoundingClientRect();
+    const fields = [...document.querySelectorAll<HTMLElement>(".deposit-form-section input, .deposit-form-section select")];
+    const last = fields.at(-1)!.getBoundingClientRect();
+    return { saveTop: save.top, lastBottom: last.bottom, viewport: innerWidth, scroll: document.documentElement.scrollWidth, clipped: fields.some(field => { const box = field.getBoundingClientRect(); return box.left < 0 || box.right > innerWidth || box.width <= 0 || box.height <= 0; }) };
+  });
+  expect(geometry.saveTop).toBeGreaterThanOrEqual(geometry.lastBottom);
+  expect(geometry.scroll).toBeLessThanOrEqual(geometry.viewport);
+  expect(geometry.clipped).toBe(false);
+  for (const [width, expectedColumns] of [[760, 2], [390, 1]] as const) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (const [className] of sectionGridExpectations) {
+      await expect.poll(async () => form.locator(`.${className} .deposit-form-fields`).evaluate(element => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length)).toBe(expectedColumns);
+    }
+    const responsive = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, viewport: innerWidth, clipped: [...document.querySelectorAll<HTMLElement>(".deposit-form-section input, .deposit-form-section select")].some(field => { const box = field.getBoundingClientRect(); return box.left < 0 || box.right > innerWidth || box.width <= 0 || box.height <= 0; }) }));
+    expect(responsive.scroll).toBeLessThanOrEqual(responsive.viewport);
+    expect(responsive.clipped).toBe(false);
+  }
+  clean(guard);
+});
+
 async function bounds(page: Page) { const dialog = page.locator("dialog[open]").last(); const box = await dialog.boundingBox(), vp = page.viewportSize()!; expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0); expect(box!.x + box!.width).toBeLessThanOrEqual(vp.width); expect(box!.y + box!.height).toBeLessThanOrEqual(vp.height); await dialog.locator("button").last().scrollIntoViewIfNeeded(); await expect(dialog.locator("button").last()).toBeInViewport(); }
 
 test("long Thai title: actual shared tooltip focus, Escape and reflow", async ({ page }) => {
