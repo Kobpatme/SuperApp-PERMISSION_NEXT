@@ -1,5 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 import { build } from "esbuild";
+import { readFileSync } from "node:fs";
+import AxeBuilder from "@axe-core/playwright";
+
+const css = ["src/styles/tokens.css", "src/app/globals.css", "src/styles/shell.css", "src/styles/components.css", "src/styles/ui.css", "src/styles/notifications.css", "src/styles/work.css", "src/styles/auth.css", "src/styles/motion.css"].map(path => readFileSync(path, "utf8")).join("\n");
+let moduleCss = "";
+const fonts = [["manrope", "manrope"], ["nunito", "nunito"], ["thai", "noto-sans-thai"]].map(([name, file]) => `@font-face{font-family:TEST-${name};src:url(data:font/woff2;base64,${readFileSync(`src/app/fonts/${file}.woff2`).toString("base64")})}:root{--font-${name}:TEST-${name}}`).join("");
 
 test.use({ launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH } : {} });
 let bundle = "";
@@ -7,21 +13,26 @@ let assignmentBundle = "";
 
 test.beforeAll(async () => {
   const result = await build({
-    bundle: true, write: false, platform: "browser", format: "iife", jsx: "automatic",
+    bundle: true, write: false, outdir: "TEST-output", platform: "browser", format: "iife", jsx: "automatic",
     define: { "process.env.NODE_ENV": '"development"' },
     stdin: { resolveDir: process.cwd(), loader: "tsx", contents: `
       import React from "react"; import { createRoot } from "react-dom/client";
       import { MyWorkDashboard } from "./src/features/work/screens/my-work";
+      import { WorkCreateForm } from "./src/components/work-create-form";
+      import { WorkScreenShell } from "./src/features/work/components/work-screen-shell";
+      import { copy } from "./src/lib/copy";
       const model = { source:{status:"ready",message:""}, tasks:[], activities:[],
         assignmentOptions:[{id:"00000000-0000-0000-0000-000000000001",name:"ผู้ใช้ทดสอบ",teamId:"00000000-0000-0000-0000-000000000010",teamName:"ทีมเริ่มต้น"}],
         kpiOptions:[{id:"00000000-0000-0000-0000-000000000101",teamId:"00000000-0000-0000-0000-000000000010",mainKpi:"คุณภาพ",subKpi:"ตรวจสอบ"},{id:"00000000-0000-0000-0000-000000000102",teamId:"00000000-0000-0000-0000-000000000010",mainKpi:"ประสิทธิภาพ",subKpi:"ความเร็ว"}],
         creationKey:"00000000-0000-0000-0000-000000000999" };
-      createRoot(document.getElementById("root")!).render(<MyWorkDashboard model={model as any} userId="00000000-0000-0000-0000-000000000001" canCreate />);
+      const standalone = location.pathname === "/work/new";
+      createRoot(document.getElementById("root")!).render(standalone
+        ? <main><WorkScreenShell title="เพิ่มงาน" description={copy.feedback.workCreateDescription} parent={{label:"งานและ KPI",href:"/work"}} appearance="workspace"><WorkCreateForm model={model as any} userId="00000000-0000-0000-0000-000000000001" /></WorkScreenShell></main>
+        : <MyWorkDashboard model={model as any} userId="00000000-0000-0000-0000-000000000001" canCreate />);
     ` },
     plugins: [{ name: "dialog-fixture-stubs", setup(builder) {
       builder.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "fixture" }));
       builder.onResolve({ filter: /^@\/app\/.*actions$/ }, () => ({ path: "actions", namespace: "fixture" }));
-      builder.onResolve({ filter: /work-screen-shell$/ }, () => ({ path: "shell", namespace: "fixture" }));
       builder.onResolve({ filter: /task-table$/ }, () => ({ path: "table", namespace: "fixture" }));
       builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ loader: "tsx", resolveDir: process.cwd(), contents:
         args.path === "actions" ? `export async function createPersonalTaskAction(){ return new Promise(resolve => window.__createResolvers.push(resolve)); } export async function previewWorkDeadlineAction(){ return new Promise(resolve => window.__previewResolvers.push(resolve)); }` :
@@ -31,7 +42,8 @@ test.beforeAll(async () => {
         `export function useRouter(){return {refresh:()=>window.refreshCount=(window.refreshCount||0)+1}}` }));
     }}]
   });
-  bundle = result.outputFiles[0].text;
+  bundle = result.outputFiles.find(file => file.path.endsWith(".js"))!.text;
+  moduleCss = result.outputFiles.find(file => file.path.endsWith(".css"))?.text ?? "";
   const assignmentResult = await build({
     bundle: true, write: false, platform: "browser", format: "iife", jsx: "automatic",
     define: { "process.env.NODE_ENV": '\"development\"' },
@@ -58,6 +70,7 @@ test.beforeAll(async () => {
 
 async function mount(page: Page) {
   await page.goto("https://work-dialog.fixture/");
+  await page.addStyleTag({ content: css + moduleCss + fonts });
   await page.addScriptTag({ content: bundle });
   await page.evaluate(() => { window.__createResolvers = []; window.__previewResolvers = []; });
   await expect(page.getByRole("button", { name: "เพิ่มงาน", exact: true })).toBeVisible();
@@ -65,7 +78,7 @@ async function mount(page: Page) {
 
 async function openForm(page: Page) {
   await page.getByRole("button", { name: "เพิ่มงาน", exact: true }).click();
-  return page.locator("form.work-assignment-form");
+  return page.locator("form.work-create-form");
 }
 
 async function resolveCreate(page: Page, result: { ok: boolean; message: string }) {
@@ -103,7 +116,7 @@ test("keeps every draft control on cancel, then discard resets defaults and KPI 
   await form.locator("select").nth(2).selectOption({ label: "ตรวจสอบ" });
   await form.locator("textarea[name=jobs]").fill("draft job");
   await form.locator("textarea[name=notes]").fill("draft note");
-  await page.getByRole("button", { name: "ดู deadline ล่วงหน้า", exact: true }).click();
+  await page.getByRole("button", { name: "ตรวจสอบกำหนดส่ง", exact: true }).click();
   await resolvePreview(page);
   await expect(page.getByText("กำหนดส่ง 02/11/2026")).toBeVisible();
   await page.getByRole("button", { name: "ปิดหน้าต่าง", exact: true }).click();
@@ -114,7 +127,7 @@ test("keeps every draft control on cancel, then discard resets defaults and KPI 
   await page.getByRole("button", { name: "ปิดหน้าต่าง", exact: true }).click();
   await page.getByRole("button", { name: "ทิ้งข้อมูล", exact: true }).click();
   await page.getByRole("button", { name: "เพิ่มงาน", exact: true }).click();
-  const reopened = page.locator("form.work-assignment-form");
+  const reopened = page.locator("form.work-create-form");
   await expect(reopened.locator("select[name=teamId]")).toHaveValue("00000000-0000-0000-0000-000000000010");
   await expect(reopened.locator("select").nth(1)).toHaveValue("");
   await expect(reopened.locator("select").nth(2)).toHaveValue("");
@@ -160,7 +173,7 @@ test("blocks Escape and close while preview or submit is pending", async ({ page
   await form.locator("textarea[name=jobs]").fill("pending job");
   await form.locator("select").nth(1).selectOption({ label: "คุณภาพ" });
   await form.locator("select").nth(2).selectOption({ label: "ตรวจสอบ" });
-  await page.getByRole("button", { name: "ดู deadline ล่วงหน้า", exact: true }).click();
+  await page.getByRole("button", { name: "ตรวจสอบกำหนดส่ง", exact: true }).click();
   await expect(form).toHaveAttribute("aria-busy", "true");
   await page.keyboard.press("Escape");
   await clickOutsideDialog(page);
@@ -237,6 +250,124 @@ test("preserves an assignment draft on failure and resets it only after retry su
   await expect(form.locator("input[name=title]")).toHaveValue("");
   await expect(form.locator("textarea[name=jobs]")).toHaveValue("");
 });
+
+for (const theme of ["light", "dark"]) for (const width of [320, 768, 1024, 1440]) {
+  test(`create popup layout, keyboard and accessibility ${theme} ${width}`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.route("https://work-dialog.fixture/", route => route.fulfill({ contentType: "text/html", body: '<!doctype html><html lang="th"><head><title>TEST popup · synthetic data</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="root"></div></body></html>' }));
+    await mount(page);
+    await page.locator("html").evaluate((node, value) => node.setAttribute("data-theme", value), theme);
+    const opener = page.getByRole("button", { name: "เพิ่มงาน", exact: true });
+    const form = await openForm(page);
+    const dialog = page.getByRole("dialog", { name: "เพิ่มงานใหม่", exact: true });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole("heading", { level: 2 })).toHaveCount(1);
+    const close = dialog.getByRole("button", { name: "ปิดหน้าต่าง", exact: true });
+    await expect(close).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(form.locator('[name="teamId"]')).toBeFocused();
+    expect(await form.locator('[name="teamId"]').evaluate(node => getComputedStyle(node).outlineStyle)).toBe("solid");
+    await form.getByRole("button", { name: "เพิ่มงาน", exact: true }).click();
+    expect(await form.locator('[name="mainKpi"]').evaluate((node: HTMLSelectElement) => node.validity.valueMissing)).toBe(true);
+    await form.locator('[name="jobs"]').fill("TEST รายละเอียดงาน");
+    const save = form.getByRole("button", { name: "เพิ่มงาน", exact: true });
+    await save.scrollIntoViewIfNeeded();
+    await expect(save).toBeInViewport();
+    expect(await dialog.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+    const rect = await dialog.boundingBox();
+    expect(rect!.x).toBeGreaterThanOrEqual(0);
+    expect(rect!.x + rect!.width).toBeLessThanOrEqual(width);
+    expect(rect!.y).toBeGreaterThanOrEqual(0);
+    expect(rect!.y + rect!.height).toBeLessThanOrEqual(900);
+    expect(await save.evaluate(node => node.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+    const axe = await new AxeBuilder({ page }).include('.work-create-dialog[open]').withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    expect(axe.violations.map(item => item.id)).toEqual([]);
+    await dialog.evaluate(node => { node.scrollTop = 0; });
+    await page.screenshot({ path: testInfo.outputPath(`popup-${theme}-${width}.png`) });
+    await page.keyboard.press("Escape");
+    const discard = page.getByRole("dialog", { name: "ทิ้งข้อมูลที่กรอกไว้หรือไม่" });
+    await discard.getByRole("button", { name: "ยกเลิก", exact: true }).click();
+    await expect(form.locator('[name="jobs"]')).toHaveValue("TEST รายละเอียดงาน");
+    await page.keyboard.press("Escape");
+    await discard.getByRole("button", { name: "ทิ้งข้อมูล", exact: true }).click();
+    await expect(opener).toBeFocused();
+  });
+}
+
+// Actual standalone composition and CSS; synthetic model and mocked server actions, not auth acceptance.
+for (const theme of ["light", "dark"]) for (const width of [320, 1440]) {
+  test(`standalone Add Task styling and actions ${theme} ${width}`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.route("https://work-dialog.fixture/**", route => route.fulfill({ contentType: "text/html", body: '<!doctype html><html lang="th"><head><title>TEST standalone · synthetic data</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div id="root"></div></body></html>' }));
+    await page.goto("https://work-dialog.fixture/work/new");
+    await page.locator("html").evaluate((node, value) => node.setAttribute("data-theme", value), theme);
+    await page.addStyleTag({ content: css + moduleCss + fonts });
+    await page.evaluate(() => { window.__createResolvers = []; window.__previewResolvers = []; });
+    await page.addScriptTag({ content: bundle });
+    const form = page.locator("form.work-create-page-form");
+    await expect(page.getByRole("heading", { name: "เพิ่มงาน", exact: true, level: 1 })).toBeVisible();
+    await expect(form).toBeVisible();
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
+    const controls = form.locator('input:not([type="hidden"]), select, textarea');
+    for (const control of await controls.all()) {
+      const style = await control.evaluate(node => {
+        const s = getComputedStyle(node);
+        return { height: node.getBoundingClientRect().height, radius: s.borderRadius, padding: parseFloat(s.paddingInlineStart), font: s.fontFamily, bodyFont: getComputedStyle(document.body).fontFamily, background: s.backgroundColor, color: s.color, border: s.borderTopStyle, labelDisplay: getComputedStyle(node.closest("label")!).display };
+      });
+      expect(style.height).toBeGreaterThanOrEqual(44);
+      expect(parseFloat(style.radius)).toBeGreaterThan(0);
+      expect(style.padding).toBeGreaterThanOrEqual(12);
+      expect(style.font).toBe(style.bodyFont);
+      expect(style.background).not.toBe("rgba(0, 0, 0, 0)");
+      expect(style.color).not.toBe(style.background);
+      expect(style.border).toBe("solid");
+      expect(style.labelDisplay).toBe("grid");
+    }
+    await form.locator('[name="teamId"]').focus();
+    expect(await form.locator('[name="teamId"]').evaluate(node => getComputedStyle(node).outlineStyle)).toBe("solid");
+    await page.keyboard.press("Tab");
+    await expect(form.locator('[name="mainKpi"]')).toBeFocused();
+    const save = form.getByRole("button", { name: "เพิ่มงาน", exact: true });
+    await save.click();
+    expect(await form.locator('[name="mainKpi"]').evaluate((node: HTMLSelectElement) => node.validity.valueMissing)).toBe(true);
+    expect(await page.evaluate(() => window.__createResolvers.length)).toBe(0);
+    await form.locator('[name="mainKpi"]').selectOption("คุณภาพ");
+    await form.locator('[name="subKpi"]').selectOption("ตรวจสอบ");
+    await save.click();
+    expect(await form.locator('[name="jobs"]').evaluate((node: HTMLTextAreaElement) => node.validity.valueMissing)).toBe(true);
+    await form.locator('[name="jobs"]').fill("TEST รายละเอียดงาน");
+    await form.locator('[name="notes"]').fill("TEST หมายเหตุ");
+    for (const button of await form.getByRole("button").all()) {
+      await button.scrollIntoViewIfNeeded();
+      await expect(button).toBeInViewport();
+      await expect(button).toBeEnabled();
+      const bounds = (await button.boundingBox())!;
+      expect(bounds.height).toBeGreaterThanOrEqual(44);
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await form.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+    const axe = await new AxeBuilder({ page }).include(".work-create-page-form").withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
+    expect(axe.violations.map(item => item.id)).toEqual([]);
+    await page.screenshot({ path: testInfo.outputPath(`standalone-${theme}-${width}.png`), fullPage: true });
+    await form.getByRole("button", { name: "ตรวจสอบกำหนดส่ง", exact: true }).click();
+    await expect(form).toHaveAttribute("aria-busy", "true");
+    await expect(save).toBeDisabled();
+    await resolvePreview(page);
+    await expect(form.getByRole("status").filter({ hasText: "กำหนดส่ง 02/11/2026" })).toBeVisible();
+    await save.click();
+    await expect(form).toHaveAttribute("aria-busy", "true");
+    await resolveCreate(page, { ok: false, message: "TEST บันทึกไม่สำเร็จ" });
+    await expect(form.locator('[name="jobs"]')).toHaveValue("TEST รายละเอียดงาน");
+    await expect(form.locator('[name="notes"]')).toHaveValue("TEST หมายเหตุ");
+    await save.click();
+    await resolveCreate(page, { ok: true, message: "TEST บันทึกแล้ว" });
+    await expect(form.locator('[name="jobs"]')).toHaveValue("");
+    await expect(save).toBeEnabled();
+    await expect(form).toBeVisible();
+  });
+}
 
 declare global {
   interface Window {

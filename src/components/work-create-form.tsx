@@ -1,5 +1,5 @@
 "use client";
-import { startTransition, useActionState, useEffect, useState, useRef } from "react";
+import { startTransition, useActionState, useEffect, useId, useState, useRef } from "react";
 import { useWorkMutationSignal } from "@/lib/work-mutation-signal";
 import { createPersonalTaskAction, previewWorkDeadlineAction, type WorkActionState } from "@/app/(platform)/work/actions";
 import { TaskKpiFields } from "@/features/work/components/task-kpi-fields";
@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import type { WorkReadModel } from "@/lib/work-read-model";
 const initial:WorkActionState={ok:false,message:""};
 export type WorkCreateFormStatus = { pending: boolean; dirty: boolean };
-type WorkCreateFormProps = { model: WorkReadModel; userId: string; onStatus?: (status: WorkCreateFormStatus) => void; onSuccess?: () => void };
-export function WorkCreateForm({model,userId,onStatus,onSuccess}:WorkCreateFormProps){
+type WorkCreateFormProps = { model: WorkReadModel; userId: string; inDialog?: boolean; onStatus?: (status: WorkCreateFormStatus) => void; onSuccess?: () => void };
+export function WorkCreateForm({model,userId,inDialog=false,onStatus,onSuccess}:WorkCreateFormProps){
+ const helpId=useId();
+ const jobsHelpId=useId();
  const [state,action,pending]=useActionState(createPersonalTaskAction,initial);
  const formRef=useRef<HTMLFormElement>(null);
  useWorkMutationSignal(state,formRef);
@@ -32,10 +34,10 @@ export function WorkCreateForm({model,userId,onStatus,onSuccess}:WorkCreateFormP
  }, [state]);
  useEffect(() => { if (!state.ok || lastSuccessfulState.current === state) return; lastSuccessfulState.current=state; setTeamId(initialTeamId); setResetEpoch(epoch=>epoch+1); setDirty(false); onSuccess?.(); }, [state, initialTeamId, onSuccess]);
  return (
-  <form ref={formRef} className="work-panel work-create-form" action={action} aria-busy={busy || undefined} onChange={()=>setDirty(true)} onSubmit={event=>{submittedDraft.current=new FormData(event.currentTarget);}}>
+  <form ref={formRef} className={`work-panel work-create-form${inDialog ? "" : " work-create-page-form"}`} action={action} aria-describedby={helpId} aria-busy={busy || undefined} onChange={()=>setDirty(true)} onSubmit={event=>{submittedDraft.current=new FormData(event.currentTarget);}}>
     <div className="work-create-header">
-      <h2>เพิ่มงานของฉัน</h2>
-      <p className="work-create-guidance">เลือกทีมและ KPI แล้วระบุงานทีละบรรทัด ตรวจสอบกำหนดส่งก่อนเพิ่มงานได้ ข้อมูลที่กรอกจะถูกเก็บไว้แม้ปิดหน้าต่าง</p>
+      {!inDialog && <h2>เพิ่มงานของฉัน</h2>}
+      <p id={helpId} className="work-create-guidance">เลือกทีมและ KPI แล้วระบุงานทีละบรรทัด ตรวจสอบกำหนดส่งก่อนเพิ่มงานได้</p>
     </div>
     <input type="hidden" name="idempotencyKey" value={model.creationKey}/>
     <input type="hidden" name="assigneeId" value={userId}/>
@@ -58,20 +60,23 @@ export function WorkCreateForm({model,userId,onStatus,onSuccess}:WorkCreateFormP
       <legend>รายละเอียดงาน</legend>
       <div className="work-create-details-grid">
         <label>
-          Job / รายละเอียดงาน (หนึ่งรายการต่อบรรทัด สูงสุด 20)
-          <textarea name="jobs" required maxLength={4000} rows={5} placeholder="ตัวอย่าง: ตรวจสอบความเรียบร้อยของอาคาร A"/>
+          Job / รายละเอียดงาน (จำเป็น)
+          <textarea name="jobs" required maxLength={4000} rows={5} aria-describedby={jobsHelpId} placeholder="ตัวอย่าง: ตรวจสอบความเรียบร้อยของอาคาร A"/>
+          <span id={jobsHelpId} className="work-create-field-help">หนึ่งรายการต่อบรรทัด สูงสุด 20 รายการ</span>
         </label>
         <label>
-          หมายเหตุ
+          หมายเหตุ (ถ้ามี)
           <textarea name="notes" maxLength={4000} rows={3} placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"/>
         </label>
       </div>
     </fieldset>
     <div className="work-create-actions">
-      <Button variant="secondary" type="button" onClick={event=>{const form=event.currentTarget.form;if(form)startTransition(()=>previewAction(new FormData(form)));}} pending={previewPending} pendingLabel="กำลังตรวจสอบ…" disabled={pending}>ดู deadline ล่วงหน้า</Button>
-      <p role="status" className="work-create-preview-msg">{preview.message}</p>
-      <Button variant="primary" type="submit" pending={pending} pendingLabel="กำลังเพิ่มงาน…" disabled={previewPending}>เพิ่มงาน</Button>
-      <p role="status" className="work-create-status-msg">{state.message}</p>
+      <div className="work-create-action-row">
+        <Button variant="secondary" type="button" onClick={event=>{const form=event.currentTarget.form;if(form)startTransition(()=>previewAction(new FormData(form)));}} pending={previewPending} pendingLabel="กำลังตรวจสอบ…" disabled={pending}>ตรวจสอบกำหนดส่ง</Button>
+        <Button variant="primary" type="submit" pending={pending} pendingLabel="กำลังเพิ่มงาน…" disabled={previewPending}>เพิ่มงาน</Button>
+      </div>
+      <p role="status" aria-atomic="true" className="work-create-preview-msg" data-tone={preview.ok ? "success" : "error"}>{preview.message}</p>
+      <p role="status" aria-atomic="true" className="work-create-status-msg" data-tone={state.ok ? "success" : "error"}>{state.message}</p>
     </div>
   </form>
 );
