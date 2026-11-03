@@ -12,7 +12,7 @@ export function AuthShell({ title, description, children, notice, contactText, i
     <div className="auth-panel"><div className="auth-panel-inner">
       <div className="auth-mobile-brand"><AuthBrand imageSrc={imageSrc}/></div>
       {notice && <p className="auth-notice" role="status">{notice}</p>}
-      <h1 id="auth-title">{title}</h1><p className="auth-description">{description}</p>
+      <div className="auth-panel-heading"><h1 id="auth-title">{title}</h1><p className="auth-description">{description}</p></div>
       {children}
       <p className="auth-help">{copy.auth.help}<br/><strong>{copy.auth.contact}</strong>{contactText && <> · {contactText}</>}</p>
     </div></div>

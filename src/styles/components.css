@@ -419,6 +419,28 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
   .card:hover,
   .module-directory > a:hover { transform: none; }
 }
+
+/* Batch 2 shell surfaces: one hierarchy for disclosure, search, and dialog work. */
+.ui-page-header { padding-block-end: var(--space-4); }
+.ui-page-header .page-heading-row { gap: var(--space-4); }
+.ui-page-header .page-heading-content { display: grid; gap: var(--space-1); }
+.ui-page-header .page-heading-content > :is(h1, p) { min-width: 0; }
+.ui-page-header .page-heading-actions { align-self: end; }
+.account-control { position: relative; }
+.account-popover { border-color: var(--color-border-strong); padding: var(--space-4); }
+.account-popover p { margin: var(--space-1) 0 var(--space-3); line-height: 1.6; }
+.btn-logout { min-height: var(--size-control-touch); border: var(--border-width) solid var(--color-danger); background: var(--color-danger-soft); color: var(--color-danger); }
+.btn-logout:hover { border-color: var(--color-danger); background: var(--color-danger); color: var(--color-on-brand); }
+.workspace-search-popover { padding: var(--space-3); border-color: var(--color-border-strong); }
+.workspace-search-heading { margin: 0 var(--space-2) var(--space-2); color: var(--color-text-muted); font-size: var(--text-caption); font-weight: 700; }
+.workspace-search-footer { border-top: var(--border-width) solid var(--color-border); margin-top: var(--space-2); padding-top: var(--space-2); color: var(--color-text-muted); font-size: var(--text-micro); }
+.notification-dialog .ui-dialog-body { display: grid; gap: var(--space-3); }
+.notification-dialog .notification-list li { padding-block: var(--space-4); }
+@media (max-width: 650px) {
+  .ui-page-header .page-heading-actions { width: 100%; align-self: stretch; }
+  .ui-page-header .page-heading-actions > * { flex: 1 1 auto; }
+  .account-popover { right: -4px; width: min(280px, calc(100vw - 24px)); }
+}
 .card-hover:hover { box-shadow:var(--shadow-md); border-color:color-mix(in srgb,var(--color-brand) 45%,var(--color-border)); }
 .work-quick-links { margin-top: var(--space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); overflow: hidden; }
 .work-quick-links .work-section-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; border-bottom: 1px solid var(--color-border); }

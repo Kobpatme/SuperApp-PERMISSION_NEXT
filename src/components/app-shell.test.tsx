@@ -18,6 +18,8 @@ describe("AppShell", () => {
     expect(html).not.toContain("พื้นที่ทำงาน");
     expect(html).not.toContain(">เมนูหลัก<");
     expect(html).toContain("Permission Next");
+    expect(html).toContain("%2Flogo.png");
+    expect(html).toContain('alt=""');
     expect(html).toContain('aria-label="เปิดเมนูนำทาง"');
     expect(html).toContain('aria-haspopup="dialog"');
     expect(html).toContain('aria-modal="true"');

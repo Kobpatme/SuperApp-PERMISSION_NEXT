@@ -31,7 +31,7 @@ export function AdminActionForm({ action, confirmation, resetOnSuccess = false, 
     }}>
       <fieldset className="admin-action-fields" disabled={pending}>{children}</fieldset>
     </form>
-    {confirmation && <div {...{ onCancel: (event: React.SyntheticEvent) => event.stopPropagation(), onClose: (event: React.SyntheticEvent) => event.stopPropagation() }}><ConfirmDialog open={confirming} title={confirmation.title} consequence={confirmation.consequence} confirmLabel={confirmation.label} onCancel={() => setConfirming(false)} onConfirm={submit}/></div>}
+    {confirmation && <div {...{ onCancel: (event: React.SyntheticEvent) => event.stopPropagation(), onClose: (event: React.SyntheticEvent) => event.stopPropagation() }}><ConfirmDialog open={confirming} size="compact" intent="danger" title={confirmation.title} consequence={confirmation.consequence} confirmLabel={confirmation.label} onCancel={() => setConfirming(false)} onConfirm={submit}/></div>}
 
   </>;
 }

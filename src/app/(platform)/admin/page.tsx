@@ -17,7 +17,7 @@ import { WorkAdminPanels } from "@/features/work/components/admin-panels";
 import { businessDateSchema } from "@/lib/work-admin-domain";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { AdminModuleSettings } from "@/components/admin-module-settings";
 import { readModuleSettings } from "@/lib/module-lifecycle";
 import { modules } from "@/lib/module-registry";
@@ -142,8 +142,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                   <label>ตั้งแต่<input type="date" name="auditFrom" defaultValue={typeof params.auditFrom === "string" ? params.auditFrom : ""} /></label>
                   <label>ถึง<input type="date" name="auditTo" defaultValue={typeof params.auditTo === "string" ? params.auditTo : ""} /></label>
                   <div className="admin-filter-actions">
-                    <button className="secondary-action">ใช้ตัวกรอง</button>
-                    <Link href="/admin?section=audit">ล้างตัวกรอง</Link>
+                    <Button type="submit" variant="secondary">ใช้ตัวกรอง</Button>
+                    <ButtonLink href="/admin?section=audit" variant="ghost">ล้างตัวกรอง</ButtonLink>
                   </div>
                 </form>
               )}

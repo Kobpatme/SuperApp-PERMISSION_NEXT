@@ -15,5 +15,5 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (await getCurrentUser()) redirect("/");
   const { next, reason } = await searchParams;
 
-  return <AuthShell title={copy.pages.login} description={copy.auth.loginTitle} notice={loginReason(reason)} contactText={supportContactText}><LoginForm next={safeNextPath(next || "")}/></AuthShell>;
+  return <AuthShell imageSrc="/logo.png" title={copy.pages.login} description={copy.auth.loginTitle} notice={loginReason(reason)} contactText={supportContactText}><LoginForm next={safeNextPath(next || "")}/></AuthShell>;
 }

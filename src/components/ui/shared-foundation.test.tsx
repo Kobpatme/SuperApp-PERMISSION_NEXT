@@ -5,7 +5,7 @@ import { FilterBar, FormField } from "./form";
 import { MetricGrid } from "./metric-grid";
 import { Panel } from "./panel";
 import { TableRegion } from "./table-region";
-import { Dialog } from "./dialog";
+import { ConfirmDialog, Dialog } from "./dialog";
 
 describe("shared UI foundation", () => {
   it("renders buttons and links with one canonical variant contract", () => {
@@ -72,5 +72,20 @@ describe("shared UI foundation", () => {
     expect(html).toContain("aria-labelledby=");
     expect(html).toContain("ยืนยันรายการ");
     expect(html).toContain("ปิดหน้าต่าง");
+  });
+
+  it("uses a compact canonical surface for confirmations", () => {
+    const html = renderToStaticMarkup(<ConfirmDialog open title="ทิ้งข้อมูลหรือไม่" consequence="ข้อมูลจะไม่ถูกบันทึก" onCancel={() => undefined} onConfirm={() => undefined} />);
+
+    expect(html).toContain('class="ui-dialog ui-dialog-confirm"');
+    expect(html).toContain('data-dialog-size="compact"');
+  });
+
+  it("exposes token-backed width variants without changing dialog anatomy", () => {
+    const html = renderToStaticMarkup(<><Dialog open title="รายละเอียด" size="wide" onOpenChange={() => undefined}>เนื้อหา</Dialog><Dialog open title="ยืนยัน" size="compact" onOpenChange={() => undefined}>เนื้อหา</Dialog></>);
+
+    expect(html).toContain('data-dialog-size="wide"');
+    expect(html).toContain('data-dialog-size="compact"');
+    expect(html.match(/<dialog/g)).toHaveLength(2);
   });
 });

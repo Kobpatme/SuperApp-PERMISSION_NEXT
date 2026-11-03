@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PDFDocumentLoadingTask, RenderTask } from "pdfjs-dist";
 import { Notice } from "./common";
+import { Button, ButtonLink } from "@/components/ui/button";
 import styles from "../ui-shared/ui-shared.module.css";
 export function PdfViewer({ url, blob, name = "เอกสาร PDF", initialPage = 1 }: { url: string; blob?: Blob; name?: string; initialPage?: number }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -28,7 +29,7 @@ export function PdfViewer({ url, blob, name = "เอกสาร PDF", initialP
     return () => { cancelled = true; render?.cancel(); void loading?.destroy(); };
   }, [url, blob, page, zoom, rotation]);
   return <div className={styles.workspace}>
-    <div className={styles.actions}><button className={styles.button} type="button" disabled={page <= 1} onClick={() => setPage(previous => previous - 1)}>หน้าก่อน</button><span className={styles.muted}>หน้า {page} / {total || "…"}</span><button className={styles.button} type="button" disabled={page >= total} onClick={() => setPage(previous => previous + 1)}>หน้าถัดไป</button><label className={styles.actions}>ขยาย <select aria-label="ระดับขยาย PDF" value={zoom} onChange={event => setZoom(Number(event.target.value))}>{[0.5, 0.75, 1, 1.25, 1.5, 2].map(value => <option key={value} value={value}>{value * 100}%</option>)}</select></label><button className={styles.button} type="button" onClick={() => setRotation(previous => (previous + 90) % 360)}>หมุนหน้า</button><a className={styles.button} href={url} target="_blank" rel="noopener noreferrer">เปิด PDF / พิมพ์</a></div>
+    <div className={styles.actions}><Button variant="secondary" type="button" disabled={page <= 1} onClick={() => setPage(previous => previous - 1)}>หน้าก่อน</Button><span className={styles.muted}>หน้า {page} / {total || "…"}</span><Button variant="secondary" type="button" disabled={page >= total} onClick={() => setPage(previous => previous + 1)}>หน้าถัดไป</Button><label className={styles.actions}>ขยาย <select aria-label="ระดับขยาย PDF" value={zoom} onChange={event => setZoom(Number(event.target.value))}>{[0.5, 0.75, 1, 1.25, 1.5, 2].map(value => <option key={value} value={value}>{value * 100}%</option>)}</select></label><Button variant="secondary" type="button" onClick={() => setRotation(previous => (previous + 90) % 360)}>หมุนหน้า</Button><ButtonLink variant="secondary" href={url} target="_blank" rel="noopener noreferrer">เปิด PDF / พิมพ์</ButtonLink></div>
     <Notice text={error} error />
     <div className={styles.preview} tabIndex={0} role="region" aria-label={`เลื่อนดู ${name}`}><canvas ref={canvas} role="img" aria-label={`${name} หน้า ${page}`} /></div>
   </div>;

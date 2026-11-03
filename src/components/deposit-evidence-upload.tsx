@@ -32,8 +32,8 @@ export function DepositEvidenceUpload({ id, version, kind, exists, canUpload = t
     finally { setPending(false); }
   }
   return <div className="deposit-evidence"><div><TruncatedText text={labels[kind]} lines={2}/><small>{exists ? "มีไฟล์แล้ว" : "ยังไม่มีไฟล์"}</small></div>
-    {exists && <a href={`/api/guarantees/${id}/documents/${kind}`} target="_blank" rel="noreferrer">เปิดไฟล์</a>}
-    {canUpload && <><input ref={inputRef} disabled={pending} type="file" accept="application/pdf,image/jpeg,image/png" aria-label={`เลือก${labels[kind]}`} onChange={(event) => { setFile(event.target.files?.[0] || null); setMessage(""); }}/>
+    {exists && <a className="deposit-evidence-link" href={`/api/guarantees/${id}/documents/${kind}`} target="_blank" rel="noreferrer">เปิดไฟล์</a>}
+    {canUpload && <><input className="deposit-evidence-input" ref={inputRef} disabled={pending} type="file" accept="application/pdf,image/jpeg,image/png" aria-label={`เลือก${labels[kind]}`} onChange={(event) => { setFile(event.target.files?.[0] || null); setMessage(""); }}/>
       <Button type="button" variant="secondary" disabled={!file || pending} onClick={upload}>{pending ? "กำลังอัปโหลด…" : "อัปโหลด"}</Button></>}
     {message && <small role="status">{message}</small>}
   </div>;

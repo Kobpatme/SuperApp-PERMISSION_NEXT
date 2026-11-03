@@ -17,7 +17,7 @@ export function CarBookingDialog({ title, children, busy, onClose, protectDraft 
         <fieldset className="cb-pending-fields" disabled={busy} aria-busy={busy || undefined}>{children}</fieldset>
       </div>
     </Dialog>
-    <ConfirmDialog open={discard} title="ทิ้งข้อมูลที่กรอกไว้หรือไม่" consequence="ข้อมูลที่ยังไม่ได้บันทึกจะถูกทิ้ง การจองเดิมจะไม่เปลี่ยนแปลง" confirmLabel="ทิ้งข้อมูล"
+    <ConfirmDialog open={discard} size="compact" title="ทิ้งข้อมูลที่กรอกไว้หรือไม่" consequence="ข้อมูลที่ยังไม่ได้บันทึกจะถูกทิ้ง การจองเดิมจะไม่เปลี่ยนแปลง" confirmLabel="ทิ้งข้อมูล"
       onCancel={() => setDiscard(false)} onConfirm={() => { setDiscard(false); onClose(); }} />
   </>;
 }

@@ -84,6 +84,6 @@ export function DepositEditor({ item, assignees = [], events = [] }: { item?: De
       <section className="deposit-panel deposit-history"><h2>ประวัติการทำงาน</h2>{events.map((event) => <TruncatedText key={event.id} text={`${new Date(event.occurredAt).toLocaleString("th-TH")} · ${event.action === "transition" ? `${event.fromStatus} → ${event.toStatus}` : event.action}${event.reason ? ` · ${event.reason}` : ""}`} lines={3}/>) }{!events.length && <p>ยังไม่มีประวัติ</p>}</section>
       <p className="sub">บันทึกการเปลี่ยนแปลงและประวัติให้คุณทุกครั้ง</p></aside>}
     </div>
-    <ConfirmDialog open={leaveOpen} title="ทิ้งข้อมูลที่กรอกไว้หรือไม่" consequence="ข้อมูลที่ยังไม่บันทึกจะไม่ถูกเก็บ คุณสามารถยกเลิกเพื่อแก้ไขต่อได้" confirmLabel="ทิ้งข้อมูล" onCancel={() => setLeaveOpen(false)} onConfirm={() => { setLeaveOpen(false); router.push("/guarantees"); }} />
+    <ConfirmDialog size="compact" open={leaveOpen} title="ทิ้งข้อมูลที่กรอกไว้หรือไม่" consequence="ข้อมูลที่ยังไม่บันทึกจะไม่ถูกเก็บ คุณสามารถยกเลิกเพื่อแก้ไขต่อได้" confirmLabel="ทิ้งข้อมูล" onCancel={() => setLeaveOpen(false)} onConfirm={() => { setLeaveOpen(false); router.push("/guarantees"); }} />
   </div>;
 }

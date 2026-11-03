@@ -60,8 +60,8 @@ export function TrackingWorkspace({ initialSla = "" }: { initialSla?: string } =
               {Object.entries(slaLabels).map(([key,label])=><option key={key} value={key}>{label}</option>)}
             </select>
           </FormField>
-          <button className={styles.button} type="submit">ค้นหา</button>
-          <button className={styles.button} type="button" onClick={() => { setFilters({query:"",kind:"",owner:"",sla:""}); setOffset(0); }}>รีเซ็ต</button>
+          <Button variant="primary" type="submit">ค้นหา</Button>
+          <Button variant="ghost" type="button" onClick={() => { setFilters({query:"",kind:"",owner:"",sla:""}); setOffset(0); }}>รีเซ็ต</Button>
         </form>
       </section>
       {model.loading ? (

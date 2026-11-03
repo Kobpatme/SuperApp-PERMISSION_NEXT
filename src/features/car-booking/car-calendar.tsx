@@ -1,6 +1,7 @@
 "use client";
 import { Panel } from "@/components/ui/panel";
 import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form";
 import { useState } from "react";
 import { bangkokInput,thaiCarDate } from "@/lib/car-booking-display";
 import { carCalendarBounds,moveCarCalendar,type CarCalendarView } from "@/lib/car-booking-calendar";
@@ -10,7 +11,7 @@ export function CarCalendar({events,anchor,view,onDate,onView,loading}:{events:C
  const legend=Array.from(new Map(events.map(event=>[event.car_id,event.license_plate])).entries()).sort((a,b)=>a[1].localeCompare(b[1],"th"));
  const heading=new Intl.DateTimeFormat("th-TH",view==="month"?{month:"long",year:"numeric",timeZone:"Asia/Bangkok"}:{dateStyle:"full",timeZone:"Asia/Bangkok"}).format(new Date(`${anchor}T12:00:00+07:00`));
  return <Panel className="cb-panel"><h2>ปฏิทินช่วงไม่ว่าง</h2><p className="cb-muted">แสดงเฉพาะทะเบียนและเวลา หากคืนแล้วจะแสดงเวลาคืนจริง</p>
- <div className="cb-filter"><Button disabled={loading} onClick={()=>{setSelected(null);onDate(moveCarCalendar(anchor,view,-1));}}>ก่อนหน้า</Button><Button disabled={loading} onClick={()=>{setSelected(null);onDate(bangkokInput().slice(0,10));}}>วันนี้</Button><Button disabled={loading} onClick={()=>{setSelected(null);onDate(moveCarCalendar(anchor,view,1));}}>ถัดไป</Button><label>มุมมองปฏิทิน<select value={view} disabled={loading} onChange={e=>{setSelected(null);onView(e.target.value as CarCalendarView);}}><option value="month">เดือน</option><option value="week">สัปดาห์</option><option value="day">วัน</option></select></label></div>
+ <div className="cb-filter"><Button disabled={loading} onClick={()=>{setSelected(null);onDate(moveCarCalendar(anchor,view,-1));}}>ก่อนหน้า</Button><Button disabled={loading} onClick={()=>{setSelected(null);onDate(bangkokInput().slice(0,10));}}>วันนี้</Button><Button disabled={loading} onClick={()=>{setSelected(null);onDate(moveCarCalendar(anchor,view,1));}}>ถัดไป</Button><FormField label="มุมมองปฏิทิน"><select value={view} disabled={loading} onChange={e=>{setSelected(null);onView(e.target.value as CarCalendarView);}}><option value="month">เดือน</option><option value="week">สัปดาห์</option><option value="day">วัน</option></select></FormField></div>
  <h3 className="cb-calendar-heading">{heading}</h3><div className="cb-legend" aria-label="คำอธิบายสีรถ">{legend.map(([id,plate],i)=><span key={id}><i className={`cb-swatch cb-tone-${i%5}`} aria-hidden="true"/>{plate}</span>)}</div>
  {selected&&<p role="status" className="cb-calendar-detail"><strong>{selected.license_plate}</strong> · {thaiCarDate(selected.start_time)} → {thaiCarDate(selected.end_time)}</p>}
  <div className={`cb-calendar-grid cb-calendar-${view}`} aria-label={`ปฏิทิน ${heading}`}>

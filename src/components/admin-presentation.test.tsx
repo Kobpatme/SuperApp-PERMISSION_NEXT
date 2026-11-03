@@ -10,6 +10,7 @@ vi.mock("@/app/(platform)/admin/actions", () => ({
 vi.mock("@/app/(platform)/admin/work-actions", () => ({ saveWorkAdminAction: () => null, previewWorkAdminAction: () => null, confirmWorkAdminAction: () => null }));
 vi.mock("@/app/(platform)/work/actions", () => ({ restoreWorkTaskAction: () => null }));
 import { AdminWorkspace } from "./admin-workspace";
+import { AdminModuleSettings } from "./admin-module-settings";
 import { WorkAdminPanels } from "@/features/work/components/admin-panels";
 import type { WorkAdminData } from "@/lib/work-admin-read";
 
@@ -54,6 +55,19 @@ describe("admin composed presentation", () => {
     const html = renderToStaticMarkup(<AdminWorkspace section="audit" {...base} />);
     expect(html).toContain("ยังไม่มีประวัติการเปลี่ยนแปลง");
     expect(html).toContain("admin-table-wrap");
+  });
+
+  it("uses canonical action hierarchy for destructive admin actions", () => {
+    const html = renderToStaticMarkup(<AdminWorkspace section="teams" {...base} />);
+    expect(html).toContain("ui-button-danger");
+    expect(html).toContain('data-dialog-size="compact"');
+  });
+
+  it("groups module toggles in one shared panel instead of stacked cards", () => {
+    const html = renderToStaticMarkup(<AdminModuleSettings available items={[{ id: "core", name: "ระบบกลาง", enabled: true, version: 1, ready: true }]} />);
+    expect(html).toContain('class="ui-panel admin-module-settings"');
+    expect(html).toContain("admin-module-row");
+    expect(html).not.toContain('class="admin-panel"');
   });
 
   it("composes every work-admin section with its real presentational branch", () => {

@@ -1,7 +1,7 @@
 "use client";
 import { Panel } from "@/components/ui/panel";
 import { TableRegion } from "@/components/ui/table-region";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { useCallback,useEffect,useRef,useState } from "react";
 import { carRequest } from "./car-booking-workspace";
 import { bangkokInput,bookingStatus,thaiCarDate } from "@/lib/car-booking-display";
@@ -32,7 +32,7 @@ export function CarReports({dashboard=false}:{dashboard?:boolean}){
  const page=dashboard?stats:report,next=page?.nextOffset ?? null;
  const statuses:Record<string,string>={queued:"รอส่ง",running:"กำลังส่ง",sent:"ส่งแล้ว",failed:"ส่งไม่สำเร็จ"};
  return <Panel className="cb-panel cb-report"><h2>{dashboard?"แดชบอร์ดการใช้รถ":"รายงาน OSP"}</h2>
- <div className="cb-filter"><label>เดือนรายงาน<input type="month" disabled={all||loading} value={month} onChange={e=>{if(e.target.value){setMonth(e.target.value);setOffset(0);}}}/></label><label className="cb-check"><input type="checkbox" checked={all} disabled={loading} onChange={e=>{setAll(e.target.checked);setOffset(0);}}/>ทุกเดือน</label><Button disabled={loading} onClick={()=>void load()}>โหลดรายงานใหม่</Button><a className="cb-link" href={`/api/car-booking/reports?month=${selection}&format=csv`}>ดาวน์โหลด OSP CSV</a></div>
+ <div className="cb-filter"><label>เดือนรายงาน<input type="month" disabled={all||loading} value={month} onChange={e=>{if(e.target.value){setMonth(e.target.value);setOffset(0);}}}/></label><label className="cb-check"><input type="checkbox" checked={all} disabled={loading} onChange={e=>{setAll(e.target.checked);setOffset(0);}}/>ทุกเดือน</label><Button disabled={loading} onClick={()=>void load()}>โหลดรายงานใหม่</Button><ButtonLink variant="ghost" className="cb-link" href={`/api/car-booking/reports?month=${selection}&format=csv`}>ดาวน์โหลด OSP CSV</ButtonLink></div>
  <p className="cb-muted">กรองตามวันเริ่มใช้รถ (เวลาไทย) · OSP และยอดระยะทาง/น้ำมันนับเฉพาะรายการคืนแล้ว · รวมเติมระหว่างทางและตอนคืน</p>
  {loading&&<p role="status">กำลังโหลดรายงาน…</p>}{error&&<p role="alert" className="cb-error">{error}</p>}{notice&&<p role="status" className="cb-success">{notice}</p>}
  {dashboard&&stats&&<><dl className="cb-stats">{[["การจองทั้งหมด",stats.totals.total],["คืนแล้ว",stats.totals.completed],["กำลังใช้งาน",stats.totals.active],["จองล่วงหน้า",stats.totals.upcoming],["ระยะทางรวม (กม.)",stats.totals.distance],["น้ำมันรวม (ลิตร)",stats.totals.liters],["ค่าน้ำมันรวม (บาท)",stats.totals.amount]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>

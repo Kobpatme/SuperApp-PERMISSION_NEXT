@@ -97,3 +97,18 @@
 .building-map-page .building-map-detail-close{z-index:1}
 .building-map-page .building-map-detail h2{padding-right:var(--size-control-touch)}
 .building-map-cluster-picker{left:auto;right:12px}
+
+/* Keep map interaction fast and visually aligned with the shared UI contract. */
+.building-map-marker{animation:none}
+.building-map-page .ui-button,.building-location-picker .ui-button{box-shadow:none}
+.building-location-heading .ui-button{flex:0 0 auto}
+.building-location-actions .ui-button{min-height:var(--size-control-touch);padding:9px 16px}
+.building-location-actions .ui-button-primary{border-color:var(--color-brand);background:var(--color-brand);color:var(--color-on-brand)}
+.building-location-actions .ui-button-secondary,.building-location-heading .ui-button-secondary{border-color:var(--color-text);background:transparent;color:var(--color-text)}
+.building-location-actions .ui-button-secondary:not(:disabled):hover,.building-location-heading .ui-button-secondary:not(:disabled):hover{border-color:var(--color-text);background:var(--color-text);color:var(--color-surface)}
+.building-location-results button{min-height:var(--size-control-touch);padding:var(--space-3)}
+.building-location-results button:hover{background:var(--color-surface-subtle)}
+.building-map-detail-close{background:var(--color-surface-subtle)!important;color:var(--color-text)!important}
+.building-longdo-map-state .ui-button{min-height:var(--size-control-touch);padding:9px 16px;box-shadow:none}
+.building-longdo-map-state .ui-button-primary{border-color:var(--color-brand);background:var(--color-brand);color:var(--color-on-brand)}
+.building-longdo-map-state .ui-button-secondary{border-color:var(--color-text);background:transparent;color:var(--color-text)}

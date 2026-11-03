@@ -5,7 +5,7 @@ export function PageHeader({ title, description, eyebrow, parent, actions, class
  title: string; description?: string; eyebrow?: string; parent?: { label: string; href: string }; actions?: React.ReactNode; className?: string; rowClassName?: string;
 }) {
   return (
-    <header className={`page-heading border-b border-[var(--color-border)] pb-2 ${className ?? ""}`.trim()}>
+    <header className={`page-heading ui-page-header border-b border-[var(--color-border)] pb-2 ${className ?? ""}`.trim()} data-ui="page-header">
       <div className={`page-heading-row flex flex-wrap items-start gap-2 ${rowClassName ?? "justify-between"}`}>
         <div className="page-heading-content min-w-0 flex-1">
           {parent && (

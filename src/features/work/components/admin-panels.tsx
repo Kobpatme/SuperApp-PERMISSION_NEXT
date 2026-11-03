@@ -40,7 +40,7 @@ function SystemsPanel({ data }: { data:WorkAdminData }) {
 }
 function RestoreForm({ task }: { task:WorkAdminData["deleted"][number] }) {
   const [state,action,pending]=useActionState(restoreWorkTaskAction,{ok:false,message:""} as WorkActionState);
-  return <AdminActionForm action={action}><span>{task.title}</span><input type="hidden" name="taskId" value={task.id}/><input type="hidden" name="version" value={task.version}/><input type="hidden" name="idempotencyKey" value={`restore:${task.id}:${task.version}`}/><label>เหตุผลที่กู้คืน<input name="reason" required maxLength={1000}/></label><Button type="submit" variant="secondary" disabled={pending}>กู้คืนงาน</Button><p role="status">{state.message}</p></AdminActionForm>;
+  return <AdminActionForm action={action}><span>{task.title}</span><input type="hidden" name="taskId" value={task.id}/><input type="hidden" name="version" value={task.version}/><input type="hidden" name="idempotencyKey" value={`restore:${task.id}:${task.version}`}/><label>เหตุผลที่กู้คืน<input name="reason" required maxLength={1000}/></label><Button type="submit" variant="primary" disabled={pending}>กู้คืนงาน</Button><p role="status">{state.message}</p></AdminActionForm>;
 }
 export function WorkAdminPanels({ data,section }: { data:WorkAdminData;section:string }) {
   return <div className="work-admin-panels">

@@ -137,6 +137,8 @@
   margin: 0;
   overflow: auto;
 }
+.ui-dialog[data-dialog-size="compact"] { width: min(440px, calc(100vw - 32px)); }
+.ui-dialog[data-dialog-size="wide"] { width: min(800px, calc(100vw - 32px)); }
 .ui-dialog[open] { display: grid; gap: var(--space-4); }
 .ui-dialog-header p { margin: var(--space-1) 0 0; color: var(--color-text-muted); line-height: 1.6; }
 .ui-dialog-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:var(--space-2); margin-top:var(--space-4); }
@@ -152,13 +154,34 @@
   border-bottom: 1px solid var(--color-border);
   padding-bottom: var(--space-3);
 }
-.ui-dialog-header h2 {
+.ui-dialog-header .ui-dialog-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.ui-dialog-header .ui-dialog-title-group h2 {
   margin: 0;
   font-size: var(--text-h2);
+  min-width: 0;
+}
+.ui-dialog-header .ui-dialog-title-group p {
+  margin: 0;
+  min-width: 0;
+}
+.ui-dialog-confirm .ui-dialog-header {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.ui-dialog-confirm .ui-dialog-actions {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-3);
 }
 .ui-dialog-body {
   min-width: 0;
 }
+.ui-dialog-confirm .ui-dialog-actions { border-top: 1px solid var(--color-border); padding-top: var(--space-3); }
 
 .ui-status { display:inline-flex; padding:var(--space-1) var(--space-2); border-radius:var(--radius-sm); font-size:var(--text-caption); font-weight:600; }
 .error-state-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; }
@@ -340,6 +363,8 @@
   .core-utility-dialog { width: min(100vw - 16px, 560px); max-height: calc(100dvh - 16px); padding: var(--space-4); }
   .core-utility-dialog .ui-dialog-actions { justify-content: stretch; }
   .core-utility-dialog .ui-dialog-actions > * { flex: 1 1 140px; }
+  .ui-dialog[data-dialog-size="wide"] { width: min(100vw - 32px, 800px); }
+  .ui-dialog[data-dialog-size="compact"] { width: min(100vw - 32px, 440px); }
 }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto; } }
 @media (prefers-reduced-motion: reduce) {

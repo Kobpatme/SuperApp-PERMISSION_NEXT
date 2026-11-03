@@ -11,6 +11,7 @@ export function ConfirmDialog({
   confirmLabel = "ยืนยัน",
   intent = "danger",
   pending = false,
+  size = "compact",
   onCancel,
   onConfirm,
   children,
@@ -21,11 +22,12 @@ export function ConfirmDialog({
   confirmLabel?: string;
   intent?: "primary" | "danger";
   pending?: boolean;
+  size?: "compact" | "default" | "wide";
   onCancel: () => void;
   onConfirm: () => void;
   children?: React.ReactNode;
 }) {
-  return <Dialog open={open} title={title} description={consequence} busy={pending} onOpenChange={(next) => { if (!next) onCancel(); }}>
+  return <Dialog open={open} title={title} description={consequence} busy={pending} size={size} className="ui-dialog-confirm" onOpenChange={(next) => { if (!next) onCancel(); }}>
     {children}
     <div className="ui-dialog-actions"><button type="button" className="ui-button ui-button-ghost" onClick={onCancel} disabled={pending}>ยกเลิก</button><button type="button" className={`ui-button ui-button-${intent}`} onClick={onConfirm} disabled={pending} aria-busy={pending || undefined}>{pending ? "กำลังดำเนินการ…" : confirmLabel}</button></div>
   </Dialog>;
@@ -42,6 +44,7 @@ export function Dialog({
   initialFocusRef,
   returnFocusRef,
   className,
+  size = "default",
 }: {
   open: boolean;
   title: string;
@@ -53,6 +56,7 @@ export function Dialog({
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   returnFocusRef?: React.RefObject<HTMLElement | null>;
   className?: string;
+  size?: "compact" | "default" | "wide";
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -117,6 +121,7 @@ export function Dialog({
   return <dialog
     ref={dialogRef}
     className={["ui-dialog", className].filter(Boolean).join(" ")}
+    data-dialog-size={size === "default" ? undefined : size}
     aria-labelledby={titleId}
     aria-modal="true"
     aria-describedby={description ? descriptionId : undefined}
@@ -130,8 +135,8 @@ export function Dialog({
     }}
   >
     <header className="ui-dialog-header">
-      <div><h2 id={titleId}>{title}</h2>{description && <p id={descriptionId}>{description}</p>}</div>
-      <button type="button" className="ui-button ui-button-ghost" data-dialog-close onClick={() => void requestClose("close-button")} disabled={busy}>ปิดหน้าต่าง</button>
+      <div className="ui-dialog-title-group"><h2 id={titleId}>{title}</h2>{description && <p id={descriptionId}>{description}</p>}</div>
+      <button type="button" className="ui-button ui-button-ghost" data-dialog-close onClick={() => void requestClose("close-button")} disabled={busy} style={{ flexShrink: 0 }}>ปิดหน้าต่าง</button>
     </header>
     <div className="ui-dialog-body" aria-busy={busy || undefined}>{children}</div>
   </dialog>;

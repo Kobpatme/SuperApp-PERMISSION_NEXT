@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
+import { Button } from "@/components/ui/button";
 import { Field, ModuleNav, Notice } from "./common";
 import styles from "../ui-shared/ui-shared.module.css";
 
@@ -25,12 +26,12 @@ export function CommunicationCableWorkspace({ embedded = false }: { embedded?: b
     <Notice text="แบบร่างสำหรับทบทวนโฟลว์ — ทดลองเลือกขั้นตอนได้ ยังไม่บันทึกคำขอหรือส่งข้อมูลให้หน่วยงาน" />
     <div className={styles.toolbar}>
       <Field label="หน่วยงานที่ติดต่อ"><select value={authority} onChange={event => setAuthority(event.target.value)}><option value="PEA">PEA · การไฟฟ้าส่วนภูมิภาค</option><option value="MEA">MEA · การไฟฟ้านครหลวง</option></select></Field>
-      <button className={styles.button} type="button" onClick={() => { setStep(0); setRevision(false); }}>เริ่มทดลองใหม่</button>
+      <Button variant="ghost" type="button" onClick={() => { setStep(0); setRevision(false); }}>เริ่มทดลองใหม่</Button>
     </div>
     <div className={styles.flowLayout}>
       <section className={styles.panel} aria-labelledby="cable-flow-title">
         <h2 id="cable-flow-title">ลำดับงานที่เสนอ</h2>
-        <ol className={styles.flowList}>{stages.map((item, index) => <li key={item.title}><button className={`${styles.button} ${index === step ? styles.current : ""}`} type="button" aria-current={index === step ? "step" : undefined} onClick={() => { setStep(index); setRevision(false); }}>{index + 1}. {item.title}</button><span className={styles.muted}>{item.owner}</span></li>)}</ol>
+        <ol className={styles.flowList}>{stages.map((item, index) => <li key={item.title}><Button variant={index === step ? "primary" : "secondary"} type="button" aria-current={index === step ? "step" : undefined} onClick={() => { setStep(index); setRevision(false); }}>{index + 1}. {item.title}</Button><span className={styles.muted}>{item.owner}</span></li>)}</ol>
       </section>
       <section className={styles.panel} aria-labelledby="cable-stage-title">
         <p className={styles.muted}>ตัวอย่างขั้นตอน · {authority} · {step + 1}/{stages.length}</p>
@@ -38,9 +39,9 @@ export function CommunicationCableWorkspace({ embedded = false }: { embedded?: b
         <p>{revision ? "บันทึกเหตุผลจากหน่วยงาน ให้ทีมออกแบบแก้ไขแบบและทีมขออนุญาตตรวจเอกสาร ก่อนยื่นใหม่" : stage.detail}</p>
         <dl className={styles.flowDetails}><div><dt>ผู้รับผิดชอบที่เสนอ</dt><dd>{revision ? "ทีมออกแบบ / ทีมขออนุญาต" : stage.owner}</dd></div><div><dt>เอกสารที่เสนอ</dt><dd>{revision ? "เหตุผลที่ต้องแก้ไขและแบบฉบับปรับปรุง" : stage.documents}</dd></div></dl>
         <div className={styles.actions}>
-          <button className={styles.button} type="button" disabled={step === 0 || revision} onClick={() => setStep(step - 1)}>ขั้นก่อนหน้า</button>
-          {revision ? <button className={styles.primary} type="button" onClick={() => { setRevision(false); setStep(2); }}>ทดลองยื่นใหม่หลังแก้ไข</button> : step < stages.length - 1 ? <button className={styles.primary} type="button" onClick={() => setStep(step + 1)}>ทดลองขั้นถัดไป</button> : <span role="status">สิ้นสุดโฟลว์ตัวอย่าง</span>}
-          {step === 2 && !revision && <button className={styles.button} type="button" onClick={() => setRevision(true)}>ทดลองกรณีให้แก้ไข</button>}
+          <Button variant="secondary" type="button" disabled={step === 0 || revision} onClick={() => setStep(step - 1)}>ขั้นก่อนหน้า</Button>
+          {revision ? <Button variant="primary" type="button" onClick={() => { setRevision(false); setStep(2); }}>ทดลองยื่นใหม่หลังแก้ไข</Button> : step < stages.length - 1 ? <Button variant="primary" type="button" onClick={() => setStep(step + 1)}>ทดลองขั้นถัดไป</Button> : <span role="status">สิ้นสุดโฟลว์ตัวอย่าง</span>}
+          {step === 2 && !revision && <Button variant="ghost" type="button" onClick={() => setRevision(true)}>ทดลองกรณีให้แก้ไข</Button>}
         </div>
         <p className={styles.muted} aria-live="polite">กำลังดู: {revision ? "แก้ไขแบบ / เอกสาร → ยื่นขออนุญาตใหม่" : stage.title}</p>
       </section>

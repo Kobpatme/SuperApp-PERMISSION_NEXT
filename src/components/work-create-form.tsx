@@ -34,7 +34,7 @@ export function WorkCreateForm({model,userId,inDialog=false,onStatus,onSuccess}:
  }, [state]);
  useEffect(() => { if (!state.ok || lastSuccessfulState.current === state) return; lastSuccessfulState.current=state; setTeamId(initialTeamId); setResetEpoch(epoch=>epoch+1); setDirty(false); onSuccess?.(); }, [state, initialTeamId, onSuccess]);
  return (
-  <form ref={formRef} className={`work-panel work-create-form${inDialog ? "" : " work-create-page-form"}`} action={action} aria-describedby={helpId} aria-busy={busy || undefined} onChange={()=>setDirty(true)} onSubmit={event=>{submittedDraft.current=new FormData(event.currentTarget);}}>
+  <form ref={formRef} className={`work-panel work-create-form ui-form${inDialog ? "" : " work-create-page-form"}`} action={action} aria-describedby={helpId} aria-busy={busy || undefined} onChange={()=>setDirty(true)} onSubmit={event=>{submittedDraft.current=new FormData(event.currentTarget);}}>
     <div className="work-create-header">
       {!inDialog && <h2>เพิ่มงานของฉัน</h2>}
       <p id={helpId} className="work-create-guidance">เลือกทีมและ KPI แล้วระบุงานทีละบรรทัด ตรวจสอบกำหนดส่งก่อนเพิ่มงานได้</p>

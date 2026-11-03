@@ -29,5 +29,5 @@ describe("proxy authentication boundary", () => {
     expect(response.headers.get("x-middleware-request-x-pn-request-path")).toBe("/work?view=mine");
     expect(response.headers.get("x-pn-request-path")).toBeNull();
   });
-  it.each(["/icon.png","/apple-icon.png","/manifest.webmanifest","/robots.txt"])("allows only public metadata asset %s",path=>{expect(proxy(new NextRequest(`http://localhost:3000${path}`)).status).toBe(200);});
+  it.each(["/logo.png","/icon.png","/apple-icon.png","/manifest.webmanifest","/robots.txt"])("allows only public metadata asset %s",path=>{expect(proxy(new NextRequest(`http://localhost:3000${path}`)).status).toBe(200);});
 });

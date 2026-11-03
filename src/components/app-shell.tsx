@@ -9,6 +9,7 @@ import type { ModuleId } from "@/lib/module-registry";
 import { WorkspaceIcon } from "@/components/workspace-icon";
 
 import Link from "next/link";
+import Image from "next/image";
 import styles from "@/styles/app-shell.module.css";
 import { Dialog } from "@/components/ui/dialog";
 
@@ -36,7 +37,7 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
     <div className={`${styles.header} border-b border-[var(--color-border)] bg-[var(--color-surface)]`} data-shell-header>
       <header className={`${styles.topbar} flex items-center gap-4`}>
         <button className={`${styles.mobileToggle} transition-colors hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)]`} type="button" aria-label="เปิดเมนูนำทาง" aria-haspopup="dialog" onClick={() => setMobileOpen(true)}><span className="sidebar-menu-icon" aria-hidden="true"><span/><span/><span/></span></button>
-        <Link className={`${styles.brand} transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2`} href="/" aria-label="Permission Next — ภาพรวม"><span className={`${styles.brandMark} shadow-sm`} aria-hidden="true">PN</span><span className={styles.brandText}><strong>Permission Next</strong></span></Link>
+        <Link className={`${styles.brand} transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus-ring)] focus-visible:ring-offset-2`} href="/" aria-label="Permission Next — ภาพรวม"><span className={`${styles.brandMark} shadow-sm`} aria-hidden="true"><Image src="/logo.png" alt="" width={40} height={40} priority style={{ objectFit: "contain" }}/></span><span className={styles.brandText}><strong>Permission Next</strong></span></Link>
         <div className={`${styles.search} min-w-0 flex-1`}><WorkspaceSearch allowedModuleIds={allowedModuleIds} contained/></div>
         <div className={`${styles.actions} flex items-center gap-2`}>
           {notificationCenter}

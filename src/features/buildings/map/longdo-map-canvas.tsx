@@ -241,14 +241,14 @@ export function LongdoMapCanvas({ apiKey, points, selectedId, heatmap = false, o
 
   return <div className={`building-longdo-map ${className}`}>
     <div ref={hostRef} tabIndex={-1} className="building-longdo-map-canvas" role="region" aria-label="แผนที่อาคาร Longdo" />
-    {state === "ready" && <button type="button" className="building-longdo-fullscreen" onClick={toggleFullscreen} aria-label={fullscreen ? "ออกจากเต็มหน้าจอ" : "แสดงแผนที่เต็มหน้าจอ"}>{fullscreen ? "ย่อแผนที่" : "เต็มหน้าจอ"}</button>}
+    {state === "ready" && <button type="button" className="ui-button ui-button-secondary building-longdo-fullscreen" onClick={toggleFullscreen} aria-label={fullscreen ? "ออกจากเต็มหน้าจอ" : "แสดงแผนที่เต็มหน้าจอ"}>{fullscreen ? "ย่อแผนที่" : "เต็มหน้าจอ"}</button>}
     {clusterCandidates.length > 1 && !heatmap && <section ref={clusterPickerRef} className="building-map-cluster-picker" aria-label="เลือกอาคารในกลุ่ม" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeCluster(); } }}>
       <header><strong>เลือกอาคาร ({clusterCandidates.length})</strong><button type="button" aria-label="ปิดรายชื่อกลุ่มอาคาร" onClick={closeCluster}>×</button></header>
       <ul>{clusterCandidates.map((point) => <li key={point.id}><button type="button" onClick={() => { closeCluster(); callbackRef.current.onSelect?.(point.id); }}><strong>{point.name}</strong><span>{[point.code, point.status].filter(Boolean).join(" · ")}</span></button></li>)}</ul>
     </section>}
     {state !== "ready" && <div className="building-longdo-map-state" role="status">
-      {state === "loading" ? "กำลังโหลดแผนที่…" : state === "missing-key" ? <><strong>{copy.feedback.mapUnavailable}</strong><span>{copy.feedback.mapFallback}</span></> : <><strong>โหลดแผนที่ Longdo ไม่สำเร็จ</strong><span>{copy.feedback.mapRetry}</span><button type="button" onClick={() => { setState("loading"); setRetry((value) => value + 1); }}>ลองอีกครั้ง</button></>}
-      {state === "error" && onFallbackToList && <button type="button" onClick={onFallbackToList}>ดูรายการ</button>}
+      {state === "loading" ? "กำลังโหลดแผนที่…" : state === "missing-key" ? <><strong>{copy.feedback.mapUnavailable}</strong><span>{copy.feedback.mapFallback}</span></> : <><strong>โหลดแผนที่ Longdo ไม่สำเร็จ</strong><span>{copy.feedback.mapRetry}</span><button className="ui-button ui-button-primary" type="button" onClick={() => { setState("loading"); setRetry((value) => value + 1); }}>ลองอีกครั้ง</button></>}
+      {state === "error" && onFallbackToList && <button className="ui-button ui-button-secondary" type="button" onClick={onFallbackToList}>ดูรายการ</button>}
     </div>}
     {heatmap && points.length < 2 && <div className="building-longdo-map-hint" role="status">ต้องมีอาคารที่ระบุตำแหน่งอย่างน้อย 2 แห่ง จึงแสดงความหนาแน่นได้</div>}
   </div>;

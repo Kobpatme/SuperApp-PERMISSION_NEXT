@@ -31,10 +31,10 @@ export function DepositTransitionForm({ id, version, targets }: {
   }
   return <div className="deposit-transition">
     <label>เหตุผล<textarea name="reason" value={reason} disabled={pending} onChange={event => setReason(event.target.value)} placeholder="เหตุผล (จำเป็นเมื่อส่งกลับหรือยกเลิก)" /></label>
-    {targets.map(target => <Button key={target[0]} type="button" disabled={pending} variant="secondary" onClick={() => setSelected(target)}>{target[1]}</Button>)}
+    {targets.map(target => <Button key={target[0]} type="button" disabled={pending} variant={target[0] === "Cancel" ? "danger" : "secondary"} onClick={() => setSelected(target)}>{target[1]}</Button>)}
     {!targets.length && <p>ไม่มีขั้นตอนที่ต้องดำเนินการ</p>}
     {!selected && state.message && <p role={state.ok ? "status" : "alert"}>{state.message}</p>}
-    <ConfirmDialog open={Boolean(selected)} title="ยืนยันขั้นตอนเงินประกัน" consequence={selected ? `${selected[1]} · ระบบจะตรวจสอบสิทธิ์ เอกสาร และข้อมูลล่าสุดก่อนบันทึก` : undefined} confirmLabel="ยืนยันขั้นตอน" intent={selected?.[0] === "Cancel" ? "danger" : "primary"} pending={pending} onCancel={() => setSelected(null)} onConfirm={confirm}>
+    <ConfirmDialog size="compact" open={Boolean(selected)} title="ยืนยันขั้นตอนเงินประกัน" consequence={selected ? `${selected[1]} · ระบบจะตรวจสอบสิทธิ์ เอกสาร และข้อมูลล่าสุดก่อนบันทึก` : undefined} confirmLabel="ยืนยันขั้นตอน" intent={selected?.[0] === "Cancel" ? "danger" : "primary"} pending={pending} onCancel={() => setSelected(null)} onConfirm={confirm}>
       <p className="deposit-confirm-reason">เหตุผล: {reason || "ไม่ได้ระบุ"}</p>
       {state.message && !state.ok && <p role="alert">{state.message}</p>}
     </ConfirmDialog>

@@ -20,3 +20,10 @@
 .building-editor-actions span{margin-right:auto;font-size:var(--text-body-strong);line-height:1.6}.building-editor-actions a{min-height:44px;display:inline-flex;align-items:center;color:var(--color-brand)}
 @media(max-width:1024px){.building-editor-grid,.building-editor-other{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.building-editor-grid,.building-editor-other{grid-template-columns:minmax(0,1fr)}.building-editor-section{padding:var(--space-3)}.building-editor-actions{gap:var(--space-3)}}
+
+/* Compose with shared controls; the editor owns layout only. */
+.building-editor-error{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap}
+.building-editor-error .ui-button{flex:0 0 auto}
+.building-editor-form .ui-button{box-shadow:none}
+.building-editor-form .ui-button-primary{background:var(--color-brand);color:var(--color-on-brand)}
+.building-editor-form .ui-button-danger{border-color:var(--color-danger);background:transparent;color:var(--color-danger)}
