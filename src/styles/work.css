@@ -178,3 +178,19 @@
 .work-personal-kpi-row { display: grid; gap: 8px; }
 .work-home-announcement { padding: 16px; border-left: 4px solid var(--color-brand); background: var(--color-info-soft); color: var(--color-text); overflow-wrap: anywhere; white-space: pre-wrap; }
 .work-live-refresh { display: flex; justify-content: flex-end; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); color: var(--color-text-muted); }
+
+/* Wave 2a form composition: shared primitives own field look; work rules retain domain layout. */
+.work-create-form .ui-form-grid,.work-create-form .work-create-details-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.work-create-form .work-create-col-2 { display:grid; grid-column:1 / -1; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-4); }
+.work-create-form .work-create-col-2 > .ui-field:first-child,.work-create-form .work-create-col-2 > .work-form-hint { grid-column:1 / -1; }
+.work-assignment-form .ui-form-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.work-assignment-form .ui-form-grid > .ui-field-full { grid-column:1 / -1; }
+.work-form-error { padding:var(--space-3); border:var(--border-width) solid var(--color-danger); border-radius:var(--radius-md); color:var(--color-danger); background:var(--color-danger-soft); }
+.work-create-page-form .ui-form-actions-page,.work-assignment-form .ui-form-actions-page { position:sticky; bottom:0; z-index:var(--z-sticky); background:var(--color-surface); box-shadow:var(--shadow-raised); }
+@media(max-width:1024px) {
+  .work-create-form .ui-form-grid,.work-create-form .work-create-details-grid,.work-create-form .work-create-col-2,.work-assignment-form .ui-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:600px) {
+  .work-create-form .ui-form-grid,.work-create-form .work-create-details-grid,.work-create-form .work-create-col-2,.work-assignment-form .ui-form-grid { grid-template-columns:1fr; }
+  .work-create-form .work-create-col-2 > .ui-field:first-child,.work-create-form .work-create-col-2 > .work-form-hint,.work-assignment-form .ui-form-grid > .ui-field-full { grid-column:auto; }
+}
