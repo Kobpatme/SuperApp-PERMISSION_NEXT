@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Button, ButtonLink } from "./button";
-import { FilterBar, FormField } from "./form";
+import { FilterBar, FormActions, FormField, FormGrid, FormSection } from "./form";
 import { MetricGrid } from "./metric-grid";
 import { Panel } from "./panel";
 import { TableRegion } from "./table-region";
@@ -54,6 +54,61 @@ describe("shared UI foundation", () => {
     expect(html).toContain('class="ui-metric-grid"');
     expect(html).toContain('class="ui-metric ui-metric-info"');
     expect(html).toContain("12");
+  });
+
+  it("renders the additive field contract without changing legacy wrapping", () => {
+    const html = renderToStaticMarkup(<><FormField label="เดิม"><input name="legacy" /></FormField><FormField label="ชื่อ" required controlId="name" describedBy="external" hint="คำแนะนำ" error="ไม่ถูกต้อง"><input id="name" aria-describedby="external name-hint name-error" /></FormField></>);
+    expect(html).toContain('class="ui-field"');
+    expect(html).toContain('name="legacy"');
+    expect(html).toContain('for="name"');
+    expect(html).toContain('class="ui-field-required"');
+    expect(html).toContain('id="name-hint"');
+    expect(html).toContain('id="name-error"');
+    expect(html).toContain('role="alert"');
+  });
+
+  it("wires a rendered hint id onto a native child", () => {
+    const html = renderToStaticMarkup(<FormField label="ชื่อ" controlId="name" hint="คำแนะนำ"><input id="name" /></FormField>);
+
+    expect(html).toContain('aria-describedby="name-hint"');
+  });
+
+  it("adds an external describedBy id to a native child", () => {
+    const html = renderToStaticMarkup(<FormField label="ชื่อ" controlId="name" describedBy="external-help"><input id="name" /></FormField>);
+
+    expect(html).toContain('aria-describedby="external-help"');
+  });
+
+  it("de-duplicates merged describedBy ids", () => {
+    const html = renderToStaticMarkup(<FormField label="ชื่อ" controlId="name" describedBy="external name-hint external" hint="คำแนะนำ"><input id="name" aria-describedby="name-hint" /></FormField>);
+
+    expect(html).toContain('aria-describedby="external name-hint"');
+  });
+
+  it("does not emit aria-describedby when no description ids exist", () => {
+    const html = renderToStaticMarkup(<FormField label="ชื่อ" controlId="name"><input id="name" /></FormField>);
+
+    expect(html).not.toContain("aria-describedby");
+  });
+
+  it("keeps custom children un-cloned and exposes description ids as data", () => {
+    const CustomControl = () => <input />;
+    const html = renderToStaticMarkup(<FormField label="ชื่อ" controlId="name" describedBy="external" hint="คำแนะนำ" error="ไม่ถูกต้อง"><CustomControl /></FormField>);
+
+    expect(html).toContain('data-described-by="external name-hint name-error"');
+    expect(html).not.toContain('aria-describedby="external name-hint name-error"');
+  });
+
+  it("composes the building-style section, responsive grid, and action variants", () => {
+    const html = renderToStaticMarkup(<FormSection legend="ข้อมูล"><FormGrid><FormField label="หนึ่ง"><input /></FormField><FormField label="เต็ม" className="ui-field-full"><input /></FormField></FormGrid></FormSection>);
+    const actions = renderToStaticMarkup(<><FormActions variant="page">หน้า</FormActions><FormActions variant="inline">แถว</FormActions><FormActions variant="dialog">กล่อง</FormActions></>);
+    expect(html).toContain('<fieldset');
+    expect(html).toContain('<legend>ข้อมูล</legend>');
+    expect(html).toContain('class="ui-form-grid"');
+    expect(html).toContain('ui-field-full');
+    expect(actions).toContain('ui-form-actions-page');
+    expect(actions).toContain('ui-form-actions-inline');
+    expect(actions).toContain('ui-form-actions-dialog');
   });
 
   it("renders labeled filters and keyboard-scrollable tables", () => {
