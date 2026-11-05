@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getModuleIcon, modules, overviewDestination, type ModuleId } from "@/lib/module-registry";
 import { WorkspaceIcon } from "@/components/workspace-icon";
@@ -14,10 +14,26 @@ export function WorkspaceSearch({ allowedModuleIds, contained = false }: { allow
   const params = useSearchParams();
   const preview = params.get("preview") === "1";
   const inputRef = useRef<HTMLInputElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  // Guard the root onBlur so hiding the focused trigger while opening on
+  // mobile (display:none on is-open) does not blur to body and close the
+  // search before the input can take focus.
+  const focusGuard = useRef(false);
+  const pendingFocus = useRef<"input" | "trigger" | null>(null);
   const listboxId = useId();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  useLayoutEffect(() => {
+    if (open && pendingFocus.current === "input") {
+      inputRef.current?.focus();
+      pendingFocus.current = null;
+      focusGuard.current = false;
+    } else if (!open && pendingFocus.current === "trigger") {
+      pendingFocus.current = null;
+      triggerRef.current?.focus();
+    }
+  }, [open]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [remote, setRemote] = useState<{ query: string; data?: SearchResponse; error?: boolean }>({ query: "" });
   const [retry, setRetry] = useState(0);
@@ -46,7 +62,7 @@ export function WorkspaceSearch({ allowedModuleIds, contained = false }: { allow
     const shortcut = (event: KeyboardEvent) => {
       const editing = (event.target as HTMLElement | null)?.matches("input, textarea, select, [contenteditable='true']");
       if (((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") || (event.key === "/" && !editing)) {
-        event.preventDefault(); inputRef.current?.focus(); setOpen(true);
+        event.preventDefault(); openSearch();
       }
     };
     const outside = (event: PointerEvent) => { if (!rootRef.current?.contains(event.target as Node)) setOpen(false); };
@@ -59,24 +75,39 @@ export function WorkspaceSearch({ allowedModuleIds, contained = false }: { allow
   const results = [...destinations, ...(data?.results || [])];
   const active = Math.min(activeIndex, Math.max(0, results.length - 1));
   const loading = needle.length >= 2 && !data && !error;
+  function openSearch() {
+    if (inputRef.current?.getClientRects().length) {
+      inputRef.current.focus();
+      setOpen(true);
+      return;
+    }
+    focusGuard.current = true;
+    pendingFocus.current = "input";
+    setOpen(true);
+  }
   function goTo(href: string) { setOpen(false); setQuery(""); inputRef.current?.blur(); router.push(href); }
+  function closeSearch() {
+    if (window.matchMedia("(max-width: 650px)").matches) pendingFocus.current = "trigger";
+    setOpen(false);
+  }
 
-  return <div className="workspace-search core-utility-search" style={contained ? { maxWidth: "100%" } : undefined} ref={rootRef} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false); }}>
-    <label className="search" htmlFor="workspace-search-input"><WorkspaceIcon name="search" size={20}/>
+  return <div className={`workspace-search core-utility-search${open ? " is-open" : ""}`} style={contained ? { maxWidth: "100%" } : undefined} ref={rootRef} onBlur={(event) => { if (focusGuard.current) return; if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false); }}>
+    <button ref={triggerRef} className="workspace-search-trigger" type="button" aria-label="เปิดค้นหาส่วนกลาง" aria-expanded={open} onClick={openSearch}><WorkspaceIcon name="search" size={20}/></button>
+    <div className="search shell-compound-field"><WorkspaceIcon name="search" size={20}/>
       <input ref={inputRef} id="workspace-search-input" value={query} maxLength={200} placeholder="ค้นหาเมนูและรายการติดตาม…" aria-label="ค้นหาเมนูและรายการติดตาม" role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={open ? listboxId : undefined} aria-activedescendant={open && results[active] ? `${listboxId}-${active}` : undefined} autoComplete="off"
         onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); setOpen(true); }} onFocus={() => setOpen(true)}
         onKeyDown={(event) => {
-          if (event.key === "Escape") { event.preventDefault(); setOpen(false); }
+          if (event.key === "Escape") { event.preventDefault(); closeSearch(); }
           if (event.key === "ArrowDown") { event.preventDefault(); setOpen(true); setActiveIndex(Math.min(active + 1, Math.max(0, results.length - 1))); }
           if (event.key === "ArrowUp") { event.preventDefault(); setActiveIndex(Math.max(0, active - 1)); }
           if (event.key === "Enter" && open && results[active]) { event.preventDefault(); goTo(results[active].href); }
-        }}/><kbd>Ctrl K</kbd>
-    </label>
+        }}/><kbd>Ctrl K</kbd><button className="workspace-search-close" type="button" aria-label="ปิดการค้นหา" onClick={closeSearch}>×</button>
+    </div>
     {open && <div className="workspace-search-popover core-utility-popover">
       <p className="workspace-search-heading">{needle ? "ผลการค้นหาตามสิทธิ์ของคุณ" : "ไปยังพื้นที่ทำงาน"}</p>
       <div id={listboxId} role="listbox" aria-label="ผลการค้นหา" className="workspace-search-results">
         {results.map((result, index) => <div key={result.id} id={`${listboxId}-${index}`} role="option" aria-selected={active === index} className={`workspace-search-result ${active === index ? "active" : ""}`} onMouseEnter={() => setActiveIndex(index)} onMouseDown={(event) => event.preventDefault()} onClick={() => goTo(result.href)}>
-           <WorkspaceIcon name={result.moduleId ? getModuleIcon(result.moduleId) : "arrow"}/><span className="workspace-search-result-copy"><TruncatedText text={result.title} lines={1}/><TruncatedText text={result.description} lines={1}/></span><WorkspaceIcon name="arrow" size={16}/>
+           <span className="workspace-search-result-icon"><WorkspaceIcon name={result.moduleId ? getModuleIcon(result.moduleId) : "arrow"}/></span><span className="workspace-search-result-copy"><TruncatedText text={result.title} lines={1}/><TruncatedText text={result.description} lines={1}/></span><WorkspaceIcon name="arrow" size={16}/>
         </div>)}
       </div>
       <div className="search-feedback" role="status">
