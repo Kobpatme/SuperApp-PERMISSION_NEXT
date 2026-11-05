@@ -21,6 +21,7 @@ export function FormField({ label, hint, error, required, controlId, describedBy
   const describedByIds = [...new Set([describedBy, hintId, errorId].flatMap(value => value?.split(/\s+/).filter(Boolean) ?? []))];
   const childWithDescription = isValidElement<Record<string, unknown>>(children) && typeof children.type === "string"
     ? cloneElement(children, {
+        ...(["input", "select", "textarea"].includes(children.type) ? { "aria-invalid": children.props["aria-invalid"] ?? (error ? true : undefined) } : {}),
         "aria-describedby": [...new Set([
           ...describedByIds,
           ...(typeof children.props["aria-describedby"] === "string" ? children.props["aria-describedby"].split(/\s+/).filter(Boolean) : []),
@@ -50,5 +51,11 @@ export function FormGrid({ fullSpan = false, className, children, ...props }: HT
 
 type FormActionsProps = HTMLAttributes<HTMLDivElement> & { variant?: "page" | "inline" | "dialog" };
 export function FormActions({ variant = "page", className, children, ...props }: FormActionsProps) {
-  return <div {...props} className={["ui-form-actions", `ui-form-actions-${variant}`, className].filter(Boolean).join(" ")}>{children}</div>;
+  return <div {...props} className={[ "ui-form-actions", `ui-form-actions-${variant}`, className ].filter(Boolean).join(" ")}>{children}</div>;
+}
+
+export function mapFieldErrors(fieldErrors: Record<string, string[]> | undefined, fieldName: string): string | undefined {
+  if (!fieldErrors) return undefined;
+  const errors = fieldErrors[fieldName];
+  return errors && errors.length > 0 ? errors[0] : undefined;
 }

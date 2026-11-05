@@ -9,6 +9,8 @@ describe("WorkFiltersForm shared presentation", () => {
     expect(html).toContain("ui-filter");
     expect(html).toContain("ui-field-label");
     expect(html).toContain('name="q"');
+    expect(html).toMatch(/<select name="team"[^>]*><option value=""[^>]*>ทุกทีม<\/option>/);
+    expect(html).toContain('ui-field-control ui-building-field');
     expect(html).not.toContain("searchControl");
     expect(html).toContain('class="ui-button ui-button-primary"');
     expect(html).toContain('class="ui-button ui-button-secondary"');

@@ -265,9 +265,93 @@
 .ui-form button:disabled { cursor:wait; opacity:.65; }
 .ui-filter { display:flex; flex-wrap:wrap; align-items:flex-end; gap:var(--space-3); min-width:0; }
 .ui-filter label { min-width:0; }
-.ui-filter :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) { min-width:0; min-height:var(--size-control-touch); padding:var(--space-2) var(--space-3); border:var(--border-width) solid var(--color-border-strong); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-text); font:inherit; font-size:var(--text-body); }
+.ui-filter :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) { min-width:0; min-height:var(--size-control-touch); padding:var(--space-2) var(--space-3); font:inherit; font-size:var(--text-body); }
 .ui-filter-actions { display:flex; flex-wrap:wrap; gap:var(--space-2); }
 @media(max-width:650px) { .ui-filter { gap:var(--space-2); } .ui-filter-actions { width:100%; } .ui-filter-actions > * { flex:1 1 auto; justify-content:center; } }
+
+/* Shared field-skin — Add Building reference surface language (opt-in).
+   Matches field surface, border, radius, subtle inset shadow and interaction
+   states. Geometry (width/height/padding) is intentionally left to each
+   control's existing declarations so compact/auth/textarea/money/map controls
+   keep their own sizing. Apply via className to text controls only — never
+   checkbox/radio/hidden/file, never compound-search inner controls whose
+   wrapper owns the border (would double-border). */
+.ui-field-control {
+  box-sizing: border-box;
+  min-width: 0;
+  border: var(--border-width) solid var(--field-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  box-shadow: var(--shadow-inset);
+  resize: vertical;
+}
+
+/* Opt-in shared field skin for filter bars. Scoped to .ui-filter so it only
+   applies to controls that have opted into the shared skin, and two classes
+   deep so it outranks module-local control resets such as
+   work-list.module.css .searchField input (0,1,1) without !important. Only
+   the visual surface is harmonized — border, radius, background, text color
+   and inset shadow — while dimensions, compact geometry and padding stay with
+   each control's own declarations. State and focus/error selectors defined
+   after this block keep equal or later cascade position, so invalid and
+   focus-visible visibility is preserved. */
+.ui-filter .ui-field-control {
+  border: var(--border-width) solid var(--field-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-inset);
+  font: inherit;
+}
+.ui-field-control[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+.ui-field-control:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+/* Disabled: faded and explicitly non-interactive; distinct from read-only
+   (opacity + not-allowed cursor) and from enabled (muted background). */
+.ui-field-control:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border);
+}
+/* Read-only: legible but not editable. Solid opacity and default cursor
+   distinguish it from disabled; muted background distinguishes it from
+   enabled. Geometry and behavior are unchanged. */
+.ui-field-control[readonly] {
+  opacity: 1;
+  cursor: default;
+  background: var(--color-surface-subtle);
+  border-color: var(--color-border-strong);
+}
+
+/* Explicit opt-in. Repeated class specificity defeats existing form and module
+   control rules without affecting non-adopters or requiring !important. */
+.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field {
+  box-sizing:border-box; width:100%; min-width:0; min-height:44px;
+  padding:var(--space-2) var(--space-3); border:1px solid var(--color-border);
+  border-radius:var(--radius-md); background:var(--color-surface);
+  color:var(--color-text); box-shadow:var(--shadow-inset); font:inherit; font-weight:400;
+}
+input.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field, select.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { height:var(--size-control-touch); min-height:var(--size-control-touch); }
+input.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field, textarea.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { line-height:1.6; }
+select.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { line-height:normal; }
+textarea.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { resize:vertical; }
+.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field[aria-invalid="true"] { border-color:var(--color-danger); }
+.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+/* Intentional accessibility distinction from the reference editor. */
+.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field:disabled { opacity:var(--opacity-disabled); cursor:not-allowed; background:var(--color-surface-subtle); }
+.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field[readonly]:not(:disabled) { opacity:1; cursor:default; background:var(--color-surface-subtle); }
+/* Busy fieldsets already fade the whole group. Do not fade their opted-in
+   controls a second time; standalone disabled controls remain faded. */
+.work-create-page-form fieldset:disabled .ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field:disabled,
+.work-create-dialog .work-create-form fieldset:disabled .ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field:disabled { opacity:1; }
+
 /* Disabled actions must not look interactive when the pointer passes over them. */
 :is(.primary,.btn-primary):disabled:hover { background:var(--color-brand); border-color:var(--color-brand); transform:none; box-shadow:none; }
 :is(.secondary-action,.btn-secondary):disabled:hover { background:var(--color-surface); color:var(--color-text); border-color:var(--color-border); transform:none; box-shadow:none; }

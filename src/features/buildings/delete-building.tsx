@@ -48,7 +48,7 @@ export function DeleteBuilding({ id, name, version }: { id: string; name: string
     <Dialog open={open} onOpenChange={setOpen} busy={pending} beforeClose={() => !pendingRef.current} returnFocusRef={trigger} className="building-delete-dialog" title="ยืนยันลบอาคาร" description={copy.feedback.deleteBuildingWarning}>
       <form onSubmit={submit}>
         <strong className="building-delete-name">{name}</strong>
-        <label>พิมพ์ชื่ออาคารให้ตรงเพื่อยืนยัน<input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" disabled={pending} required /></label>
+        <label>พิมพ์ชื่ออาคารให้ตรงเพื่อยืนยัน<input className="ui-building-field" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} autoComplete="off" disabled={pending} required /></label>
         {message && <p className="building-delete-error" role="alert">{message}</p>}
         <div className="building-delete-actions"><button type="button" className="ui-button ui-button-ghost" disabled={pending} onClick={() => setOpen(false)}>ยกเลิก</button><button type="submit" className="ui-button ui-button-danger building-delete-confirm" disabled={pending || confirmation.trim() !== name}>{pending ? "กำลังลบ…" : "ยืนยันลบอาคารถาวร"}</button></div>
       </form>

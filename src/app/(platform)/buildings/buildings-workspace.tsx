@@ -23,6 +23,9 @@ const emptyFilters: Filters = { status: "", group: "", type: "", installType: ""
 const statuses = ["Permission Confirmed", "MOU", "Check Permission", "อาคารปิดถาวร"];
 const number = (value: number) => new Intl.NumberFormat("th-TH", { maximumFractionDigits: 2 }).format(value);
 const fieldLabels: Record<FilterKey, string> = { status: "สถานะ", group: "กลุ่ม", type: "ประเภท", installType: "รูปแบบ", surveyType: "การสำรวจ", area: "พื้นที่" };
+const SEARCH_LISTBOX_ID = "permission-search-listbox";
+const SEARCH_INPUT_ID = "permission-search-input";
+const searchOptionId = (id: string) => `permission-search-option-${id}`;
 const feeGroups = [
   { title: "ค่าใช้จ่ายครั้งแรก", type: "CAPEX" }, { title: "ค่าใช้จ่ายรายเดือน", type: "OPEX_MONTHLY" },
   { title: "ค่าใช้จ่ายรายปี", type: "OPEX_ANNUAL" }, { title: "เงินประกัน / เงินมัดจำ", type: "DEPOSIT" },
@@ -101,6 +104,9 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
     const text = [item.nameTh, item.nameEn, item.code, item.location].filter(Boolean).join(" ").normalize("NFC").toLocaleLowerCase("th-TH");
     return matchesBuildingQuery(text, normalizedQuery);
   }).slice(0, 10) : [];
+  const searchOpen = focused && Boolean(normalizedQuery);
+  const activeSearchItem = suggestions[suggestionIndex];
+  const activeSearchId = searchOpen && suggestionIndex >= 0 && activeSearchItem ? searchOptionId(activeSearchItem.id) : undefined;
   const activeFilterCount = (Object.keys(filters) as FilterKey[]).filter((key) => filters[key]).length;
   const mapVisible = useMemo(() => visible.filter((item) => {
     const matchesProvince = !province || item.province === province;
@@ -229,32 +235,34 @@ export function BuildingsWorkspace({ buildings, total, canCreate = false, initia
   return <section className="permission-workspace" data-ui-screen="buildings" data-view={view} aria-label="จัดการข้อมูลอาคาร">
     <header className="permission-toolbar permission-overview-toolbar">
       <PageHeader parent={{ label: "ภาพรวม", href: "/" }} title="ข้อมูลอาคาร" description="ค้นหาอาคาร ตรวจสอบตำแหน่ง ค่าใช้จ่าย ใบเสนอราคา และเอกสารภายใน" />
-      <div className="permission-search-actions"><div className="permission-search" role="search">
-        <span aria-hidden="true">⌕</span><input ref={searchRef} value={query} onChange={(event) => { setQuery(event.target.value.slice(0, 120)); setSuggestionIndex(-1); }} onFocus={() => setFocused(true)} onKeyDown={searchKeyDown}
-          onBlur={() => window.setTimeout(() => setFocused(false), 130)} placeholder="ค้นหาอาคาร... ภาษาไทย หรือ English" aria-label="ค้นหาอาคาร" autoComplete="off" />
-        {query && <button type="button" className="permission-search-clear" onClick={() => { setQuery(""); searchRef.current?.focus(); }} aria-label="ล้างการค้นหา">×</button>}
-        {focused && normalizedQuery && <div className="permission-autocomplete" role="listbox" aria-label="ผลการค้นหาอาคาร">{suggestions.length ? suggestions.map((item, index) => <button type="button" role="option" aria-selected={suggestionIndex === index} key={item.id} onMouseDown={(event) => event.preventDefault()} onClick={() => openBuilding(item)}><i className={`permission-status-dot ${statusClass(item.status)}`} /><span className="permission-autocomplete-copy"><TruncatedText text={item.nameTh} lines={1}/><TruncatedText text={[item.nameEn, item.area, item.status].filter(Boolean).join(" · ")} lines={1}/></span></button>) : <p>ไม่พบอาคารที่ตรงกับคำค้นหา</p>}</div>}
-      </div></div>
+      <div className="permission-search-actions ui-form-controls">
+        <div className="permission-search">
+          <span aria-hidden="true">⌕</span><input id={SEARCH_INPUT_ID} ref={searchRef} role="combobox" aria-expanded={searchOpen} aria-haspopup="listbox" aria-controls={searchOpen ? SEARCH_LISTBOX_ID : undefined} aria-activedescendant={activeSearchId} value={query} onChange={(event) => { setQuery(event.target.value.slice(0, 120)); setSuggestionIndex(-1); }} onFocus={() => setFocused(true)} onKeyDown={searchKeyDown}
+            onBlur={() => window.setTimeout(() => setFocused(false), 130)} placeholder="ค้นหาอาคาร... ภาษาไทย หรือ English" aria-label="ค้นหาอาคาร" autoComplete="off" />
+          {query && <button type="button" className="permission-search-clear" onClick={() => { setQuery(""); searchRef.current?.focus(); }} aria-label="ล้างการค้นหา">×</button>}
+          {searchOpen && <div id={SEARCH_LISTBOX_ID} className="permission-autocomplete" role="listbox" aria-label="ผลการค้นหาอาคาร">{suggestions.length ? suggestions.map((item, index) => <button id={searchOptionId(item.id)} type="button" role="option" aria-selected={suggestionIndex === index} key={item.id} onMouseDown={(event) => event.preventDefault()} onClick={() => openBuilding(item)}><i className={`permission-status-dot ${statusClass(item.status)}`} /><span className="permission-autocomplete-copy"><TruncatedText text={item.nameTh} lines={1}/><TruncatedText text={[item.nameEn, item.area, item.status].filter(Boolean).join(" · ")} lines={1}/></span></button>) : <p>ไม่พบอาคารที่ตรงกับคำค้นหา</p>}</div>}
+        </div>
+      </div>
       <div className="permission-overview-actions" aria-label="มุมมองข้อมูลอาคาร"><div className="permission-view-toggle" role="group" aria-label="สลับมุมมอง"><button type="button" aria-pressed={view === "map"} onClick={() => setView("map")}>แผนที่</button><button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}>รายการ</button></div>{canCreate && <Link className="btn-primary" href="/buildings/new">เพิ่มอาคาร</Link>}</div>
       <button type="button" className="permission-filter-toggle" aria-expanded={filtersOpen} aria-controls="permission-filters" onClick={() => setFiltersOpen((open) => !open)}>ตัวกรอง{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}<span aria-hidden="true">{filtersOpen ? "⌃" : "⌄"}</span></button>
 
     </header>
     <section className="permission-overview-summary" aria-label="สรุปอาคาร"><div><strong>{number(total)}</strong><span>อาคารทั้งหมด</span></div>{statuses.map((status) => <button type="button" key={status} className={filters.status === status ? "active" : ""} aria-pressed={filters.status === status} onClick={() => setFilter("status", filters.status === status ? "" : status)}><strong>{number(withoutStatus.filter((item) => item.status === status).length)}</strong><StatusBadge label={statusLabel(status)} tone={statusTone(status)} /></button>)}<div><strong>{number(buildings.filter((item) => item.lat !== null && item.lng !== null).length)}</strong><span>มีพิกัด</span></div></section>
 
-    {filtersOpen && <div id="permission-filters" className="permission-filterbar">
-      {(Object.keys(fieldLabels) as FilterKey[]).map((key) => <label key={key}>
-        <span className="permission-filter-label">{fieldLabels[key]}</span>
-        <select value={filters[key]} onChange={(event) => setFilter(key, event.target.value)} aria-label={`กรองตาม${fieldLabels[key]}`}>
+    {filtersOpen && <div id="permission-filters" className="permission-filterbar ui-form-controls">
+      {(Object.keys(fieldLabels) as FilterKey[]).map((key) => <label className="ui-field" key={key}>
+        <span className="permission-filter-label ui-field-label">{fieldLabels[key]}</span>
+        <select className="ui-building-field" value={filters[key]} onChange={(event) => setFilter(key, event.target.value)} aria-label={`กรองตาม${fieldLabels[key]}`}>
           <option value="">ทั้งหมด</option>
           {(key === "status" ? statuses : optionsFor(buildings, key)).map((value) => <option key={value} value={value}>{value}</option>)}
         </select>
       </label>)}
-      <label className="permission-map-filter"><span className="permission-filter-label">จังหวัด</span><select value={province} onChange={(event) => setProvince(event.target.value)} aria-label="กรองตามจังหวัด"><option value="">ทุกจังหวัด</option>{mapProvinces.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label className="permission-map-filter"><span className="permission-filter-label">มุมมอง</span><select value={mode} onChange={(event) => setMode(event.target.value as typeof mode)} aria-label="เลือกมุมมองแผนที่"><option value="buildings">อาคาร</option><option value="status">สถานะอาคาร</option><option value="expense">ค่าใช้จ่ายตามเงื่อนไข</option><option value="heatmap">Heatmap</option></select></label>
-      {(mode === "expense" || mode === "heatmap") && <label className="permission-map-filter"><span className="permission-filter-label">หมวดค่าใช้จ่าย</span><select value={category} onChange={(event) => setCategory(event.target.value as BuildingMapExpenseCategory)} aria-label="กรองตามหมวดค่าใช้จ่าย">{categories.map((item) => <option key={item}>{item}</option>)}</select></label>}
-      {mode === "heatmap" && <label className="permission-map-filter"><span className="permission-filter-label">ตัวชี้วัด</span><select value={heatMetric} onChange={(event) => setHeatMetric(event.target.value as typeof heatMetric)} aria-label="เลือกตัวชี้วัดความหนาแน่น"><option value="building_count">จำนวนอาคาร</option><option value="fee_count">จำนวนรายการ</option><option value="amount">ยอดตามหมวด</option></select></label>}
-      <label className="permission-map-filter"><span className="permission-filter-label">มีผลตั้งแต่</span><input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="กรองวันที่เริ่มต้น" /></label>
-      <label className="permission-map-filter"><span className="permission-filter-label">ถึงวันที่</span><input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} aria-label="กรองวันที่สิ้นสุด" /></label>
+      <label className="permission-map-filter ui-field"><span className="permission-filter-label ui-field-label">จังหวัด</span><select className="ui-building-field" value={province} onChange={(event) => setProvince(event.target.value)} aria-label="กรองตามจังหวัด"><option value="">ทุกจังหวัด</option>{mapProvinces.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label className="permission-map-filter ui-field"><span className="permission-filter-label ui-field-label">มุมมอง</span><select className="ui-building-field" value={mode} onChange={(event) => setMode(event.target.value as typeof mode)} aria-label="เลือกมุมมองแผนที่"><option value="buildings">อาคาร</option><option value="status">สถานะอาคาร</option><option value="expense">ค่าใช้จ่ายตามเงื่อนไข</option><option value="heatmap">Heatmap</option></select></label>
+      {(mode === "expense" || mode === "heatmap") && <label className="permission-map-filter ui-field"><span className="permission-filter-label ui-field-label">หมวดค่าใช้จ่าย</span><select className="ui-building-field" value={category} onChange={(event) => setCategory(event.target.value as BuildingMapExpenseCategory)} aria-label="กรองตามหมวดค่าใช้จ่าย">{categories.map((item) => <option key={item}>{item}</option>)}</select></label>}
+      {mode === "heatmap" && <label className="permission-map-filter ui-field"><span className="permission-filter-label ui-field-label">ตัวชี้วัด</span><select className="ui-building-field" value={heatMetric} onChange={(event) => setHeatMetric(event.target.value as typeof heatMetric)} aria-label="เลือกตัวชี้วัดความหนาแน่น"><option value="building_count">จำนวนอาคาร</option><option value="fee_count">จำนวนรายการ</option><option value="amount">ยอดตามหมวด</option></select></label>}
+      <label className="permission-map-filter ui-field"><span className="permission-filter-label ui-field-label">มีผลตั้งแต่</span><input className="ui-building-field" type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} aria-label="กรองวันที่เริ่มต้น" /></label>
+      <label className="permission-map-filter ui-field"><span className="permission-filter-label ui-field-label">ถึงวันที่</span><input className="ui-building-field" type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} aria-label="กรองวันที่สิ้นสุด" /></label>
       <button type="button" className="permission-reset" onClick={reset} disabled={!query && activeFilterCount === 0}>รีเซ็ต</button>
     </div>}
     {selectedDetailFilters.length > 0 && <div className="permission-filter-chips" aria-label="ตัวกรองที่เลือก">

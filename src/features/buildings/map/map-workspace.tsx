@@ -100,15 +100,15 @@ export function MapWorkspace({ buildings, apiKey, selectedBuildingId = "", initi
         {(mode === "expense" || mode === "heatmap") && <div><strong>{summary.count.toLocaleString("th-TH")}</strong><span>รายการตามเงื่อนไข · {money(summary.amount)}</span></div>}</div>
     </header>
     <section className="building-map-filters" aria-label="ค้นหาและกรองแผนที่">
-      <label>ค้นหาอาคาร<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ชื่ออาคาร รหัส หรือพื้นที่" /></label>
-      <label>จังหวัด<select value={province} onChange={(event) => setProvince(event.target.value)}><option value="">ทุกจังหวัด</option>{provinces.map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label>สถานะ<select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">ทุกสถานะ</option>{[...new Set(buildings.map((item) => item.status).filter(Boolean))].map((item) => <option key={item}>{item}</option>)}</select></label>
-      <label>มุมมอง<select value={mode} onChange={(event) => setMode(event.target.value as Mode)}><option value="buildings">อาคาร</option><option value="status">สถานะอาคาร</option><option value="expense">ค่าใช้จ่ายตามเงื่อนไข</option><option value="heatmap">Heatmap</option></select></label>
+      <label>ค้นหาอาคาร<input className="ui-building-field" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="ชื่ออาคาร รหัส หรือพื้นที่" /></label>
+      <label>จังหวัด<select className="ui-building-field" value={province} onChange={(event) => setProvince(event.target.value)}><option value="">ทุกจังหวัด</option>{provinces.map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label>สถานะ<select className="ui-building-field" value={status} onChange={(event) => setStatus(event.target.value)}><option value="">ทุกสถานะ</option>{[...new Set(buildings.map((item) => item.status).filter(Boolean))].map((item) => <option key={item}>{item}</option>)}</select></label>
+      <label>มุมมอง<select className="ui-building-field" value={mode} onChange={(event) => setMode(event.target.value as Mode)}><option value="buildings">อาคาร</option><option value="status">สถานะอาคาร</option><option value="expense">ค่าใช้จ่ายตามเงื่อนไข</option><option value="heatmap">Heatmap</option></select></label>
       {(mode === "expense" || mode === "heatmap") && <>
-        <label>หมวดค่าใช้จ่าย<select value={category} onChange={(event) => setCategory(event.target.value as BuildingMapExpenseCategory)}>{groups.map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
-        {mode === "heatmap" && <label>ตัวชี้วัดความหนาแน่น<select value={heatMetric} onChange={(event) => setHeatMetric(event.target.value as HeatMetric)}><option value="building_count">จำนวนอาคาร</option><option value="fee_count">จำนวนรายการตามเงื่อนไข</option><option value="amount">ยอดตามหมวดที่เลือก</option></select></label>}
-        <label>เงื่อนไขมีผลตั้งแต่<input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} /></label>
-        <label>ถึงวันที่<input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} /></label>
+        <label>หมวดค่าใช้จ่าย<select className="ui-building-field" value={category} onChange={(event) => setCategory(event.target.value as BuildingMapExpenseCategory)}>{groups.map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
+        {mode === "heatmap" && <label>ตัวชี้วัดความหนาแน่น<select className="ui-building-field" value={heatMetric} onChange={(event) => setHeatMetric(event.target.value as HeatMetric)}><option value="building_count">จำนวนอาคาร</option><option value="fee_count">จำนวนรายการตามเงื่อนไข</option><option value="amount">ยอดตามหมวดที่เลือก</option></select></label>}
+        <label>เงื่อนไขมีผลตั้งแต่<input className="ui-building-field" type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} /></label>
+        <label>ถึงวันที่<input className="ui-building-field" type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} /></label>
       </>}
       <button type="button" className="building-location-button" onClick={() => {
         setLocationMessage("กำลังขอตำแหน่งจากอุปกรณ์…");
