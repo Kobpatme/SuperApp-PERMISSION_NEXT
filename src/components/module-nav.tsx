@@ -12,11 +12,19 @@ type NavChildItem = { href: string; label: string; icon: string; activeMatch?: "
 
 const sectionStorageKey = "permission-next-sidebar-section";
 const sectionChangeEvent = "permission-next-sidebar-section-change";
-
+// Keep the accordion usable for this page when persistence is unavailable.
+let transientSectionSnapshot: string | null = null;
 
 function readSectionSnapshot() {
+  if (transientSectionSnapshot !== null) return transientSectionSnapshot;
   try { return window.localStorage.getItem(sectionStorageKey) || ""; }
   catch { return ""; }
+}
+
+function writeSectionSnapshot(snapshot: string) {
+  try { window.localStorage.setItem(sectionStorageKey, snapshot); transientSectionSnapshot = null; }
+  catch { transientSectionSnapshot = snapshot; }
+  window.dispatchEvent(new Event(sectionChangeEvent));
 }
 
 function subscribeToSectionChanges(onStoreChange: () => void) {
@@ -118,12 +126,10 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
 
   function toggleSection(id: string) {
     const next: SectionSnapshot = { open: expandedSection === id ? null : id, pathname };
-    try { window.localStorage.setItem(sectionStorageKey, JSON.stringify(next)); }
-    catch { /* The preference is optional. */ }
-    window.dispatchEvent(new Event(sectionChangeEvent));
+    writeSectionSnapshot(JSON.stringify(next));
   }
 
-  return <nav className="sidebar-nav" aria-label="พื้นที่ทำงาน">
+  return <nav id={idPrefix === "sidebar-section" ? "workspace-navigation" : undefined} className="sidebar-nav" aria-label="พื้นที่ทำงาน">
     {items.map((item, index) => {
       const active = item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
       const navItems = getNavItems(item.id);
@@ -134,16 +140,7 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
       const parentCurrent = active && (!expanded || !currentChildHref);
       const sectionId = hasChildren ? `${idPrefix}-${item.id}` : undefined;
       const destination = `${item.href}${params.get("preview") === "1" ? "?preview=1" : ""}`;
-      const parentControl = sectionId && !collapsed ? <button
-        className={`sidebar-link sidebar-module-trigger ${active ? "active" : ""}`}
-        type="button"
-        data-module-id={item.id}
-        aria-expanded={expanded}
-        aria-controls={sectionId}
-        onClick={() => toggleSection(item.id)}
-      >
-        <WorkspaceIcon name={item.icon} size={20}/><span className="sidebar-link-label">{item.name}</span>
-      </button> : <Link
+      const parentControl = <Link
         className={`sidebar-link ${active ? "active" : ""}`}
         href={destination}
         aria-current={parentCurrent ? "page" : undefined}
@@ -155,7 +152,7 @@ export function ModuleNav({ allowedModuleIds, collapsed = false, canAdmin = fals
       </Link>;
       return <div className="sidebar-nav-entry" key={item.href}>
         {!collapsed && items[index - 1]?.group !== item.group && groupLabels[item.group] && <span className="sidebar-group-label">{groupLabels[item.group]}</span>}
-        {parentControl}
+        <div className="sidebar-module-row">{parentControl}{sectionId && !collapsed && <button className="sidebar-section-toggle" type="button" data-module-id={item.id} aria-label={`${expanded ? "ยุบ" : "ขยาย"}เมนู${item.name}`} aria-expanded={expanded} aria-controls={sectionId} onClick={() => toggleSection(item.id)}><WorkspaceIcon name="chevron" size={18}/></button>}</div>
         {hasChildren && sectionId && <div className={`sidebar-subnav-panel ${expanded ? "is-open" : ""}`} id={sectionId} aria-hidden={!expanded} inert={!expanded}>
           <div className="sidebar-subnav" aria-label={`เมนู${item.name}`}>
           {item.id === "work" && workNavigation.map((child) => {

@@ -26,6 +26,7 @@ describe("AppShell", () => {
     expect(html).toContain('aria-labelledby=');
     expect(html).toContain("ปิดหน้าต่าง");
     expect(html).toContain('aria-label="ยุบเมนูด้านข้าง"');
+    expect(html).toContain('aria-controls="workspace-navigation"');
     expect(html).toContain("ข้ามไปยังเนื้อหาหลัก");
     expect(html).toContain("คุณเห็นข้อมูลของ:");
     expect(html).toContain("ทีมทดสอบ");

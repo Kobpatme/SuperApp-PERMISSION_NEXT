@@ -6,7 +6,6 @@ import { WorkspaceThemeToggle } from "@/components/workspace-theme-toggle";
 import { AccountControl } from "@/components/account-control";
 import { WorkspaceSearch } from "@/components/workspace-search";
 import type { ModuleId } from "@/lib/module-registry";
-import { WorkspaceIcon } from "@/components/workspace-icon";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -50,8 +49,8 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
     </div>
     <aside className={`${styles.sidebar} border-r border-[var(--color-nav-border)] shadow-sm`} data-shell-sidebar aria-label="เมนูหลัก">
       <div className={styles.sidebarHeading}>
-        <button className={`${styles.collapse} transition-colors hover:border-[var(--color-nav-accent)] hover:text-[var(--color-nav-accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-nav-focus)]`} type="button" aria-label={collapsed ? "ขยายเมนูด้านข้าง" : "ยุบเมนูด้านข้าง"} aria-expanded={!collapsed} onClick={toggleCollapsed} title={collapsed ? "ขยายเมนู" : "ยุบเมนู"}>
-          <WorkspaceIcon name="chevron" size={20}/>
+        <button className={styles.collapse} type="button" aria-label={collapsed ? "ขยายเมนูด้านข้าง" : "ยุบเมนูด้านข้าง"} aria-expanded={!collapsed} aria-controls="workspace-navigation" onClick={toggleCollapsed} title={collapsed ? "ขยายเมนูด้านข้าง" : "ยุบเมนูด้านข้าง"}>
+          <Image src={collapsed ? "/icon.png" : "/logo.png"} alt="" width={collapsed ? 40 : 204} height={collapsed ? 40 : 68} />
         </button>
       </div>
       <ModuleNav allowedModuleIds={allowedModuleIds} collapsed={collapsed} canAdmin={canAdmin} workNavigation={workNavigation} />

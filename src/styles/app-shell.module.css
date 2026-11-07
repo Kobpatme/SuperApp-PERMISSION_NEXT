@@ -1,9 +1,9 @@
 /* Canonical application shell shared by every authenticated route. */
 .shell { --app-sidebar-width:var(--size-shell-sidebar-expanded); min-height:100dvh; background:var(--color-bg); color:var(--color-text); }
 .collapsed { --app-sidebar-width:var(--size-shell-sidebar-collapsed); }
-.header { position:sticky; top:0; z-index:var(--z-sticky); background:var(--color-surface); border-bottom:var(--border-width) solid var(--color-border); box-shadow:var(--shadow-xs); }
+.header { position:sticky; top:0; z-index:var(--z-sticky); margin-left:var(--app-sidebar-width); background:var(--color-surface); border-bottom:var(--border-width) solid var(--color-border); box-shadow:var(--shadow-xs); transition:margin-left var(--motion-base) var(--ease-out); }
 .topbar { display:flex; align-items:center; gap:var(--space-4); min-height:var(--size-shell-header); padding:var(--space-2) clamp(16px,3vw,40px); position:relative; }
-.brand { display:flex; align-items:center; gap:var(--space-3); flex:none; color:var(--color-text); text-decoration:none; }
+.brand { display:none; align-items:center; gap:var(--space-3); flex:none; color:var(--color-text); text-decoration:none; }
 .brandMark { display:grid; place-items:center; width:40px; height:40px; border:var(--border-width) solid color-mix(in srgb,var(--color-brand) 22%,var(--color-border)); border-radius:var(--radius-md); background:var(--color-brand-soft); color:var(--color-brand-mark); font-family:var(--font-heading); font-size:var(--text-body-strong); font-weight:800; letter-spacing:.02em; }
 .brandText { display:grid; line-height:1.45; }.brandText strong { font-family:var(--font-heading); font-size:var(--text-body-strong); }
 .search { flex:1; min-width:0; margin-left:auto; max-width:var(--size-search-max); }
@@ -12,23 +12,26 @@
   --color-surface:var(--color-nav-surface); --color-surface-subtle:var(--color-nav-subtle); --color-border:var(--color-nav-border); --color-text:var(--color-nav-text); --color-text-muted:var(--color-nav-muted); --color-brand:var(--color-nav-accent); --color-brand-soft:var(--color-nav-active); --color-focus-ring:var(--color-nav-focus);
   background:var(--color-nav-surface); color:var(--color-nav-text);
 }
-.sidebar { position:fixed; inset:calc(var(--size-shell-header) + var(--space-4)) auto var(--space-4) var(--space-4); width:var(--app-sidebar-width); padding:var(--space-5) var(--space-3) var(--space-4); display:flex; flex-direction:column; gap:var(--space-4); overflow:hidden; border:var(--border-width) solid var(--color-nav-border); border-radius:var(--radius-xl); box-shadow:var(--shadow-raised); transition:width var(--motion-base) var(--ease-out); }
+.sidebar { position:fixed; inset:0 auto 0 0; width:var(--app-sidebar-width); padding:var(--space-5) var(--space-3) var(--space-4); display:flex; flex-direction:column; gap:var(--space-4); overflow:hidden; border:0; border-right:var(--border-width) solid var(--color-nav-border); border-radius:0; box-shadow:var(--shadow-raised); transition:width var(--motion-base) var(--ease-out); }
 /* Keep wheel, touch and keyboard scrolling while removing the native gutter that caused width shifts. */
 .sidebar :global(.sidebar-nav),.drawer :global(.sidebar-nav) { min-height:0; overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
 .sidebar :global(.sidebar-nav) { padding:2px; }
 .sidebar :global(.sidebar-nav::-webkit-scrollbar),.drawer :global(.sidebar-nav::-webkit-scrollbar) { width:0; height:0; }
-.sidebarHeading { display:flex; align-items:center; justify-content:flex-end; min-height:36px; gap:var(--space-2); padding-inline:var(--space-2); }
-.collapse { display:grid; place-items:center; width:36px; height:36px; padding:0; border:var(--border-width) solid var(--color-nav-border); border-radius:var(--radius-md); color:var(--color-nav-muted); background:var(--color-nav-subtle); cursor:pointer; }.collapse svg { transform:rotate(90deg); }
-.collapsed .sidebarHeading { justify-content:center; padding:0; }.collapsed .collapse svg { transform:rotate(-90deg); }
+.sidebarHeading { display:flex; align-items:center; min-width:0; }
+.collapse { display:grid; place-items:center; width:100%; min-width:0; min-height:var(--size-control-touch); padding:var(--space-2); border:var(--border-width) solid var(--color-nav-border); border-radius:var(--radius-md); background:var(--color-nav-subtle); cursor:pointer; transition:background var(--motion-fast) var(--ease-out), border-color var(--motion-fast) var(--ease-out); }
+.collapse img { display:block; max-width:100%; height:auto; object-fit:contain; }
+.collapse:hover { background:var(--color-nav-active); border-color:var(--color-nav-accent); }
+.collapse:focus-visible { outline:var(--focus-ring-width) solid var(--color-nav-focus); outline-offset:var(--focus-ring-offset); }
+.collapsed .sidebarHeading { justify-content:center; }
 .collapsed .sidebar :global(.sidebar-link-label) { display:none; }.collapsed .sidebar :global(.sidebar-link),.collapsed .sidebar :global(.sidebar-child-link) { justify-content:center; padding-inline:0; }.collapsed .sidebar :global(.sidebar-subnav) { margin:0; padding:0; border-left:0; }
-.main { min-width:0; margin-left:calc(var(--app-sidebar-width) + var(--space-8)); padding:var(--space-7) clamp(20px,3vw,48px) var(--space-8); transition:margin-left var(--motion-base) var(--ease-out); }
+.main { min-width:0; margin-left:var(--app-sidebar-width); padding:var(--space-7) clamp(20px,3vw,48px) var(--space-8); transition:margin-left var(--motion-base) var(--ease-out); }
 .mobileToggle { display:none; place-items:center; flex:0 0 44px; width:44px; height:44px; padding:0; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-text); cursor:pointer; }
 .drawer { position:fixed; inset:0 auto 0 0; transform:none; margin:0; border:0; border-right:var(--border-width) solid var(--color-nav-border); border-radius:0 var(--radius-xl) var(--radius-xl) 0; width:min(320px,calc(100vw - 32px)); max-width:none; height:100dvh; max-height:none; padding:var(--space-5) var(--space-4); box-shadow:var(--shadow-lg); }
 .drawer.ui-dialog { inset:0 auto 0 0; transform:none; margin:0; }
 .drawer[open] { display:block; }
 .drawer::backdrop { background:var(--color-overlay); }.drawerHeading { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); padding-bottom:var(--space-4); margin-bottom:var(--space-4); border-bottom:var(--border-width) solid var(--color-nav-border); font-family:var(--font-heading); font-size:var(--text-h3); }.drawer :global(.sidebar-nav) { max-height:calc(100dvh - 108px); }
 @media(max-width:1000px) { .topbar { gap:var(--space-3); }.brandText { display:none; } }
-@media(max-width:900px) { .sidebar { display:none; }.main { margin-left:0; padding:var(--space-6) var(--space-5) var(--space-8); }.mobileToggle { display:grid; }.topbar { min-height:var(--size-shell-header-mobile); padding-inline:var(--space-4); }.actions { gap:var(--space-2); } }
+@media(max-width:900px) { .sidebar { display:none; }.header { margin-left:0; }.brand { display:flex; }.main { margin-left:0; padding:var(--space-6) var(--space-5) var(--space-8); }.mobileToggle { display:grid; }.topbar { min-height:var(--size-shell-header-mobile); padding-inline:var(--space-4); }.actions { gap:var(--space-2); } }
 @media(max-width:650px) { .topbar { padding-inline:var(--space-3); gap:var(--space-2); }.brandMark { width:36px; height:36px; }.main { padding:var(--space-5) var(--space-3) var(--space-8); }.search { max-width:44px; flex:0 0 44px; }.actions { gap:var(--space-1); }.account :global(.avatar-name),.account :global(.account-trigger > svg) { display:none; }.account :global(.account-trigger) { width:44px; min-height:44px; padding:4px; }.actions button { min-width:44px; min-height:44px; } }
 @media(max-width:650px) { .topbar { padding-inline:var(--space-3); gap:var(--space-2); }.brandMark { width:36px; height:36px; }.main { padding:var(--space-5) var(--space-3) var(--space-8); }.search { max-width:44px; flex:0 0 44px; }.actions { gap:var(--space-1); }.account :global(.avatar-name),.account :global(.account-trigger > svg) { display:none; }.account :global(.account-trigger) { width:44px; min-height:44px; padding:4px; }.actions button { min-width:44px; min-height:44px; } }
-@media(prefers-reduced-motion:reduce) { .sidebar { transition:none; } .main { transition:none; } }
+@media(prefers-reduced-motion:reduce) { .sidebar, .header, .main, .collapse { transition:none; } }

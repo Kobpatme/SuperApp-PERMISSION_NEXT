@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("ModuleNav accordion", () => {
-  it("uses the module row as the disclosure control without a separate arrow button", () => {
+  it("offers a module landing link and a separate named disclosure", () => {
     const html = renderToStaticMarkup(
       <ModuleNav
         allowedModuleIds={["work", "guarantees"]}
@@ -18,7 +18,8 @@ describe("ModuleNav accordion", () => {
       />,
     );
 
-    expect(html).not.toContain("sidebar-section-toggle");
+    expect(html).toContain('href="/work"');
+    expect(html).toContain('aria-label="ยุบเมนูงานและ KPI"');
     expect(html).toContain('aria-controls="sidebar-section-work"');
     expect(html).toContain('aria-expanded="true"');
   });

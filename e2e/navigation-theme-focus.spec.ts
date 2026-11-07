@@ -23,7 +23,12 @@ const aliasPath = (specifier: string) => {
 };
 async function fixture(run: (page: Page) => Promise<void>) {
   const page = await browser.newPage();
-  await page.route("**/*", route => route.request().url() === "https://workspace.test/" ? route.fulfill({ contentType: "text/html", body: "<div id='root'></div>" }) : route.abort());
+  await page.route("**/*", route => {
+    const url = new URL(route.request().url());
+    if (url.href === "https://workspace.test/") return route.fulfill({ contentType: "text/html", body: "<div id='root'></div>" });
+    if (url.origin === "https://workspace.test" && ["/logo.png", "/icon.png"].includes(url.pathname)) return route.fulfill({ path: resolve("public", url.pathname.slice(1)), contentType: "image/png" });
+    return route.abort();
+  });
   await page.goto("https://workspace.test/");
   try { await run(page); } finally { await page.close(); }
 }
@@ -60,9 +65,10 @@ async function mountRealShell(page: Page, props = {}) {
       build.onLoad({ filter: /.*/, namespace: "shellstub" }, () => ({ contents: `export async function logoutAction() { throw new Error('Authentication is outside this fixture'); }`, loader: "js" }));
       // Preserve actual CSS-module scoping; identity names collide with legacy .search/.topbar rules.
       build.onResolve({ filter: /^@\// }, args => ({ path: aliasPath(args.path) }));
-      build.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "fixture" }));
+      build.onResolve({ filter: /^next\/(link|navigation|image)$/ }, args => ({ path: args.path, namespace: "fixture" }));
       build.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: args.path === "next/link"
         ? `import React from 'react'; export default function Link(props) { return React.createElement('a', props); }`
+        : args.path === "next/image" ? `import React from 'react'; export default function Image(props) { const { priority, ...rest } = props; return React.createElement('img', rest); }`
         : `export function useRouter() { return { push() { throw new Error('Route loading is outside this fixture'); } }; } export function usePathname() { return window.fixturePath || '/work'; } export function useSearchParams() { return new URLSearchParams(window.fixtureQuery || ''); }`, resolveDir: process.cwd() }));
     } }],
   });
@@ -92,11 +98,11 @@ test("opens only the current route section by default", async () => {
     await expect(page.locator('[data-module-id="work"]')).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator('#sidebar-section-duct-rental')).toHaveAttribute("aria-hidden", "false");
     await expect(page.locator('#sidebar-section-work')).toHaveAttribute("aria-hidden", "true");
-    await expect(page.locator(".sidebar-section-toggle")).toHaveCount(0);
+    await expect(page.locator(".sidebar-section-toggle")).toHaveCount(3);
   });
 });
 
-test("clicking a module opens it and folds the previous module", async () => {
+test("disclosure opens a module without navigation and folds the previous module", async () => {
   await fixture(async page => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.evaluate(() => { Object.assign(window, { fixturePath: "/work" }); });
@@ -107,6 +113,8 @@ test("clicking a module opens it and folds the previous module", async () => {
     const transitionDuration = await page.locator('#sidebar-section-guarantees').evaluate(element => getComputedStyle(element).transitionDuration);
     expect(transitionDuration).not.toBe("0s");
     await page.locator('[data-module-id="guarantees"]').click();
+    expect(page.url()).toBe("https://workspace.test/");
+    await expect(page.locator('.sidebar-module-row > a[href="/guarantees"]')).toBeVisible();
     await expect(page.locator('[data-module-id="guarantees"]')).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator('[data-module-id="work"]')).toHaveAttribute("aria-expanded", "false");
     await expect(page.locator('#sidebar-section-guarantees')).toHaveClass(/is-open/);
@@ -167,7 +175,7 @@ test("removes the requested sidebar labels without removing /work/mine", async (
 
 for (const [path, query, expected] of [
   ["/work/team/member", "", "/work/team"],
-  ["/duct-rental/renewal/example", "", "/duct-rental/renewal"],
+  ["/duct-rental/renewal/example", "", "/duct-rental"],
   ["/duct-rental/12345678-1234-1234-1234-123456789abc/edit", "", "/duct-rental"],
   ["/guarantees", "view=installation-team", "/guarantees?view=installation-team"],
 ]) {
@@ -180,8 +188,9 @@ test(`selects one detail destination and keeps its section active: ${path}`, asy
     ] });
     await expect.poll(() => page.locator('[aria-current="page"]').count()).toBe(1);
     expect(await page.locator('[aria-current="page"]').getAttribute("href")).toBe(expected);
+    if (path === "/duct-rental/renewal/example") await expect(page.locator('a[href="/duct-rental/renewal"]')).toHaveCount(0);
     const section = path.split("/")[1];
-    expect(await page.locator(`[data-module-id="${section}"]`).getAttribute("class")).toContain("active");
+    await expect(page.locator(`.sidebar-module-row > a[href="/${section}"]`)).toHaveClass(/active/);
   });
 });
 }
@@ -195,8 +204,8 @@ test("marks only the query-specific destination current while retaining its acti
     ] });
     await expect.poll(() => page.locator('[aria-current="page"]').count()).toBe(1);
     expect(await page.locator('[aria-current="page"]').getAttribute("href")).toBe("/work?view=activity");
-    expect(await page.locator('[data-module-id="work"]').getAttribute("class")).toContain("active");
-    expect(await page.locator('[data-module-id="work"]').getAttribute("aria-current")).toBeNull();
+    await expect(page.locator('.sidebar-module-row > a[href="/work?preview=1"]')).toHaveClass(/active/);
+    await expect(page.locator('.sidebar-module-row > a[href="/work?preview=1"]')).not.toHaveAttribute("aria-current");
   });
 });
 
@@ -260,7 +269,7 @@ test("actual AppShell fixture proves themed surfaces, drawer geometry, and deskt
       return { sidebarRight: sidebar.right, mainLeft: main.left, width: sidebar.width };
     });
     expect(expandedGeometry.mainLeft).toBeGreaterThanOrEqual(expandedGeometry.sidebarRight);
-    await page.locator("[data-shell-sidebar] button[aria-label*='ยุบ']").click();
+    await page.getByRole("button", { name: "ยุบเมนูด้านข้าง", exact: true }).click();
     await expect(shell).toHaveClass(/collapsed/);
     await page.screenshot({ path: resolve(artifactDir, "actual-shell-dark-rail.png"), animations: "disabled" });
     const railWidth = await page.locator("[data-shell-sidebar]").evaluate(element => element.getBoundingClientRect().width);
@@ -297,20 +306,27 @@ for (const theme of ["light", "dark"] as const) {
         await page.setViewportSize({ width, height: 844 });
         await expect(header).not.toContainText(/พื้นที่ทำงาน|เมนูหลัก/);
         await expect(sidebar).not.toContainText(/พื้นที่ทำงาน|เมนูหลัก/);
-        await expect(brand).toBeVisible();
-        await expect(brand).toHaveAttribute("href", "/");
-        await expect(header.getByRole("combobox", { name: "ค้นหาเมนูและรายการติดตาม", exact: true })).toBeVisible();
+        if (width <= 900) {
+          await expect(brand).toBeVisible();
+          await expect(brand).toHaveAttribute("href", "/");
+        } else {
+          await expect(brand).toBeHidden();
+        }
+        const search = header.getByRole("combobox", { name: "ค้นหาเมนูและรายการติดตาม", exact: true });
+        if (width <= 650) {
+          const searchTrigger = header.getByRole("button", { name: "เปิดค้นหาส่วนกลาง", exact: true });
+          await expect(searchTrigger).toBeVisible();
+          await searchTrigger.click();
+          await expect(search).toBeVisible();
+          await expect(search).toBeFocused();
+          await page.keyboard.press("Escape");
+          await expect(searchTrigger).toBeFocused();
+        } else {
+          await expect(search).toBeVisible();
+        }
         await expect(header.locator(".workspace-theme-toggle")).toBeVisible();
         await expect(header.getByRole("button", { name: "บัญชีผู้ใช้ TEST Account", exact: true })).toBeVisible();
-        await expect(brand.locator("strong")).toBeVisible({ visible: width > 1000 });
-        if (width > 1000) {
-          const brandAlignment = await brand.evaluate(element => {
-            const mark = element.firstElementChild!.getBoundingClientRect();
-            const text = element.querySelector("strong")!.getBoundingClientRect();
-            return Math.abs((mark.top + mark.bottom) / 2 - (text.top + text.bottom) / 2);
-          });
-          expect(brandAlignment).toBeLessThan(1);
-        }
+        await expect(brand.locator("strong")).toBeHidden();
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
         if (width > 900) {
           await expect(sidebar).toBeVisible();
@@ -327,9 +343,9 @@ for (const theme of ["light", "dark"] as const) {
               rightInset: row.right - control.right, padding: parseFloat(getComputedStyle(heading).paddingRight),
               navTop: nav.top, rowBottom: row.bottom };
           });
-          expect(geometry.height).toBe(36);
-          expect(geometry.buttonWidth).toBe(36);
-          expect(geometry.buttonHeight).toBe(36);
+          expect(geometry.height).toBeGreaterThanOrEqual(44);
+          expect(geometry.buttonWidth).toBeGreaterThanOrEqual(44);
+          expect(geometry.buttonHeight).toBeGreaterThanOrEqual(44);
           expect(geometry.rightInset).toBeCloseTo(geometry.padding, 1);
           expect(geometry.navTop).toBeGreaterThan(geometry.rowBottom);
           for (const moduleId of ["work", "guarantees", "duct-rental"]) await expect(sidebar.locator(`[data-module-id="${moduleId}"]`)).toBeVisible();
@@ -348,7 +364,8 @@ for (const theme of ["light", "dark"] as const) {
           await expect(close).toBeFocused();
           const bounds = await drawer.boundingBox();
           expect(bounds).toMatchObject({ x: 0, y: 0, height: 844 });
-          expect(bounds!.width).toBeLessThanOrEqual(width - 40);
+          // Approved drawer geometry: min(320px, viewport minus 32px).
+          expect(bounds!.width).toBe(Math.min(320, width - 32));
           const moduleTrigger = drawer.locator('[data-module-id="guarantees"]');
           await expect(moduleTrigger).toBeVisible();
           if (await moduleTrigger.getAttribute("aria-expanded") === "true") {
@@ -400,6 +417,122 @@ for (const theme of ["light", "dark"] as const) {
     });
   });
 }
+
+test("desktop sidebar spans viewport and topbar adjoins it in both states", async () => {
+  await fixture(async page => {
+    await page.setViewportSize({ width: 1280, height: 844 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await mountRealShell(page);
+    const sidebar = page.locator("[data-shell-sidebar]");
+    const header = page.locator("[data-shell-header]");
+    for (const label of ["ยุบเมนูด้านข้าง", "ขยายเมนูด้านข้าง"]) {
+      const side = (await sidebar.boundingBox())!;
+      const top = (await header.boundingBox())!;
+      expect(side.x).toBe(0);
+      expect(side.y).toBe(0);
+      expect(side.height).toBe(844);
+      expect(top.x).toBe(side.x + side.width);
+      await sidebar.getByRole("button", { name: label, exact: true }).click();
+    }
+    await expect(header.getByRole("link", { name: "Permission Next — ภาพรวม" })).toBeHidden();
+  });
+});
+
+test("desktop sidebar and topbar remain aligned during rapid toggles", async () => {
+  await fixture(async page => {
+    await page.setViewportSize({ width: 1280, height: 844 });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await mountRealShell(page);
+    const samples = await page.evaluate(async () => {
+      const sidebar = document.querySelector<HTMLElement>("[data-shell-sidebar]")!;
+      const header = document.querySelector<HTMLElement>("[data-shell-header]")!;
+      const button = sidebar.querySelector<HTMLButtonElement>("button")!;
+      const gaps: number[] = [];
+      for (let frame = 0; frame < 40; frame++) {
+        if (frame === 0 || frame === 5 || frame === 10) button.click();
+        await new Promise(requestAnimationFrame);
+        gaps.push(Math.abs(sidebar.getBoundingClientRect().right - header.getBoundingClientRect().left));
+      }
+      return gaps;
+    });
+    expect(Math.max(...samples)).toBeLessThan(1);
+  });
+});
+
+for (const theme of ["light", "dark"] as const) {
+  test(`sidebar one-click navigation, disclosure, persistence and reduced motion: ${theme}`, async () => {
+    await fixture(async page => {
+      await page.setViewportSize({ width: 1280, height: 844 });
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.evaluate(theme => localStorage.setItem("permission-next-workspace-theme", theme), theme);
+      await mountRealShell(page);
+      const sidebar = page.locator("[data-shell-sidebar]");
+      const toggle = sidebar.getByRole("button", { name: "ยุบเมนูด้านข้าง" });
+      await expect(toggle).toHaveAttribute("aria-controls", "workspace-navigation");
+      await expect.poll(() => page.evaluate(() => document.documentElement.dataset.theme)).toBe(theme);
+      const disclosure = sidebar.locator('[data-module-id="guarantees"]');
+      await disclosure.focus();
+      await page.keyboard.press("Enter");
+      await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+      await expect(sidebar.locator('[data-module-id="work"]')).toHaveAttribute("aria-expanded", "false");
+      expect(page.url()).toBe("https://workspace.test/");
+      expect(await disclosure.evaluate(el => getComputedStyle(el).transitionDuration)).toBe("0s");
+      const root = sidebar.locator('.sidebar-module-row > a[href="/guarantees"]');
+      await root.evaluate(el => el.addEventListener("click", event => { event.preventDefault(); (window as Window & { clicks?: number }).clicks = ((window as Window & { clicks?: number }).clicks ?? 0) + 1; }));
+      await root.click();
+      expect(await page.evaluate(() => (window as Window & { clicks?: number }).clicks)).toBe(1);
+      await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+      await toggle.focus();
+      await page.keyboard.press("Space");
+      await expect(sidebar.getByRole("button", { name: "ขยายเมนูด้านข้าง" })).toHaveAttribute("aria-expanded", "false");
+      expect(await page.evaluate(() => localStorage.getItem("permission-next-sidebar-collapsed"))).toBe("1");
+      await root.click();
+      expect(await page.evaluate(() => (window as Window & { clicks?: number }).clicks)).toBe(2);
+      await page.reload();
+      await mountRealShell(page);
+      await expect(sidebar.getByRole("button", { name: "ขยายเมนูด้านข้าง" })).toBeVisible();
+      await sidebar.getByRole("button", { name: "ขยายเมนูด้านข้าง" }).click();
+      expect(await page.evaluate(() => localStorage.getItem("permission-next-sidebar-collapsed"))).toBe("0");
+      await expect(sidebar.locator('[data-module-id="guarantees"]')).toHaveAttribute("aria-expanded", "true");
+    });
+  });
+}
+
+test("module links navigate with one click in expanded and collapsed sidebar", async () => {
+  for (const collapsed of [false, true]) await fixture(async page => {
+    await page.route("https://workspace.test/guarantees", route => route.fulfill({ contentType: "text/html", body: "<h1>Destination fixture</h1>" }));
+    await mountRealShell(page);
+    const sidebar = page.locator("[data-shell-sidebar]");
+    if (collapsed) await sidebar.getByRole("button", { name: "ยุบเมนูด้านข้าง" }).click();
+    await sidebar.locator('.sidebar-module-row > a[href="/guarantees"]').click();
+    await expect(page).toHaveURL("https://workspace.test/guarantees");
+    await expect(page.getByRole("heading", { name: "Destination fixture" })).toBeVisible();
+  });
+});
+
+test("sidebar disclosure remains usable when storage is unavailable", async () => {
+  await fixture(async page => {
+    await page.evaluate(() => { Object.defineProperty(window, "localStorage", { get() { throw new DOMException("Unavailable", "SecurityError"); } }); });
+    await mountRealShell(page);
+    const sidebar = page.locator("[data-shell-sidebar]");
+    const disclosure = sidebar.locator('[data-module-id="guarantees"]');
+    await disclosure.click();
+    await expect(disclosure).toHaveAttribute("aria-expanded", "true");
+    await expect(sidebar.locator('[data-module-id="work"]')).toHaveAttribute("aria-expanded", "false");
+  });
+});
+
+test("sidebar collapse remains usable when storage is unavailable", async () => {
+  await fixture(async page => {
+    await page.evaluate(() => { Object.defineProperty(window, "localStorage", { get() { throw new DOMException("Unavailable", "SecurityError"); } }); });
+    await mountRealShell(page);
+    const sidebar = page.locator("[data-shell-sidebar]");
+    await sidebar.getByRole("button", { name: "ยุบเมนูด้านข้าง" }).click();
+    await expect(sidebar.getByRole("button", { name: "ขยายเมนูด้านข้าง" })).toBeVisible();
+    await sidebar.getByRole("button", { name: "ขยายเมนูด้านข้าง" }).click();
+    await expect(sidebar.getByRole("button", { name: "ยุบเมนูด้านข้าง" })).toBeVisible();
+  });
+});
 
 test("native Dialog preserves the interior boundary and drawer geometry", async () => {
   await fixture(async page => {
