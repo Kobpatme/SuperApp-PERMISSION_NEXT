@@ -17,6 +17,9 @@ for (const kind of ['brand','success','warning','danger','info']) {
 for (const bg of ['brand','brand-hover','brand-strong']) pairs.push(['color-on-brand',`color-${bg}`,4.5]);
 pairs.push(['color-on-brand-deep','color-brand-deep',4.5],['color-focus-ring','color-surface',3],['color-border-strong','color-surface',3]);
 pairs.push(['color-brand-mark','color-brand-soft',4.5]);
+/* Field boundary pairs: --field-border must clear 3:1 against the actual
+   field surface in both themes. */
+pairs.push(['field-border','color-surface',3]);
 for(const bg of ['bg','surface-subtle']) pairs.push(['color-focus-ring',`color-${bg}`,3],['color-border-strong',`color-${bg}`,3]);
 let failures = 0;
 for (const [theme, tokens] of Object.entries({ light, dark })) for (const [fg,bg,min] of pairs) {

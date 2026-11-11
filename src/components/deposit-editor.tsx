@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DepositEvidenceUpload } from "@/components/deposit-evidence-upload";
 import { saveDepositWorkItem, type DepositActionState } from "@/app/(platform)/guarantees/actions";
@@ -12,20 +12,20 @@ import { ConfirmDialog } from "@/components/ui/dialog";
 import { getOutstandingAmount, getWorkflowStatusKey, parseMoney, workflowLabels, type DepositItem } from "@/lib/deposit-v2-domain";
 import { availableDepositTransitions, depositStatusSchema } from "@/lib/deposit-v2-workflow";
 import { TruncatedText } from "@/components/ui/truncated-text";
-import { FormActions, FormField, FormGrid, FormSection } from "@/components/ui/form";
+import { FormActions, FormField, FormGrid, FormSection, mapFieldErrors } from "@/components/ui/form";
 
 const initial: DepositActionState = { ok: false, message: "" };
 const installationAreas = ["BKK 1", "BKK 2", "BKK 3", "BKK 4", "CBI", "CMI", "PKT", "SNI"];
 const money = (value: number) => `฿${value.toLocaleString("th-TH", { maximumFractionDigits: 2 })}`;
-function TextField({ name, label, value, type = "text", required = false, full = false, hint }: { name: string; label: string; value?: string | number; type?: string; required?: boolean; full?: boolean; hint?: string }) {
+function TextField({ name, label, value, type = "text", required = false, full = false, hint, error }: { name: string; label: string; value?: string | number; type?: string; required?: boolean; full?: boolean; hint?: string; error?: string }) {
   const [draft, setDraft] = useState(String(value ?? ""));
   const controlId = `deposit-${name}`;
-  return <FormField label={label} required={required} controlId={controlId} className={full ? "ui-field-full" : undefined} hint={hint}><input id={controlId} name={name} type={type} value={draft} onChange={event => setDraft(event.target.value)} required={required} min={type === "number" ? 0 : undefined} step={type === "number" ? ".01" : undefined}/></FormField>;
+  return <FormField label={label} required={required} controlId={controlId} className={full ? "ui-field-full" : undefined} hint={hint} error={error}><input className="ui-building-field" id={controlId} name={name} type={type} value={draft} onChange={event => setDraft(event.target.value)} required={required} min={type === "number" ? 0 : undefined} step={type === "number" ? ".01" : undefined}/></FormField>;
 }
 
-function SelectField({ name, label, value, onChange, required, children }: { name: string; label: string; value: string; onChange: (value: string) => void; required?: boolean; children: React.ReactNode }) {
+function SelectField({ name, label, value, onChange, required, children, error }: { name: string; label: string; value: string; onChange: (value: string) => void; required?: boolean; children: React.ReactNode; error?: string }) {
   const controlId = `deposit-${name}`;
-  return <FormField label={label} required={required} controlId={controlId}><select id={controlId} name={name} value={value} onChange={event => onChange(event.target.value)} required={required}>{children}</select></FormField>;
+  return <FormField label={label} required={required} controlId={controlId} error={error}><select className="ui-building-field" id={controlId} name={name} value={value} onChange={event => onChange(event.target.value)} required={required}>{children}</select></FormField>;
 }
 
 export function DepositEditor({ item, assignees = [], events = [] }: { item?: DepositItem & { id: string; version: number; tlAssigneeId?: string | null }; assignees?: Array<{ id: string; displayName: string | null }>; events?: Array<{ id: string; action: string; fromStatus: string | null; toStatus: string | null; reason: string | null; occurredAt: string }> }) {
@@ -42,38 +42,40 @@ export function DepositEditor({ item, assignees = [], events = [] }: { item?: De
   const [inspector, setInspector] = useState(item?.inspected_by || "");
   const [depositReturn, setDepositReturn] = useState(item?.depReturn || "No");
   const [demolitionReturn, setDemolitionReturn] = useState(item?.demoReturn || "No");
+  const depositSectionHeadingId = useId();
   useEffect(() => { if (saveState.ok && saveState.id && !item) router.push(`/guarantees/${saveState.id}`); }, [saveState, item, router]);
   useEffect(() => { if (saveState.ok && item) router.refresh(); }, [saveState, item, router]);
   const status = item ? depositStatusSchema.safeParse(item.status) : null;
   const targets = status?.success ? availableDepositTransitions(status.data) : [];
+  const fieldErrors = saveState.fieldErrors;
   return <div className="deposit-detail deposit-module-page">
      <div className="deposit-detail-head"><PageHeader parent={{ label: "เงินประกัน", href: "/guarantees" }} eyebrow={item ? "รายละเอียด / แก้ไขรายการ" : "สร้างรายการ"} title={item?.place || "สร้างรายการเงินประกัน"} description={item ? workflowLabels[getWorkflowStatusKey(item)] : "ระบุข้อมูลอาคาร จำนวนเงิน และกำหนดการ ก่อนดำเนินงานตามขั้นตอน"} actions={<Link href="/guarantees" aria-disabled={savePending || undefined} onClick={event => { if (savePending || dirty) { event.preventDefault(); if (!savePending) setLeaveOpen(true); } }}>← กลับรายการ</Link>}/></div>
-    <div className={`deposit-detail-grid ${item ? "deposit-detail-grid-edit" : "deposit-detail-grid-create"}`}><section className="deposit-panel"><h2>ข้อมูลรายการ</h2><p className="deposit-section-help">ข้อมูลอาคารและผู้ประสานงาน · ช่อง * จำเป็นต้องระบุ</p><form className="deposit-form" onChange={() => setDirty(true)} onSubmit={event => { event.preventDefault(); if (savePending) return; const data = new FormData(event.currentTarget); startTransition(() => saveAction(data)); }}><fieldset className="deposit-fields" disabled={savePending}><legend className="sr-only">ข้อมูลรายการเงินประกัน</legend>
+    <div className={`deposit-detail-grid ${item ? "deposit-detail-grid-edit" : "deposit-detail-grid-create"}`}><section className="deposit-panel" aria-labelledby={depositSectionHeadingId}>{item ? <h2 id={depositSectionHeadingId}>ข้อมูลรายการ</h2> : <h2 id={depositSectionHeadingId} className="sr-only">ข้อมูลรายการ</h2>}<p className="deposit-section-help">ข้อมูลอาคารและผู้ประสานงาน · ช่อง * จำเป็นต้องระบุ</p><form className="deposit-form" onChange={() => setDirty(true)} onSubmit={event => { event.preventDefault(); if (savePending) return; const data = new FormData(event.currentTarget); startTransition(() => saveAction(data)); }}><fieldset className="deposit-fields" disabled={savePending}><legend className="sr-only">ข้อมูลรายการเงินประกัน</legend>
       {item && <><input type="hidden" name="id" value={item.id}/><input type="hidden" name="version" value={item.version}/></>}
       <FormSection legend="รายการและผู้เกี่ยวข้อง" help="ข้อมูลอาคารและผู้ประสานงาน" className="deposit-form-section deposit-form-section-related"><FormGrid className="deposit-form-fields">
-        <TextField name="place" label="อาคาร" value={item?.place} required/><SelectField name="area" label="พื้นที่ / ทีมติดตั้ง" value={area} onChange={setArea} required><option value="">เลือกพื้นที่</option>{installationAreas.map((value) => <option key={value} value={value}>{value}</option>)}</SelectField>
-        <FormField label="ทีมติดตั้ง" controlId="deposit-tl-team"><input id="deposit-tl-team" name="tl_team" value={area ? `ทีมติดตั้ง ${area}` : ""} readOnly/></FormField><TextField name="customer" label="ลูกค้า" value={item?.customer}/><TextField name="cid" label="CID" value={item?.cid}/>
-        <TextField name="no" label="เลขที่รายการ" value={item?.no}/><TextField name="project" label="โครงการ" value={item?.project}/><TextField name="deal" label="Deal" value={item?.deal}/><TextField name="pr" label="PR" value={item?.pr}/>
-        <TextField name="contact" label="ผู้ประสานงาน" value={item?.contact}/><TextField name="tel" label="โทรศัพท์" value={item?.tel}/><TextField name="mobile" label="มือถือ" value={item?.mobile}/><TextField name="payTo" label="ผู้รับเงิน" value={item?.payTo}/>
-        <TextField name="payType" label="วิธีชำระ" value={item?.payType}/><SelectField name="tlAssigneeId" label="มอบหมายผู้รับผิดชอบทีมติดตั้ง" value={assignee} onChange={setAssignee}><option value="">ยังไม่มอบหมาย</option>{assignees.map((person) => <option key={person.id} value={person.id}>{person.displayName || person.id}</option>)}</SelectField>
-        <TextField name="detail" label="รายละเอียดงาน" value={item?.detail} full/><TextField name="note" label="หมายเหตุ" value={item?.note} full/>
-      </FormGrid></FormSection>
+              <TextField name="place" label="อาคาร" value={item?.place} required error={mapFieldErrors(fieldErrors, "place")}/><SelectField name="area" label="พื้นที่ / ทีมติดตั้ง" value={area} onChange={setArea} required error={mapFieldErrors(fieldErrors, "area")}><option value="">เลือกพื้นที่</option>{installationAreas.map((value) => <option key={value} value={value}>{value}</option>)}</SelectField>
+              <FormField label="ทีมติดตั้ง" controlId="deposit-tl-team"><input className="ui-building-field" id="deposit-tl-team" name="tl_team" value={area ? `ทีมติดตั้ง ${area}` : ""} readOnly/></FormField><TextField name="customer" label="ลูกค้า" value={item?.customer} error={mapFieldErrors(fieldErrors, "customer")}/><TextField name="cid" label="CID" value={item?.cid} error={mapFieldErrors(fieldErrors, "cid")}/>
+              <TextField name="no" label="เลขที่รายการ" value={item?.no} error={mapFieldErrors(fieldErrors, "no")}/><TextField name="project" label="โครงการ" value={item?.project} error={mapFieldErrors(fieldErrors, "project")}/><TextField name="deal" label="Deal" value={item?.deal} error={mapFieldErrors(fieldErrors, "deal")}/><TextField name="pr" label="PR" value={item?.pr} error={mapFieldErrors(fieldErrors, "pr")}/>
+              <TextField name="contact" label="ผู้ประสานงาน" value={item?.contact} error={mapFieldErrors(fieldErrors, "contact")}/><TextField name="tel" label="โทรศัพท์" value={item?.tel} error={mapFieldErrors(fieldErrors, "tel")}/><TextField name="mobile" label="มือถือ" value={item?.mobile} error={mapFieldErrors(fieldErrors, "mobile")}/><TextField name="payTo" label="ผู้รับเงิน" value={item?.payTo} error={mapFieldErrors(fieldErrors, "payTo")}/>
+              <TextField name="payType" label="วิธีชำระ" value={item?.payType} error={mapFieldErrors(fieldErrors, "payType")}/><SelectField name="tlAssigneeId" label="มอบหมายผู้รับผิดชอบทีมติดตั้ง" value={assignee} onChange={setAssignee} error={mapFieldErrors(fieldErrors, "tlAssigneeId")}><option value="">ยังไม่มอบหมาย</option>{assignees.map((person) => <option key={person.id} value={person.id}>{person.displayName || person.id}</option>)}</SelectField>
+              <TextField name="detail" label="รายละเอียดงาน" value={item?.detail} full error={mapFieldErrors(fieldErrors, "detail")}/><TextField name="note" label="หมายเหตุ" value={item?.note} full error={mapFieldErrors(fieldErrors, "note")}/>
+            </FormGrid></FormSection>
       <FormSection legend="จำนวนเงิน" className="deposit-form-section deposit-form-section-money"><FormGrid className="deposit-form-fields">
-        <TextField name="deposit" label="ประกันติดตั้ง" type="number" value={item?.deposit ?? 0}/><TextField name="demolish" label="ประกันรื้อถอน" type="number" value={item?.demolish ?? 0}/>
-        <TextField name="fee" label="ค่าธรรมเนียม" type="number" value={item?.fee ?? 0}/><TextField name="other" label="ค่าใช้จ่ายอื่น" type="number" value={item?.other ?? 0}/>
-        <TextField name="other_desc" label="รายละเอียดค่าใช้จ่ายอื่น" value={item?.other_desc} full hint="ต้องระบุเมื่อค่าใช้จ่ายอื่นมากกว่า 0"/>
-      </FormGrid></FormSection>
-      <FormSection legend="กำหนดการ" className="deposit-form-section deposit-form-section-schedule"><FormGrid className="deposit-form-fields">
-        <TextField name="dateReq" label="วันที่ขอ" type="date" value={item?.dateReq}/><TextField name="dateDue" label="ครบกำหนด" type="date" value={item?.dateDue}/>
-        <TextField name="install_date" label="วันที่ติดตั้ง" type="date" value={item?.install_date}/><TextField name="tl_due_date" label="ครบกำหนดทีมติดตั้ง" type="date" value={item?.tl_due_date}/>
-      </FormGrid></FormSection>
-      <FormSection legend="ข้อมูลติดตาม/คืนเงิน" className="deposit-form-section deposit-form-section-followup"><FormGrid className="deposit-form-fields">
-        <TextField name="dateCheck" label="วันที่ตรวจสอบ" type="date" value={item?.dateCheck}/><TextField name="dateAcc" label="วันที่บัญชีรับเรื่อง" type="date" value={item?.dateAcc}/>
-        <TextField name="service_cancel_date" label="วันที่ขอ Off Service" type="date" value={item?.service_cancel_date}/><TextField name="date_return" label="วันที่คืนเงิน" type="date" value={item?.date_return}/>
-        <SelectField name="inspected_by" label="ผู้ตรวจรับ" value={inspector} onChange={setInspector}><option value="">ยังไม่ระบุ</option><option value="TL">ทีมติดตั้ง</option><option value="Building Dept">Building Dept</option></SelectField>
-        <SelectField name="depReturn" label="คืนประกันติดตั้ง" value={depositReturn} onChange={setDepositReturn}><option>No</option><option>Yes</option></SelectField>
-                <SelectField name="demoReturn" label="คืนประกันรื้อถอน" value={demolitionReturn} onChange={setDemolitionReturn}><option>No</option><option>Yes</option></SelectField>
-      </FormGrid></FormSection>
+              <TextField name="deposit" label="ประกันติดตั้ง" type="number" value={item?.deposit ?? 0} error={mapFieldErrors(fieldErrors, "deposit")}/><TextField name="demolish" label="ประกันรื้อถอน" type="number" value={item?.demolish ?? 0} error={mapFieldErrors(fieldErrors, "demolish")}/>
+              <TextField name="fee" label="ค่าธรรมเนียม" type="number" value={item?.fee ?? 0} error={mapFieldErrors(fieldErrors, "fee")}/><TextField name="other" label="ค่าใช้จ่ายอื่น" type="number" value={item?.other ?? 0} error={mapFieldErrors(fieldErrors, "other")}/>
+              <TextField name="other_desc" label="รายละเอียดค่าใช้จ่ายอื่น" value={item?.other_desc} full hint="ต้องระบุเมื่อค่าใช้จ่ายอื่นมากกว่า 0" error={mapFieldErrors(fieldErrors, "other_desc")}/>
+            </FormGrid></FormSection>
+            <FormSection legend="กำหนดการ" className="deposit-form-section deposit-form-section-schedule"><FormGrid className="deposit-form-fields">
+              <TextField name="dateReq" label="วันที่ขอ" type="date" value={item?.dateReq} error={mapFieldErrors(fieldErrors, "dateReq")}/><TextField name="dateDue" label="ครบกำหนด" type="date" value={item?.dateDue} error={mapFieldErrors(fieldErrors, "dateDue")}/>
+              <TextField name="install_date" label="วันที่ติดตั้ง" type="date" value={item?.install_date} error={mapFieldErrors(fieldErrors, "install_date")}/><TextField name="tl_due_date" label="ครบกำหนดทีมติดตั้ง" type="date" value={item?.tl_due_date} error={mapFieldErrors(fieldErrors, "tl_due_date")}/>
+            </FormGrid></FormSection>
+            <FormSection legend="ข้อมูลติดตาม/คืนเงิน" className="deposit-form-section deposit-form-section-followup"><FormGrid className="deposit-form-fields">
+              <TextField name="dateCheck" label="วันที่ตรวจสอบ" type="date" value={item?.dateCheck} error={mapFieldErrors(fieldErrors, "dateCheck")}/><TextField name="dateAcc" label="วันที่บัญชีรับเรื่อง" type="date" value={item?.dateAcc} error={mapFieldErrors(fieldErrors, "dateAcc")}/>
+              <TextField name="service_cancel_date" label="วันที่ขอ Off Service" type="date" value={item?.service_cancel_date} error={mapFieldErrors(fieldErrors, "service_cancel_date")}/><TextField name="date_return" label="วันที่คืนเงิน" type="date" value={item?.date_return} error={mapFieldErrors(fieldErrors, "date_return")}/>
+              <SelectField name="inspected_by" label="ผู้ตรวจรับ" value={inspector} onChange={setInspector} error={mapFieldErrors(fieldErrors, "inspected_by")}><option value="">ยังไม่ระบุ</option><option value="TL">ทีมติดตั้ง</option><option value="Building Dept">Building Dept</option></SelectField>
+              <SelectField name="depReturn" label="คืนประกันติดตั้ง" value={depositReturn} onChange={setDepositReturn} error={mapFieldErrors(fieldErrors, "depReturn")}><option>No</option><option>Yes</option></SelectField>
+                      <SelectField name="demoReturn" label="คืนประกันรื้อถอน" value={demolitionReturn} onChange={setDemolitionReturn} error={mapFieldErrors(fieldErrors, "demoReturn")}><option>No</option><option>Yes</option></SelectField>
+            </FormGrid></FormSection>
       </fieldset><FormActions variant="page" className="deposit-savebar"><span className="sub">ตรวจสอบข้อมูลก่อนบันทึก</span><Button type="submit" variant="primary" disabled={savePending} aria-busy={savePending || undefined}>{savePending ? "กำลังบันทึก…" : item ? "บันทึกการแก้ไข" : "สร้างรายการ"}</Button></FormActions>
       {saveState.message && (!saveState.ok || !dirty) && <p role={saveState.ok ? "status" : "alert"} className={`deposit-form-message ${saveState.ok ? "" : "error"}`}>{saveState.message}</p>}
     </form></section>

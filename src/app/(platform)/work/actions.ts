@@ -14,7 +14,7 @@ import { resolveTaskKpi } from "@/lib/work-kpi-catalog";
 import { mutateWorkTask } from "@/lib/work-task-service";
 
 
-export type WorkActionState = { ok: boolean; message: string; id?: string; status?: number; code?: string };
+export type WorkActionState = { ok: boolean; message: string; id?: string; status?: number; code?: string; fieldErrors?: Record<string, string[]> };
 const invalid: WorkActionState = { ok: false, message: "ไม่สามารถบันทึกงานได้" };
 
 async function requireWorkSession() {
@@ -75,7 +75,7 @@ async function createBatchAction(form:FormData,kind:"personal"|"assigned"):Promi
   const input=Object.fromEntries(form);
   if(kind==="personal") input.assigneeId=access.userId;
   try {const result=await createWorkBatch(input,kind,{actor:access.subject,requestId:crypto.randomUUID()});revalidatePath("/work","layout");revalidatePath("/");return {ok:true,message:`บันทึกเรียบร้อยแล้ว ${result.count} งาน`,id:result.id};}
-  catch(error){return {...invalid,message:humanWorkError(error)};}
+    catch(error){if (error instanceof z.ZodError) { const fieldErrors: Record<string, string[]> = {}; for (const [key, value] of Object.entries(error.flatten().fieldErrors)) { if (value && value.length > 0) fieldErrors[key] = value; } return { ...invalid, fieldErrors, message: "กรุณาตรวจสอบข้อมูลและระบุเหตุผลให้ครบ" }; } return {...invalid,message:humanWorkError(error)};}
 }
 export async function createPersonalTaskAction(_previous:WorkActionState,form:FormData){return createBatchAction(form,"personal");}
 export async function assignWorkTasksAction(_previous:WorkActionState,form:FormData){return createBatchAction(form,"assigned");}

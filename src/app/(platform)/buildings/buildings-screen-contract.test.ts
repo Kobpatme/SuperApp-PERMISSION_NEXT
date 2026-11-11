@@ -35,9 +35,13 @@ describe("Buildings specialized workspace contract", () => {
     expect(sources[1]).toContain("ค้นหาอาคาร ตรวจสอบตำแหน่ง ค่าใช้จ่าย");
     expect(sources[1]).toContain('data-view={view}');
     expect(sources[1]).toContain('canCreate &&');
-    expect(sources[1]).toContain('role="search"');
+    expect(sources[1]).toContain('role="combobox"');
     expect(sources[1]).toContain('aria-label="ค้นหาอาคาร"');
     expect(sources[1]).toContain('aria-controls="permission-filters"');
+    expect(sources[1]).toContain("aria-expanded=");
+    expect(sources[1]).toContain("aria-controls=");
+    expect(sources[1]).toContain("aria-activedescendant");
+    expect(sources[1]).toContain('role="option"');
     expect(sources[1]).toContain('role="status"');
   });
 
@@ -64,4 +68,13 @@ describe("Buildings specialized workspace contract", () => {
     expect(sources[1]).toContain('<Dialog open={Boolean(selected)}');
   });
 
+  it("ใส่คุณสมบัติ combobox/สถานะ/ตัวควบคุม/active-descendant ไว้บน input ตัวจริง และ aria-controls ไม่ค้างอ้างอิงเมื่อ listbox ปิด", () => {
+    expect(sources[1]).not.toContain('<div className="permission-search" role="combobox"');
+    expect(sources[1]).toContain('id={SEARCH_INPUT_ID} ref={searchRef} role="combobox"');
+    expect(sources[1]).toContain('aria-expanded={searchOpen}');
+    expect(sources[1]).toContain('aria-haspopup="listbox"');
+    expect(sources[1]).toContain('aria-controls={searchOpen ? SEARCH_LISTBOX_ID : undefined}');
+    expect(sources[1]).toContain('aria-activedescendant={activeSearchId}');
+    expect(sources[1]).toContain('const activeSearchId = searchOpen && suggestionIndex >= 0 && activeSearchItem ? searchOptionId(activeSearchItem.id) : undefined;');
+  });
 });

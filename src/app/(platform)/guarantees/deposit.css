@@ -71,7 +71,7 @@
 .deposit-form { display:grid; gap:var(--space-4); }
 .deposit-form label { display: grid; gap: var(--space-2); min-width: 0; font-size: var(--text-caption); font-weight: 700; }
 .deposit-form label.full, .deposit-form .full { grid-column: 1 / -1; }
-.deposit-form fieldset { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); grid-column: 1 / -1; margin: var(--space-1) 0; padding: var(--space-4); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-lg); }
+.deposit-form fieldset:not(.ui-form-section) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); grid-column: 1 / -1; margin: var(--space-1) 0; padding: var(--space-4); border: var(--border-width) solid var(--color-border); border-radius: var(--radius-lg); }
 .deposit-form legend { padding: 0 var(--space-2); color: var(--color-text-muted); font-weight: 800; }
 .deposit-form button { justify-self: start; }
 .deposit-form-message { grid-column: 1 / -1; margin: 0; color: var(--color-brand); }
@@ -263,9 +263,10 @@
 .deposit-module-page .deposit-detail-actions>a { display:inline-flex; align-items:center; min-height:var(--size-control-touch); padding:var(--space-2) var(--space-3); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface); color:var(--color-brand); text-decoration:none; font-weight:750; }
 .deposit-module-page .deposit-detail-grid { gap:var(--space-4); }
 .deposit-module-page .deposit-panel { padding:var(--space-5); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-raised); }
+.deposit-module-page .deposit-detail-grid-create .deposit-panel { border:0; background:transparent; box-shadow:none; }
 .deposit-module-page .deposit-panel h2 { margin-bottom:var(--space-4); }
 .deposit-module-page .deposit-form { gap:var(--space-4); }
-.deposit-module-page .deposit-form fieldset { margin:0; padding:var(--space-4) 0 0; border:0; border-top:var(--border-width) solid var(--color-border); border-radius:0; background:transparent; }
+.deposit-module-page .deposit-form fieldset.deposit-fields { margin:0; padding:var(--space-4) 0 0; border:0; border-top:var(--border-width) solid var(--color-border); border-radius:0; background:transparent; }
 .deposit-module-page .deposit-form .deposit-fields { padding:0; border:0; }
 .deposit-savebar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--space-3); padding-top:var(--space-4); border-top:var(--border-width) solid var(--color-border); }
 .deposit-section-help { margin:0 0 var(--space-5); color:var(--color-text-muted); }
@@ -306,3 +307,8 @@
 .deposit-form-fields > .ui-field-full { grid-column:1 / -1; }
 .deposit-form-fields input,
 .deposit-form-fields select { min-width:0; }
+
+/* Keep compact filter sizing while the shared field supplies its visual style. */
+.legacy-head-actions select.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { width:auto; }
+.legacy-filter-bar select.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { width:auto; min-width:var(--size-panel-min); }
+.deposit-transition textarea.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { min-height:var(--size-shell-header-mobile); }

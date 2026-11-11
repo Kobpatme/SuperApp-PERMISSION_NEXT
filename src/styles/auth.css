@@ -16,12 +16,12 @@
 .auth-form { display:grid; gap:var(--space-4); margin-top:var(--space-7); }
 .auth-field { min-width:0; display:grid; gap:var(--space-2); }
 .auth-field label { font-size:var(--text-body-strong); font-weight:600; color:var(--color-text); }
-.auth-form input:not([type=hidden]) { width:100%; min-width:0; height:48px; border:var(--border-width) solid var(--color-border-strong); border-radius:var(--radius-md); padding:0 var(--space-3); background:var(--color-surface-subtle); box-shadow:var(--shadow-inset); color:var(--color-text); font:inherit; font-size:var(--text-body-strong); transition:border-color var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast) var(--ease-out); }
-.auth-form input::placeholder { color:var(--color-text-muted); opacity:.9; }
-.auth-form input:hover { border-color:var(--color-text-muted); }
-.auth-form input[aria-invalid="true"] { border-color:var(--color-danger); }
-.auth-form input:focus-visible,.auth-visibility:focus-visible,.auth-submit-button:focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); }
-.auth-form input:focus-visible { border-color:var(--color-focus-ring); box-shadow:0 0 0 3px color-mix(in srgb,var(--color-focus-ring) 18%,transparent); }
+.auth-form input.ui-field-control:not([type=hidden]) { width:100%; min-width:0; height:48px; padding:0 var(--space-3); background:var(--color-surface-subtle); font:inherit; font-size:var(--text-body-strong); transition:border-color var(--motion-fast) var(--ease-out),box-shadow var(--motion-fast) var(--ease-out); }
+.auth-form input.ui-field-control:not([type=hidden])::placeholder { color:var(--color-text-muted); opacity:.9; }
+.auth-form input.ui-field-control:not([type=hidden]):hover { border-color:var(--color-text-muted); }
+.auth-form input.ui-field-control:not([type=hidden])[aria-invalid="true"] { border-color:var(--color-danger); }
+.auth-form input.ui-field-control:not([type=hidden]):focus-visible,.auth-visibility:focus-visible,.auth-submit-button:focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); }
+.auth-form input.ui-field-control:not([type=hidden]):focus-visible { border-color:var(--color-focus-ring); box-shadow:0 0 0 3px color-mix(in srgb,var(--color-focus-ring) 18%,transparent); }
 .auth-password { position:relative; min-width:0; }
 .auth-password input { padding-inline-end:56px !important; }
 .auth-visibility { position:absolute; inset-inline-end:4px; top:2px; width:44px; height:44px; display:grid; place-items:center; border:0; border-radius:var(--radius-md); background:transparent; color:var(--color-text-muted); cursor:pointer; }

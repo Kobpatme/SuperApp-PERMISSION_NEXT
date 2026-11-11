@@ -51,6 +51,56 @@ describe("guarantees visual branches", () => {
     expect((html.match(/<h1/g) || []).length).toBe(1);
   });
 
+  it("create page drops the visible duplicate section heading but keeps its accessible name, help text, and form legend", () => {
+    const html = renderToStaticMarkup(<DepositEditor />);
+    expect(html).not.toContain('<h2>ข้อมูลรายการ</h2>');
+    expect(html).toContain("ข้อมูลรายการ"); // visually-hidden heading remains for assistive technology
+    expect(html).toContain("ข้อมูลอาคารและผู้ประสานงาน · ช่อง * จำเป็นต้องระบุ");
+    expect(html).toContain("ข้อมูลรายการเงินประกัน"); // fieldset legend unchanged
+    expect(html).toContain("สร้างรายการเงินประกัน"); // page title from PageHeader
+    expect((html.match(/<h1/g) || []).length).toBe(1);
+  });
+
+  it("edit page keeps the visible section heading and unchanged create/edit payload inputs", () => {
+    const html = renderToStaticMarkup(<DepositEditor item={item} />);
+    expect(html).toMatch(/<h2\b[^>]*>ข้อมูลรายการ<\/h2>/); // heading ยังคงแสดงในหน้าแก้ไข (มี id ผูกกับ aria-labelledby แล้ว)
+    expect(html).toContain("ข้อมูลอาคารและผู้ประสานงาน · ช่อง * จำเป็นต้องระบุ");
+    expect(html).toContain('name="id"');
+    expect(html).toContain('name="version"');
+  });
+
+  it("ถามเชิงถดถอย: section deposit-panel ต้องเชื่อม heading ข้อมูลรายการ ด้วย id เสถียร + aria-labelledby ทั้ง create (ซ่อน) และ edit (แสดง)", () => {
+    const linkOf = (html: string) => {
+      const section = html.match(/<section\b([^>]*\bclass="deposit-panel"[^>]*)>([\s\S]*?)<\/section>/);
+      expect(section, "ต้องมี <section class='deposit-panel'>").not.toBeNull();
+      const openAttrs = section![1];
+      const inner = section![2];
+      const aria = openAttrs.match(/\baria-labelledby="([^"]+)"/);
+      const h2 = inner.match(/<h2\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/);
+      const h2Full = h2?.[0] ?? "";
+      return {
+        ariaId: aria?.[1] ?? null,
+        headingId: h2?.[1] ?? null,
+        headingText: h2?.[2] ?? "",
+        headingClass: h2Full.match(/class="([^"]*)"/)?.[1] ?? null,
+      };
+    };
+
+    const create = linkOf(renderToStaticMarkup(<DepositEditor />));
+    expect(create.ariaId).not.toBeNull();
+    expect(create.headingId).not.toBeNull();
+    expect(create.headingId).toBe(create.ariaId); // id ตรงกับ aria-labelledby จริง ไม่ใช่แค่มีข้อความ
+    expect(create.headingText).toContain("ข้อมูลรายการ");
+    expect(create.headingClass).toContain("sr-only"); // create: ซ่อนทางสายตา แต่อ่านได้โดยเทคโนโลยีช่วยเหลือ
+
+    const edit = linkOf(renderToStaticMarkup(<DepositEditor item={item} />));
+    expect(edit.ariaId).not.toBeNull();
+    expect(edit.headingId).not.toBeNull();
+    expect(edit.headingId).toBe(edit.ariaId);
+    expect(edit.headingText).toContain("ข้อมูลรายการ");
+    expect(edit.headingClass ?? "").not.toContain("sr-only"); // edit: แสดงหัวข้อตามปกติ ไม่มี sr-only ปกปิด
+  });
+
   it("renders the server readonly detail branch with finance, evidence and history", async () => {
     const element = await DepositDetailPage({ params: Promise.resolve({ id: item.id }) });
     const html = renderToStaticMarkup(element);

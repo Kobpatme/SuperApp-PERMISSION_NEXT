@@ -6,6 +6,7 @@
   --color-surface: #FFFFFF;
   --color-surface-subtle: #F1F5F9;
   --color-border: #CBD5E1;
+  --field-border: #5B7A96;
   --color-border-strong: #6B7280;
   --color-text: #0F172A;
   --color-text-muted: #475569;
@@ -89,6 +90,7 @@ html[data-theme="dark"] {
   --color-surface: #1E293B;
   --color-surface-subtle: #334155;
   --color-border: #334155;
+  --field-border: #5B7A96;
   --color-border-strong: #94A3B8;
   --color-text: #F8FAFC;
   --color-text-muted: #CBD5E1;
@@ -137,4 +139,20 @@ html[data-theme="dark"] {
   }
 
   * { scroll-behavior: auto !important; }
+}
+
+:root {
+  /* Field-skin tokens (central source, consumed by .ui-field-control and
+     follower control skins). Geometry (height/padding/width) stays with each
+     control's existing declarations; these tokens drive surface/border/radius/
+     shadow/focus/invalid appearance only. --field-border color is declared
+     per theme above and contrast-checked against each surface. */
+  --field-border-danger: var(--color-danger);
+  --field-focus-ring: var(--color-brand);
+  --field-focus-outline: 2px;
+  --field-focus-offset: 2px;
+  --field-radius: var(--radius-md);
+  --field-background: var(--color-surface);
+  --field-text: var(--color-text);
+  --field-shadow-inset: var(--shadow-inset);
 }

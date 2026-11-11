@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const css = readFileSync(resolve(process.cwd(), "src/styles/ui.css"), "utf8");
 const workCss = readFileSync(resolve(process.cwd(), "src/styles/work.css"), "utf8");
+const depositCss = readFileSync(resolve(process.cwd(), "src/app/(platform)/guarantees/deposit.css"), "utf8");
 const legacyComponentsCss = readFileSync(resolve(process.cwd(), "src/styles/components.css"), "utf8");
 
 const countOccurrences = (source: string, needle: string) => source.split(needle).length - 1;
@@ -50,5 +51,26 @@ describe("shared button interaction states", () => {
     expect(css).toContain(".ui-table.workspace-queue-table .owner-cell > .owner-cell-content");
     expect(css).toContain("display:flex; align-items:center; gap:var(--space-1)");
     expect(css).not.toContain(".ui-table.workspace-queue-table .owner-cell { display:flex");
+  });
+});
+
+describe("migrated work surfaces keep the shared form card", () => {
+  const workCreate = readFileSync(resolve(process.cwd(), "src/components/work-create-form.tsx"), "utf8");
+  const assignment = readFileSync(resolve(process.cwd(), "src/features/work/screens/assignment-center.tsx"), "utf8");
+
+  it("removes legacy layout classes from migrated FormSection/FormGrid elements", () => {
+    expect(assignment).not.toContain('className="work-form-grid"');
+    expect(workCreate).not.toContain('className="work-create-fieldset"');
+    expect(workCreate).not.toContain('className="work-create-details-fieldset"');
+    expect(workCreate).not.toContain('className="work-create-grid"');
+    expect(workCreate).not.toContain('className="work-create-details-grid"');
+    expect(workCreate).not.toContain('className="work-create-col-2"');
+  });
+
+  it("keeps module CSS from cancelling the shared section card", () => {
+    for (const sheet of [workCss, depositCss]) {
+      expect(sheet).not.toMatch(/\.ui-form-section\s*\{[\s\S]*?border:\s*0[\s\S]*?\}/);
+      expect(sheet).not.toMatch(/\.ui-form-section\s*\{[\s\S]*?background:\s*transparent[\s\S]*?\}/);
+    }
   });
 });

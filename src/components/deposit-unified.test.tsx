@@ -17,6 +17,17 @@ describe("Guarantees unified presentation contracts", () => {
     expect(html).toContain('name="version" value="7"');
     expect(html).toContain("ui-button"); expect(html).toContain("ข้อมูลรายการเงินประกัน");
   });
+  it("opts ordinary editor and transition controls in without styling hidden or file inputs", () => {
+    const html = renderToStaticMarkup(<DepositEditor item={item} />);
+    for (const name of ["place", "area", "tl_team", "deposit", "other_desc", "dateReq", "depReturn", "reason"]) {
+      const control = html.match(new RegExp(`<(?:input|select|textarea)\\b[^>]*name="${name}"[^>]*>`))?.[0];
+      expect(control, name).toContain('class="ui-building-field"');
+    }
+    for (const control of html.match(/<input\b[^>]*type="(?:hidden|file)"[^>]*>/g) || []) {
+      expect(control).not.toContain("ui-building-field");
+    }
+    expect(html).toContain('type="file"');
+  });
   for (const status of depositStatuses) it(`${status}: keeps exactly the existing policy's offered transition labels`, () => {
     const html = renderToStaticMarkup(<DepositEditor item={{ ...item, status }} />);
     const expected = availableDepositTransitions(status);

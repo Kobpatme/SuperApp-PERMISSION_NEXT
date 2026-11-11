@@ -30,7 +30,7 @@ export function DepositTransitionForm({ id, version, targets }: {
     startTransition(() => action(data));
   }
   return <div className="deposit-transition">
-    <label>เหตุผล<textarea name="reason" value={reason} disabled={pending} onChange={event => setReason(event.target.value)} placeholder="เหตุผล (จำเป็นเมื่อส่งกลับหรือยกเลิก)" /></label>
+    <label>เหตุผล<textarea className="ui-building-field" name="reason" value={reason} disabled={pending} onChange={event => setReason(event.target.value)} placeholder="เหตุผล (จำเป็นเมื่อส่งกลับหรือยกเลิก)" /></label>
     {targets.map(target => <Button key={target[0]} type="button" disabled={pending} variant={target[0] === "Cancel" ? "danger" : "secondary"} onClick={() => setSelected(target)}>{target[1]}</Button>)}
     {!targets.length && <p>ไม่มีขั้นตอนที่ต้องดำเนินการ</p>}
     {!selected && state.message && <p role={state.ok ? "status" : "alert"}>{state.message}</p>}

@@ -9,6 +9,8 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn() }),
 }));
 
+const INPUT_ID = "permission-search-input";
+
 const building = {
   id: "building-1", code: "B-001", nameTh: "อาคารทดสอบ", nameEn: "Test Building", ownerTeamId: null,
   status: "Permission Confirmed", group: "สำนักงาน", type: "อาคารสำนักงาน", surveyType: "สำรวจแล้ว", area: "กรุงเทพฯ", province: "กรุงเทพฯ",
@@ -30,9 +32,23 @@ describe("BuildingsWorkspace rendered contract", () => {
   it("renders one heading, search/filter controls, map action, and record fallback", () => {
     const html = render(false);
     expect((html.match(/<h1/g) ?? []).length).toBe(1);
-    expect(html).toContain('role="search"');
+    expect(html).toContain('role="combobox"');
     expect(html).toContain('aria-label="ค้นหาอาคาร"');
     expect(html).toContain('aria-controls="permission-filters"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain('aria-controls="permission-search-listbox"'); // listbox ปัด: aria-controls ต้องไม่ค้างอ้างอิง
+    expect(html).not.toContain("aria-activedescendant");
+    expect(html).not.toContain('role="listbox"');
+    expect(html).toContain('<div class="permission-search">');
+    expect(html).not.toContain('class="permission-search" role="combobox"');
+    // คุณสมบัติ combobox/สถานะ/ตัวควบคุมต้องอยู่บน input ตัวจริง ไม่ใช่ wrapper div
+    const inputTag = (html.match(/<input[^>]*>/g) ?? []).find((tag) => tag.includes(`id="${INPUT_ID}"`));
+    expect(inputTag).not.toBeUndefined();
+    expect(inputTag).toContain('role="combobox"');
+    expect(inputTag).toContain('aria-expanded="false"');
+    expect(inputTag).toContain('aria-haspopup="listbox"');
+    expect(inputTag).not.toContain("aria-controls");
+    expect(inputTag).not.toContain("aria-activedescendant");
     expect(html).toContain('aria-pressed="false">แผนที่');
     expect(html).toContain("รายการอาคาร");
     expect(html).toContain('href="/buildings/building-1"');
@@ -96,6 +112,15 @@ describe("BuildingsWorkspace rendered contract", () => {
     expect(presentation).toMatch(/\.permission-workspace \.permission-overview-card \{[^}]*box-shadow:none/);
     expect(presentation).toContain("height:auto; overflow:visible");
     expect(presentation).not.toContain(":root");
+  });
+
+  it("จัดสีพื้น/inset ของช่องค้นหาและ focus ring ให้สอดคล้องกับ building-editor reference", () => {
+    const presentation = readFileSync(new URL("./buildings-presentation.css", import.meta.url), "utf8");
+    const base = readFileSync(new URL("./permission-buildings.css", import.meta.url), "utf8");
+    expect(presentation).toContain("border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface-subtle); box-shadow:var(--shadow-inset);");
+    expect(presentation).toContain(".permission-workspace .permission-search:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }");
+    expect(presentation).toContain("pointer-events:none");
+    expect(base).toContain("min-height:var(--size-control-touch)");
   });
 
   it("leaves canonical shell geometry to the shared shell and allows content scrolling", () => {

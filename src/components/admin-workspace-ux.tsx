@@ -14,5 +14,5 @@ export function AdminSearchFeedback({ total, visible, onClear }: { total: number
 
 export function ResetPasswordInput({ userId }: { userId: string }) {
   const id = `reset-password-${userId}`;
-  return <><label htmlFor={id}>รหัสผ่านชั่วคราว</label><input id={id} aria-describedby={`${id}-hint`} name="password" type="password" minLength={12} autoComplete="new-password" required/><small id={`${id}-hint`}>อย่างน้อย 12 ตัวอักษร ผู้ใช้ต้องตั้งรหัสผ่านใหม่เมื่อเข้าสู่ระบบ</small></>;
+  return <><label htmlFor={id}>รหัสผ่านชั่วคราว</label><input className="ui-building-field" id={id} aria-describedby={`${id}-hint`} name="password" type="password" minLength={12} autoComplete="new-password" required/><small id={`${id}-hint`}>อย่างน้อย 12 ตัวอักษร ผู้ใช้ต้องตั้งรหัสผ่านใหม่เมื่อเข้าสู่ระบบ</small></>;
 }

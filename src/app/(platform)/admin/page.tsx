@@ -133,14 +133,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               {current.id === "audit" && permissionsGranted.audit && (
                 <form method="get" className="admin-filter-form" aria-label="ตัวกรองประวัติ">
                   <input type="hidden" name="section" value="audit" />
-                  <label>ส่วนงาน<input name="auditModule" defaultValue={typeof params.auditModule === "string" ? params.auditModule : ""} /></label>
-                  <label>ค้นหาการเปลี่ยนแปลง<input name="auditAction" defaultValue={typeof params.auditAction === "string" ? params.auditAction : ""} /></label>
-                  <label>ผู้ดำเนินการ<select name="auditActor" defaultValue={typeof params.auditActor === "string" ? params.auditActor : ""}>
+                  <label>ส่วนงาน<input className="ui-building-field" name="auditModule" defaultValue={typeof params.auditModule === "string" ? params.auditModule : ""} /></label>
+                  <label>ค้นหาการเปลี่ยนแปลง<input className="ui-building-field" name="auditAction" defaultValue={typeof params.auditAction === "string" ? params.auditAction : ""} /></label>
+                  <label>ผู้ดำเนินการ<select className="ui-building-field" name="auditActor" defaultValue={typeof params.auditActor === "string" ? params.auditActor : ""}>
                     <option value="">ทั้งหมด</option>
                     {userRows.map(user => <option key={user.id} value={user.id}>{user.displayName}</option>)}
                   </select></label>
-                  <label>ตั้งแต่<input type="date" name="auditFrom" defaultValue={typeof params.auditFrom === "string" ? params.auditFrom : ""} /></label>
-                  <label>ถึง<input type="date" name="auditTo" defaultValue={typeof params.auditTo === "string" ? params.auditTo : ""} /></label>
+                  <label>ตั้งแต่<input className="ui-building-field" type="date" name="auditFrom" defaultValue={typeof params.auditFrom === "string" ? params.auditFrom : ""} /></label>
+                  <label>ถึง<input className="ui-building-field" type="date" name="auditTo" defaultValue={typeof params.auditTo === "string" ? params.auditTo : ""} /></label>
                   <div className="admin-filter-actions">
                     <Button type="submit" variant="secondary">ใช้ตัวกรอง</Button>
                     <ButtonLink href="/admin?section=audit" variant="ghost">ล้างตัวกรอง</ButtonLink>
