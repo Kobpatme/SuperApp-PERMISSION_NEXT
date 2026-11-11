@@ -40,6 +40,10 @@ async function transaction<T>(context: CarBookingContext, run: (tx: DatabaseTran
   }
 }
 function ownFilter(context:CarBookingContext,admin:boolean) { return admin ? undefined : eq(bookings.userId,context.actorId); }
+export async function searchCarBookings(context: CarBookingContext, query: string) {
+  const term = `%${query.replace(/[\\%_]/g, "\\$&")}%`;
+  return transaction(context, async (tx, admin) => tx.select({ id: bookings.id, destination: bookings.destination, status: bookings.status, employeeName: bookings.employeeName }).from(bookings).where(and(ownFilter(context, admin), sql`concat_ws(' ',${bookings.destination},${bookings.employeeName},${bookings.id}::text) ilike ${term}`)).orderBy(bookings.startTime, bookings.id).limit(20));
+}
 async function lockCar(tx:DatabaseTransaction,id:string):Promise<Car> {
   const [row]=await tx.execute<{id:string;license_plate:string;parking_floor:string|null;latest_mileage:string;is_active:boolean}>(sql`select * from public.car_booking_lock_car(${id}::uuid)`);
   if (!row) throw new CarBookingError("CAR_NOT_FOUND","ไม่พบรถที่เลือก",404);

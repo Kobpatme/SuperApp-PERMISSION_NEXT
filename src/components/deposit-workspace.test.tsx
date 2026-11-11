@@ -20,7 +20,7 @@ vi.mock("react", async (original) => ({
   useEffect: () => {},
   useRef: () => ({ current: null }),
 }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), useSearchParams: () => new URLSearchParams() }));
 
 type Element = { type: unknown; props: Record<string, unknown> };
 function elements(node: ReactNode): Element[] {
@@ -29,12 +29,12 @@ function elements(node: ReactNode): Element[] {
 }
 function workspace(items: DepositItem[] = []) {
   harness.cursor = 0;
-  return elements(DepositWorkspace({ items, preview: false, state: "ready", truncated: false,
+  return elements(DepositWorkspace({ items, preview: true, state: "ready", truncated: false,
     generatedAt: "2026-01-01T12:00:00", canCreate: false, canPreview: false }));
 }
 function renderedWorkspace(items: DepositItem[] = []) {
   harness.cursor = 0;
-  return renderToStaticMarkup(DepositWorkspace({ items, preview: false, state: "ready", truncated: false,
+  return renderToStaticMarkup(DepositWorkspace({ items, preview: true, state: "ready", truncated: false,
     generatedAt: "2026-01-01T12:00:00", canCreate: false, canPreview: false }));
 }
 function select(nodes: Element[], label: string, value: string) {

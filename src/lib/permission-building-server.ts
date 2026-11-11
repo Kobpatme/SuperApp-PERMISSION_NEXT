@@ -47,13 +47,13 @@ function readScope(access: AccessContext): SQL | undefined {
   return teams.size ? inArray(buildings.ownerTeamId, [...teams]) : undefined;
 }
 
-export async function listPermissionBuildings(input: BuildingQuery): Promise<{
+export async function listPermissionBuildings(input: BuildingQuery, providedAccess?: AccessContext): Promise<{
   items: PermissionBuildingRow[]; state: "ready" | "not_configured" | "unavailable"; total: number; page: number; pageSize: number;
   previousCursor: string | null; nextCursor: string | null;
 }> {
   const { query, page: safePage, limit } = input;
   const empty = (state: "ready" | "not_configured" | "unavailable") => ({ items: [], state, total: 0, page: safePage, pageSize: limit, previousCursor: null, nextCursor: null });
-  const access = await getAccessContext("buildings");
+  const access = providedAccess ?? await getAccessContext("buildings");
   if (!access.allowed) return empty("unavailable");
   if (!process.env.DATABASE_URL) return empty("not_configured");
   const scope = readScope(access);
@@ -84,7 +84,7 @@ export async function listPermissionBuildings(input: BuildingQuery): Promise<{
     const rows = before ? boundedRows.reverse() : boundedRows;
     const visible = rows.filter((row) => isAuthorized(access.subject, "building.record.read", { teamId: row.ownerTeamId }));
     const versions = visible.length ? await db.select().from(buildingConditionVersions)
-      .where(inArray(buildingConditionVersions.buildingId, visible.map((row) => row.id)))
+      .where(and(inArray(buildingConditionVersions.buildingId, visible.map((row) => row.id)), sql`${buildingConditionVersions.version} = (select max(latest.version) from ${buildingConditionVersions} latest where latest.building_id = ${buildingConditionVersions.buildingId})`))
       .orderBy(desc(buildingConditionVersions.version)) : [];
     const latest = new Map<string, (typeof versions)[number]>();
     versions.forEach((version) => { if (!latest.has(version.buildingId)) latest.set(version.buildingId, version); });

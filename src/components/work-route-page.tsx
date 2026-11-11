@@ -34,14 +34,15 @@ export async function WorkRoutePage({ view, recordId, ownerId }: { view: string;
   const access = await getAccessContext("work");
   if (!access.allowed) return <AccessDenied moduleName="งานและ KPI" />;
   const personalView = ["mine", "mine-list", "due"].includes(currentView);
-  const model = await getWorkReadModel(access, personalView ? { owner: access.userId } : {});
   const canCreate = Boolean(access.subject?.grants.some((grant) => grant.permission === "work.task.create"));
   const hasPermission = (permission: string) => access.permissions.includes(permission);
-  if (["assign", "team"].includes(currentView) && !hasPermission("work.task.manage")) return <AccessDenied moduleName="งานและ KPI" />;
+  if (currentView === "assign" && !hasPermission("work.task.assign")) return <AccessDenied moduleName="งานและ KPI" />;
+  if (currentView === "team" && !hasPermission("work.task.manage")) return <AccessDenied moduleName="งานและ KPI" />;
   if (currentView === "people" && !hasPermission("work.task.manage") && !hasPermission("kpi.team.read")) return <AccessDenied moduleName="งานและ KPI" />;
   if (currentView === "kpi" && !hasPermission("kpi.score.read")) return <AccessDenied moduleName="งานและ KPI" />;
   if (currentView === "reports" && !hasPermission("work.report.read")) return <AccessDenied moduleName="งานและ KPI" />;
   if (currentView === "activity" && !hasPermission("activity.event.read")) return <AccessDenied moduleName="งานและ KPI" />;
+  const model = await getWorkReadModel(access, personalView ? { owner: access.userId } : {}, currentView === "reports" ? "work.report.read" : undefined);
   switch (currentView) {
     case "mine": return <MyWorkDashboard model={model} subject={access.subject} userId={access.userId} detailId={recordId} canCreate={canCreate} />;
     case "mine-list": return <MyTasksScreen model={model} subject={access.subject} userId={access.userId} canCreate={canCreate} />;

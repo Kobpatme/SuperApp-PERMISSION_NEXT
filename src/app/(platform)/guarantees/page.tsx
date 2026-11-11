@@ -26,6 +26,7 @@ export default async function GuaranteesPage({ searchParams }: { searchParams: P
       generatedAt={data.generatedAt}
       canCreate={canCreateDepositWorkItem(access)}
       personalUserId={access.userId}
+      requestedTeamId={requestedTeamId}
       canViewTlWorkspace={canViewTlWorkspace}
       installationTeamView={installationTeamView}
       canPreview={process.env.NODE_ENV === "development" && access.isDevelopmentSession} />

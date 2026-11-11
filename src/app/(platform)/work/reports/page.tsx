@@ -8,5 +8,5 @@ export const metadata: Metadata = { title: copy.pages.work_reports };
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const data = await loadWorkPage("work.report.read", await searchParams);
   if (!data) return <AccessDenied moduleName="งานและ KPI" />;
-  return <><WorkReportsScreen model={data.model} filters={<WorkFiltersForm filters={data.filters} model={data.model} appearance="workspace" resetHref="/work/reports" />} appearance="workspace" />{data.model.tasks.length === 500 && <p role="status">แสดง 500 รายการล่าสุด กรุณาใช้ตัวกรองเพื่อดูช่วงที่ต้องการ</p>}</>;
+  return <><WorkReportsScreen model={data.model} filters={<WorkFiltersForm filters={data.filters} model={data.model} appearance="workspace" resetHref="/work/reports" />} appearance="workspace" /></>;
 }

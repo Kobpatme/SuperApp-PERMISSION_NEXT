@@ -3,6 +3,8 @@
 import { copy } from "@/lib/copy";
 
 import Link from "next/link";
+import { useDepositPage } from "./use-deposit-page";
+import { sessionFetch } from "@/lib/session-fetch";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -28,9 +30,10 @@ function formatDate(value: unknown) {
   return date ? date.toLocaleDateString("th-TH", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
 }
 
-export function DepositWorkspace({ items, preview, state, truncated, generatedAt, canCreate, installationTeamView = false, canPreview, personalUserId = "", canViewTlWorkspace = false }: {
+export function DepositWorkspace({ items, preview, state, truncated, generatedAt, canCreate, installationTeamView = false, canPreview, personalUserId = "", canViewTlWorkspace = false, requestedTeamId }: {
   items: DepositItem[]; preview: boolean; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string; canCreate: boolean; installationTeamView?: boolean; canPreview: boolean;
   personalUserId?: string; canViewTlWorkspace?: boolean;
+  requestedTeamId?: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -44,6 +47,7 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   const [exportMonth, setExportMonth] = useState("");
   const [exportYear, setExportYear] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
+  const [exportPending, setExportPending] = useState(false), [exportError, setExportError] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -54,9 +58,9 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
     return () => window.removeEventListener("keydown", focusSearch);
   }, []);
 
-  const owners = useMemo(() => [...new Set(items.map((item) => item.owner?.trim()).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "th")), [items]);
-  const areas = useMemo(() => [...new Set(items.map((item) => item.area?.trim()).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "th")), [items]);
-  const years = useMemo(() => [...new Set(items.map((item) => parseDateValue(item.dateReq)?.getFullYear()).filter((year): year is number => Boolean(year)))].sort((a, b) => b - a), [items]);
+  const localOwners = useMemo(() => [...new Set(items.map((item) => item.owner?.trim()).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "th")), [items]);
+  const localAreas = useMemo(() => [...new Set(items.map((item) => item.area?.trim()).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "th")), [items]);
+  const localYears = useMemo(() => [...new Set(items.map((item) => parseDateValue(item.dateReq)?.getFullYear()).filter((year): year is number => Boolean(year)))].sort((a, b) => b - a), [items]);
   const baseItems = useMemo(() => {
     if (view === "on_service") return items.filter((item) => ["on_service", "off_service_pending"].includes(getWorkflowStatusKey(item)));
     if (view === "done") return items.filter((item) => getWorkflowStatusKey(item) === "done");
@@ -73,11 +77,17 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
     if (sortNo === "default") return sorted;
     return [...sorted].sort((a, b) => String(a.no || "").localeCompare(String(b.no || ""), "th", { numeric: true }) * (sortNo === "asc" ? 1 : -1));
   }, [baseItems, statusFilter, ownerFilter, areaFilter, query, sortNo]);
-  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safePage = Math.min(page, pageCount);
-  const pageItems = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const kpis = useMemo(() => getListPageKpiMetrics(filtered), [filtered]);
-  const finance = useMemo(() => getSidebarFinancialMetrics(filtered), [filtered]);
+  const serverParams = new URLSearchParams({ q: query, status: statusFilter, owner: ownerFilter, area: areaFilter, view, sort: sortNo, page: String(page), installation: installationTeamView ? "1" : "0", ...(requestedTeamId ? { team: requestedTeamId } : {}) });
+  const serverEnabled = !preview && ["list", "on_service", "done"].includes(view);
+  const remotePage = useDepositPage(serverParams.toString(), serverEnabled);
+  const filteredCount = serverEnabled ? remotePage.data?.total ?? 0 : filtered.length;
+  const pageCount = Math.max(1, Math.ceil(filteredCount / pageSize));
+  const safePage = serverEnabled ? remotePage.data?.page ?? 1 : Math.min(page, pageCount);
+  const pageItems = serverEnabled ? remotePage.data?.items ?? [] : filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const localKpis = useMemo(() => getListPageKpiMetrics(filtered), [filtered]);
+  const localFinance = useMemo(() => getSidebarFinancialMetrics(filtered), [filtered]);
+  const kpis = remotePage.data?.kpis ?? localKpis, finance = remotePage.data?.finance ?? localFinance;
+  const owners = remotePage.data?.owners ?? localOwners, areas = remotePage.data?.areas ?? localAreas, years = remotePage.data?.years ?? localYears;
   const queue = useMemo(() => getSmartWorkQueue(items), [items]);
   const notifications = useMemo(() => getActionNotifications(items), [items]);
 
@@ -108,7 +118,21 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
     catch { setCopyMessage("คัดลอกไม่สำเร็จ กรุณาเลือกและคัดลอก CID อีกครั้ง"); }
     window.setTimeout(() => setCopyMessage(""), 1800);
   }
-  function exportCsv() {
+  async function exportCsv() {
+    if (!preview) {
+      if (exportPending) return;
+      setExportPending(true); setExportError("");
+      try {
+        const params = new URLSearchParams(serverParams); params.set("year", exportYear); params.set("month", exportMonth);
+        const response = await sessionFetch(`/api/guarantees/export?${params}`);
+        if (!response.ok || !response.headers.get("content-type")?.includes("text/csv")) throw new Error("EXPORT_UNAVAILABLE");
+        const url = URL.createObjectURL(await response.blob()), link = document.createElement("a");
+        link.href = url; link.download = `deposit-report-${exportYear || "all"}-${exportMonth === "" ? "all" : Number(exportMonth) + 1}.csv`; link.click();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch { setExportError("ส่งออกข้อมูลไม่สำเร็จ กรุณาลองอีกครั้ง"); }
+      finally { setExportPending(false); }
+      return;
+    }
     const exportRows = filtered.filter((item) => { const date = parseDateValue(item.dateReq); return (!exportYear || date?.getFullYear() === Number(exportYear)) && (!exportMonth || date?.getMonth() === Number(exportMonth)); });
     const cell = (value: unknown) => { const raw = String(value ?? ""); const safe = /^[=+@\-\t\r]/.test(raw) ? `'${raw}` : raw; return `"${safe.replace(/"/g, '""')}"`; };
     const headers = ["CID", "NO.", "สถานะ", "อาคาร", "ลูกค้า", "เจ้าของงาน", "PR No.", "วันตั้งเบิก", "ยอดรวม", "ประกันติดตั้ง", "ประกันรื้อถอน", "ค่าธรรมเนียม", "ค่าใช้จ่ายอื่น", "พื้นที่"];
@@ -120,8 +144,8 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
   }
 
   const tabs: Array<[WorkspaceView, string, number?]> = installationTeamView
-    ? [["queue", "งานที่ทีมติดตั้งต้องดำเนินการ", queue.length], ["list", "งานค้างทั้งหมด", items.length]]
-    : [["dashboard", "ภาพรวมของฉัน"], ["queue", "งานที่ต้องติดตาม", queue.length], ["list", "รายการเงินประกัน", items.length],
+    ? [["queue", "งานที่ทีมติดตั้งต้องดำเนินการ", queue.length], ["list", "งานค้างทั้งหมด", preview ? items.length : undefined]]
+    : [["dashboard", "ภาพรวมของฉัน"], ["queue", "งานที่ต้องติดตาม", queue.length], ["list", "รายการเงินประกัน", preview ? items.length : undefined],
       ["on_service", "มีประกันรื้อถอน (On Service)", items.filter((item) => ["on_service", "off_service_pending"].includes(getWorkflowStatusKey(item))).length],
       ["done", "งานสำเร็จ", items.filter((item) => getWorkflowStatusKey(item) === "done").length]];
 
@@ -131,21 +155,24 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
         <button type="button" className="executive-nav-button" onClick={openAnalytics}>วิเคราะห์ข้อมูล</button>
         <select className="ui-building-field" aria-label="เดือนสำหรับส่งออก" value={exportMonth} onChange={(event) => setExportMonth(event.target.value)}><option value="">ทุกเดือน</option>{[{ value: "0", label: "ม.ค." }, { value: "1", label: "ก.พ." }, { value: "2", label: "มี.ค." }, { value: "3", label: "เม.ย." }, { value: "4", label: "พ.ค." }, { value: "5", label: "มิ.ย." }, { value: "6", label: "ก.ค." }, { value: "7", label: "ส.ค." }, { value: "8", label: "ก.ย." }, { value: "9", label: "ต.ค." }, { value: "10", label: "พ.ย." }, { value: "11", label: "ธ.ค." }].map((month) => <option value={month.value} key={month.value}>{month.label}</option>)}</select>
         <select className="ui-building-field" aria-label="ปีสำหรับส่งออก" value={exportYear} onChange={(event) => setExportYear(event.target.value)}><option value="">ทุกปี</option>{years.map((year) => <option value={year} key={year}>{year}</option>)}</select>
-        <button type="button" className="deposit-export" onClick={exportCsv} disabled={!filtered.length}>⇩ Export CSV</button>
+        <button type="button" className="deposit-export" onClick={exportCsv} disabled={!filteredCount || exportPending}>{exportPending ? "กำลังส่งออก…" : "⇩ Export CSV"}</button>
         {!installationTeamView && (createUnavailableReason ? <span className="deposit-create-action"><button className="primary" type="button" disabled title={createUnavailableReason}>＋ เพิ่มรายการใหม่</button><small>{createUnavailableReason}</small></span> : <Link className="primary" href="/guarantees/new">＋ เพิ่มรายการใหม่</Link>)}
       </>}</div>} />
 </header>
     {installationTeamView && <div className="deposit-banner">มุมมองนี้แสดงเฉพาะงานสถานะ “รอทีมติดตั้งรับงาน”, “ทีมติดตั้งดำเนินการ” และ “รอดำเนินการ Off Service”</div>}
     {preview && <div className="deposit-banner">ข้อมูลตัวอย่างจาก workflow V2 · ไม่มีการบันทึก <Link href={installationTeamView ? "/guarantees?view=installation-team" : "/guarantees"}>กลับข้อมูลจริง</Link></div>}
     {!preview && state !== "ready" && <div className="deposit-banner">{state === "not_configured" ? copy.feedback.unavailable : "โหลดข้อมูลเงินประกันไม่สำเร็จ"} {canPreview && <Link href={`/guarantees?preview=1${installationTeamView ? "&view=installation-team" : ""}`}>ดูข้อมูลตัวอย่าง</Link>}</div>}
-    {truncated && <div className="deposit-banner">แสดง 500 รายการที่อัปเดตล่าสุดเท่านั้น</div>}
+    {truncated && !serverEnabled && <div className="deposit-banner">ภาพรวมนี้แสดง 500 รายการล่าสุด · ค้นหาและส่งออกข้อมูลครบทั้งหมดได้ในรายการเงินประกัน</div>}
+    {remotePage.loading && <p role="status">กำลังค้นหาข้อมูลทั้งหมด…</p>}
+    {remotePage.error && <p role="alert">{remotePage.error}</p>}
+    {exportError && <p role="alert">{exportError}</p>}
     {copyMessage && <div className="deposit-toast" role="status">{copyMessage}</div>}
 
     <nav className="legacy-module-nav" aria-label="มุมมองเงินประกัน">{tabs.map(([key, label, count]) => <button key={key} type="button" aria-pressed={view === key} className={view === key ? "active" : ""} onClick={() => setWorkspaceView(key)}>{label}{typeof count === "number" && <span>{count}</span>}</button>)}</nav>
 
     {(["list", "done"] as WorkspaceView[]).includes(view) && <>
       <section className="legacy-kpis" aria-label="สรุปเงินประกัน">
-        <div className="tone-blue"><span>รายการทั้งหมด</span><strong><AnimatedNumber value={filtered.length}/></strong><small>ตามตัวกรองปัจจุบัน</small></div>
+        <div className="tone-blue"><span>รายการทั้งหมด</span><strong><AnimatedNumber value={filteredCount}/></strong><small>ตามตัวกรองปัจจุบัน</small></div>
         <div className="tone-orange"><span>อยู่ระหว่างขอคืนเงิน</span><strong><AnimatedNumber value={processCount}/></strong><small>รายการที่กำลังดำเนินการ</small></div>
         <div className="tone-green"><span>เสร็จสิ้นแล้ว</span><strong><AnimatedNumber value={kpis.completedCount}/></strong><small>รวม On Service</small></div>
         <div className="tone-violet"><span>ค่าใช้จ่ายสุทธิ</span><strong><AnimatedNumber value={kpis.nonRefundableCostAmount} format={money}/></strong><small>ค่าธรรมเนียมและค่าใช้จ่ายอื่น</small></div>
@@ -158,19 +185,19 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
         <select className="ui-building-field" aria-label="กรองพื้นที่" value={areaFilter} onChange={(event) => { setAreaFilter(event.target.value); setPage(1); }}><option value="">พื้นที่ทั้งหมด</option>{areas.map((area) => <option key={area}>{area}</option>)}</select>
         {(query || statusFilter || ownerFilter || areaFilter) && <button type="button" className="legacy-clear" onClick={() => { setQuery(""); setStatusFilter(""); setOwnerFilter(""); setAreaFilter(""); setPage(1); }}>ล้างตัวกรอง</button>}
       </div>
-      <section className="legacy-table-card"><header><strong>รายการทั้งหมด</strong><span>{filtered.length.toLocaleString("th-TH")} รายการ</span></header><TableRegion label="รายการเงินประกัน เลื่อนแนวนอนได้" className="deposit-table-wrap"><table className="deposit-table legacy-deposit-table"><caption className="sr-only">รายการเงินประกันตามตัวกรองในขอบเขตสิทธิ์ของคุณ</caption><thead><tr><th scope="col">CID</th><th scope="col" aria-sort={sortNo === "asc" ? "ascending" : sortNo === "desc" ? "descending" : "none"}><button type="button" onClick={() => { setSortNo(sortNo === "asc" ? "desc" : "asc"); setPage(1); }}>NO. {sortNo === "asc" ? "↑" : sortNo === "desc" ? "↓" : "↕"}</button></th><th scope="col">สถานะ</th><th scope="col">อาคาร / ลูกค้า</th><th scope="col">เจ้าของงาน</th><th scope="col">PR NO.</th><th scope="col">วันที่ตั้งเบิก</th><th scope="col">ยอดรวม</th><th scope="col">เงินประกันติดตั้ง</th><th scope="col">พื้นที่</th><th scope="col">ขั้นตอน</th><th scope="col">การดำเนินการ</th></tr></thead><tbody>
+      <section className="legacy-table-card"><header><strong>รายการทั้งหมด</strong><span>{filteredCount.toLocaleString("th-TH")} รายการ</span></header><TableRegion label="รายการเงินประกัน เลื่อนแนวนอนได้" className="deposit-table-wrap"><table className="deposit-table legacy-deposit-table"><caption className="sr-only">รายการเงินประกันตามตัวกรองในขอบเขตสิทธิ์ของคุณ</caption><thead><tr><th scope="col">CID</th><th scope="col" aria-sort={sortNo === "asc" ? "ascending" : sortNo === "desc" ? "descending" : "none"}><button type="button" onClick={() => { setSortNo(sortNo === "asc" ? "desc" : "asc"); setPage(1); }}>NO. {sortNo === "asc" ? "↑" : sortNo === "desc" ? "↓" : "↕"}</button></th><th scope="col">สถานะ</th><th scope="col">อาคาร / ลูกค้า</th><th scope="col">เจ้าของงาน</th><th scope="col">PR NO.</th><th scope="col">วันที่ตั้งเบิก</th><th scope="col">ยอดรวม</th><th scope="col">เงินประกันติดตั้ง</th><th scope="col">พื้นที่</th><th scope="col">ขั้นตอน</th><th scope="col">การดำเนินการ</th></tr></thead><tbody>
         {pageItems.map((item) => <tr key={item.id || item.id_firestore} tabIndex={0} onClick={() => !preview && item.id && router.push(`/guarantees/${item.id}`)} onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (!preview && item.id && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); router.push(`/guarantees/${item.id}`); } }}>
           <td><button type="button" className="copy-cid" title="คัดลอก CID" onClick={(event) => { event.stopPropagation(); void copyCid(item.cid || ""); }}>{item.cid || "—"}</button></td><td>{item.no || "—"}</td><td><StatusBadge label={workflowLabels[getWorkflowStatusKey(item)] || item.status || ""} tone={depositStatusTone(getWorkflowStatusKey(item))} /></td>
           <td><TruncatedText text={item.place || "ไม่ระบุอาคาร"} lines={2}/><TruncatedText text={item.customer || "—"} lines={1}/></td><td><span className="owner-badge"><TruncatedText text={item.owner || "—"} lines={1}/></span></td><td><TruncatedText text={item.pr || "—"} lines={1}/></td><td>{formatDate(item.dateReq)}</td><td className="deposit-money">{money(itemTotal(item))}</td><td className="deposit-money">{parseMoney(item.deposit) ? money(parseMoney(item.deposit)) : "—"}</td><td><span className="area-badge"><TruncatedText text={item.area || "—"} lines={1}/></span></td><td><TruncatedText text={workflowLabels[getWorkflowStatusKey(item)]} lines={1}/></td><td>{preview ? <button type="button" className="deposit-link">ดูรายละเอียด</button> : <Link href={`/guarantees/${item.id}`} onClick={(event) => event.stopPropagation()}>ดู / อัปเดต →</Link>}</td>
         </tr>)}</tbody></table>{!pageItems.length && <div className="deposit-empty">ไม่พบรายการที่ตรงกับเงื่อนไข</div>}</TableRegion>
-        {filtered.length > pageSize && <footer className="legacy-pagination"><span>แสดง {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filtered.length)} จาก {filtered.length}</span><div><button type="button" disabled={safePage <= 1} onClick={() => setPage((value) => value - 1)}>← ก่อนหน้า</button><strong>หน้า {safePage} / {pageCount}</strong><button type="button" disabled={safePage >= pageCount} onClick={() => setPage((value) => value + 1)}>ถัดไป →</button></div></footer>}
+        {filteredCount > pageSize && <footer className="legacy-pagination"><span>แสดง {(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filteredCount)} จาก {filteredCount}</span><div><button type="button" disabled={safePage <= 1} onClick={() => setPage((value) => value - 1)}>← ก่อนหน้า</button><strong>หน้า {safePage} / {pageCount}</strong><button type="button" disabled={safePage >= pageCount} onClick={() => setPage((value) => value + 1)}>ถัดไป →</button></div></footer>}
       </section>
     </>}
 
     {view === "on_service" && <section className="deposit-on-service" aria-label="ติดตามเงินประกันรื้อถอน On Service">
       <header><div><h2>ติดตามเงินประกันรื้อถอน On Service</h2><p>แยกรายการที่ยังมีเงินประกันรื้อถอนคงค้างและขั้นตอน Off Service</p></div><button type="button" onClick={() => setWorkspaceView("list")}>ดูรายการเงินประกันทั้งหมด</button></header>
       <div className="deposit-on-service-metrics"><article><span>On Service</span><strong>{getRemovalDepositMetrics(items).onServiceCount.toLocaleString("th-TH")}</strong><small>รายการที่ยังอยู่ระหว่างให้บริการ</small></article><article><span>เงินรื้อถอนคงค้าง</span><strong>{money(getRemovalDepositMetrics(items).onServiceAmount)}</strong><small>ยอดของรายการ On Service</small></article><article><span>รอ Off Service</span><strong>{getRemovalDepositMetrics(items).offServicePendingCount.toLocaleString("th-TH")}</strong><small>{money(getRemovalDepositMetrics(items).offServicePendingAmount)} ที่ต้องติดตาม</small></article></div>
-      <div className="deposit-on-service-list"><div className="deposit-on-service-list-head"><strong>รายการที่ตรงกับตัวกรอง</strong><span>{filtered.length.toLocaleString("th-TH")} รายการ</span></div>
+      <div className="deposit-on-service-list"><div className="deposit-on-service-list-head"><strong>รายการที่ตรงกับตัวกรอง</strong><span>{filteredCount.toLocaleString("th-TH")} รายการ</span></div>
         {filtered.map((item) => { const status = getWorkflowStatusKey(item); const age = daysBetween(getLastActivityDate(item) || item.dateReq || item.createdAt, new Date(generatedAt)); return <article key={item.id}>
           <div><strong>{item.place || "ไม่ระบุอาคาร"}</strong><small>{item.customer || "ไม่ระบุลูกค้า"} · {workflowLabels[status]}</small></div>
           <div><span>เจ้าของงาน</span><strong>{item.owner || "ไม่ระบุ"}</strong></div>
@@ -179,7 +206,7 @@ export function DepositWorkspace({ items, preview, state, truncated, generatedAt
           <div><span>ขั้นตอนถัดไป</span><strong>{status === "off_service_pending" ? "ดำเนินการ Off Service" : "ติดตามกำหนด Off Service"}</strong></div>
           <Link href={`/guarantees/${item.id}`}>เปิดรายการ →</Link>
         </article>; })}
-        {!filtered.length && <p className="deposit-empty">ไม่พบรายการ On Service ตามคำค้นหาและตัวกรอง</p>}
+        {!filteredCount && <p className="deposit-empty">ไม่พบรายการ On Service ตามคำค้นหาและตัวกรอง</p>}
       </div>
     </section>}
     {view === "dashboard" && <section className="deposit-personal-dashboard" aria-label="ภาพรวมงานเงินประกันของฉัน">

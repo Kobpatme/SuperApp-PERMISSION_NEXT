@@ -1,6 +1,6 @@
 import "server-only";
-import { and, desc, eq, gt, inArray, isNull, lte, or, sql, type SQL } from "drizzle-orm";
-import { getDb } from "@/db";
+import { and, desc, eq, gt, inArray, isNull, lt, lte, or, sql, type SQL } from "drizzle-orm";
+import { getDb, type DatabaseTransaction } from "@/db";
 import { dataScopeGrants, guaranteeWorkEvents, guaranteeWorkItems, profiles, roles, userRoleAssignments } from "@/db/schema";
 import { getAccessContext, type AccessContext } from "@/lib/access";
 import { isAssignedGuaranteeTl, isAuthorized } from "@/lib/authorization";
@@ -41,9 +41,14 @@ function toRecord(row: typeof guaranteeWorkItems.$inferSelect): DepositRecord {
     createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() } as DepositRecord;
 }
 
-export async function listDepositWorkItems(limit = 500, requestedTeamId?: string, installationTeamOnly = false): Promise<{ items: DepositRecord[]; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string }> {
+function depositTextPredicate(query: string) {
+  const pattern = `%${query.trim().toLocaleLowerCase("th-TH").replace(/[\\%_]/g, "\\$&")}%`;
+  return sql`lower(concat_ws(' ', coalesce(btrim(${guaranteeWorkItems.data}->>'cid'),''), coalesce(btrim(${guaranteeWorkItems.data}->>'no'),''), btrim(${guaranteeWorkItems.place}), coalesce(btrim(${guaranteeWorkItems.data}->>'customer'),''), coalesce(btrim(${guaranteeWorkItems.data}->>'owner'),''), coalesce(btrim(${guaranteeWorkItems.data}->>'pr'),''), btrim(coalesce(nullif(${guaranteeWorkItems.area},''),${guaranteeWorkItems.data}->>'area','')))) like ${pattern}`;
+}
+
+export async function listDepositWorkItems(limit = 500, requestedTeamId?: string, installationTeamOnly = false, cursor?: { updatedAt: string; id: string }, transaction?: DatabaseTransaction, providedAccess?: AccessContext, query = ""): Promise<{ items: DepositRecord[]; state: "ready" | "not_configured" | "unavailable"; truncated: boolean; generatedAt: string }> {
   const generatedAt = new Date().toISOString();
-  const access = await getAccessContext("guarantees");
+  const access = providedAccess ?? await getAccessContext("guarantees");
   if (!access.allowed) return { items: [], state: "unavailable", truncated: false, generatedAt };
   if (!process.env.DATABASE_URL) return { items: [], state: "not_configured", truncated: false, generatedAt };
   const baseScope = scopeCondition(access);
@@ -60,12 +65,20 @@ export async function listDepositWorkItems(limit = 500, requestedTeamId?: string
   );
   const scope = and(baseScope, requestedTeamId ? eq(guaranteeWorkItems.teamId, requestedTeamId) : undefined, installationTeamOnly ? installationTeamScope : undefined);
   try {
-    const rows = await getDb().select().from(guaranteeWorkItems).where(scope).orderBy(desc(guaranteeWorkItems.updatedAt)).limit(limit + 1);
+    const after = cursor ? or(lt(guaranteeWorkItems.updatedAt, new Date(cursor.updatedAt)), and(eq(guaranteeWorkItems.updatedAt, new Date(cursor.updatedAt)), lt(guaranteeWorkItems.id, cursor.id))) : undefined;
+    const rows = await (transaction ?? getDb()).select().from(guaranteeWorkItems).where(and(scope, after, query ? depositTextPredicate(query) : undefined)).orderBy(desc(guaranteeWorkItems.updatedAt), desc(guaranteeWorkItems.id)).limit(limit + 1);
     return { items: rows.slice(0, limit).filter((row) => isAuthorized(access.subject, "guarantee.case.read", { ownerId: row.ownerId, teamId: row.teamId }) || canWorkAsAssignedTl(access, row)).map(toRecord), state: "ready", truncated: rows.length > limit, generatedAt };
   } catch (error) {
     console.error("Unable to load guarantee work items", error);
     return { items: [], state: "unavailable", truncated: false, generatedAt };
   }
+}
+
+export async function searchDepositWorkItems(query: string, providedAccess?: AccessContext) {
+  const access = providedAccess ?? await getAccessContext("guarantees"), scope = scopeCondition(access);
+  if (!access.allowed || !scope) return [];
+  const rows = await getDb().select().from(guaranteeWorkItems).where(and(scope, depositTextPredicate(query))).orderBy(desc(guaranteeWorkItems.updatedAt), desc(guaranteeWorkItems.id)).limit(20);
+  return rows.map(toRecord);
 }
 
 export async function getDepositWorkItem(id: string): Promise<DepositRecord | null> {

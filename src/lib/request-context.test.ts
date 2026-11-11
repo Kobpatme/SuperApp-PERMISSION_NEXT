@@ -5,10 +5,17 @@ const { getCurrentUser } = vi.hoisted(() => ({ getCurrentUser: vi.fn() }));
 vi.mock("@/lib/auth", () => ({ getCurrentUser, getSessionFailureReason: async () => "expired" }));
 
 import { requireApiIdentity } from "@/lib/request-context";
+import { SessionUnavailableError } from "./session-errors";
 
 afterEach(() => getCurrentUser.mockReset());
 
 describe("requireApiIdentity", () => {
+  it("returns 503, not 401, when session validation infrastructure fails", async () => {
+    getCurrentUser.mockRejectedValue(new SessionUnavailableError());
+    const result = await requireApiIdentity();
+    expect(result.ok).toBe(false);
+    if (!result.ok) { expect(result.response.status).toBe(503); expect(result.response.headers.get("x-pn-session-reason")).toBeNull(); expect(await result.response.json()).toMatchObject({ code: "SESSION_UNAVAILABLE" }); }
+  });
   it("returns a JSON 401 response when there is no session", async () => {
     getCurrentUser.mockResolvedValue(null);
     const result = await requireApiIdentity();

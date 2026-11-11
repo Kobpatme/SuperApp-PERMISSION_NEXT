@@ -19,9 +19,18 @@ beforeEach(() => {
 });
 it.each(["mine", "mine-list", "due"])("scopes %s to the current owner before fetching a limited task set", async (view) => {
   await WorkRoutePage({ view });
-  expect(mocks.model).toHaveBeenCalledWith(expect.anything(), { owner: userId });
+  expect(mocks.model).toHaveBeenCalledWith(expect.anything(), { owner: userId }, undefined);
 });
 it("retains the authorized team scope for team views", async () => {
   await WorkRoutePage({ view: "team" });
-  expect(mocks.model).toHaveBeenCalledWith(expect.anything(), {});
+  expect(mocks.model).toHaveBeenCalledWith(expect.anything(), {}, undefined);
+});
+it("enforces the report-specific scope on the legacy report URL too", async () => {
+  mocks.access.mockResolvedValue({ allowed: true, userId, permissions: ["work.task.read", "work.report.read"] });
+  await WorkRoutePage({ view: "reports" });
+  expect(mocks.model).toHaveBeenCalledWith(expect.anything(), {}, "work.report.read");
+});
+it("does not load report data before checking permission", async () => {
+  await WorkRoutePage({ view: "reports" });
+  expect(mocks.model).not.toHaveBeenCalled();
 });

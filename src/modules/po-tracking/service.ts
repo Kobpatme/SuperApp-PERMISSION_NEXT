@@ -6,6 +6,7 @@ import { getDb } from "@/db";
 import { poLines, poReceipts } from "@/db/schema";
 import { runMaterialChange } from "@/lib/material-change";
 import { isAuthorized, type AuthorizationSubject } from "@/lib/authorization";
+import { lockPoNumbers } from "./locking";
 import {
   correctReceiptSchema, createManualPoSchema, deriveLineTotals, poListQuerySchema, recordReceiptSchema,
   updateLineSchema, updateManualLineSchema,
@@ -29,7 +30,7 @@ export type PoActor = { userId: string; subject: AuthorizationSubject | null | u
 
 export type PoErrorCode =
   | "FORBIDDEN" | "NOT_FOUND" | "OVER_RECEIPT" | "LINE_INCOMPLETE" | "STALE_VERSION"
-  | "RECEIPT_ALREADY_VOID" | "DUPLICATE_REFERENCE" | "FUTURE_DATE" | "INVALID_INPUT"
+  | "RECEIPT_ALREADY_VOID" | "DUPLICATE_REFERENCE" | "DUPLICATE_LINE" | "FUTURE_DATE" | "INVALID_INPUT"
   | "IMPORTED_IMMUTABLE" | "UNIT_LOCKED";
 
 export class PoDomainError extends Error {
@@ -44,6 +45,7 @@ const messages: Record<PoErrorCode, string> = {
   STALE_VERSION: "ข้อมูลถูกแก้ไขแล้ว กรุณาโหลดหน้าใหม่",
   RECEIPT_ALREADY_VOID: "รายการรับของนี้ถูกยกเลิกแล้ว",
   DUPLICATE_REFERENCE: "เลขอ้างอิงนี้ถูกใช้กับการรับของที่ยังไม่ถูกยกเลิก",
+  DUPLICATE_LINE: "เลข PO และรหัสวัสดุซ้ำกับรายการเดิม กรุณาเปิดรายการเดิมเพื่อตรวจสอบ",
   FUTURE_DATE: "วันที่รับของต้องไม่เป็นวันในอนาคต",
   INVALID_INPUT: "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
   IMPORTED_IMMUTABLE: "รายการที่นำเข้าจากไฟล์แก้ไขข้อมูลต้นทางไม่ได้ แก้ได้เฉพาะ ETA สถานะ และหมายเหตุ",
@@ -332,6 +334,7 @@ export async function createManualPo(actor: PoActor, rawInput: CreateManualPoInp
   if (!parsed.success) fail("INVALID_INPUT");
   const input = parsed.data;
   const lineIds = input.lines.map(() => crypto.randomUUID());
+  if (new Set(input.lines.map(line => line.materialCode)).size !== input.lines.length) fail("DUPLICATE_LINE");
   try {
     await runMaterialChange({
       audit: {
@@ -340,6 +343,9 @@ export async function createManualPo(actor: PoActor, rawInput: CreateManualPoInp
         after: { origin: "manual", poNumber: input.poNumber, lineIds, lineCount: lineIds.length },
       },
     }, async (tx) => {
+      await lockPoNumbers(tx, [input.poNumber]);
+      const existing = await tx.select({ materialCode: poLines.materialCode }).from(poLines).where(eq(poLines.poNumber, input.poNumber));
+      if (existing.some(row => input.lines.some(line => line.materialCode === row.materialCode))) fail("DUPLICATE_LINE");
       await tx.insert(poLines).values(input.lines.map((line, index) => ({
         id: lineIds[index], origin: "manual", importRunId: null, sourceId: null, sourceRowNumber: null,
         poNumber: input.poNumber, materialCode: line.materialCode, description: line.description, unit: line.unit,
@@ -376,11 +382,18 @@ export async function updateManualPoLine(actor: PoActor, rawInput: UpdateManualL
         },
       },
     }, async (tx) => {
+      const [original] = await tx.select({ poNumber: poLines.poNumber, materialCode: poLines.materialCode }).from(poLines).where(eq(poLines.id, input.lineId));
+      if (!original) fail("NOT_FOUND");
+      await lockPoNumbers(tx, [original.poNumber, input.poNumber]);
       const [current] = await tx.execute<{ origin: PoOrigin; version: number }>(sql`
         select origin, version from public.po_lines where id = ${input.lineId}::uuid for update`);
       if (!current) fail("NOT_FOUND");
       if (current.origin !== "manual") fail("IMPORTED_IMMUTABLE");
       if (Number(current.version) !== input.version) fail("STALE_VERSION");
+      if (original.poNumber !== input.poNumber || original.materialCode !== input.materialCode) {
+        const duplicate = await tx.select({ id: poLines.id }).from(poLines).where(and(eq(poLines.poNumber, input.poNumber), eq(poLines.materialCode, input.materialCode), sql`${poLines.id} <> ${input.lineId}::uuid`)).limit(1);
+        if (duplicate.length) fail("DUPLICATE_LINE");
+      }
       const [updated] = await tx.update(poLines).set({
         poNumber: input.poNumber, materialCode: input.materialCode, description: input.description, unit: input.unit,
         orderedQty: input.orderedQty, initialReceivedQty: input.initialReceivedQty, unitPrice: input.unitPrice || null,

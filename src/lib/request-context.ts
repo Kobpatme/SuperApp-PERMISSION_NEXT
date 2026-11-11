@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { getCurrentUser, getSessionFailureReason, type CurrentUser } from "@/lib/auth";
+import { SessionUnavailableError } from "./session-errors";
 
 export type RequestContext = {
   requestId: string;
@@ -37,7 +38,12 @@ export async function authenticationRequiredResponse(body: Record<string, string
 }
 
 export async function requireApiIdentity(): Promise<ApiIdentityResult> {
-  const user = await getCurrentUser();
+  let user;
+  try { user = await getCurrentUser(); }
+  catch (error) {
+    if (!(error instanceof SessionUnavailableError)) throw error;
+    return { ok: false, response: Response.json({ code: "SESSION_UNAVAILABLE", message: error.message }, { status: 503, headers: { "Cache-Control": "no-store", "Retry-After": "5" } }) };
+  }
   if (!user) return { ok: false, response: await authenticationRequiredResponse() };
   if (user.mustChangePassword) return { ok: false, response: Response.json({ code: "PASSWORD_CHANGE_REQUIRED", error: "Password change required" }, { status: 403, headers: { "Cache-Control": "no-store" } }) };
   return { ok: true, user };

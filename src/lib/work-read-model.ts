@@ -2,6 +2,7 @@
 import { taskQueryCondition, workScope, type WorkFilters } from "@/lib/work-query";
 import { readWorkKpiCatalog } from "@/lib/work-kpi-catalog";
 import { personalKpiVersions } from "@/db/work-admin-schema";
+import { readWorkReportSummary } from "@/lib/work-report-server";
 import { copy } from "@/lib/copy";
 import "server-only";
 
@@ -73,6 +74,7 @@ export type WorkKpiCard = {
 };
 
 export type WorkReadModel = {
+  filterTeams?: Array<{ id: string; name: string }>;
   creationKey:string;
   kpiOptions:Array<{ id:string;metricId:string;teamId:string;mainKpi:string;subKpi:string;version:number }>;
   personalAssignments:Array<{name:string;weight:string;enabled:boolean;version:number}>;
@@ -116,6 +118,10 @@ export async function getWorkReadModel(access: AccessContext, filters: WorkFilte
   if (requiredPermission && !extraScope) return buildEmptyModel("ยังไม่มีรายการงานในขอบเขตสิทธิ์ของคุณ");
 
   try {
+    if (requiredPermission === "work.report.read") {
+      const summary = await readWorkReportSummary(access, filters);
+      return { ...buildEmptyModel("ข้อมูลรายงานครบตามขอบเขตสิทธิ์"), ...summary };
+    }
     const rows = await getDb().select({
       id: tasks.id, title: tasks.title, description: tasks.description, status: tasks.status, priority: tasks.priority,
       dueAt: tasks.dueAt, completedAt: tasks.completedAt, updatedAt: tasks.updatedAt, ownerId: tasks.ownerId, teamId: tasks.teamId,

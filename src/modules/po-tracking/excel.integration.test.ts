@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { parse } from "dotenv";
+import { poTestEnvironment } from "../../../tests/fixtures/po-test-environment";
 import postgres from "postgres";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -20,9 +20,9 @@ function file(po: string, overrides: Record<string, string> = {}) {
 }
 beforeAll(async () => {
   if (!enabled) return;
-  const env = parse(await readFile(".env.local", "utf8"));
+  const env = await poTestEnvironment();
   const runtime = new URL(env.DATABASE_URL), elevated = new URL(env.DATABASE_URL_MIGRATE);
-  if (runtime.pathname !== "/permission_superapp_staging_20261104_1157" || ![runtime, elevated].every(u => ["127.0.0.1", "localhost"].includes(u.hostname))) throw new Error("Local staging clone required");
+  if (!["/permission_superapp_staging_20261104_1157", "/permission_next_po_test"].includes(runtime.pathname) || ![runtime, elevated].every(u => ["127.0.0.1", "localhost"].includes(u.hostname))) throw new Error("Local staging clone required");
   elevated.pathname = "/postgres";
   operator = postgres(elevated.href, { max: 1, prepare: false });
   await createPoTestClone(cloneName, elevated, runtime);
@@ -104,8 +104,20 @@ describe.skipIf(!enabled)("Excel import in isolated PostgreSQL clone", () => {
     const [row] = await getDb().execute<{ n: number }>(sql`select count(*)::int n from po_lines where po_number='EXCEL-CONCURRENT'`);
     expect(row.n).toBe(1);
   });
+  it("does not block unrelated receipt writers with a whole-table lock", async () => {
+    const env = await poTestEnvironment(), url = new URL(env.DATABASE_URL_MIGRATE); url.pathname = `/${cloneName}`;
+    const blocker = postgres(url.href, { max: 1, prepare: false });
+    const connection = await blocker.reserve();
+    try {
+      await connection`begin`;
+      await connection`lock table public.po_receipts in row exclusive mode`;
+      const upload = file("EXCEL-UNRELATED-LOCK");
+      const preview = await previewPoExcel(actor, upload);
+      await expect(confirmPoExcel(actor, upload, preview.digest, [2])).resolves.toMatchObject({ added: 1 });
+    } finally { await connection`rollback`; connection.release(); await blocker.end(); }
+  }, 10000);
   it("rolls back PO, source lineage and run if the central audit cannot be written", async () => {
-    const env = parse(await readFile(".env.local", "utf8"));
+    const env = await poTestEnvironment();
     const elevated = new URL(env.DATABASE_URL_MIGRATE); elevated.pathname = `/${cloneName}`;
     const fixture = postgres(elevated.href, { max: 1, prepare: false });
     try {

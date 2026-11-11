@@ -1,5 +1,11 @@
 # Current implementation status
 
+## Approved system review fixes — 11/11/2569
+
+Local implementation after `675d964`: unify Work report scopes, guard Duct drafts, full-filter Work aggregates/Guarantee list and export, module-native global search/detail links, lightweight Work queue and request-local authorization fan-out, progressive Buildings loading, session-unavailable 503, per-PO locking and disposable-database CI. See [implementation, repeatable checks and acceptance limits](quality/system-review-2026-11-11.md). No production mutation, account/grant change, commit/push/deploy or ordinary dev-server restart is implied. Full-history financial/operational acceptance and 100-user load/UAT remain distinct gates.
+
+Local checks: unit6,681passed/92opt-in-skipped; separate PostgreSQL review4/PO services13/Excel9 passed; fresh-migration Excel9 passed; document1/deployment4/import-ledger21 passed; lint/typecheck/CSS434files/contrast62pairs and isolated production webpack build passed. Browser component fixture found record619 outside initial500 and displayed620total/31pages; its API is synthetic, not authenticated whole-system UAT.
+
 Updated 2026-10-17. Earlier Core-only counts below are historical checkpoints. This handoff records the latest local checkpoint; it does not claim production release, real-data reconciliation or human UAT approval. Application source and repeatable tests take precedence over historical reports.
 
 ## Operational Command — 23 ต.ค. 2569 (Joy รับช่วงจาก Mina)

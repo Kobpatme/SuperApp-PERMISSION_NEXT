@@ -36,6 +36,16 @@ function roundedPercent(numerator: Decimal, denominator: Decimal) {
   return denominator.gt(0) ? numerator.div(denominator).mul(100).toDecimalPlaces(0).toNumber() : null;
 }
 
+export function weightedReportFromTotals(rows: readonly { status: string; weight: string; onTimeWeight: string }[]): WeightedWorkReport {
+  let total = new Decimal(0), completed = new Decimal(0), onTimeTotal = new Decimal(0), cancelled = new Decimal(0);
+  for (const row of rows) {
+    if (normalizeSourceWorkStatus(row.status) === "Cancelled") { cancelled = cancelled.plus(row.weight); continue; }
+    total = total.plus(row.weight);
+    if (normalizeSourceWorkStatus(row.status) === "Completed") { completed = completed.plus(row.weight); onTimeTotal = onTimeTotal.plus(row.onTimeWeight); }
+  }
+  return { completion: roundedPercent(completed, total), sla: roundedPercent(onTimeTotal, completed), totalWeight: total.toFixed(6), completedWeight: completed.toFixed(6), onTimeWeight: onTimeTotal.toFixed(6), slaWeight: completed.toFixed(6), cancelledWeight: cancelled.toFixed(6) };
+}
+
 /** Source-compatible weighted completion/SLA report, with exact decimal accumulation. */
 export function calculateWeightedWorkReport(tasks: readonly WorkReportTask[]): WeightedWorkReport {
   let totalWeight = new Decimal(0);

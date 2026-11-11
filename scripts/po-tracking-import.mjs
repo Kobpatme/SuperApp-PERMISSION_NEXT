@@ -80,6 +80,9 @@ try {
     runId = randomUUID();
     await client.begin(async (tx) => {
       await tx`select pg_advisory_xact_lock(hashtext('po-tracking-import'))`;
+      // Offline source import is exclusive with the online PO-number writers.
+      await tx`set local lock_timeout = '5s'`;
+      await tx`select pg_advisory_xact_lock(hashtextextended('po-tracking-maintenance',0))`;
       await tx`insert into public.source_import_runs
         (id, source_system, entity_type, source_snapshot, status, source_count, imported_count, anomaly_count, checksum, started_at)
         values (${runId}, ${PO_SOURCE_SYSTEM}, ${PO_ENTITY_TYPE}, ${source.fileChecksum}, 'running', ${source.sourceRowCount}, 0, ${source.anomalies.length}, ${source.fileChecksum}, now())`;

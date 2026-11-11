@@ -11,6 +11,7 @@ import { preferredPhase } from "../domain/visibility";
 import { VENDOR_CODE_OPTIONS } from "../schemas/design";
 import { apiPost, errorText, ApiError, type RequestDetail } from "./api-client";
 import { useResource } from "./use-resource";
+import { useDraftGuard } from "./use-draft-guard";
 import { DesignEditor } from "./design-editor";
 import { AttachmentPicker } from "./attachment-picker";
 import { FileList } from "./file-list";
@@ -55,6 +56,7 @@ function RequestPane({ row, phase, view, missingView, userId, compact, model, pa
   const canUpload = current && !closed && row.capabilities.includes("duct_rental.document.upload");
   const changed = () => { setDirty(true); pause(true); setMessage(""); };
   useDuctModalState(busy, dirty);
+  const mayLeave = useDraftGuard(dirty, busy);
   useEffect(() => () => { if (notesTimer.current) clearTimeout(notesTimer.current); }, []);
   useEffect(() => { if (message) announce(message); }, [message]);
   useEffect(() => { announce(`เปิดขั้นตอน ${phaseLabels[phase]}`); }, [phase]);
@@ -94,7 +96,7 @@ function RequestPane({ row, phase, view, missingView, userId, compact, model, pa
     notesTimer.current = setTimeout(() => { notesSave.current = (async () => { setBusy(true); try { const result = await apiPost(`requests/${row.id}/save`, { version: versionRef.current, data: { notes: value } }); versionRef.current = result.version; setMessage("บันทึกหมายเหตุอัตโนมัติแล้ว · ข้อมูลช่องอื่นยังคงอยู่ในร่าง"); } catch (reason) { setError(errorText(reason)); } finally { setBusy(false); } })(); }, 1000);
   };
   const statusLabel = phaseStatuses[phase] === "accepted" ? "กำลังดำเนินการ" : phaseStatuses[phase] === "done" ? "เสร็จแล้ว" : "รอรับงาน";
-  const tabs = <RequestTabs tabs={viewTabs} activeTab={phase === "DESIGN" && !missingView ? (view ?? "overview") : (view ?? phaseViews[phase] ?? "overview")} onChange={next => router.push(`/duct-rental/${row.id}/${next}`)} label="มุมมองคำขอ 10 ขั้นตอน" />;
+  const tabs = <RequestTabs tabs={viewTabs} activeTab={phase === "DESIGN" && !missingView ? (view ?? "overview") : (view ?? phaseViews[phase] ?? "overview")} onChange={next => { if (mayLeave()) router.push(`/duct-rental/${row.id}/${next}`); }} label="มุมมองคำขอ 10 ขั้นตอน" />;
   const content = <div className={styles.workspace}>
     {showCreated && <section className={styles.panel} role="status"><strong>สร้างคำขอสำเร็จ และส่งต่อให้ Draftsman แล้ว</strong><p>คำขอ {row.code} บันทึกในระบบแล้ว ข้อมูลและไฟล์แนบจะอัปเดตให้ผู้ใช้อื่นผ่านการเชื่อมต่อสด</p><div className={styles.actions}><Link className={styles.button} href="/duct-rental">กลับหน้ารายการ</Link><button className={styles.primary} onClick={() => { setShowCreated(false); router.replace(`/duct-rental/${row.id}/draftsman`); }}>ทำงานต่อ</button></div></section>}
     {tabs}

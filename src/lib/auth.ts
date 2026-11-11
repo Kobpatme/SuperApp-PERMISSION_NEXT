@@ -8,6 +8,7 @@ import { authSessions, localCredentials, profiles } from "@/db/schema";
 import { getIdleDurationMs, getSessionDurationMs } from "@/lib/session-duration";
 import { logEvent } from "@/lib/logger";
 import { persistSession } from "@/lib/auth-session-service";
+import { SessionUnavailableError } from "@/lib/session-errors";
 
 export const sessionCookieName = "pn_session";
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
@@ -37,7 +38,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     return { id: row.id, email: row.email, user_metadata: { display_name: row.displayName || row.email.split("@")[0] }, mustChangePassword: row.mustChangePassword };
   } catch (error) {
     logEvent("error", "auth.session.validation_failed", { requestId: randomUUID(), errorType: error instanceof Error ? error.name : "UnknownError" });
-    return null;
+    throw new SessionUnavailableError();
   }
 });
 

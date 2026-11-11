@@ -23,6 +23,23 @@ quality:
     - npm run test:documents
     - npm run test:deployment
 
+po_database:
+  stage: verify
+  image: node:22-bookworm-slim
+  services:
+    - name: postgres:16
+      alias: postgres
+  variables:
+    POSTGRES_USER: po_fixture
+    POSTGRES_PASSWORD: po_fixture_only
+    POSTGRES_DB: postgres
+    PO_TEST_DATABASE_URL: postgres://po_fixture:po_fixture_only@127.0.0.1:5432/permission_next_po_test
+  script:
+    - npm ci --no-audit --no-fund
+    # Service DNS is resolved once; all fixture guards require loopback. Use a
+    # local forwarder so no normal app database/configuration is involved.
+    - node scripts/po-ci-tests.mjs
+
 secret_scan:
   stage: verify
   image:

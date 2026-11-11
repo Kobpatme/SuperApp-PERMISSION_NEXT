@@ -6,15 +6,15 @@ import { bookingStatus } from "@/lib/car-booking-display";
 import { readCarOpenBookings, type CarBookingContext } from "@/lib/car-booking-service";
 import { getSmartWorkQueue, workflowLabels } from "@/lib/deposit-v2-domain";
 import { listDepositWorkItems, type DepositRecord } from "@/lib/deposit-v2-server";
-import { getWorkReadModel } from "@/lib/work-read-model";
+import { readWorkQueue } from "@/lib/work-queue-server";
 import { listPermissionBuildings } from "@/lib/permission-building-server";
 import type { BuildingQuery } from "@/lib/building-query";
 
 export async function loadNativeDashboardSource(moduleId: string, access: AccessContext): Promise<{ source: DashboardSource; items: DashboardItem[] }> {
   if (!access.allowed) return { source: { moduleId, status: "not_configured", itemCount: 0, message: "บัญชีนี้ไม่มีสิทธิ์เข้าถึง" }, items: [] };
   if (moduleId === "work") {
-    const model = await getWorkReadModel(access);
-    return { source: model.source, items: model.items };
+    try { const items = await readWorkQueue(access); return { source: { moduleId, status: "ready", itemCount: items.length, message: "ข้อมูลพร้อมใช้งาน" }, items }; }
+    catch { return { source: { moduleId, status: "unavailable", itemCount: 0, message: "โหลดข้อมูลงานไม่สำเร็จ" }, items: [] }; }
   }
   if (moduleId === "guarantees") {
     const result = await listDepositWorkItems(250);

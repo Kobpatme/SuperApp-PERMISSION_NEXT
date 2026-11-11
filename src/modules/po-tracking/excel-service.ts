@@ -8,6 +8,7 @@ import { runMaterialChange } from "@/lib/material-change";
 import { readWorkbook } from "../../../scripts/po-tracking-xlsx.mjs";
 import { parseExcelRows, planExcelRows, type ExistingExcelLine, type ExcelPoRow } from "./excel-domain";
 import { PoDomainError, poPermissions, type PoActor } from "./service";
+import { lockPoNumbers } from "./locking";
 
 function authorize(actor: PoActor) {
   for (const permission of [poPermissions.importManage, poPermissions.manage, poPermissions.priceRead]) {
@@ -50,10 +51,11 @@ export async function confirmPoExcel(actor: PoActor, file: File, digest: string,
   const parsed = await readPoExcel(file);
   if (!selectedRows.length || new Set(selectedRows).size !== selectedRows.length || selectedRows.some(n => !Number.isSafeInteger(n) || n < 1)) throw new Error("เลือกรายการที่ต้องการบันทึก");
   return getDb().transaction(async tx => {
-    // Serialize against all line writers, including manual entry, so two previews
-    // cannot both insert the same business key. Existing receipt writers also
-    // lock their parent line; the lock makes their quantity/version check stable.
-    await tx.execute(sql`lock table public.po_lines, public.po_receipts in share row exclusive mode`);
+    const numbers = [...new Set(parsed.rows.map(row => row.poNumber))];
+    await lockPoNumbers(tx, numbers);
+    // Receipt writers lock the same parent rows. Lock in stable order before
+    // checking the preview, so quantities and versions cannot change mid-save.
+    if (numbers.length) await tx.select({ id: poLines.id }).from(poLines).where(inArray(poLines.poNumber, numbers)).orderBy(poLines.id).for("update");
     const preview = await buildPreview(parsed, tx);
     if (preview.digest !== digest) throw new Error("ข้อมูลเปลี่ยนหลังตรวจไฟล์ กรุณาตรวจสอบไฟล์อีกครั้งก่อนยืนยัน");
     const selected = preview.decisions.filter(d => selectedRows.includes(d.row.row));

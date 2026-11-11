@@ -4,7 +4,8 @@ import { dataScopeGrants, profiles, rolePermissions, roles as rolesTable, userRo
 import { getCurrentUser } from "@/lib/auth";
 import { dataScopeTypes, type AuthorizationSubject, type DataScopeType, type Role } from "@/lib/authorization";
 import { getModule, modules, type ModuleId } from "@/lib/module-registry";
-import { moduleEnabled } from "@/lib/module-lifecycle";
+import { moduleEnabled, readModuleSettings } from "@/lib/module-lifecycle";
+import { effectiveModuleEnabled } from "@/lib/module-lifecycle-contract";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -90,3 +91,14 @@ export const getAccessContext = cache(async function getAccessContext(moduleId: 
     allowed: Boolean(manifest && await moduleEnabled(manifest, identity.isPlatformAdmin) && (identity.isPlatformAdmin || identity.subject?.grants.some((grant) => manifest.entryPermissions.includes(grant.permission)))),
   };
 });
+
+/** Explicit request-local fan-out for API callers; no cross-user/global identity cache. */
+export async function getAllAccessContexts(): Promise<Record<ModuleId, AccessContext>> {
+  const identity = await getIdentityAccessContext();
+  let settings: Awaited<ReturnType<typeof readModuleSettings>> | undefined;
+  try { settings = await readModuleSettings(); } catch { /* Fail closed for every module. */ }
+  return Object.fromEntries(modules.map(module => [module.id, {
+    ...identity,
+    allowed: Boolean(settings && identity.userId && !identity.passwordChangeRequired && effectiveModuleEnabled(module, settings.rows.find(row => row.moduleId === module.id)?.enabled, identity.isPlatformAdmin) && (identity.isPlatformAdmin || identity.subject?.grants.some(grant => module.entryPermissions.includes(grant.permission)))),
+  }])) as Record<ModuleId, AccessContext>;
+}

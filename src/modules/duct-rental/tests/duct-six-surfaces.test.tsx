@@ -66,6 +66,7 @@ const css = [
   readFileSync(new URL("../ui-request/ui-request.module.css", import.meta.url), "utf8"),
   readFileSync(new URL("../ui-process/ui-process.module.css", import.meta.url), "utf8"),
   readFileSync(new URL("../ui-shared/ui-shared.module.css", import.meta.url), "utf8"),
+  readFileSync(new URL("../ui-shared/heading.css", import.meta.url), "utf8"),
 ].join("\n");
 
 beforeEach(() => {
@@ -92,13 +93,13 @@ describe("approved six duct-rental surfaces: shared CSS owner (ductSurface)", ()
   });
 
   it("page header: create action right-edge on desktop, stacked under heading on narrow screens — real scoped rules", () => {
-    expect(css).toContain('[data-ui-screen="duct-rental-request-list"] :global(.page-heading-row),');
-    expect(css).toContain('[data-ui-screen="duct-rental-renewal-list"] :global(.page-heading-row),');
-    expect(css).toContain('[data-ui-screen="duct-rental-cancellation-list"] :global(.page-heading-row),');
-    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] :global(.page-heading-row){width:100%;flex-wrap:nowrap;justify-content:space-between}');
+    expect(css).toContain('[data-ui-screen="duct-rental-request-list"] .page-heading-row,');
+    expect(css).toContain('[data-ui-screen="duct-rental-renewal-list"] .page-heading-row,');
+    expect(css).toContain('[data-ui-screen="duct-rental-cancellation-list"] .page-heading-row,');
+    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] .page-heading-row{width:100%;flex-wrap:nowrap;justify-content:space-between}');
     expect(css).toContain('@media(max-width:650px)');
-    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] :global(.page-heading-row){align-items:stretch;flex-direction:column;gap:var(--space-3)}');
-    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] :global(.page-heading-actions){width:100%;margin-left:0;justify-content:flex-start}');
+    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] .page-heading-row{align-items:stretch;flex-direction:column;gap:var(--space-3)}');
+    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] .page-heading-actions{width:100%;margin-left:0;justify-content:flex-start}');
   });
 
   it("removes conflicting legacy surface shells (no stacking classes)", () => {
@@ -408,6 +409,7 @@ describe("MetricGrid interactive metrics (shared button pattern mirrored from wo
   readFileSync(new URL("../ui-request/ui-request.module.css", import.meta.url), "utf8"),
   readFileSync(new URL("../ui-process/ui-process.module.css", import.meta.url), "utf8"),
   readFileSync(new URL("../ui-shared/ui-shared.module.css", import.meta.url), "utf8"),
+  readFileSync(new URL("../ui-shared/heading.css", import.meta.url), "utf8"),
 ].join("\n");
     expect(css).toContain("height:66px;min-height:66px");
     expect(css).toContain("transform:none");

@@ -18,7 +18,7 @@ const button = (text: string) => [...host.querySelectorAll("button")].find(eleme
 
 describe("guarantee controls", () => {
   it("opens list filters and report, then returns to the list", async () => {
-    await act(async () => root.render(<DepositWorkspace items={[{ id: "item-1", status: "new", place: "Alpha", area: "CMI", owner: "Owner", dateReq: "2026-01-01" }, { id: "item-2", status: "new", place: "Beta", area: "CBI", owner: "Owner", dateReq: "2026-01-01" }]} preview={false} state="ready" truncated={false} generatedAt="2026-01-02T00:00:00Z" canCreate canPreview={false} />));
+    await act(async () => root.render(<DepositWorkspace items={[{ id: "item-1", status: "new", place: "Alpha", area: "CMI", owner: "Owner", dateReq: "2026-01-01" }, { id: "item-2", status: "new", place: "Beta", area: "CBI", owner: "Owner", dateReq: "2026-01-01" }]} preview={true} state="ready" truncated={false} generatedAt="2026-01-02T00:00:00Z" canCreate canPreview={false} />));
     await click(button("รายการเงินประกัน"));
     expect(host.querySelector('input[type="search"]')?.classList.contains("ui-building-field")).toBe(true);
     expect(host.querySelector('select[aria-label="กรองพื้นที่"]')?.classList.contains("ui-building-field")).toBe(true);

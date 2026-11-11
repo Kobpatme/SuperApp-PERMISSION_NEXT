@@ -28,6 +28,7 @@ jobs:
       CAR_BOOKING_TEST_DATABASE_URL: postgres://ux_fixture:ux_fixture_only@127.0.0.1:5432/permission_next_car_booking_test
       DUCT_RENTAL_TEST_DATABASE_URL: postgres://ux_fixture:ux_fixture_only@127.0.0.1:5432/permission_next_duct_rental_test
       PARITY_TEST_DATABASE_URL: postgres://ux_fixture:ux_fixture_only@127.0.0.1:5432/permission_next_parity_test
+      PO_TEST_DATABASE_URL: postgres://ux_fixture:ux_fixture_only@127.0.0.1:5432/permission_next_po_test
       TRUSTED_PROXY_COUNT: 0
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +44,12 @@ jobs:
       - run: node scripts/check-ui-copy.mjs
       - run: npm test
       - run: npm run test:documents
+      - name: Verify PO schema, receipts and reviewed Excel import on disposable databases
+        run: |
+          npm run test:po:import
+          npm run test:po:db
+          npm run test:po:excel
+          node scripts/system-review-test-db.mjs
       - name: Verify isolated duct rental schema, permissions and services
         run: |
           node scripts/duct-rental-catalog-test.mjs

@@ -47,7 +47,8 @@ describe("Buildings specialized workspace contract", () => {
 
   it("keeps access denied before any buildings header or workspace is rendered", () => {
     expect(sources[0].indexOf("if (!access.allowed)")).toBeGreaterThan(-1);
-    expect(sources[0].indexOf("if (!access.allowed)")).toBeLessThan(sources[0].indexOf("<BuildingsWorkspace"));
+    expect(sources[0].indexOf("<BuildingsProgressiveWorkspace")).toBeGreaterThan(-1);
+    expect(sources[0].indexOf("if (!access.allowed)")).toBeLessThan(sources[0].indexOf("<BuildingsProgressiveWorkspace"));
     expect(sources[0]).toContain("<AccessDenied moduleName=\"ข้อมูลอาคาร\" />");
   });
 

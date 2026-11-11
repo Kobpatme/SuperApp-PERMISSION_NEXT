@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { parse } from "dotenv";
+import { poTestEnvironment } from "../../../tests/fixtures/po-test-environment";
 import { randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { eq, sql } from "drizzle-orm";
@@ -32,11 +32,11 @@ function subject(grants: string[]): AuthorizationSubject {
  * written to the staging database and the clone is dropped afterwards. */
 beforeAll(async () => {
   if (!enabled) return;
-  const env = parse(await readFile(".env.local", "utf8"));
-  process.env.DATABASE_URL ??= env.DATABASE_URL;
-  process.env.DATABASE_URL_MIGRATE ??= env.DATABASE_URL_MIGRATE;
+  const env = await poTestEnvironment();
+  process.env.DATABASE_URL = env.DATABASE_URL;
+  process.env.DATABASE_URL_MIGRATE = env.DATABASE_URL_MIGRATE;
   const runtime = new URL(process.env.DATABASE_URL!);
-  expect(runtime.pathname).toBe("/permission_superapp_staging_20261104_1157");
+  expect(["/permission_superapp_staging_20261104_1157", "/permission_next_po_test"]).toContain(runtime.pathname);
   const elevated = new URL(process.env.DATABASE_URL_MIGRATE!);
   elevated.pathname = "/postgres";
   admin = postgres(elevated.href, { ...databaseSslOptions(), max: 1, prepare: false });

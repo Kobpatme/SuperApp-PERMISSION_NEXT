@@ -1,3 +1,4 @@
+import "./heading.css";
 export { DuctModuleNav, type DuctModuleNavProps } from "./DuctModuleNav";
 export { DuctSyncUtility } from "../components/common";
 export { announce, VisuallyHidden, type VisuallyHiddenProps } from "./accessibility";
