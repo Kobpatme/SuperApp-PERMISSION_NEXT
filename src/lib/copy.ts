@@ -36,7 +36,7 @@ export const copy = {
     login: "เข้าสู่ระบบ",
   },
   auth: {
-    brandHeadline: "ทุกงานสำคัญ อยู่ในที่เดียวค่ะ",
+    brandHeadline: "Permission Team",
     brandDescription: "เข้าสู่ระบบครั้งเดียว แล้วใช้งานได้ทุกส่วนตามสิทธิ์ของคุณ",
     loginTitle: "ยินดีต้อนรับกลับมาค่ะ",
     loginDescription: "กรอกอีเมลและรหัสผ่านเพื่อเริ่มงานได้เลย",
