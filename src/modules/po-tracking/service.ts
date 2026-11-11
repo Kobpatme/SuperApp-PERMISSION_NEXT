@@ -314,6 +314,7 @@ export async function updatePoLine(actor: PoActor, rawInput: UpdateLineInput) {
 }
 
 function poAmountFor(orderedQty: string, unitPrice: string) {
+  if (!unitPrice) return null;
   return new Decimal(orderedQty).times(unitPrice).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toFixed(2);
 }
 
@@ -342,7 +343,7 @@ export async function createManualPo(actor: PoActor, rawInput: CreateManualPoInp
       await tx.insert(poLines).values(input.lines.map((line, index) => ({
         id: lineIds[index], origin: "manual", importRunId: null, sourceId: null, sourceRowNumber: null,
         poNumber: input.poNumber, materialCode: line.materialCode, description: line.description, unit: line.unit,
-        orderedQty: line.orderedQty, initialReceivedQty: "0", unitPrice: line.unitPrice,
+        orderedQty: line.orderedQty, initialReceivedQty: "0", unitPrice: line.unitPrice || null,
         poAmount: poAmountFor(line.orderedQty, line.unitPrice), stockQty: null, sourceOutstandingQty: null,
         poReleaseDate: line.poReleaseDate, lastGrDate: null,
         etaDate: line.etaDate || null, etaText: line.etaText || null,
@@ -382,7 +383,7 @@ export async function updateManualPoLine(actor: PoActor, rawInput: UpdateManualL
       if (Number(current.version) !== input.version) fail("STALE_VERSION");
       const [updated] = await tx.update(poLines).set({
         poNumber: input.poNumber, materialCode: input.materialCode, description: input.description, unit: input.unit,
-        orderedQty: input.orderedQty, initialReceivedQty: input.initialReceivedQty, unitPrice: input.unitPrice,
+        orderedQty: input.orderedQty, initialReceivedQty: input.initialReceivedQty, unitPrice: input.unitPrice || null,
         poAmount: poAmountFor(input.orderedQty, input.unitPrice),
         poReleaseDate: input.poReleaseDate, lastGrDate: input.lastGrDate || null,
         etaDate: input.etaDate || null, etaText: input.etaText || null,
@@ -416,7 +417,7 @@ export async function getPoReport(actor: PoActor): Promise<PoReport> {
   const db = getDb();
   const unitRows = await db.execute<{
     unit: PoUnit; lines: number; incompleteLines: number; ordered: string; initialReceived: string;
-    receiptQty: string; outstanding: string; amount: string | null;
+    receiptQty: string; outstanding: string; amount: string | null; unknownAmountLines: number;
   }>(sql`
     with receipts as (
       select line_id, sum(quantity) as qty from public.po_receipts where voided_at is null group by line_id
@@ -428,7 +429,8 @@ export async function getPoReport(actor: PoActor): Promise<PoReport> {
       coalesce(sum(l.initial_received_qty), 0)::text as "initialReceived",
       coalesce(sum(r.qty), 0)::text as "receiptQty",
       coalesce(sum(l.ordered_qty - l.initial_received_qty - coalesce(r.qty, 0)), 0)::text as outstanding,
-      ${priceVisible ? sql`sum(l.po_amount)::text` : sql`null::text`} as amount
+      ${priceVisible ? sql`sum(l.po_amount)::text` : sql`null::text`} as amount,
+      ${priceVisible ? sql`count(*) filter (where l.po_amount is null)::int` : sql`0::int`} as "unknownAmountLines"
     from public.po_lines l left join receipts r on r.line_id = l.id
     group by l.unit order by l.unit`);
   const [counts] = await db.execute<{

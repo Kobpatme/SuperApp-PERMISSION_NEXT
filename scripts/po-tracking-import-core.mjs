@@ -81,7 +81,7 @@ export function parsePoSource(buffer, { sheetName = "PO 26-10-26" } = {}) {
       const poAmount = parseQuantity(at(12), "PO Amount", row.number, { scale: 2 });
       const stockQty = parseQuantity(at(6), "Stock", row.number);
       const sourceOutstandingQty = parseQuantity(at(9), "Outstanding", row.number);
-      const unitPrice = parseQuantity(at(11), "Unit Price", row.number, { required: true });
+      const unitPrice = parseQuantity(at(11), "Unit Price", row.number);
       const { etaDate, etaText } = parseEta(at(10), row.number);
       const poReleaseDate = parseDate(at(4), "PO Rel.Date", row.number);
       if (!poReleaseDate) throw new Error(`MISSING_DATE:PO Rel.Date:row ${row.number}`);
@@ -108,7 +108,7 @@ export function parsePoSource(buffer, { sheetName = "PO 26-10-26" } = {}) {
         anomalies.push({ code: "OUTSTANDING_WITHOUT_QUANTITY", row: row.number, sourceId: parsed.sourceId, value: parsed.sourceOutstandingQty });
       }
       if (parsed.etaText) anomalies.push({ code: "ETA_STATUS_TEXT", row: row.number, sourceId: parsed.sourceId, value: parsed.etaText });
-      if (parsed.orderedQty !== null && parsed.initialReceivedQty !== null && parsed.poAmount !== null) {
+      if (parsed.orderedQty !== null && parsed.initialReceivedQty !== null && parsed.poAmount !== null && parsed.unitPrice !== null) {
         const expected = new Decimal(parsed.orderedQty).times(parsed.unitPrice);
         if (expected.minus(parsed.poAmount).abs().gt("0.01")) {
           anomalies.push({ code: "AMOUNT_MISMATCH", row: row.number, sourceId: parsed.sourceId, expected: expected.toFixed(2), source: parsed.poAmount });

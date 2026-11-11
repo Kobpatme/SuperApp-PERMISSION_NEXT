@@ -86,6 +86,9 @@ describe("PO input validation", () => {
     expect(parsed.success).toBe(true);
     if (parsed.success) expect(parsed.data.lines.map((line) => line.unit)).toEqual(["M", "PC"]);
     expect(createManualPoSchema.safeParse({ ...base, lines: [] }).success).toBe(false);
+    const unknown = createManualPoSchema.parse({ ...base, lines: [{ ...base.lines[0], unitPrice: "" }] });
+    expect(unknown.lines[0].unitPrice).toBe("");
+    expect(createManualPoSchema.parse({ ...base, lines: [{ ...base.lines[0], unitPrice: "0" }] }).lines[0].unitPrice).toBe("0");
     expect(createManualPoSchema.safeParse({ ...base, lines: [{ ...base.lines[0], unitPrice: "-1" }] }).success).toBe(false);
     expect(createManualPoSchema.safeParse({ ...base, lines: [{ ...base.lines[0], orderedQty: "0" }] }).success).toBe(false);
     expect(createManualPoSchema.safeParse({ ...base, lines: [{ ...base.lines[0], unit: "KG" }] }).success).toBe(false);

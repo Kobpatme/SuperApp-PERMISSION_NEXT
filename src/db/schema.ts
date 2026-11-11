@@ -431,7 +431,7 @@ export const poLines = pgTable("po_lines", {
   poNumber: text("po_number").notNull(), materialCode: text("material_code").notNull(),
   description: text("description").notNull(), unit: text("unit").notNull(),
   orderedQty: numeric("ordered_qty", { precision: 18, scale: 4 }), initialReceivedQty: numeric("initial_received_qty", { precision: 18, scale: 4 }),
-  unitPrice: numeric("unit_price", { precision: 18, scale: 4 }).notNull(), poAmount: numeric("po_amount", { precision: 18, scale: 2 }),
+  unitPrice: numeric("unit_price", { precision: 18, scale: 4 }), poAmount: numeric("po_amount", { precision: 18, scale: 2 }),
   stockQty: numeric("stock_qty", { precision: 18, scale: 4 }), sourceOutstandingQty: numeric("source_outstanding_qty", { precision: 18, scale: 4 }),
   poReleaseDate: date("po_release_date").notNull(), lastGrDate: date("last_gr_date"),
   etaDate: date("eta_date"), etaText: text("eta_text"), orderCode: text("order_code"),

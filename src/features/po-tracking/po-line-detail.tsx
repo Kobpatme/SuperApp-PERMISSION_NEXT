@@ -48,11 +48,11 @@ export function PoLineDetail({ line, receipts, importRun, priceVisible, canRecor
         <Info label="คงค้าง">{line.totals.outstanding === null ? <span className="po-warning">คำนวณไม่ได้</span> : <strong className={line.totals.outstanding.gt(0) ? "po-outstanding" : undefined}>{formatQty(line.totals.outstanding)} {line.unit}</strong>}</Info>
         <Info label="หน่วยนับ">{line.unit} · {poUnitLabels[line.unit]}</Info>
         <Info label="ETA">{line.etaDate ? formatIsoDate(line.etaDate) : line.etaText || null}</Info>
-        <Info label="Order">{line.orderCode}</Info>
+        <Info label="Project code">{line.orderCode}</Info>
         <Info label="ผู้ขาย">{line.vendorName}{line.vendorCode ? ` (${line.vendorCode})` : ""}</Info>
         <Info label="PO Release">{formatIsoDate(line.poReleaseDate)}</Info>
         <Info label="GR ล่าสุด">{formatIsoDate(line.lastGrDate)}</Info>
-        {priceVisible && <Info label="ราคาต่อหน่วย">{formatAmount(line.unitPrice)}</Info>}
+        {priceVisible && <Info label="ราคาต่อหน่วย">{line.unitPrice === null ? "ยังไม่ทราบราคา" : formatAmount(line.unitPrice)}</Info>}
         {priceVisible && <Info label="มูลค่า PO">{formatAmount(line.poAmount)}</Info>}
         <Info label="หมายเหตุ">{line.note}</Info>
       </dl>

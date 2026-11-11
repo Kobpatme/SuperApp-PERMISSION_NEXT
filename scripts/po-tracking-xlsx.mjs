@@ -13,17 +13,21 @@ function decodeXml(value) {
 }
 
 function unzip(buffer) {
+  if (buffer.length > 512 * 1024) throw new Error("XLSX_FILE_TOO_LARGE");
   let eocd = -1;
   for (let offset = buffer.length - 22; offset >= Math.max(0, buffer.length - 66_000); offset -= 1) {
     if (buffer.readUInt32LE(offset) === EOCD) { eocd = offset; break; }
   }
   if (eocd < 0) throw new Error("XLSX_EOCD_NOT_FOUND");
   const count = buffer.readUInt16LE(eocd + 10);
+  if (count > 256) throw new Error("XLSX_TOO_MANY_ENTRIES");
   let offset = buffer.readUInt32LE(eocd + 16);
+  let expanded = 0;
   const entries = new Map();
   for (let index = 0; index < count; index += 1) {
     if (buffer.readUInt32LE(offset) !== CENTRAL) throw new Error("XLSX_CENTRAL_DIRECTORY_INVALID");
     const method = buffer.readUInt16LE(offset + 10);
+    if (![0, 8].includes(method)) throw new Error("XLSX_UNSUPPORTED_COMPRESSION");
     const compressedSize = buffer.readUInt32LE(offset + 20);
     const nameLength = buffer.readUInt16LE(offset + 28);
     const extraLength = buffer.readUInt16LE(offset + 30);
@@ -34,8 +38,13 @@ function unzip(buffer) {
     const localNameLength = buffer.readUInt16LE(localOffset + 26);
     const localExtraLength = buffer.readUInt16LE(localOffset + 28);
     const dataStart = localOffset + 30 + localNameLength + localExtraLength;
+    if (dataStart + compressedSize > buffer.length) throw new Error("XLSX_ENTRY_TRUNCATED");
     const data = buffer.subarray(dataStart, dataStart + compressedSize);
-    entries.set(name, method === 0 ? data : inflateRawSync(data));
+    const content = method === 0 ? data : inflateRawSync(data, { maxOutputLength: 16 * 1024 * 1024 - expanded });
+    expanded += content.length;
+    if (expanded > 16 * 1024 * 1024) throw new Error("XLSX_EXPANDED_TOO_LARGE");
+    if (entries.has(name)) throw new Error("XLSX_DUPLICATE_ENTRY");
+    entries.set(name, content);
     offset += 46 + nameLength + extraLength + commentLength;
   }
   return entries;
@@ -64,6 +73,7 @@ export function readWorkbook(buffer, sheetName) {
   const entries = unzip(buffer);
   const workbook = entries.get("xl/workbook.xml");
   if (!workbook) throw new Error("XLSX_WORKBOOK_MISSING");
+  if (/<workbookPr\b[^>]*date1904\s*=\s*["'](?:1|true)["']/.test(workbook.toString("utf8"))) throw new Error("XLSX_DATE_1904_UNSUPPORTED");
   const sheetTags = [...workbook.toString("utf8").matchAll(/<sheet\b([^>]*?)\/?>/g)].map((match) => ({
     name: attribute(match[1], "name"),
     relationshipId: attribute(match[1], "r:id"),

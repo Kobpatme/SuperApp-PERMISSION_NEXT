@@ -36,6 +36,7 @@
     "db:po:apply": "node scripts/apply-po-tracking-migration.mjs",
     "test:po:import": "node --test scripts/po-tracking-import-unit.test.mjs scripts/migration-ledger.test.mjs",
     "test:po:db": "node scripts/po-tracking-test-db.mjs",
+    "test:po:excel": "node scripts/po-excel-test-db.mjs",
     "pretest": "node scripts/write-build-info.mjs --ensure",
     "test": "vitest run"
   },

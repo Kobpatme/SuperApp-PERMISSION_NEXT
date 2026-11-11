@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { AccessDenied } from "@/components/access-denied";
 import { PageHeader } from "@/components/ui/page-header";
 import { getAccessContext } from "@/lib/access";
@@ -35,10 +34,9 @@ export default async function PoTrackingPage({ searchParams }: { searchParams: P
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
   return <main data-ui-screen="po-tracking">
     <PageHeader title="ติดตาม PO" description="ติดตามใบสั่งซื้อ การรับของ ยอดคงค้าง และ ETA จากข้อมูล PO Pending"
-      parent={{ label: "ภาพรวม", href: "/" }}
-      actions={canReport ? <Link className="po-link" href={wantsReport ? "/po-tracking" : "/po-tracking?view=report"}>{wantsReport ? "กลับรายการ PO" : "ดูรายงาน"}</Link> : undefined} />
+      parent={{ label: "ภาพรวม", href: "/" }} />
     {wantsReport && report
-      ? <PoTrackingReport report={report} />
+      ? <PoTrackingReport report={report} canManage={canCreate} />
       : <PoTrackingList data={data} report={report} today={today} canManage={canCreate} />}
   </main>;
 }

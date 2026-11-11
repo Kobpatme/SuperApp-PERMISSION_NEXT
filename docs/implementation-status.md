@@ -51,6 +51,14 @@ Native building search/map/detail/create/edit and scoped administrator deletion,
 
 Confirm production inventory/runtime credentials and database privileges; approve real data/crosswalk and KPI/financial policy; complete module parity and human UAT; run representative load/accessibility/security checks; verify Sheets and storage connections; rehearse hosting backup/rollback and obtain release approval. Use the [release checklist](operations/release-checklist.md), not historical phase reports, to authorize readiness.
 
+## PO Tracking — Excel upload (11/11/2569)
+
+หน้า `/po-tracking/new` เพิ่มตัวเลือก Excel พร้อมตรวจหัวตารางตามชื่อ รองรับคอลัมน์สลับตำแหน่ง, preview/เลือกแถว, ตรวจซ้ำและแสดงความแตกต่าง รายการเดิมอัปเดตเฉพาะ ETA/หมายเหตุ ข้อมูลหลัก/จำนวน/ราคาที่ต่างหรือจับคู่หลายรายการถูกปฏิเสธตามนโยบายที่ผู้ใช้ยืนยัน ดู [สัญญาการนำเข้า](modules/po-tracking-excel.md)
+
+หลักฐานรอบนี้: targeted PO tests 30 ผ่าน (รวม parser/planning 9, UI import behavior 2), legacy importer 17 ผ่าน, Excel PostgreSQL clone integration 8 ผ่าน และ manual/service clone 13 ผ่าน รวม unknown-price NULL แยกจาก zero และเติมราคาภายหลัง; targeted lint/typecheck และ production build ผ่าน ตรวจผ่านหน้าเว็บจริงด้วย synthetic login บน clone แล้ว: สร้างจาก Excel คอลัมน์สลับ/ราคาว่าง 1 รายการ, อัปเดต ETA/หมายเหตุโดยจำนวนรายการไม่เพิ่ม, และสร้าง manual PO ราคาว่าง โดยตรวจ persisted NULL แล้ว
+
+เปลี่ยน label เป็น Project code ทั้งรายการ/รายละเอียด/สร้าง/แก้ไข/Excel โดยรองรับหัวตาราง Order เดิม เพิ่ม migration 0066 รองรับ nullable price และ NULL-safe imported-price guard ลงเฉพาะ local staging `permission_superapp_staging_20261104_1157` แล้ว ตรวจจำนวนรายการเดิม 237 และ priced rows 237 เท่าเดิม ไม่มี production/grant/account change ใน staging บัญชีสังเคราะห์อยู่เฉพาะ clone ไม่ใช่ human UAT/production approval
+
 ## Documentation policy
 
 Active architecture, module contracts, original unresolved business specifications, operations and release guidance remain tracked. Completed plans and historical reports remain local and in Git history. Generated quality outputs are ignored. [Documentation index](README.md) / [repository policy](operations/repository-policy.md).

@@ -4,7 +4,7 @@ import { MetricGrid } from "@/components/ui/metric-grid";
 import { Panel } from "@/components/ui/panel";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TableRegion } from "@/components/ui/table-region";
-import { FilterBar, FormField } from "@/components/ui/form";
+import { FilterBar } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
   formatAmount, formatIsoDate, formatQty, poDeliveryLabels, poOriginLabels, poStatusLabels, poUnitLabels,
@@ -26,6 +26,20 @@ function pageHref(query: PoListQuery, page: number) {
   return `/po-tracking${params.size ? `?${params.toString()}` : ""}`;
 }
 
+function PoToolbar({ view, query = "", canManage = false }: { view: "list" | "report"; query?: string; canManage?: boolean }) {
+  return <div className="po-toolbar">
+    <nav className="po-tabs" aria-label="มุมมองติดตาม PO">
+      <Link href="/po-tracking" aria-current={view === "list" ? "page" : undefined}>รายการ PO</Link>
+      <Link href="/po-tracking?view=report" aria-current={view === "report" ? "page" : undefined}>รายงานและกระทบยอด</Link>
+    </nav>
+    <FilterBar method="get" action="/po-tracking" className="po-toolbar-search" role="search" aria-label="ค้นหา PO">
+      <input className="ui-field-control ui-building-field" type="search" aria-label="คำค้นหา PO" name="q" defaultValue={query} placeholder="ค้นหา PO / วัสดุ / ผู้ขาย" />
+      <Button type="submit" variant="secondary">ค้นหา</Button>
+    </FilterBar>
+    {canManage && <Link className="po-create-link" href="/po-tracking/new">สร้าง PO ใหม่</Link>}
+  </div>;
+}
+
 export function PoTrackingList({ data, report, today, canManage }: {
   data: { rows: PoLineView[]; total: number; page: number; pageSize: number; priceVisible: boolean; query: PoListQuery; orders: string[] };
   report: PoReport | null;
@@ -34,10 +48,7 @@ export function PoTrackingList({ data, report, today, canManage }: {
 }) {
   const pages = Math.max(1, Math.ceil(data.total / data.pageSize));
   return <div className="po-workspace">
-    <nav className="po-tabs" aria-label="มุมมองติดตาม PO">
-      <Link href="/po-tracking" aria-current="page">รายการ PO</Link>
-      <Link href="/po-tracking?view=report">รายงานและกระทบยอด</Link>
-    </nav>
+    <PoToolbar view="list" query={data.query.q} canManage={canManage} />
 
     {report && <section aria-label="สรุปภาพรวม PO" className="po-summary">
       <MetricGrid label="สรุปภาพรวม PO" metrics={[
@@ -48,45 +59,10 @@ export function PoTrackingList({ data, report, today, canManage }: {
       ]} />
     </section>}
 
-    <FilterBar method="get" action="/po-tracking" className="po-filter">
-      <FormField label="ค้นหา" controlId="po-q">
-        <input className="ui-field-control" id="po-q" name="q" defaultValue={data.query.q} placeholder="PO / วัสดุ / รายละเอียด / ผู้ขาย / HAM026" />
-      </FormField>
-      <FormField label="หน่วย" controlId="po-unit">
-        <select className="ui-field-control" id="po-unit" name="unit" defaultValue={data.query.unit}>
-          <option value="">ทุกหน่วย</option>
-          {Object.entries(poUnitLabels).map(([value, label]) => <option key={value} value={value}>{value} · {label}</option>)}
-        </select>
-      </FormField>
-      <FormField label="สถานะติดตาม" controlId="po-status">
-        <select className="ui-field-control" id="po-status" name="status" defaultValue={data.query.status}>
-          <option value="">ทุกสถานะ</option>
-          {(Object.keys(poStatusLabels) as PoStatus[]).map((value) => <option key={value} value={value}>{poStatusLabels[value]}</option>)}
-        </select>
-      </FormField>
-      <FormField label="การรับของ" controlId="po-delivery">
-        <select className="ui-field-control" id="po-delivery" name="delivery" defaultValue={data.query.delivery}>
-          <option value="">ทั้งหมด</option>
-          {(Object.keys(poDeliveryLabels) as PoDeliveryState[]).map((value) => <option key={value} value={value}>{poDeliveryLabels[value]}</option>)}
-        </select>
-      </FormField>
-      <FormField label="Order" controlId="po-order">
-        <select className="ui-field-control" id="po-order" name="order" defaultValue={data.query.order}>
-          <option value="">ทุก Order</option>
-          {data.orders.map((order) => <option key={order} value={order}>{order}</option>)}
-        </select>
-      </FormField>
-      <div className="po-filter-actions">
-        <Button type="submit" variant="primary">ค้นหา</Button>
-        <Link className="po-link" href="/po-tracking">ล้างตัวกรอง</Link>
-      </div>
-    </FilterBar>
-
     <section className="po-results" aria-label="รายการ PO">
       <div className="po-results-head">
         <h2>รายการ PO</h2>
         <p>{data.total.toLocaleString("th-TH")} รายการ · หน้า {data.page} / {pages}</p>
-        {canManage && <Link className="po-link po-create-link" href="/po-tracking/new">สร้าง PO ใหม่</Link>}
       </div>
       {data.rows.length === 0 ? <EmptyState title="ไม่พบรายการ PO" description="ลองปรับคำค้นหาหรือตัวกรอง แล้วค้นหาอีกครั้ง" /> :
         <TableRegion label="ตารางรายการ PO">
@@ -101,7 +77,7 @@ export function PoTrackingList({ data, report, today, canManage }: {
               <th scope="col" className="po-num">คงค้าง</th>
               <th scope="col">ETA</th>
               <th scope="col">สถานะ</th>
-              <th scope="col">Order</th>
+              <th scope="col">Project code</th>
               {data.priceVisible && <th scope="col" className="po-num">มูลค่า PO</th>}
               <th scope="col"><span className="po-sr-only">เปิดรายละเอียด</span></th>
             </tr></thead>
@@ -135,13 +111,10 @@ export function PoTrackingList({ data, report, today, canManage }: {
   </div>;
 }
 
-export function PoTrackingReport({ report }: { report: PoReport }) {
+export function PoTrackingReport({ report, canManage }: { report: PoReport; canManage?: boolean }) {
   const { counts, units } = report;
   return <div className="po-workspace">
-    <nav className="po-tabs" aria-label="มุมมองติดตาม PO">
-      <Link href="/po-tracking">รายการ PO</Link>
-      <Link href="/po-tracking?view=report" aria-current="page">รายงานและกระทบยอด</Link>
-    </nav>
+    <PoToolbar view="report" canManage={canManage} />
     <MetricGrid label="สรุปสถานะ PO" metrics={[
       { label: "รายการทั้งหมด", value: counts.lines },
       { label: "รับครบแล้ว", value: counts.receivedLines, tone: "success" },
@@ -162,7 +135,7 @@ export function PoTrackingReport({ report }: { report: PoReport }) {
             <td className="po-num">{formatQty(unit.initialReceived)}</td>
             <td className="po-num">{formatQty(unit.receiptQty)}</td>
             <td className="po-num">{formatQty(unit.outstanding)}</td>
-            {report.priceVisible && <td className="po-num">{formatAmount(unit.amount)}</td>}
+            {report.priceVisible && <td className="po-num">{formatAmount(unit.amount)}{Boolean(unit.unknownAmountLines) && <small className="po-sub">ยอดเฉพาะที่ทราบ · ยังไม่ทราบมูลค่า {unit.unknownAmountLines} รายการ</small>}</td>}
           </tr>)}</tbody>
         </table>
       </TableRegion>

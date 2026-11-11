@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { getAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { poPermissions } from "@/modules/po-tracking/service";
-import { ManualPoForm } from "@/features/po-tracking/po-forms";
+import { PoCreateWorkspace } from "@/features/po-tracking/po-excel-form";
 import "@/features/po-tracking/po-tracking.css";
 
 export const metadata: Metadata = { title: "สร้าง PO ใหม่" };
@@ -22,8 +22,8 @@ export default async function NewPoPage() {
     </main>;
   }
   return <main data-ui-screen="po-tracking-new">
-    <PageHeader title="สร้าง PO ใหม่" description="บันทึกใบสั่งซื้อหลายรายการได้โดยไม่ต้องกลับไปใช้ไฟล์ Excel"
+    <PageHeader title="สร้าง PO ใหม่" description="กรอกใบสั่งซื้อเอง หรือนำเข้าจาก Excel พร้อมตรวจรายการซ้ำก่อนบันทึก"
       parent={{ label: "ติดตาม PO", href: "/po-tracking" }} />
-    <ManualPoForm />
+    <PoCreateWorkspace canImport={isAuthorized(access.subject, poPermissions.importManage)} />
   </main>;
 }

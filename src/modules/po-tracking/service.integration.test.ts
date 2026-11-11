@@ -8,6 +8,7 @@ vi.mock("server-only", () => ({}));
 import { getDb, type Database } from "@/db";
 import { poLines, profiles } from "@/db/schema";
 import { databaseSslOptions } from "@/lib/database-ssl.mjs";
+import { createPoTestClone } from "../../../tests/fixtures/po-test-clone";
 import type { AuthorizationSubject } from "@/lib/authorization";
 import { correctPoReceipt, createManualPo, getPoLine, getPoReport, listPoLines, PoDomainError, recordPoReceipt, updateManualPoLine, updatePoLine } from "./service";
 
@@ -39,16 +40,12 @@ beforeAll(async () => {
   const elevated = new URL(process.env.DATABASE_URL_MIGRATE!);
   elevated.pathname = "/postgres";
   admin = postgres(elevated.href, { ...databaseSslOptions(), max: 1, prepare: false });
-  for (let attempt = 1; ; attempt += 1) {
-    try {
-      await admin.unsafe(`create database ${cloneName} template ${runtime.pathname.slice(1)}`);
-      break;
-    } catch (error) {
-      if (attempt >= 3) throw error;
-      await new Promise((resolve) => setTimeout(resolve, 1_500));
-    }
-  }
+  await createPoTestClone(cloneName, elevated, runtime);
   runtime.pathname = `/${cloneName}`;
+  const cloneOperatorUrl = new URL(elevated); cloneOperatorUrl.pathname = `/${cloneName}`;
+  const cloneOperator = postgres(cloneOperatorUrl.href, { max: 1 });
+  try { await cloneOperator.unsafe(await readFile("supabase/migrations/0066_po_unknown_price.sql", "utf8")); }
+  finally { await cloneOperator.end(); }
   process.env.DATABASE_URL = runtime.href;
   delete (globalThis as typeof globalThis & { permissionNextSql?: unknown }).permissionNextSql;
   db = getDb();
@@ -296,5 +293,20 @@ describe.skipIf(!enabled)("PO tracking service against an isolated staging clone
     };
     await expect(createManualPo(reader, input)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(createManualPo({ userId: actorId, subject: subject(["po_tracking.po.manage"]) }, input)).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+  it("creates unknown-price manual PO and adds a price later without fabricating zero", async () => {
+    const input = { poNumber: `${marker}-UNKNOWN`, vendorCode: "", vendorName: "", orderCode: "PROJECT-01", note: "",
+      lines: [{ materialCode: "UNKNOWN-MAT", description: "รอราคา", unit: "PC" as const, orderedQty: "10", unitPrice: "", poReleaseDate: "2026-11-11", etaDate: "", etaText: "", note: "" }] };
+    const created = await createManualPo(adminActor, input);
+    let detail = await getPoLine(adminActor, created.lineIds[0]);
+    expect(detail?.line.unitPrice).toBeNull();
+    expect(detail?.line.poAmount).toBeNull();
+    const report = await getPoReport(adminActor);
+    expect(report.units.find(unit => unit.unit === "PC")?.unknownAmountLines).toBeGreaterThanOrEqual(1);
+    await updateManualPoLine(adminActor, { ...input.lines[0], lineId: created.lineIds[0], version: 1, poNumber: input.poNumber,
+      unitPrice: "12.50", initialReceivedQty: "0", lastGrDate: "", orderCode: "PROJECT-01", vendorCode: "", vendorName: "", status: "open" });
+    detail = await getPoLine(adminActor, created.lineIds[0]);
+    expect(detail?.line.unitPrice).toBe("12.5000");
+    expect(detail?.line.poAmount).toBe("125.00");
   });
 });

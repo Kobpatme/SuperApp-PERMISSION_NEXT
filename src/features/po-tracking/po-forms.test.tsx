@@ -19,6 +19,9 @@ describe("manual PO form", () => {
     expect(html).toContain('name="line-0-materialCode"');
     expect(html).toContain('name="line-0-orderedQty"');
     expect(html).toContain('name="line-0-unitPrice"');
+    expect(html.match(/<input[^>]+name="line-0-unitPrice"[^>]*>/)?.[0]).not.toContain("required");
+    expect(html).toContain("Project code");
+    expect(html).not.toContain('>Order<');
     expect(html).toContain("เพิ่มอีกรายการ");
     expect(html).toContain("สร้าง PO");
     expect(html).toContain("ไม่รวมข้ามหน่วย");

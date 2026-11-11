@@ -139,7 +139,7 @@ const manualLineFields = {
   description: z.string().trim().min(1, "ต้องระบุรายละเอียด").max(500),
   unit: z.enum(poUnits),
   orderedQty: quantityText,
-  unitPrice: moneyText,
+  unitPrice: z.union([z.literal(""), moneyText]).default(""),
   poReleaseDate: dateOnly,
   etaDate: optionalDate,
   etaText: z.string().trim().max(200).default(""),
@@ -244,6 +244,7 @@ export type PoReceiptView = {
 };
 
 export type PoSummary = {
+  unknownAmountLines?: number;
   unit: PoUnit;
   lines: number;
   incompleteLines: number;
