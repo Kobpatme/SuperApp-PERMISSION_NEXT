@@ -22,7 +22,7 @@ describe("duct rental registration", () => {
     }
   });
   it("preserves the existing active navigation order", () => {
-    expect(modules.filter(isModuleEnabled).map(m => m.id)).toEqual(["work", "buildings", "guarantees", "car-booking"]);
+    expect(modules.filter(isModuleEnabled).map(m => m.id)).toEqual(["work", "buildings", "guarantees", "car-booking", "po-tracking"]);
   });
   it("owns static child navigation metadata in its manifest", () => {
     const manifest = getModule("duct-rental")!;

@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { getDb } from "@/db";
+import { runMaterialChange } from "@/lib/material-change";
 import { guaranteeWorkEvents, guaranteeWorkItems } from "@/db/schema";
 import { getAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
@@ -64,7 +64,7 @@ export async function POST(request: Request, context: RouteContext) {
   try {
     await writeGuaranteeEvidence(path, bytes);
     try {
-      await getDb().transaction(async (tx) => {
+      await runMaterialChange({ audit: { actorId: access.userId, moduleId: "guarantees", action: "guarantee.document.upload", entityType: "guarantee_work_item", entityId: id, requestId: crypto.randomUUID(), before: { version: item.version }, after: { version: version + 1 }, metadata: { kind } } }, async (tx) => {
         const updated = await tx.update(guaranteeWorkItems).set({ data: { ...item, [kind]: path,
           id: undefined, ownerId: undefined, teamId: undefined, tlAssigneeId: undefined, status: undefined, version: undefined },
           version: sql`${guaranteeWorkItems.version} + 1`, updatedAt: new Date() })

@@ -2,7 +2,7 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { getDb } from "@/db";
+import { runMaterialChange } from "@/lib/material-change";
 import { guaranteeWorkEvents, guaranteeWorkItems } from "@/db/schema";
 import { getAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
@@ -11,7 +11,7 @@ import { isOnServiceItem, isOffServicePendingItem } from "@/lib/deposit-v2-domai
 import { depositItemInputSchema, depositStatusSchema, validateDepositTransition } from "@/lib/deposit-v2-workflow";
 import { getInstallationTeamForArea } from "@/lib/installation-team-context";
 
-export type DepositActionState = { ok: boolean; message: string; id?: string };
+export type DepositActionState = { ok: boolean; message: string; id?: string; fieldErrors?: Record<string, string[]> };
 const invalid: DepositActionState = { ok: false, message: "ไม่สามารถบันทึกข้อมูลได้" };
 
 function inputFromForm(form: FormData) {
@@ -27,7 +27,10 @@ export async function saveDepositWorkItem(_previous: DepositActionState, form: F
   const access = await getAccessContext("guarantees");
   if (!access.allowed || access.isDevelopmentSession || !process.env.DATABASE_URL) return { ...invalid, message: "ต้องเชื่อมบัญชีและฐานข้อมูลกลางก่อนบันทึก" };
   const parsed = depositItemInputSchema.safeParse(inputFromForm(form));
-  if (!parsed.success) return { ...invalid, message: parsed.error.issues[0]?.message || invalid.message };
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors;
+      return { ...invalid, message: parsed.error.issues[0]?.message || invalid.message, fieldErrors };
+    }
   const id = String(form.get("id") || "");
   const tlAssigneeId = String(form.get("tlAssigneeId") || "");
   if (tlAssigneeId && !(await listTlAssignees()).some((person) => person.id === tlAssigneeId)) return { ...invalid, message: "ผู้รับมอบหมายทีมติดตั้งไม่ถูกต้อง" };
@@ -38,8 +41,10 @@ export async function saveDepositWorkItem(_previous: DepositActionState, form: F
     if (!targetTeam) return { ...invalid, message: "พื้นที่นี้ยังไม่ได้ผูกกับทีมติดตั้ง กรุณาติดต่อผู้ดูแลระบบ" };
     if (!id) {
       if (!isAuthorized(access.subject, "guarantee.case.create", { ownerId: access.userId, teamId: targetTeam.id }) && !isAuthorized(access.subject, "guarantee.case.manage", { ownerId: access.userId, teamId: targetTeam.id })) return { ...invalid, message: "ไม่มีสิทธิ์สร้างรายการให้ทีมติดตั้งพื้นที่นี้" };
-      const result = await getDb().transaction(async (tx) => {
-        const [row] = await tx.insert(guaranteeWorkItems).values({ ownerId: access.userId, teamId: targetTeam.id, tlAssigneeId: tlAssigneeId || null, status: "new", place: parsed.data.place,
+      if (parsed.data.demoReturn === "Yes") return { ...invalid, message: "ต้องแจ้งยกเลิกบริการและแนบหลักฐาน Off Service ก่อนคืนประกันรื้อถอน" };
+      const newId = crypto.randomUUID();
+      const result = await runMaterialChange({ audit: { actorId: access.userId, moduleId: "guarantees", action: "guarantee.create", entityType: "guarantee_work_item", entityId: newId, requestId: crypto.randomUUID(), after: { status: "new", teamId: targetTeam.id } } }, async (tx) => {
+        const [row] = await tx.insert(guaranteeWorkItems).values({ id: newId, ownerId: access.userId, teamId: targetTeam.id, tlAssigneeId: tlAssigneeId || null, status: "new", place: parsed.data.place,
           area: parsed.data.area || null, data: parsed.data, updatedAt: now }).returning({ id: guaranteeWorkItems.id });
         await tx.insert(guaranteeWorkEvents).values({ itemId: row.id, actorId: access.userId, action: "create", toStatus: "new", occurredAt: now });
         return row;
@@ -57,7 +62,7 @@ export async function saveDepositWorkItem(_previous: DepositActionState, form: F
     if (completingOffService && (!isOffServicePendingItem({ ...item, service_cancel_date: parsed.data.service_cancel_date }) || !item.pdf_demo_off)) {
       return { ...invalid, message: "ต้องแจ้งยกเลิกบริการและแนบหลักฐาน Off Service ก่อนคืนประกันรื้อถอน" };
     }
-    await getDb().transaction(async (tx) => {
+    await runMaterialChange({ audit: { actorId: access.userId, moduleId: "guarantees", action: completingOffService ? "guarantee.off_service_complete" : startingOffService ? "guarantee.off_service_requested" : "guarantee.update", entityType: "guarantee_work_item", entityId: id, requestId: crypto.randomUUID(), before: { status: item.status, version: item.version, teamId: item.teamId }, after: { status: item.status, version: version + 1, teamId: targetTeam.id } } }, async (tx) => {
       const updated = await tx.update(guaranteeWorkItems).set({ place: parsed.data.place, area: parsed.data.area || null, teamId: targetTeam.id, tlAssigneeId: tlAssigneeId || null,
         data: { ...item, ...parsed.data, pdf_payment: item.pdf_payment || "", pdf_layout: item.pdf_layout || "",
           pdf_additional: item.pdf_additional || "", pdf_tl_work: item.pdf_tl_work || "", pdf_tl_extra: item.pdf_tl_extra || "",
@@ -96,8 +101,12 @@ export async function transitionDepositWorkItem(_previous: DepositActionState, f
   if (version !== item.version) return { ...invalid, message: "ข้อมูลมีการเปลี่ยนแปลง กรุณาโหลดใหม่" };
   try {
     validateDepositTransition(item, to.data, reason);
+  } catch (error) {
+    return { ...invalid, message: error instanceof Error ? error.message : invalid.message };
+  }
+  try {
     const now = new Date();
-    await getDb().transaction(async (tx) => {
+    await runMaterialChange({ audit: { actorId: access.userId, moduleId: "guarantees", action: "guarantee.transition", entityType: "guarantee_work_item", entityId: id, requestId: crypto.randomUUID(), before: { status: item.status, version: item.version }, after: { status: to.data, version: version + 1 } } }, async (tx) => {
       const updated = await tx.update(guaranteeWorkItems).set({ status: to.data,
         data: { ...item, status: undefined, status_final: to.data === "done" || to.data === "Cancel" ? to.data : item.status_final,
           complete_tl: to.data === "On Process" ? "On Process" : item.complete_tl,
@@ -114,6 +123,6 @@ export async function transitionDepositWorkItem(_previous: DepositActionState, f
     revalidatePath("/guarantees"); revalidatePath(`/guarantees/${id}`);
     return { ok: true, message: "เปลี่ยนสถานะแล้ว", id };
   } catch (error) {
-    return { ...invalid, message: error instanceof Error ? error.message : invalid.message };
+    return { ...invalid, message: error instanceof Error && error.message === "ข้อมูลมีการเปลี่ยนแปลง กรุณาโหลดใหม่" ? error.message : invalid.message };
   }
 }

@@ -13,8 +13,7 @@ export function hasIncompleteRequiredDocuments(request: DocumentGate) {
   return Boolean(request.missingDocs?.trim()) || isMemoMissing(request);
 }
 export function listDocumentsIncomplete(request: DocumentGate) {
-  // METRIX-BUG: list treats whitespace notes as incomplete while completion trims them (DQ04).
-  return Boolean(request.missingDocs) || isMemoMissing(request);
+  return hasIncompleteRequiredDocuments(request);
 }
 export function draftsmanNextPhase(owner?: string | null): RequestPhase {
   const normalized = (owner ?? "").trim().toUpperCase();
@@ -51,9 +50,10 @@ export function getSlaStatus(start: string, days: number, completedAt?: string |
   if (completedAt) return "Completed";
   const due = new Date(addDays(start, days));
   if (Number.isNaN(due.getTime())) return "On Track";
-  // METRIX-BUG: <24h late is ceil(-fraction) === -0 and remains Near Due. Preserve pending DQ04.
-  const left = Math.ceil((due.getTime() - now.getTime()) / 86_400_000);
-  return left < 0 ? "Overdue" : left <= 1 ? "Near Due" : "On Track";
+  const remaining = due.getTime() - now.getTime();
+  if (remaining < 0) return "Overdue";
+  const left = Math.ceil(remaining / 86_400_000);
+  return left <= 1 ? "Near Due" : "On Track";
 }
 export function formatDate(value?: string | null) {
   if (!value) return "-";
