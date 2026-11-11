@@ -1,4 +1,4 @@
-import { boolean, check, index, integer, jsonb, numeric, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, jsonb, numeric, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 const timestamps = {
@@ -419,3 +419,46 @@ export const sourceImportRows = pgTable("source_import_rows", {
   status: text("status").notNull(), targetEntityType: text("target_entity_type"), targetEntityId: uuid("target_entity_id"), rawPayload: jsonb("raw_payload").$type<Record<string, unknown>>().notNull(), anomalyCode: text("anomaly_code"), anomalyDetail: text("anomaly_detail"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [uniqueIndex("source_import_rows_source_idx").on(t.runId, t.sourceId), index("source_import_rows_status_idx").on(t.runId, t.status), check("source_import_rows_status_check", sql`${t.status} in ('pending','imported','skipped','anomaly','failed')`)]);
+
+/** Imported PO lines. Source columns are immutable (enforced by trigger); only
+ * ETA, status, note and version change after import. */
+export const poLines = pgTable("po_lines", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  importRunId: uuid("import_run_id").references(() => sourceImportRuns.id, { onDelete: "restrict" }),
+  sourceId: text("source_id"),
+  sourceRowNumber: integer("source_row_number"),
+  origin: text("origin").notNull().default("import"),
+  poNumber: text("po_number").notNull(), materialCode: text("material_code").notNull(),
+  description: text("description").notNull(), unit: text("unit").notNull(),
+  orderedQty: numeric("ordered_qty", { precision: 18, scale: 4 }), initialReceivedQty: numeric("initial_received_qty", { precision: 18, scale: 4 }),
+  unitPrice: numeric("unit_price", { precision: 18, scale: 4 }).notNull(), poAmount: numeric("po_amount", { precision: 18, scale: 2 }),
+  stockQty: numeric("stock_qty", { precision: 18, scale: 4 }), sourceOutstandingQty: numeric("source_outstanding_qty", { precision: 18, scale: 4 }),
+  poReleaseDate: date("po_release_date").notNull(), lastGrDate: date("last_gr_date"),
+  etaDate: date("eta_date"), etaText: text("eta_text"), orderCode: text("order_code"),
+  vendorCode: text("vendor_code"), vendorName: text("vendor_name"),
+  status: text("status").notNull().default("open"), note: text("note").notNull().default(""),
+  version: integer("version").notNull().default(1), ...timestamps,
+}, t => [uniqueIndex("po_lines_import_source_key").on(t.importRunId, t.sourceId), uniqueIndex("po_lines_source_key").on(t.sourceId), index("po_lines_po_idx").on(t.poNumber),
+  index("po_lines_material_idx").on(t.materialCode), index("po_lines_order_idx").on(t.orderCode), index("po_lines_status_idx").on(t.status, t.etaDate),
+  check("po_lines_unit_check", sql`${t.unit} in ('M','PC','SET','EA')`), check("po_lines_status_check", sql`${t.status} in ('open','on_hold','closed')`),
+  check("po_lines_origin_check", sql`${t.origin} in ('import','manual')`),
+  check("po_lines_qty_check", sql`(${t.orderedQty} is null or ${t.orderedQty} >= 0) and (${t.initialReceivedQty} is null or ${t.initialReceivedQty} >= 0)`),
+  check("po_lines_price_check", sql`${t.unitPrice} >= 0 and (${t.poAmount} is null or ${t.poAmount} >= 0)`), check("po_lines_version_check", sql`${t.version} > 0`)]);
+
+/** Append-only receipt events. Corrections void the original and insert a
+ * replacement that points at it; rows are never updated in place or deleted. */
+export const poReceipts = pgTable("po_receipts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  lineId: uuid("line_id").notNull().references(() => poLines.id, { onDelete: "restrict" }),
+  receivedOn: date("received_on").notNull(), quantity: numeric("quantity", { precision: 18, scale: 4 }).notNull(),
+  reference: text("reference").notNull(), note: text("note").notNull().default(""),
+  recordedBy: uuid("recorded_by").notNull().references(() => profiles.id, { onDelete: "restrict" }),
+  replacesReceiptId: uuid("replaces_receipt_id").references((): AnyPgColumn => poReceipts.id, { onDelete: "restrict" }),
+  voidedAt: timestamp("voided_at", { withTimezone: true }), voidedBy: uuid("voided_by").references(() => profiles.id, { onDelete: "restrict" }),
+  voidReason: text("void_reason"), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, t => [index("po_receipts_line_idx").on(t.lineId, t.receivedOn, t.createdAt),
+  check("po_receipts_quantity_check", sql`${t.quantity} > 0`),
+  check("po_receipts_void_check", sql`(${t.voidedAt} is null and ${t.voidedBy} is null and ${t.voidReason} is null) or (${t.voidedAt} is not null and ${t.voidedBy} is not null and ${t.voidReason} is not null)`)]);
+
+export type PoLineRow = typeof poLines.$inferSelect;
+export type PoReceiptRow = typeof poReceipts.$inferSelect;

@@ -31,6 +31,11 @@
     "auth:bootstrap": "node scripts/bootstrap-admin.mjs",
     "import:guarantees": "node scripts/import-guarantee-csv.mjs",
     "reconcile:guarantee-other": "node scripts/reconcile-guarantee-legacy-other.mjs",
+    "import:po": "node scripts/po-tracking-import.mjs",
+    "import:po:dry": "node scripts/po-tracking-import.mjs --dry-run",
+    "db:po:apply": "node scripts/apply-po-tracking-migration.mjs",
+    "test:po:import": "node --test scripts/po-tracking-import-unit.test.mjs scripts/migration-ledger.test.mjs",
+    "test:po:db": "node scripts/po-tracking-test-db.mjs",
     "pretest": "node scripts/write-build-info.mjs --ensure",
     "test": "vitest run"
   },
@@ -57,6 +62,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.27.0",
     "eslint-config-next": "16.3.8",
+    "happy-dom": "^21.0.4",
     "typescript": "^5.8.3",
     "vitest": "^5.0.0"
   }

@@ -3,7 +3,7 @@ import { modules } from "./module-registry";
 import { effectiveModuleEnabled, moduleLifecycleCapability } from "./module-lifecycle-contract";
 describe("owner-approved Core lifecycle contract",()=>{
   it("keeps defaults and active order for existing modules",()=>{
-    expect(modules.filter(module=>effectiveModuleEnabled(module)).map(module=>module.id)).toEqual(["work","buildings","guarantees","car-booking"]);
+    expect(modules.filter(module=>effectiveModuleEnabled(module)).map(module=>module.id)).toEqual(["work","buildings","guarantees","car-booking","po-tracking"]);
     expect(moduleLifecycleCapability.allowedScopes).toEqual(["ALL"]);
   });
   it("denies disabled overrides and cannot enable a development module",()=>{

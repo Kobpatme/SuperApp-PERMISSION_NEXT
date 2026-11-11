@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getModule, isModuleId, modules } from "@/lib/module-registry";
+import { capabilities, getModule, isModuleId, modules } from "@/lib/module-registry";
 
 describe("module registry", () => {
   it("keeps identifiers and routes unique", () => {
@@ -17,7 +17,7 @@ describe("module registry", () => {
     const orders = modules.map((module) => module.order);
     expect(orders).toEqual([...orders].sort((a, b) => a - b));
     expect(modules.map((module) => module.id)).toEqual([
-      "work", "buildings", "guarantees", "car-booking", "duct-rental",
+      "work", "buildings", "guarantees", "car-booking", "duct-rental", "po-tracking",
     ]);
   });
 
@@ -35,5 +35,11 @@ describe("module registry", () => {
     const carBooking = getModule("car-booking")!;
     expect(carBooking.navigationItems).toBeDefined();
     expect(carBooking.navigationItems?.some((item) => item.href === "/car-booking")).toBe(true);
+
+    const po = getModule("po-tracking")!;
+    expect(po.href).toBe("/po-tracking");
+    expect(po.entryPermissions).toEqual(["po_tracking.po.read"]);
+    expect(po.capabilities.map((capability) => capability.code)).toContain("po_tracking.price.read");
+    expect(capabilities.filter((capability) => capability.moduleId === "po-tracking")).toHaveLength(7);
   });
 });

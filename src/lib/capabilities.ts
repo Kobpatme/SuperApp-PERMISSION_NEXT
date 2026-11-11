@@ -31,6 +31,15 @@ export const guaranteeCapabilities = [
   capability("guarantee.refund.request", "ขอคืนเงินประกัน", "sensitive"), capability("guarantee.refund.approve", "อนุมัติคืนเงินประกัน", "sensitive"),
   capability("guarantee.refund.record", "บันทึกการคืนเงิน", "sensitive"), capability("guarantee.tl.work", "ดำเนินงานที่ได้รับมอบหมาย (TL)", "sensitive", ["OWN"]),
 ];
+export const poTrackingCapabilities = [
+  capability("po_tracking.po.read", "ดูรายการติดตาม PO", "normal", ["ALL"]),
+  capability("po_tracking.po.manage", "แก้ไขสถานะ ETA และหมายเหตุ PO", "sensitive", ["ALL"]),
+  capability("po_tracking.receipt.record", "บันทึกการรับของ", "sensitive", ["ALL"]),
+  capability("po_tracking.receipt.correct", "แก้ไขการรับของด้วยการยกเลิกและบันทึกใหม่", "sensitive", ["ALL"]),
+  capability("po_tracking.price.read", "ดูราคาและมูลค่า PO", "sensitive", ["ALL"]),
+  capability("po_tracking.report.read", "ดูแดชบอร์ดและรายงาน PO", "normal", ["ALL"]),
+  capability("po_tracking.import.manage", "ตรวจสอบการนำเข้าและกระทบยอด PO", "administrative", ["ALL"]),
+];
 export const coreCapabilities = [
   capability("core.holiday.manage", "จัดการวันหยุด", "administrative", ["ALL"]), capability("core.system_link.manage", "จัดการลิงก์ระบบ", "administrative", ["ALL"]), capability("core.announcement.manage", "จัดการประกาศ", "administrative", ["ALL"]),
   capability("core.profile.read", "ดูผู้ใช้", "administrative", ["ALL"]), capability("core.profile.update", "แก้ไขโปรไฟล์", "administrative", ["ALL"]),

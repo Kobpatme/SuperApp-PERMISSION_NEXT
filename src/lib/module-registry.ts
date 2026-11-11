@@ -1,5 +1,5 @@
 import { defineModuleRegistry, capabilityCatalog } from "@/lib/module-contract";
-import { buildingCapabilities, carBookingCapabilities, coreCapabilities, guaranteeCapabilities, workCapabilities } from "@/lib/capabilities";
+import { buildingCapabilities, carBookingCapabilities, coreCapabilities, guaranteeCapabilities, poTrackingCapabilities, workCapabilities } from "@/lib/capabilities";
 import { ductRentalManifest } from "@/modules/duct-rental/manifest";
 import { moduleLifecycleCapability } from "@/lib/module-lifecycle-contract";
 
@@ -68,6 +68,18 @@ export const modules = defineModuleRegistry([
     navigationItems: [
       { href: "/guarantees", label: "ภาพรวมเงินประกัน", icon: "check", activeMatch: "prefix" },
       { href: "/guarantees?view=installation-team", label: "ทีมติดตั้ง", icon: "team", activeMatch: "query" },
+    ],
+  },
+  {
+    id: "po-tracking", version: "1.0.0", owner: "Operations", icon: "work", group: "operations", order: 50,
+    lifecycle: "active", enabledByDefault: true, capabilities: poTrackingCapabilities,
+    entryPermissions: ["po_tracking.po.read"],
+    number: 5, href: "/po-tracking", name: "ติดตาม PO", shortLabel: "PO",
+    description: "ติดตามใบสั่งซื้อ การรับของ และยอดคงค้างจากข้อมูล PO Pending",
+    purpose: "ติดตามการจัดซื้อและรับของ", repository: "ข้อมูล/PO Pending Max.xlsx",
+    accent: "blue", searchTerms: ["po", "pending", "รับของ", "จัดซื้อ", "vendor", "eta"],
+    navigationItems: [
+      { href: "/po-tracking", label: "ติดตาม PO", icon: "work", activeMatch: "prefix" },
     ],
   },
 ]);

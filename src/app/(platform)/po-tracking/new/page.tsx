@@ -1,0 +1,29 @@
+import type { Metadata } from "next";
+import { AccessDenied } from "@/components/access-denied";
+import { PageHeader } from "@/components/ui/page-header";
+import { getAccessContext } from "@/lib/access";
+import { isAuthorized } from "@/lib/authorization";
+import { poPermissions } from "@/modules/po-tracking/service";
+import { ManualPoForm } from "@/features/po-tracking/po-forms";
+import "@/features/po-tracking/po-tracking.css";
+
+export const metadata: Metadata = { title: "สร้าง PO ใหม่" };
+
+export default async function NewPoPage() {
+  const access = await getAccessContext("po-tracking");
+  if (!access.allowed) return <AccessDenied moduleName="ติดตาม PO" />;
+  const canManage = isAuthorized(access.subject, poPermissions.manage);
+  const priceVisible = isAuthorized(access.subject, poPermissions.priceRead);
+  if (!canManage || !priceVisible) {
+    return <main data-ui-screen="po-tracking-new">
+      <PageHeader title="สร้าง PO ใหม่" description="ต้องมีสิทธิ์แก้ไข PO และดูราคาเพื่อสร้างใบสั่งซื้อ"
+        parent={{ label: "ติดตาม PO", href: "/po-tracking" }} />
+      <AccessDenied moduleName="สร้าง PO ใหม่" />
+    </main>;
+  }
+  return <main data-ui-screen="po-tracking-new">
+    <PageHeader title="สร้าง PO ใหม่" description="บันทึกใบสั่งซื้อหลายรายการได้โดยไม่ต้องกลับไปใช้ไฟล์ Excel"
+      parent={{ label: "ติดตาม PO", href: "/po-tracking" }} />
+    <ManualPoForm />
+  </main>;
+}
