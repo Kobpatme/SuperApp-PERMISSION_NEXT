@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import {WorkspaceLink as Link} from "@/components/workspace-link";
 import { useMemo, useSyncExternalStore } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { modules, overviewDestination, type ModuleId, getModule } from "@/lib/module-registry";

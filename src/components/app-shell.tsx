@@ -7,7 +7,7 @@ import { AccountControl } from "@/components/account-control";
 import { WorkspaceSearch } from "@/components/workspace-search";
 import type { ModuleId } from "@/lib/module-registry";
 
-import Link from "next/link";
+import {WorkspaceLink as Link} from "@/components/workspace-link";
 import Image from "next/image";
 import styles from "@/styles/app-shell.module.css";
 import { Dialog } from "@/components/ui/dialog";
@@ -15,11 +15,14 @@ import { Dialog } from "@/components/ui/dialog";
 export function AppShell({ children, displayName = "ผู้ใช้งาน", allowedModuleIds, canAdmin = false, workNavigation = [], notificationCenter, scopeLabel }: { children: React.ReactNode; displayName?: string; allowedModuleIds: ModuleId[]; canAdmin?: boolean; workNavigation?: WorkNavItem[]; notificationCenter?: React.ReactNode; scopeLabel?: string }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [shellReady,setShellReady]=useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try { setCollapsed(window.localStorage.getItem("permission-next-sidebar-collapsed") === "1"); }
       catch { /* Storage may be unavailable; the expanded sidebar remains usable. */ }
+      // Entrance waits until the saved sidebar width is applied.
+      setShellReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -31,7 +34,7 @@ export function AppShell({ children, displayName = "ผู้ใช้งาน"
     catch { /* The preference is optional. */ }
   }
 
-  return <div className={`app ${styles.shell} ${collapsed ? styles.collapsed : ""} bg-[var(--color-bg)] text-[var(--color-text)]`} data-app-shell>
+  return <div className={`app ${styles.shell} ${collapsed ? styles.collapsed : ""} bg-[var(--color-bg)] text-[var(--color-text)]`} data-app-shell data-shell-ready={shellReady?"true":undefined}>
     <a className="skip-link" href="#workspace-content">ข้ามไปยังเนื้อหาหลัก</a>
     <div className={`${styles.header} border-b border-[var(--color-border)] bg-[var(--color-surface)]`} data-shell-header>
       <header className={`${styles.topbar} flex items-center gap-4`}>

@@ -1,4 +1,20 @@
 /* Shared authentication presentation. */
+.auth-transition-cover { position:fixed; inset:0; z-index:var(--z-toast); overflow:clip; pointer-events:none; }
+.auth-transition-cover .auth-shell { animation:none; transform:none; }
+.auth-transition-cover .auth-logo-motion { animation:none; }
+.auth-transition-cover.auth-is-departing { background:transparent; }
+.auth-is-departing { overflow:clip; }
+.auth-is-departing .auth-shell { overflow:visible; animation:none; transform:none; background:transparent; border-color:transparent; box-shadow:none; }
+.auth-is-departing :is(.auth-intro,.auth-panel) { border-radius:var(--radius-xl); pointer-events:none; will-change:transform,opacity; }
+.auth-is-departing .auth-logo-motion { animation:none; }
+/* Owner explicitly requested full login motion, including on reduced-motion systems. */
+/* Move shell surfaces individually: transforming their parent changes the fixed
+   sidebar's containing block and makes its height snap when motion ends. */
+html[data-login-arrival="preparing"] [data-app-shell] > :is([data-shell-header],[data-shell-sidebar],[data-shell-main]),
+html[data-login-arrival="preparing"] .auth-page:not(.auth-transition-cover) { visibility:hidden; }
+html[data-login-arrival="true"] [data-app-shell] > :is([data-shell-header],[data-shell-sidebar],[data-shell-main]),
+html[data-login-arrival="true"] .auth-page:not(.auth-transition-cover) { animation:login-destination-enter 1100ms cubic-bezier(.25,.8,.25,1) both !important; will-change:transform,opacity; }
+@keyframes login-destination-enter { from { transform:translate3d(0,-100dvh,0); opacity:.2; } to { transform:translate3d(0,0,0); opacity:1; } }
 .auth-page { min-height:100dvh; display:grid; place-items:center; padding:clamp(var(--space-5),5vw,var(--space-10)); background:var(--color-bg); }
 .auth-shell { width:min(1080px,100%); min-height:640px; display:grid; grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-xl); overflow:hidden; background:var(--color-surface); box-shadow:var(--shadow-raised); }
 .auth-intro { display:flex; flex-direction:column; padding:clamp(var(--space-8),5vw,var(--space-10)); color:var(--color-on-brand-deep); background:var(--color-brand-deep); }

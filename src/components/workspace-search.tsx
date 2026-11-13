@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getModuleIcon, modules, overviewDestination, type ModuleId } from "@/lib/module-registry";
 import { WorkspaceIcon } from "@/components/workspace-icon";
 import { TruncatedText } from "@/components/ui/truncated-text";
+import {NavigationLoading} from "@/components/workspace-link";
 
 type SearchResult = { id: string; title: string; description: string; href: string; moduleId?: ModuleId };
 type SearchResponse = { results: SearchResult[]; ready: boolean; partial: boolean };
 
 export function WorkspaceSearch({ allowedModuleIds, contained = false }: { allowedModuleIds: ModuleId[]; contained?: boolean }) {
   const router = useRouter();
+  const [navigating,startNavigation]=useTransition();
   const params = useSearchParams();
   const preview = params.get("preview") === "1";
   const inputRef = useRef<HTMLInputElement>(null);
@@ -85,13 +87,14 @@ export function WorkspaceSearch({ allowedModuleIds, contained = false }: { allow
     pendingFocus.current = "input";
     setOpen(true);
   }
-  function goTo(href: string) { setOpen(false); setQuery(""); inputRef.current?.blur(); router.push(href); }
+  function goTo(href: string) { setOpen(false); setQuery(""); inputRef.current?.blur(); startNavigation(()=>router.push(href)); }
   function closeSearch() {
     if (window.matchMedia("(max-width: 650px)").matches) pendingFocus.current = "trigger";
     setOpen(false);
   }
 
   return <div className={`workspace-search core-utility-search${open ? " is-open" : ""}`} style={contained ? { maxWidth: "100%" } : undefined} ref={rootRef} onBlur={(event) => { if (focusGuard.current) return; if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false); }}>
+    <NavigationLoading pending={navigating}/>
     <button ref={triggerRef} className="workspace-search-trigger" type="button" aria-label="เปิดค้นหาส่วนกลาง" aria-expanded={open} onClick={openSearch}><WorkspaceIcon name="search" size={20}/></button>
     <div className="search shell-compound-field"><WorkspaceIcon name="search" size={20}/>
       <input ref={inputRef} id="workspace-search-input" value={query} maxLength={200} placeholder="ค้นหาเมนูและรายการติดตาม…" aria-label="ค้นหาเมนูและรายการติดตาม" role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={open ? listboxId : undefined} aria-activedescendant={open && results[active] ? `${listboxId}-${active}` : undefined} autoComplete="off"

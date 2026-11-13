@@ -1,5 +1,19 @@
 # Current implementation status
 
+## Module loading feedback — 13/11/2569
+
+Shared page fallbacks now show a rotating ring over a translucent, theme-aware content veil with no visible loading text. Sidebar/brand links use Next.js `useLinkStatus`; search navigation uses a React transition, followed by the route fallback when streamed content is still pending. Feedback ends with the real pending state, leaves shell navigation available, and is suppressed during the dedicated login transition. The indicator retains an accessible Thai status label. Synthetic Next.js navigation checks held the RSC response before releasing a delayed destination and verified both pending-link and fallback indicators, cleanup, no visible text, and viewport bounds in Light/Dark at 1440/390 px. Typecheck, changed-component lint, CSS checks, 33 related unit tests and 10 login transition browser tests passed.
+
+## Login split transition — 13/11/2569
+
+Valid form submission starts authentication immediately while the form stays in place. After success, an inert decorative login copy covers the page while client navigation loads the destination behind it. The copy strips passwords, hidden inputs and duplicate IDs, stays only in memory/DOM, and is removed on completion/expiry; only a timestamp is stored across navigation. The transition waits for sidebar preference hydration, visible page skeleton/busy states, fonts and two layout frames. A five-second loading fallback prevents indefinite waiting. The 1000 ms split moves each panel just beyond the viewport edge; destination surfaces start their 1100 ms downward entrance after the split finishes plus a deliberate 500 ms pause (1500 ms from split start), as requested by the owner. Failed authentication never starts this transition. The owner explicitly requested full login motion even on reduced-motion systems. Credential validation, session creation, safe destination selection, forced password changes and authorization remain server-controlled; existing callers retain server redirects.
+
+Arrival animates header, sidebar and main surfaces together using translate3d, leaving the shell parent untransformed so fixed sidebar geometry stays stable. Browser fixtures hold authentication responses and destination skeletons to verify successful-authentication gating, a stationary cover while content loads, sequential entrance timing with a 500 ms pause, password-free copies, cleanup, stable sidebar height, both themes and desktop/mobile. Unit checks cover safe destinations, forced password changes, failure denial, cookie-update renders and the shell. A separate Next.js 16.3.8 fixture uses the actual shell with delayed server content to exercise the cookie-setting action and client navigation. These checks use synthetic forms, not the user's account.
+
+## Floating Core shell — 13/11/2569
+
+Owner-requested rounded floating Topbar/Sidebar with 16 px desktop gutters and theme-aware raised shadows/highlight edges. Search starts on the left; account/notifications stay on the right. Sidebar logo height and menu gaps are reduced, with a thin scrollbar for long menus. Mobile retains its dialog navigation and a floating header with 8 px gutters. The canonical shell stylesheet owns all changes; module content, navigation destinations, permissions and data behavior remain intact. Responsive Light/Dark browser checks include notification controls and desktop rail/mobile drawer geometry.
+
 ## Compact map heading spacing — 13/11/2569
 
 Map title and layer toggles now share a wrapping toolbar row. Map pages use the grid gap instead of adding page-header bottom margin; direct canvas error messages have no paragraph margin. This removes redundant space above the map while retaining status messages, layer controls and expanded-map behavior. Shared presentation applies consistently to both map modules.

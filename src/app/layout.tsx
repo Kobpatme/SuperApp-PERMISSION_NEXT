@@ -9,6 +9,8 @@ import "@/styles/auth.css";
 import "@/styles/motion.css";
 import type { Metadata } from "next";
 import { appFontClassName } from "@/app/fonts";
+import { LoginTransitionArrival } from "@/components/auth/login-transition";
+import { loginTransitionBootstrap } from "@/components/auth/login-transition-bootstrap";
 
 export const metadata: Metadata = {
   title: { default: "Permission Next", template: "%s | Permission Next" },
@@ -19,5 +21,5 @@ export const metadata: Metadata = {
 const themeScript = `(function(){try{var k=['permission-next','work'+'space','theme'].join('-'),t=localStorage.getItem(k);if(t!=='dark'&&t!=='light')t='light';document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}catch(e){}})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="th" className={appFontClassName} suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head><body>{children}</body></html>;
+  return <html lang="th" className={appFontClassName} suppressHydrationWarning><head><script dangerouslySetInnerHTML={{ __html: themeScript }} /><script dangerouslySetInnerHTML={{__html:loginTransitionBootstrap}}/></head><body><LoginTransitionArrival/>{children}</body></html>;
 }

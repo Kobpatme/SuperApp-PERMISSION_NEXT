@@ -16,7 +16,7 @@ import { safeNextPath } from "@/lib/safe-next-path";
 import { copy } from "@/lib/copy";
 import { logEvent } from "@/lib/logger";
 
-export type LoginState = { error?: string; email?: string };
+export type LoginState = { error?: string; email?: string; destination?: string };
 const genericLoginError = copy.auth.genericError;
 const dummyPasswordHash = "$argon2id$v=19$m=19456,t=2,p=1$wkwySqmJsieZfznthHo2Qg$d8F9W9AnR5D2cjrarKTUpsdhwyYNsXeC5Zchro3ngaw";
 
@@ -103,6 +103,9 @@ export async function loginAction(_state: LoginState, form: FormData): Promise<L
     logEvent("error", "auth.login.failed", { requestId, errorType: error instanceof Error ? error.name : "unknown" });
     return { email, error: copy.auth.serviceError(requestId) };
   }
+  // Animated clients coordinate navigation after authentication and motion finish.
+  // Existing callers that do not negotiate client navigation keep the redirect.
+  if (form.get("navigation") === "client") return { destination };
   redirect(destination);
 }
 

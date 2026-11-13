@@ -50,4 +50,15 @@ describe("login security branches", () => {
     await expect(loginAction({}, form())).rejects.toThrow("REDIRECT:/work");
     expect(mocks.audit.mock.calls[0][0].action).toBe("auth.login.success"); expect(mocks.session).toHaveBeenCalledOnce();
   });
+  it.each([false,true])("returns a safe destination after authentication for concurrent animation; password change=%s",async(mustChangePassword)=>{
+    mocks.account={id:"fixture-id",status:"active",passwordHash:"fixture-hash",failedAttempts:0,lockedUntil:null,mustChangePassword};
+    mocks.verify.mockResolvedValue(true);
+    const data=form();data.set("navigation","client");data.set("next","//evil.example");
+    expect(await loginAction({},data)).toEqual({destination:mustChangePassword?"/change-password":"/"});
+    expect(mocks.session).toHaveBeenCalledOnce();expect(mocks.audit.mock.calls[0][0].action).toBe("auth.login.success");
+  });
+  it("does not return a destination for invalid credentials when client navigation is requested",async()=>{
+    const data=form();data.set("navigation","client");
+    expect(await loginAction({},data)).not.toHaveProperty("destination");expect(mocks.session).not.toHaveBeenCalled();
+  });
 });

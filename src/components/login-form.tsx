@@ -2,17 +2,29 @@
 import { Button } from "@/components/ui/button";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { loginAction } from "@/app/login/actions";
+import { useRouter } from "next/navigation";
+import { loginAction, type LoginState } from "@/app/login/actions";
 import { PasswordField } from "@/components/auth/password-field";
 import { copy } from "@/lib/copy";
+import { clearLoginTransition, prepareLoginTransition } from "@/components/auth/login-transition";
 
 export function LoginForm({ next = "" }: { next?: string }) {
-  const [state, action, pending] = useActionState(loginAction, {});
+  const router=useRouter();
+  const formRef=useRef<HTMLFormElement>(null);
+  const [state, action, pending] = useActionState(async(previous:LoginState,data:FormData)=>{
+    data.set("navigation","client");
+    const result=await loginAction(previous,data);
+    if(result.destination){
+      if(formRef.current)prepareLoginTransition(formRef.current);
+      router.replace(result.destination);
+    }
+    return result;
+  }, {});
   const passwordRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  useEffect(() => { if (state.error) passwordRef.current?.focus(); }, [state]);
-  return <form className="auth-form" action={action} noValidate onSubmit={event => {
+  useEffect(() => { if (state.error) { clearLoginTransition(); passwordRef.current?.focus(); } }, [state]);
+  return <form ref={formRef} className="auth-form" action={action} noValidate onSubmit={event => {
     if (pending) { event.preventDefault(); return; }
     const data = new FormData(event.currentTarget);
     const email = String(data.get("email") || "").trim();

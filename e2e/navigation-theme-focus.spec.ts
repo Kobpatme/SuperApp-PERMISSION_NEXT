@@ -47,7 +47,7 @@ async function mount(page: Page, component: "ModuleNav" | "WorkspaceThemeToggle"
       });
       build.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "fixture" }));
       build.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: args.path === "next/link"
-        ? `import React from 'react'; export default function Link(props) { return React.createElement('a', props); }`
+        ? `import React from 'react'; export function useLinkStatus(){return {pending:false};}export default function Link(props) { return React.createElement('a', props); }`
         : `export function usePathname() { return window.fixturePath || '/'; } export function useSearchParams() { return new URLSearchParams(window.fixtureQuery || ''); }`, resolveDir: process.cwd() }));
     } }],
   });
@@ -67,7 +67,7 @@ async function mountRealShell(page: Page, props = {}) {
       build.onResolve({ filter: /^@\// }, args => ({ path: aliasPath(args.path) }));
       build.onResolve({ filter: /^next\/(link|navigation|image)$/ }, args => ({ path: args.path, namespace: "fixture" }));
       build.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({ contents: args.path === "next/link"
-        ? `import React from 'react'; export default function Link(props) { return React.createElement('a', props); }`
+        ? `import React from 'react'; export function useLinkStatus(){return {pending:false};}export default function Link(props) { return React.createElement('a', props); }`
         : args.path === "next/image" ? `import React from 'react'; export default function Image(props) { const { priority, ...rest } = props; return React.createElement('img', rest); }`
         : `export function useRouter() { return { push() { throw new Error('Route loading is outside this fixture'); } }; } export function usePathname() { return window.fixturePath || '/work'; } export function useSearchParams() { return new URLSearchParams(window.fixtureQuery || ''); }`, resolveDir: process.cwd() }));
     } }],
@@ -269,6 +269,16 @@ test("actual AppShell fixture proves themed surfaces, drawer geometry, and deskt
       return { sidebarRight: sidebar.right, mainLeft: main.left, width: sidebar.width };
     });
     expect(expandedGeometry.mainLeft).toBeGreaterThanOrEqual(expandedGeometry.sidebarRight);
+    const floatingGeometry=await page.evaluate(()=>{
+      const sidebar=document.querySelector<HTMLElement>("[data-shell-sidebar]")!.getBoundingClientRect();
+      const header=document.querySelector<HTMLElement>("[data-shell-header]")!.getBoundingClientRect();
+      return {left:sidebar.left,top:sidebar.top,bottomGap:innerHeight-sidebar.bottom,headerTop:header.top,gap:header.left-sidebar.right};
+    });
+    expect(floatingGeometry.left).toBe(16);
+    expect(floatingGeometry.top).toBe(16);
+    expect(floatingGeometry.bottomGap).toBe(16);
+    expect(floatingGeometry.headerTop).toBe(16);
+    expect(floatingGeometry.gap).toBe(16);
     await page.getByRole("button", { name: "ยุบเมนูด้านข้าง", exact: true }).click();
     await expect(shell).toHaveClass(/collapsed/);
     await page.screenshot({ path: resolve(artifactDir, "actual-shell-dark-rail.png"), animations: "disabled" });
