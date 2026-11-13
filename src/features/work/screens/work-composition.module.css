@@ -1,7 +1,6 @@
 /* Work composition only. Semantic palette/depth remain owned by core tokens. */
 .workspace { min-width:0; }
-.workspace > :global(.page-heading) { padding-block:var(--space-2) var(--space-5); border-bottom:var(--border-width) solid var(--color-border); }
-.workspace > :global(.page-heading) :global(h1) { line-height:1.4; }
+.workspace > :global(.page-heading) { margin-bottom:0; }
 .workspace :global(.work-metric-strip) { gap:var(--space-3); }
 .workspace :global(.work-metric-strip .ui-metric) { min-height:0; padding:var(--space-4); gap:var(--space-1); box-shadow:var(--shadow-raised); }
 .workspace :global(.work-panel), .workspace :global(.work-rollout-filter-panel) { border-radius:var(--radius-xl); box-shadow:var(--shadow-raised); }

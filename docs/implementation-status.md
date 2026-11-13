@@ -1,5 +1,21 @@
 # Current implementation status
 
+## Compact map heading spacing — 13/11/2569
+
+Map title and layer toggles now share a wrapping toolbar row. Map pages use the grid gap instead of adding page-header bottom margin; direct canvas error messages have no paragraph margin. This removes redundant space above the map while retaining status messages, layer controls and expanded-map behavior. Shared presentation applies consistently to both map modules.
+
+## PEA / UFM map tool card — 13/11/2569
+
+Applied the Site Facility presentation to route analysis: full-width map, collapsible analysis card without internal scrolling, and map controls beside the page heading. Dataset inputs, advanced options and result filters use disclosures; existing Core sidebar links retain all five module pages after removal of duplicate local tabs. Analysis, reanalysis, filters, exports and API contracts are retained. Synthetic browser checks passed 14 route/site Light/Dark cases at four widths, plus two saved-project/filter checks. Nine focused unit checks, typecheck, lint and CSS quality passed; local dev returns HTTP 200. These checks do not perform real-data analysis or production mutations.
+
+## Site Facility map filter card — 13/11/2569
+
+Owner-requested presentation update: replace the separate scrolling filter sidebar with a compact card inside the map frame. Search spans one row; remaining filters use two columns, with result count/reset and native collapse/expand. Comments/OPEX stay below the map; filtering queries and authorization are unchanged. Eight browser cases passed in Light/Dark at 320/390/768/1440 px, including containment/no internal scroll, search/reset and card disclosure; lint, typecheck and CSS quality passed. Local dev remains available on port 3000.
+
+## UI spacing and alignment across modules — 13/11/2569
+
+Presentation-only CSS correction: canonical page-header geometry, consistent action/label spacing, responsive PO grids/codes/statuses and bounded map forms/OPEX sidebar. No production component logic, workflow, authorization, API or database change. Unit suite: 6,727 passed / 103 opt-in skipped; lint, typecheck, document, CSS/contrast and production build checks passed. Browser checks cover every module with synthetic fixtures in both themes; remaining legacy selector/behavior failures are recorded separately and are not claimed green. See [module-by-module changes, repeatable checks and limitations](quality/layout-consistency.md).
+
 ## MOD 1 / MOD 2 shared field correction — 13/11/2569
 
 Both map modules now explicitly adopt the existing Core `ui-field-control ui-building-field` skin through the shared map `Field`, including map toolbar selects, datalist-backed filters, imports and site-detail controls. No new field theme or module-local CSS was added. Native checkbox/file controls remain excluded; the canonical fixed-height rule now excludes multi-row selects so listboxes retain their row count. No API, authorization, database or workflow change. Fresh verification: 6,727 unit passed / 103 opt-in skipped; 40 synthetic component-browser cases passed, including computed-style comparison against same-type Core reference controls in light/dark for enabled/focus/invalid/disabled/readonly states, responsive layout and keyboard/axe checks. Typecheck, full lint, document mapping, CSS (455 files), contrast (62 pairs) and isolated production build `.data/permission-out-build-4uaTzZ` passed. Browser fixture responses are synthetic; this is not real-data or owner UAT. Existing release gates below remain unchanged.

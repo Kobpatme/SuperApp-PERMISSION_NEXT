@@ -38,6 +38,8 @@ async function render(){const route=location.pathname;const props={params:Promis
 try{content=state==='loading'?(route.includes('${id}')?<DetailLoading/>:<Loading/>):state==='alternate'?<MapWorkspace buildings={window.TESTrows} apiKey={window.TESTmapKey}/>:await(route.endsWith('/edit')?Edit:route==='/buildings/new'?Create:route==='/buildings/map'?MapPage:route==='${detail}'?Detail:List)(props)}catch(e){if(e.message!=='TEST_NOT_FOUND')throw e;content=<main role="status">TEST ไม่พบข้อมูลหรือไม่มีสิทธิ์เข้าถึง · notFound boundary</main>}
 root.render(<AppShell displayName="TEST ผู้ใช้ทดสอบ" allowedModuleIds={['buildings']}><aside className="TEST-map-label" aria-label="ขอบเขตการทดสอบ">TEST ข้อมูลจำลอง · ไม่ได้เข้าสู่ระบบจริง · ไม่เชื่อมฐานข้อมูล NAS หรือแผนที่จริง</aside>{content}</AppShell>)}window.TESTrender=render;render();
 `},plugins:[{name:'buildings-TEST-boundaries',setup(builder){
+ builder.onResolve({filter:/^next\/image$/},()=>({path:'image',namespace:'TEST-image'}));
+ builder.onLoad({filter:/.*/,namespace:'TEST-image'},()=>({loader:'tsx',resolveDir:process.cwd(),contents:`import React from'react';export default function Image({priority,unoptimized,fill,...props}){return <img {...props}/>}`}));
  builder.onResolve({filter:/^next\/(link|navigation)$/},args=>({path:args.path,namespace:'TEST'}));
  builder.onResolve({filter:/^@\/lib\/(access|permission-building-server|building-360-server|building-editor-server|env)$/},args=>({path:args.path,namespace:'TEST'}));
  builder.onResolve({filter:/^@\/db(?:\/schema)?$/},args=>({path:args.path,namespace:'TEST'}));

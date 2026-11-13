@@ -32,14 +32,12 @@ describe("shared button interaction states", () => {
     expect(countOccurrences(css, ".ui-table {"), "canonical table owner").toBe(1);
   });
 
-  it("owns overview header alignment inside the overview scope and wraps only on narrow screens", () => {
-    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-row { width:100%; flex-wrap:nowrap; align-items:flex-start; justify-content:space-between; }");
-    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-content { flex:1 1 auto; }");
-    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-actions { flex:0 0 auto; width:auto; margin-left:auto; align-items:center; }");
-    expect(workCss).toContain("@media (max-width: 650px)");
-    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-row { align-items:stretch; flex-direction:column; gap:var(--space-3); }");
-    expect(workCss).toContain(".overview-screen > .page-heading .page-heading-actions { width:100%; margin-left:0; justify-content:flex-start; }");
-    expect(workCss).not.toMatch(/(^|\n)\.page-heading-actions\s*\{[^}]*justify-content/);
+  it("owns header alignment centrally so overview and modules share responsive geometry", () => {
+    expect(css).toMatch(/\.page-heading-row\s*\{[^}]*width:100%;[^}]*justify-content:space-between/);
+    expect(css).toMatch(/\.page-heading-content\s*\{[^}]*min-width:\s*0/);
+    expect(css).toMatch(/\.page-heading-actions\s*\{[^}]*flex-wrap:wrap;[^}]*max-width:100%/);
+    expect(css).toMatch(/@media \(max-width: 650px\)[\s\S]*?\.page-heading-row\s*\{[^}]*flex-direction:column/);
+    expect(legacyComponentsCss).not.toMatch(/\.ui-page-header \.page-heading-(?:row|actions)\s*\{/);
   });
 
   it("preserves queue descendant presentation without changing table-cell layout", () => {

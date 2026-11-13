@@ -2,9 +2,6 @@
    No legacy .work-data-table/.work-filters selectors are overridden here. */
 .workspace { display:grid; gap:var(--space-4); min-width:0; }
 .pageHeader { margin:0; padding:0 0 var(--space-4); }
-.pageHeader :global(.page-heading-row) { width:100%; flex-wrap:nowrap; align-items:flex-end; justify-content:space-between; }
-.pageHeader :global(.page-heading-content) { flex:1 1 auto; gap:var(--space-1); }
-.pageHeader :global(.page-heading-actions) { flex:0 0 auto; width:auto; margin-left:auto; }
 .pageHeader :global(.page-heading-actions .btn-primary) { min-height:44px; white-space:nowrap; }
 .pageHeader :global(h1) { font-weight:800; }
 .summary { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2); margin-top:calc(var(--space-1) * -1); color:var(--color-text-muted); font-size:var(--text-caption); }
@@ -39,9 +36,6 @@
 @media(max-width:1100px) { .filterGrid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:650px) {
   .workspace { gap:var(--space-3); }
-  .pageHeader { padding-bottom:var(--space-3); }
-  .pageHeader :global(.page-heading-row) { align-items:stretch; flex-direction:column; gap:var(--space-3); }
-  .pageHeader :global(.page-heading-actions) { width:100%; margin-left:0; }
   .pageHeader :global(.page-heading-actions .btn-primary) { width:100%; justify-content:center; }
   .panelHeading { min-height:auto; padding:var(--space-3) var(--space-4); align-items:flex-start; flex-direction:column; gap:var(--space-1); }
   .filters { padding:var(--space-3) var(--space-4) var(--space-2); }

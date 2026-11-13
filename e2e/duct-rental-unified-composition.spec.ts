@@ -37,6 +37,8 @@ async function run(){const match=routes.map(r=>({...r,parts:r.pattern.split('/')
 ` }, plugins: [{ name: "duct-test-boundaries", setup(builder) {
     builder.onResolve({ filter: /^next\/(link|navigation|image)$/ }, args => ({ path: args.path, namespace: "TEST" }));
     builder.onResolve({ filter: /^@\/lib\/(access|env)$/ }, () => ({ path: "data", namespace: "TEST" }));
+    builder.onResolve({filter:/^@\/lib\/permission-out-composition$/},()=>({path:'handoff',namespace:'TEST-handoff'}));
+    builder.onLoad({filter:/.*/,namespace:'TEST-handoff'},()=>({contents:'export async function loadCableAnalysisHandoff(){return null}'}));
     builder.onResolve({ filter: /^@\/app\/.*actions$/ }, () => ({ path: "actions", namespace: "TEST" }));
     builder.onLoad({ filter: /.*/, namespace: "TEST" }, args => ({ loader: "tsx", resolveDir: process.cwd(), contents:
       args.path === "data" ? `export async function getAccessContext(){return window.TESTaccess}export function getServerEnv(){return {SUPPORT_CONTACT_TEXT:'TEST ผู้ดูแล'}}` :

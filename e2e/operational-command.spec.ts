@@ -39,6 +39,8 @@ test.beforeAll(async () => {
       <><h1>สถานะและองค์ประกอบกลาง</h1><div style={{width:180}}><TruncatedText text={EXTREME_THAI_NAME} lines={1}/></div><div className="ui-toolbar"><button className="primary" disabled>บันทึก</button><button className="secondary-action">ยกเลิก</button></div><StatusBadge label="สำเร็จ" tone="success"/><EmptyState title="ยังไม่มีรายการ" description="ลองเพิ่มรายการแรกได้เลย"/><ErrorState reset={()=>{window.fixtureReset=true}} embedded/><PageSkeleton shape="table"/></>;
     createRoot(document.getElementById('root')).render(<AppShell displayName="ผู้ใช้ทดสอบ" allowedModuleIds={['work','buildings','duct-rental']} workNavigation={[{href:'/work/mine',label:'งานของฉัน',icon:'check'}]} scopeLabel="ทีมของตน">{content}</AppShell>);
   ` }, bundle: true, write: false, outdir: "fixture-output", platform: "browser", jsx: "automatic", define: { "process.env.NODE_ENV": '"development"' }, plugins: [{ name: "isolated-presentation", setup(builder) {
+    builder.onResolve({filter:/^next\/image$/},()=>({path:'image',namespace:'TEST-image'}));
+    builder.onLoad({filter:/.*/,namespace:'TEST-image'},()=>({loader:'tsx',resolveDir:process.cwd(),contents:`import React from'react';export default function Image({priority,unoptimized,fill,...props}){return <img {...props}/>}`}));
     builder.onResolve({filter: /^next\/(link|navigation)$/}, args => ({path:args.path, namespace:"fixture"}));
     builder.onResolve({filter: /^@\/app\/.*actions$/}, () => ({path:"actions",namespace:"fixture"}));
     builder.onLoad({filter: /.*/,namespace:"fixture"}, args => ({loader:"tsx",resolveDir:process.cwd(),contents:args.path==='actions' ? 'export async function logoutAction(){throw new Error("Server action disabled in presentation fixture")} export const addWorkTaskNoteAction=logoutAction, deleteWorkTaskAction=logoutAction, editWorkTaskAction=logoutAction, transitionWorkTaskAction=logoutAction, createPersonalTaskAction=logoutAction, previewWorkDeadlineAction=logoutAction;' : args.path==='next/link' ? `import React from 'react';export default function Link({prefetch,...props}){return <a {...props}/>}` : `const router={push:(url)=>window.fixtureDestination=url,replace:()=>{},refresh:()=>{}};export function useRouter(){return router}export function useSearchParams(){return new URLSearchParams()}export function usePathname(){return '/'} `}));
@@ -55,9 +57,11 @@ async function mount(page: Page, mode = "shared", theme = "light", width = 1440)
     return route.abort();
   });
   await page.goto('https://operational.test/');
+  await page.evaluate(theme=>localStorage.setItem('permission-next-workspace-theme',theme),theme);
   await page.evaluate(mode=>Object.assign(window,{fixtureMode:mode}),mode);
   await page.addScriptTag({content:bundle});
   await expect(page.locator('main')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-theme',theme);
   await page.evaluate(async()=>{await document.fonts.ready;await new Promise<void>(done=>requestAnimationFrame(()=>requestAnimationFrame(()=>done())));await Promise.all(document.getAnimations().filter(animation=>animation.effect?.getComputedTiming().iterations!==Infinity).map(animation=>animation.finished.catch(()=>undefined)));});
 }
 async function axe(page: Page) {
@@ -69,17 +73,17 @@ for(const theme of ['light','dark']) for(const width of [375,768,1024,1440]) {
     await mount(page,'dashboard',theme,width);
     await page.screenshot({path:info.outputPath('dashboard.png'),fullPage:true});
     if(width>=1024) {
-      expect(await page.locator('.workspace-sidebar').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(15, 23, 42)');
-      await expect(page.locator('.workspace-sidebar')).toBeVisible();
-      expect(await page.locator('.workspace-sidebar').evaluate(el=>({left:el.getBoundingClientRect().left,width:el.getBoundingClientRect().width,transform:getComputedStyle(el).transform}))).toEqual({left:0,width:260,transform:'none'});
+      expect(await page.locator('[data-shell-sidebar]').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(theme==='dark'?'rgb(15, 23, 42)':'rgb(255, 255, 255)');
+      await expect(page.locator('[data-shell-sidebar]')).toBeVisible();
+      expect(await page.locator('[data-shell-sidebar]').evaluate(el=>({left:el.getBoundingClientRect().left,width:el.getBoundingClientRect().width,transform:getComputedStyle(el).transform}))).toEqual({left:0,width:248,transform:'none'});
     } else {
-      await page.getByRole('button',{name:'เปิดเมนูพื้นที่ทำงาน'}).click();
+      await page.getByRole('button',{name:'เปิดเมนูนำทาง'}).click();
       await expect(page.getByRole('dialog')).toBeVisible();
-      expect(await page.getByRole('dialog').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(15, 23, 42)');
+      expect(await page.getByRole('dialog').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(theme==='dark'?'rgb(15, 23, 42)':'rgb(255, 255, 255)');
       await axe(page);
       await page.keyboard.press('Escape');
       await expect(page.getByRole('dialog')).not.toBeVisible();
-      await expect(page.getByRole('button',{name:'เปิดเมนูพื้นที่ทำงาน'})).toBeFocused();
+      await expect(page.getByRole('button',{name:'เปิดเมนูนำทาง'})).toBeFocused();
     }
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     await axe(page);
@@ -145,8 +149,8 @@ for(const theme of ['light','dark']) test(`form validation and recovery ${theme}
 test('collapsed rail keeps its saved geometry and readable keyboard destinations',async({page})=>{
   await mount(page,'dashboard');
   await page.getByRole('button',{name:'ยุบเมนูด้านข้าง'}).click();
-  expect(await page.locator('.workspace-sidebar').evaluate(el=>el.getBoundingClientRect().width)).toBe(80);
-  expect(await page.locator('main').evaluate(el=>el.getBoundingClientRect().left)).toBe(80);
+  await expect.poll(()=>page.locator('[data-shell-sidebar]').evaluate(el=>el.getBoundingClientRect().width)).toBe(80);
+  await expect.poll(()=>page.locator('main').evaluate(el=>el.getBoundingClientRect().left)).toBe(80);
   await axe(page);
 });
 for(const mode of ['dashboard','work','buildings','duct','form']) test(`reflow and touch targets ${mode}`,async({page})=>{

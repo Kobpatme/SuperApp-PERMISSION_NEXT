@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import {useCallback,useEffect,useRef,useState,type FormEvent} from "react";
 import {useSearchParams} from "next/navigation";
 import {PageHeader} from "@/components/ui/page-header";
@@ -12,14 +11,14 @@ const readApi=<T,>(path:string,init?:RequestInit)=>readWorkspaceApi<T>(api,path,
 const post=<T,>(path:string,value:unknown)=>readApi<T>(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(value)});
 type SiteResult={rows:{datasetId:string;baseVersion:string;key:string;data:Site;editVersion:number;opex:string|null}[];total:number;withoutCoordinates:number;yearly:string|null;monthly:string|null;groups:{name:string;count:number;yearly:string}[];page:number};
 export function SiteFacilityWorkspace({view="sites",permissions,canViewRoutes=false}:{view?:string;permissions:string[];canViewRoutes?:boolean}){
+ const [toolbarTarget,setToolbarTarget]=useState<HTMLDivElement|null>(null);
  const can=(code:string)=>permissions.includes("*")||permissions.includes(`site_facility.${code}`);
  return <main className={styles.workspace} data-ui-screen="site-facility">
-  <PageHeader title={view==="datasets"?"ชุดข้อมูล Site Facility":"Site Facility & Design"} description="MOD 2 — ค้นหาและทำงานกับโครงสร้างพื้นฐานไซต์บนแผนที่" parent={{label:"ภาพรวม",href:"/"}}/>
-  <nav className="ui-tabs" aria-label="ส่วนงาน Site Facility">{[["","แผนที่ไซต์"],["reports","รายงานไซต์"],...(can("dataset.manage")?[["datasets","ชุดข้อมูลไซต์"]]:[])].map(([path,title])=><Link key={path} href={`/site-facility${path?"/"+path:""}`} aria-current={(path||"sites")===view?"page":undefined}>{title}</Link>)}</nav>
-  {view==="datasets"?(can("dataset.manage")?<DatasetWorkspace moduleId="site-facility" canPublish={can("dataset.publish")} canDownload={can("opex.read")}/>:<p>คุณไม่มีสิทธิ์จัดการชุดข้อมูลไซต์</p>):<Sites canRead={can("site.read")} canUpdate={can("site.update")} canComment={can("comment.create")} canExport={can("report.export")} canViewRoutes={canViewRoutes} showReport={view==="reports"}/>}
+  <PageHeader title={view==="datasets"?"ชุดข้อมูล Site Facility":"Site Facility & Design"} parent={{label:"ภาพรวม",href:"/"}} actions={view!=="datasets"&&can("site.read")?<div ref={setToolbarTarget} className="ui-map-header-tools"/>:undefined}/>
+  {view==="datasets"?(can("dataset.manage")?<DatasetWorkspace moduleId="site-facility" canPublish={can("dataset.publish")} canDownload={can("opex.read")}/>:<p>คุณไม่มีสิทธิ์จัดการชุดข้อมูลไซต์</p>):<Sites canRead={can("site.read")} canUpdate={can("site.update")} canComment={can("comment.create")} canExport={can("report.export")} canViewRoutes={canViewRoutes} showReport={view==="reports"} toolbarTarget={toolbarTarget}/>}
  </main>;
 }
-function Sites({ canRead, canUpdate, canComment, canExport,canViewRoutes,showReport=false }: { canRead: boolean; canUpdate: boolean; canComment: boolean; canExport: boolean;canViewRoutes:boolean;showReport?:boolean }) {
+function Sites({ canRead, canUpdate, canComment, canExport,canViewRoutes,showReport=false,toolbarTarget }: { canRead: boolean; canUpdate: boolean; canComment: boolean; canExport: boolean;canViewRoutes:boolean;showReport?:boolean;toolbarTarget:HTMLElement|null }) {
   const initialParams = useSearchParams();
   const [facets,setFacets]=useState<Record<string,string[]>>({});
   useEffect(()=>{let active=true;readApi<Record<string,string[]>>("site-options").then(r=>{if(active)setFacets(r);}).catch(()=>{});return()=>{active=false;};},[]);
@@ -33,23 +32,28 @@ function Sites({ canRead, canUpdate, canComment, canExport,canViewRoutes,showRep
   const openSite=useCallback(async(site:MapSite)=>{setFocused(site);try{setSelected(await readApi<SiteResult["rows"][number]>(`sites/${site.datasetId}?${new URLSearchParams({key:site.key})}`));}catch(e){setError((e as Error).message);}},[]);
   if (!canRead) return <p>คุณไม่มีสิทธิ์ดูข้อมูลไซต์</p>;
   return <>
-    <div className={styles.workbench}>
-      <aside className={styles.sidebar} aria-label="ตัวกรอง Site Facility">
-        <h2>ค้นหาและกรองไซต์</h2>
-        <div className={styles.columns}>{[["q","ค้นหา Site Code หรือชื่อ"],["regional","ภาค"],["area","พื้นที่"],["province","จังหวัด"],["grade","เกรด"],["type","ประเภท"],["owner","เจ้าของ"]].map(([key, title]) => <Field key={key} label={title}><input list={key==="q"?undefined:`pout-${key}-options`} value={query[key] ?? ""} onChange={e => setQuery({ ...query, [key]: e.target.value, page: "1" })} />{key!=="q"&&<datalist id={`pout-${key}-options`}>{facets[key]?.map(value=><option key={value} value={value}/>)}</datalist>}</Field>)}</div><ErrorMessage error={error} /><details><summary>ความคิดเห็นใหม่ {notices.length >= 100 ? "100+" : notices.length}</summary><ul>{notices.map(n=><li key={n.id}><Button onClick={()=>setQuery({...query,q:n.key,page:"1"})}>{n.key}</Button> {n.body}</li>)}</ul><Button onClick={()=>post<typeof notices>("notifications",{}).then(setNotices).catch(e=>setError(e.message))}>อ่านทั้งหมดแล้ว</Button></details>
-
-        <Button onClick={()=>setQuery({q:"",page:"1"})}>ล้างตัวกรองไซต์</Button>
-        {canViewRoutes&&<label><input type="checkbox" checked={showRoutes} onChange={e=>setShowRoutes(e.target.checked)}/>แสดงเส้นทาง PEA / UFM จาก MOD 1</label>}
-        <ErrorMessage error={routeError}/>
-        {result&&<><p role="status">พบ {result.total.toLocaleString("th-TH")} ไซต์ · ไม่มีพิกัด {result.withoutCoordinates.toLocaleString("th-TH")}</p>{result.yearly !== null && <details open={showReport||undefined}><summary>รายงาน OPEX ตามกลุ่ม</summary><Field label="จัดกลุ่มรายงาน"><select value={query.groupBy ?? "province"} onChange={e=>setQuery({...query,groupBy:e.target.value,page:"1"})}><option value="province">จังหวัด</option><option value="area">พื้นที่</option><option value="owner">เจ้าของ</option><option value="grade">เกรด</option><option value="type">ประเภท</option></select></Field><div className={styles.table}><table className="ui-table"><caption>OPEX รายปีตามตัวกรองทั้งหมด</caption><thead><tr><th scope="col">กลุ่ม</th><th scope="col">ไซต์</th><th scope="col">บาทต่อปี</th></tr></thead><tbody>{result.groups?.map(g=><tr key={g.name}><th scope="row">{g.name || "ไม่ระบุ"}</th><td>{g.count}</td><td>{g.yearly}</td></tr>)}</tbody></table></div></details>}</>}
-      </aside>
-      <div className={styles.canvas}>
-        <NetworkMap title="แผนที่ Site Facility" sites={mapRows} routes={showRoutes?routes:undefined} selectedSite={focused} onSiteSelect={openSite}/>
+    <div className={styles.canvas}>
+        <NetworkMap title="แผนที่ Site Facility" sites={mapRows} routes={showRoutes?routes:undefined} selectedSite={focused} onSiteSelect={openSite} toolbarTarget={toolbarTarget} filterOverlay={
+          <details open className="ui-map-filter-card" aria-label="ตัวกรอง Site Facility">
+            <summary><h2>ค้นหาและกรองไซต์</h2><span className="ui-map-filter-toggle">ย่อ / ขยาย</span></summary>
+            <div className="ui-map-filter-body">
+              <div className="ui-map-filter-fields">{[["q","ค้นหา Site Code หรือชื่อ"],["regional","ภาค"],["area","พื้นที่"],["province","จังหวัด"],["grade","เกรด"],["type","ประเภท"],["owner","เจ้าของ"]].map(([key, title]) => <Field key={key} label={title}><input list={key==="q"?undefined:`pout-${key}-options`} value={query[key] ?? ""} onChange={e => setQuery({ ...query, [key]: e.target.value, page: "1" })} />{key!=="q"&&<datalist id={`pout-${key}-options`}>{facets[key]?.map(value=><option key={value} value={value}/>)}</datalist>}</Field>)}</div>
+              <ErrorMessage error={error}/>
+              {canViewRoutes&&<label className="ui-map-filter-check"><input type="checkbox" checked={showRoutes} onChange={e=>setShowRoutes(e.target.checked)}/>แสดงเส้นทาง PEA / UFM</label>}
+              <ErrorMessage error={routeError}/>
+              <div className="ui-map-filter-footer"><span role="status">{result?`พบ ${result.total.toLocaleString("th-TH")} ไซต์`:"กำลังโหลดไซต์…"}</span><Button onClick={()=>setQuery({q:"",page:"1"})}>ล้างตัวกรองไซต์</Button></div>
+            </div>
+          </details>
+        }/>
         <p>เลือกจุดไซต์บนแผนที่หรือรายการด้านล่างเพื่อเปิดรายละเอียด{mapLimited?" · แผนที่แสดงสูงสุด 5,000 ไซต์ กรุณากรองเพิ่ม":""}</p>
+        {result&&<p>ไม่มีพิกัด {result.withoutCoordinates.toLocaleString("th-TH")} ไซต์</p>}
         {result?.yearly!==null&&result?.yearly!==undefined&&<p>OPEX รายปี {result.yearly} บาท · รายเดือน {result.monthly} บาท (ตามตัวกรองทั้งหมด)</p>}
         {canExport&&<a className="ui-button ui-button-secondary" href={`${api}sites/export?${new URLSearchParams(query)}`}>ส่งออก CSV ตามตัวกรองทั้งหมด</a>}
-      </div>
     </div>
+    <section className={styles.panel} aria-label="ข้อมูลประกอบไซต์">
+      <details><summary>ความคิดเห็นใหม่ {notices.length >= 100 ? "100+" : notices.length}</summary><ul>{notices.map(n=><li key={n.id}><Button onClick={()=>setQuery({...query,q:n.key,page:"1"})}>{n.key}</Button> {n.body}</li>)}</ul><Button onClick={()=>post<typeof notices>("notifications",{}).then(setNotices).catch(e=>setError(e.message))}>อ่านทั้งหมดแล้ว</Button></details>
+      {result&&result.yearly!==null&&<details open={showReport||undefined}><summary>รายงาน OPEX ตามกลุ่ม</summary><Field label="จัดกลุ่มรายงาน"><select value={query.groupBy ?? "province"} onChange={e=>setQuery({...query,groupBy:e.target.value,page:"1"})}><option value="province">จังหวัด</option><option value="area">พื้นที่</option><option value="owner">เจ้าของ</option><option value="grade">เกรด</option><option value="type">ประเภท</option></select></Field><div className={styles.table}><table className="ui-table"><caption>OPEX รายปีตามตัวกรองทั้งหมด</caption><thead><tr><th scope="col">กลุ่ม</th><th scope="col">ไซต์</th><th scope="col">บาทต่อปี</th></tr></thead><tbody>{result.groups?.map(g=><tr key={g.name}><th scope="row">{g.name || "ไม่ระบุ"}</th><td>{g.count}</td><td>{g.yearly}</td></tr>)}</tbody></table></div></details>}
+    </section>
     {result&&<section className={styles.panel} aria-busy={busy}><h2>รายการ Site Facility</h2>      <div className={styles.table} tabIndex={0} role="region" aria-label="รายการไซต์"><table className="ui-table"><caption>Site Facility — หน้า {result.page}</caption><thead><tr>{["Site Code","ชื่อ","จังหวัด","เกรด","ประเภท",...(result.yearly !== null ? ["OPEX รายปี"] : [])].map(h => <th key={h} scope="col">{h}</th>)}</tr></thead><tbody>{result.rows.map(row => <tr key={`${row.datasetId}:${row.key}`}><th scope="row"><Button className={styles.linkButton} onClick={() => {setFocused({...row.data,datasetId:row.datasetId});setSelected(row);}}>{row.data.code||row.key}</Button></th><td>{row.data.name}</td><td>{row.data.province}</td><td>{row.data.grade}</td><td>{row.data.type}</td>{result.yearly !== null && <td>{row.opex ?? "ไม่ระบุ"}</td>}</tr>)}</tbody></table>{!result.rows.length && <p>ไม่พบไซต์ตามตัวกรอง</p>}</div><div className={styles.actions}><Button disabled={result.page <= 1 || busy} onClick={() => setQuery({ ...query, page: String(result.page - 1) })}>ก่อนหน้า</Button><span>หน้า {result.page} / {Math.max(1, Math.ceil(result.total / 50))}</span><Button disabled={result.page * 50 >= result.total || busy} onClick={() => setQuery({ ...query, page: String(result.page + 1) })}>ถัดไป</Button></div></section>}
         {selected && <SiteDetail row={selected} canUpdate={canUpdate} canComment={canComment} canOpex={result?.yearly!==null} onClose={() => setSelected(null)} onSaved={() => { setSelected(null); setRevision(r => r + 1); }} />}
 

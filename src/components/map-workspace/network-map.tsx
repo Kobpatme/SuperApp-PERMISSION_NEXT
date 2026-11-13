@@ -1,5 +1,6 @@
 "use client";
 import { useEffect,useRef,useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Field as FormField } from "./ui";
 import type { RouteLine,Segment,Site } from "@/modules/permission-out/domain";
@@ -7,10 +8,10 @@ import type { Area } from "@/modules/permission-out/geography";
 import "leaflet/dist/leaflet.css";
 export type MapSite=Site&{datasetId:string};
 type ReferenceFeature={key:string;name:string;coords?:[number,number][];geometry?:{type:"Polygon";coordinates:[number,number][][]}};
-type MapProps={title:string;segments?:Segment[];sites?:MapSite[];areas?:Area[];routes?:RouteLine[];selectedRoute?:RouteLine|null;selectedSite?:MapSite|null;onRouteSelect?:(route:RouteLine)=>void;onSiteSelect?:(site:MapSite)=>void;loadReferences?:()=>Promise<{items:ReferenceFeature[];limited:boolean}>;detail?:React.ReactNode;onDetailClose?:()=>void};
+type MapProps={title:string;segments?:Segment[];sites?:MapSite[];areas?:Area[];routes?:RouteLine[];selectedRoute?:RouteLine|null;selectedSite?:MapSite|null;onRouteSelect?:(route:RouteLine)=>void;onSiteSelect?:(site:MapSite)=>void;loadReferences?:()=>Promise<{items:ReferenceFeature[];limited:boolean}>;detail?:React.ReactNode;onDetailClose?:()=>void;filterOverlay?:React.ReactNode;toolbarTarget?:HTMLElement|null};
 const empty:never[]=[];
 const statusLabel={new:"New — เพิ่มใหม่",same:"Same — เหมือนเดิม",remove:"Remove — นำออก"};
-export function NetworkMap({title,segments=empty,sites=empty,areas=empty,routes=empty,selectedRoute,selectedSite,onRouteSelect,onSiteSelect,loadReferences,detail,onDetailClose}:MapProps){
+export function NetworkMap({title,segments=empty,sites=empty,areas=empty,routes=empty,selectedRoute,selectedSite,onRouteSelect,onSiteSelect,loadReferences,detail,onDetailClose,filterOverlay,toolbarTarget}:MapProps){
  const element=useRef<HTMLDivElement>(null),mapRef=useRef<import("leaflet").Map|null>(null),boundsRef=useRef<import("leaflet").LatLngBounds|null>(null);
  const events=useRef({onRouteSelect,onSiteSelect});useEffect(()=>{events.current={onRouteSelect,onSiteSelect};},[onRouteSelect,onSiteSelect]);
  const [failed,setFailed]=useState(false),[expanded,setExpanded]=useState(false),[base,setBase]=useState("street"),[showAreas,setShowAreas]=useState(true),[showReferences,setShowReferences]=useState(false),[references,setReferences]=useState<ReferenceFeature[]>([]),[referenceLimited,setReferenceLimited]=useState(false),[referenceError,setReferenceError]=useState("");
@@ -50,10 +51,14 @@ export function NetworkMap({title,segments=empty,sites=empty,areas=empty,routes=
   return()=>{active=false;map?.remove();mapRef.current=null;};
  },[segments,sites,areas,routes,base,showAreas,showReferences,references,visible,mode,fitVersion,themeRevision]);
  useEffect(()=>{const map=mapRef.current;if(!map)return;if(selectedRoute)map.fitBounds(selectedRoute.coords.map(p=>[p[1],p[0]] as [number,number]),{padding:[50,50],maxZoom:16});else if(selectedSite?.latitude!==null&&selectedSite?.latitude!==undefined&&selectedSite.longitude!==null)map.setView([selectedSite.latitude,selectedSite.longitude],15);},[selectedRoute,selectedSite]);
+ const controls=<><FormField label="แผนที่พื้นหลัง"><select value={base} onChange={e=>{setBase(e.target.value);setFailed(false);}}><option value="street">ถนน</option><option value="satellite">ภาพถ่ายดาวเทียม</option><option value="none">ไม่ใช้ภาพพื้นหลัง</option></select></FormField><Button onClick={()=>{if(boundsRef.current)mapRef.current?.fitBounds(boundsRef.current,{padding:[24,24],maxZoom:15});else setFitVersion(v=>v+1);}}>พอดีจอ</Button><Button aria-pressed={expanded} onClick={()=>setExpanded(v=>!v)}>{expanded?"ออกจากแผนที่ขยาย":"ขยายแผนที่"}</Button></>;
  return <section className={`ui-map-surface${expanded?" ui-map-expanded":""}`} aria-label={`${title} — พื้นที่ทำงาน`}>
-  <div className="ui-map-toolbar ui-form-controls"><strong>{title}</strong><FormField label="แผนที่พื้นหลัง"><select value={base} onChange={e=>{setBase(e.target.value);setFailed(false);}}><option value="street">ถนน</option><option value="satellite">ภาพถ่ายดาวเทียม</option><option value="none">ไม่ใช้ภาพพื้นหลัง</option></select></FormField><Button onClick={()=>{if(boundsRef.current)mapRef.current?.fitBounds(boundsRef.current,{padding:[24,24],maxZoom:15});else setFitVersion(v=>v+1);}}>พอดีจอ</Button><Button aria-pressed={expanded} onClick={()=>setExpanded(v=>!v)}>{expanded?"ออกจากแผนที่ขยาย":"ขยายแผนที่"}</Button></div>
+  <div className="ui-map-heading">
+  <div className="ui-map-toolbar ui-form-controls"><strong>{title}</strong>{(!toolbarTarget||expanded)&&controls}</div>
+  {toolbarTarget&&!expanded&&createPortal(<div className="ui-map-toolbar ui-form-controls">{controls}</div>,toolbarTarget)}
   <div className="ui-map-layers" role="group" aria-label="ชั้นข้อมูลแผนที่">{segments.length>0&&Object.entries(statusLabel).map(([key,text])=><label key={key}><input type="checkbox" checked={visible[key as keyof typeof visible]} onChange={e=>setVisible({...visible,[key]:e.target.checked})}/>{text}</label>)}{areas.length>0&&<label><input type="checkbox" checked={showAreas} onChange={e=>setShowAreas(e.target.checked)}/>ขอบเขต PEA</label>}{loadReferences&&<label><input type="checkbox" checked={showReferences} onChange={e=>setShowReferences(e.target.checked)}/>ถนนและอาคารอ้างอิง</label>}{sites.length>0&&<FormField label="รูปแบบข้อมูลไซต์"><select value={mode} onChange={e=>setMode(e.target.value)}><option value="sites">ตำแหน่งไซต์</option><option value="overview">ภาพรวมตามจังหวัด</option><option value="density">ความหนาแน่นถ่วงน้ำหนักลูกค้า</option></select></FormField>}</div>
-  <div className="ui-map-frame"><div ref={element} className="ui-map-view" role="region" aria-label={title}/>{detail&&<aside ref={detailRef} tabIndex={-1} className="ui-panel ui-map-detail" aria-label="รายละเอียดบนแผนที่" onKeyDown={e=>{if(e.key==="Escape"&&onDetailClose){e.stopPropagation();onDetailClose();}}}>{detail}</aside>}</div>
+  </div>
+  <div className={`ui-map-frame${filterOverlay?" ui-map-filter-frame":""}`}><div ref={element} className="ui-map-view" role="region" aria-label={title}/>{filterOverlay}{detail&&<aside ref={detailRef} tabIndex={-1} className="ui-panel ui-map-detail" aria-label="รายละเอียดบนแผนที่" onKeyDown={e=>{if(e.key==="Escape"&&onDetailClose){e.stopPropagation();onDetailClose();}}}>{detail}</aside>}</div>
   {failed&&<p role="status">โหลดภาพพื้นหลังแผนที่ไม่สำเร็จ ยังเลือกข้อมูลบนแผนที่และดูรายการได้</p>}{referenceError&&<p role="alert" className="ui-field-error">{referenceError}</p>}{showReferences&&referenceLimited&&<p>ชั้นอ้างอิงแสดงสูงสุด 5,000 รายการ</p>}
   {!segments.length&&!sites.length&&!routes.length&&<p role="status">ยังไม่มีข้อมูลบนแผนที่ เลือกชุดข้อมูลหรือนำเข้าเพื่อเริ่มทำงาน</p>}{segments.length>5000&&<p>แผนที่แสดง 5,000 ช่วงแรก กรุณากรองเพิ่ม ตารางและรายงานยังใช้ผลตามตัวกรองทั้งหมด</p>}
  </section>;

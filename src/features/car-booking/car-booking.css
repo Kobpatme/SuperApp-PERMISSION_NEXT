@@ -2,13 +2,14 @@
 .cb-workspace h2,.cb-dialog h2 { margin:0 0 var(--space-4);font-size:var(--text-h2); }
 .cb-workspace h3 { margin:0;font-size:var(--text-h3); }
 .cb-toolbar,.cb-toolbar nav,.cb-filter,.cb-actions,.cb-section-head { display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap; }
+.cb-actions { gap:var(--space-2); }
 .cb-toolbar { justify-content:space-between;border-bottom:var(--border-width) solid var(--color-border);padding-bottom:var(--space-3);margin-bottom:var(--space-4); }
 .cb-toolbar nav { gap:var(--space-1); }
 .cb-workspace :focus-visible,.cb-dialog :focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring);outline-offset:var(--focus-ring-offset); }
 .cb-filter { margin-bottom:var(--space-4);align-items:flex-end; }
 .cb-panel {padding:var(--space-5);margin-block:var(--space-4)}
 .cb-panel form,.cb-dialog form { display:grid;gap:var(--space-4); }
-.cb-workspace label,.cb-dialog label { display:grid;gap:var(--space-2);font-weight:600; }
+.cb-workspace label,.cb-dialog label { display:grid;align-content:start;min-width:0;gap:var(--space-2);font-weight:600; }
 .cb-workspace input,.cb-workspace select,.cb-workspace textarea,.cb-dialog input,.cb-dialog select,.cb-dialog textarea { width:100%;min-width:0;min-height:var(--size-control-touch);padding:var(--space-2) var(--space-3);border:var(--border-width) solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font:inherit;box-shadow:var(--shadow-inset); }
 .cb-workspace textarea,.cb-dialog textarea { resize:vertical; }
 .cb-form-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4); }
@@ -81,7 +82,7 @@
 .cb-panel { border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-raised); }
 .cb-panel > h2:first-child { margin-top:0; }
 .cb-filter { min-width:0; }
-.cb-filter > label { min-width:var(--size-panel-min); flex:1 1 var(--size-panel-min); }
+.cb-filter > label { min-width:min(100%,var(--size-panel-min)); flex:1 1 var(--size-panel-min); }
 .cb-filter > button, .cb-filter > .cb-link { flex:0 0 auto; }
 .cb-workspace button, .cb-dialog button { cursor:pointer; }
 .cb-workspace button:focus-visible, .cb-dialog button:focus-visible, .cb-workspace input:focus-visible, .cb-workspace select:focus-visible, .cb-workspace textarea:focus-visible, .cb-dialog input:focus-visible, .cb-dialog select:focus-visible, .cb-dialog textarea:focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring); outline-offset:var(--focus-ring-offset); }

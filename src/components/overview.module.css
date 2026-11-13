@@ -1,6 +1,6 @@
 /* Overview composition only. Shared queue consumers keep their existing appearance. */
 .screen { gap:var(--space-5); color:var(--color-text); }
-.screen > :global(.page-heading) { margin:0; padding-block:var(--space-2) var(--space-4); border-bottom:var(--border-width) solid var(--color-border); }
+.screen > :global(.page-heading) { margin:0; }
 .screen :global(.page-heading h1)::after { display:none; }
 .freshness { display:grid; justify-items:end; gap:var(--space-2); }
 .freshness :global(.updated-at) { color:var(--color-text-muted); font-size:var(--text-caption); overflow-wrap:anywhere; }
@@ -38,7 +38,7 @@
 .screen :global(.workspace-queue-table) { background:var(--color-surface); }
 .screen :global(.workspace-queue-table th) { background:var(--color-surface-subtle); font-size:var(--text-body); }
 .screen :global(.workspace-queue-table td) { font-size:var(--text-body); height:auto; padding-block:var(--space-3); box-shadow:none; }
-.screen :global(.workspace-queue-table .record-title) { min-height:var(--space-8); line-height:1.6; }
+.screen :global(.workspace-queue-table .record-title) { line-height:1.6; }
 .screen :global(.workspace-queue-table .record-title svg) { opacity:1; }
 .screen :global(.workspace-queue-table .record-title:hover) { color:var(--color-text); text-decoration:underline; text-underline-offset:var(--space-1); }
 .screen :global(.workspace-queue-table .record-code) { color:var(--color-text-muted); }

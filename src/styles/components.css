@@ -447,11 +447,6 @@ html[data-theme="dark"] .health-modules span { background: var(--color-surface-s
 }
 
 /* Batch 2 shell surfaces: one hierarchy for disclosure, search, and dialog work. */
-.ui-page-header { padding-block-end: var(--space-4); }
-.ui-page-header .page-heading-row { gap: var(--space-4); }
-.ui-page-header .page-heading-content { display: grid; gap: var(--space-1); }
-.ui-page-header .page-heading-content > :is(h1, p) { min-width: 0; }
-.ui-page-header .page-heading-actions { align-self: end; }
 .account-control { position: relative; }
 .account-popover { border-color: var(--color-border-strong); padding: var(--space-4); }
 .account-popover p { margin: var(--space-1) 0 var(--space-3); line-height: 1.6; }
@@ -490,8 +485,6 @@ html[data-theme="dark"] .workspace-search.core-utility-search .workspace-search-
 .notification-dialog .ui-dialog-body { display: grid; gap: var(--space-3); }
 .notification-dialog .notification-list li { padding-block: var(--space-4); }
 @media (max-width: 650px) {
-  .ui-page-header .page-heading-actions { width: 100%; align-self: stretch; }
-  .ui-page-header .page-heading-actions > * { flex: 1 1 auto; }
   .account-popover { right: -4px; width: min(280px, calc(100vw - 24px)); }
 }
 .card-hover:hover { box-shadow:var(--shadow-md); border-color:color-mix(in srgb,var(--color-brand) 45%,var(--color-border)); }
@@ -521,7 +514,7 @@ html[data-theme="dark"] .workspace-search.core-utility-search .workspace-search-
 .work-panel { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-xs); overflow: hidden; }
 .work-panel > *:first-child { border-top: none; }
 
-.work-action-row { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-3); }
+.work-action-row { display: flex; flex-wrap:wrap; gap: var(--space-2); align-items: center; margin-top: var(--space-3); }
 .work-search-field { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); margin-bottom: var(--space-4); }
 .work-search-field input[type="search"] { border: none; background: transparent; outline: none; font: inherit; color: var(--color-text); flex: 1; min-width: 0; }
 .work-search-field input[type="search"]::placeholder { color: var(--color-text-muted); }

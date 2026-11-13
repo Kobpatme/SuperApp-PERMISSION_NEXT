@@ -32,6 +32,8 @@ const state=new URLSearchParams(location.search).get('state');const subject={use
 window.TESTaccess={allowed:state!=='denied',userId:'TEST-user',passwordChangeRequired:state==='password',subject:state==='denied'?undefined:subject};
 async function render(){const content=await (location.pathname==='/admin/car-booking'?Access:Main)();createRoot(document.getElementById('root')).render(<React.StrictMode><AppShell displayName="TEST ผู้ใช้ทดสอบ" allowedModuleIds={['car-booking']}><div className="cb-success">TEST ข้อมูลจำลอง · ไม่เข้าสู่ระบบจริง · ไม่เชื่อม DB หรือ Google Sheets · ปิดคำขอแผนที่จริง</div>{content}</AppShell></React.StrictMode>)}render();
 ` }, plugins: [{ name: "car-test-boundaries", setup(builder) {
+    builder.onResolve({filter:/^next\/image$/},()=>({path:'image',namespace:'TEST-image'}));
+    builder.onLoad({filter:/.*/,namespace:'TEST-image'},()=>({loader:'tsx',resolveDir:process.cwd(),contents:`import React from'react';export default function Image({priority,unoptimized,fill,...props}){return <img {...props}/>}`}));
     builder.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "TEST" }));
     builder.onResolve({ filter: /^@\/app\/.*actions$/ }, () => ({ path: "actions", namespace: "TEST" }));
     builder.onResolve({ filter: /^@\/lib\/(access|env)$/ }, () => ({ path: "data", namespace: "TEST" }));

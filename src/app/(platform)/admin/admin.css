@@ -90,9 +90,6 @@
 @media(prefers-reduced-motion:reduce) { .admin-page *, .admin-page *::before, .admin-page *::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; animation-iteration-count:1!important; } }
 
 /* Admin composition only; shared controls and native top-layer lifecycle own visuals. */
-.admin-page > .page-heading .page-heading-row { display:flex; width:100%; justify-content:space-between; align-items:flex-start; gap:var(--space-5); flex-wrap:wrap; }
-.admin-page > .page-heading .page-heading-content { flex:1 1 240px; min-width:0; }
-.admin-page > .page-heading .page-heading-actions { display:flex; flex-wrap:wrap; gap:var(--space-2); margin-inline-start:auto; }
 .admin-page .work-action-row { display:flex; flex-wrap:wrap; gap:var(--space-3); }
 .admin-page .admin-form .admin-action-fields > button { grid-column:1/-1; }
 .admin-page .admin-overview { padding:var(--space-5); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); box-shadow:var(--shadow-raised); }

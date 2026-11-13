@@ -33,6 +33,8 @@ const root=createRoot(document.getElementById('root')); const pages={'/work':Mai
 async function render(){const page=pages[location.pathname]||Main;let content=await page({searchParams:Promise.resolve(Object.fromEntries(new URLSearchParams(location.search)))});if(content.type===WorkRoutePage) content=await WorkRoutePage(content.props);root.render(<AppShell displayName="TEST ผู้ใช้ทดสอบ" allowedModuleIds={['work']} workNavigation={${JSON.stringify(routes.map((href,i)=>({href,label:titles[i],icon:'work'})))}}>{content}</AppShell>);}
 window.TESTrender=render;render();
 ` }, plugins: [{ name: "work-test-boundaries", setup(builder) {
+    builder.onResolve({filter:/^next\/image$/},()=>({path:'image',namespace:'TEST-image'}));
+    builder.onLoad({filter:/.*/,namespace:'TEST-image'},()=>({loader:'tsx',resolveDir:process.cwd(),contents:`import React from'react';export default function Image({priority,unoptimized,fill,...props}){return <img {...props}/>}`}));
     builder.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "TEST" }));
     builder.onResolve({ filter: /^@\/app\/.*actions$/ }, () => ({ path: "actions", namespace: "TEST" }));
     builder.onResolve({ filter: /^@\/lib\/(access|work-read-model|work-page-data|env)$/ }, () => ({ path: "data", namespace: "TEST" }));
@@ -80,7 +82,8 @@ for (const [i, route] of routes.entries()) for (const [theme, width] of [['light
     if (route==='/work/tracker') { await page.getByRole('searchbox',{name:/ค้นหา Job code/}).fill('ไม่พบ TEST'); await expect(page.getByRole('button',{name:/TEST-JOB งานตรวจอาคาร/})).toHaveCount(0); await page.getByRole('searchbox',{name:/ค้นหา Job code/}).fill('TEST-JOB'); await page.getByRole('button',{name:/TEST-JOB งานตรวจอาคาร/}).click(); await expect(page.getByText('บันทึกและประวัติ',{exact:true})).toBeVisible(); }
     if (route==='/work/kpi') { await expect(page.getByRole('progressbar')).toHaveAttribute('value','100'); await page.getByText('เปิดรายละเอียดตรวจสอบ',{exact:true}).click(); await expect(page.getByRole('cell',{name:'TEST-v1'})).toBeVisible(); }
     if (route==='/work/reports') { await expect(page.getByRole('link',{name:'Export CSV'})).toHaveAttribute('href',/\/api\/work\/export\?/); await expect(page.getByRole('button',{name:'พิมพ์',exact:true})).toBeVisible(); }
-    if (['/work/new','/work/assign'].includes(route)) { await expect(page.locator('form.work-assignment-form fieldset legend')).toBeVisible(); await expect(page.getByRole('button',{name:'ดู deadline ล่วงหน้า'})).toBeVisible(); }
+    if (route==='/work/assign') { await expect(page.locator('form.work-assignment-form fieldset legend')).toBeVisible(); await expect(page.getByRole('button',{name:'ดู deadline ล่วงหน้า'})).toBeVisible(); }
+    if (route==='/work/new') { await expect(page.locator('form.work-create-page-form fieldset legend')).toHaveCount(2); await expect(page.getByRole('button',{name:'ตรวจสอบกำหนดส่ง',exact:true})).toBeVisible(); await expect(page.getByRole('button',{name:'เพิ่มงาน',exact:true})).toBeVisible(); }
     if(width===390) expect(await page.locator('#workspace-content .work-action-row button, #workspace-content .work-action-row a').evaluateAll(elements=>elements.every(e=>e.getBoundingClientRect().height>=44))).toBe(true);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const axe = await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa']).analyze();

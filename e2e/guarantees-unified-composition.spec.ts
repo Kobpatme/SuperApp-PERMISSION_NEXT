@@ -29,6 +29,8 @@ window.TESTaccess={allowed:state!=='denied',userId:'TEST-user',isDevelopmentSess
 window.TESTpendingFilter=isInstallationTeamPending;
 async function render(){let content=state==='loading'?(location.pathname==='/guarantees'?<Loading/>:<DetailLoading/>):await (location.pathname.endsWith('/new')?New():location.pathname==='/guarantees'?Main({searchParams:Promise.resolve(Object.fromEntries(params))}):Detail({params:Promise.resolve({id:location.pathname.split('/').pop()})}));createRoot(document.getElementById('root')).render(<React.StrictMode><AppShell displayName="TEST ผู้ใช้ทดสอบ" allowedModuleIds={['guarantees']}><div className="deposit-banner">TEST ข้อมูลจำลอง · ไม่เข้าสู่ระบบจริง · ไม่เชื่อมฐานข้อมูล · คำสั่งทั้งหมดจำลองที่ขอบเขต server</div>{content}</AppShell></React.StrictMode>)}render().catch(e=>{document.getElementById('root').textContent=e.message;});
 ` }, plugins: [{ name: "guarantee-test-boundaries", setup(builder) {
+    builder.onResolve({filter:/^next\/image$/},()=>({path:'image',namespace:'TEST-image'}));
+    builder.onLoad({filter:/.*/,namespace:'TEST-image'},()=>({loader:'tsx',resolveDir:process.cwd(),contents:`import React from'react';export default function Image({priority,unoptimized,fill,...props}){return <img {...props}/>}`}));
     builder.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "TEST" }));
     builder.onResolve({ filter: /^@\/app\/.*actions$/ }, () => ({ path: "actions", namespace: "TEST" }));
     builder.onResolve({ filter: /^@\/lib\/(access|env|deposit-v2-server)$/ }, () => ({ path: "data", namespace: "TEST" }));

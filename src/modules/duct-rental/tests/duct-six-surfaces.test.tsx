@@ -92,14 +92,13 @@ describe("approved six duct-rental surfaces: shared CSS owner (ductSurface)", ()
     expect(css).not.toContain(".ductSurface .ductFilter #duct-advanced-filters");
   });
 
-  it("page header: create action right-edge on desktop, stacked under heading on narrow screens — real scoped rules", () => {
-    expect(css).toContain('[data-ui-screen="duct-rental-request-list"] .page-heading-row,');
-    expect(css).toContain('[data-ui-screen="duct-rental-renewal-list"] .page-heading-row,');
-    expect(css).toContain('[data-ui-screen="duct-rental-cancellation-list"] .page-heading-row,');
-    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] .page-heading-row{width:100%;flex-wrap:nowrap;justify-content:space-between}');
-    expect(css).toContain('@media(max-width:650px)');
-    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] .page-heading-row{align-items:stretch;flex-direction:column;gap:var(--space-3)}');
-    expect(css).toContain('[data-ui-screen="duct-rental-tracking"] .page-heading-actions{width:100%;margin-left:0;justify-content:flex-start}');
+  it("uses the Core page header owner for desktop actions and narrow-screen stacking", () => {
+    const shared = readFileSync(new URL("../../../styles/ui.css", import.meta.url), "utf8");
+    expect(css).not.toMatch(/\[data-ui-screen="duct-rental-[^"]+"\] \.page-heading-row/);
+    expect(shared).toMatch(/\.page-heading-row\s*\{[^}]*justify-content:space-between/);
+    expect(shared).toMatch(/\.page-heading-actions\s*\{[^}]*margin-inline-start:\s*auto/);
+    expect(shared).toMatch(/@media \(max-width: 650px\)[\s\S]*?\.page-heading-row\s*\{[^}]*flex-direction:column/);
+    expect(shared).toMatch(/\.page-heading-actions\s*\{[^}]*width:100%;[^}]*justify-content:flex-start/);
   });
 
   it("removes conflicting legacy surface shells (no stacking classes)", () => {
