@@ -9,6 +9,7 @@ Start with [current status](implementation-status.md), [open decisions](open-que
 - [Source parity acceptance](modules/parity-gates.md), [technical debt](repository-audit/technical-debt-register.md), [migration risks](repository-audit/migration-risk-register.md). These registers describe source/target risks; verify current code before treating old entries as unresolved target defects.
 - [เช่าท่อร้อยสาย](modules/duct-rental.md), [กฎธุรกิจ](metrix-integration/03-business-logic-catalog.md), [parity matrix](metrix-integration/07-parity-matrix.md), [deploy/runtime provisioning](operations/duct-rental-deployment.md), [owner decisions](metrix-integration/06-integration-risks-and-open-questions.md), [offline import](metrix-integration/10-offline-import.md), [repeatable QA](quality/duct-rental/README.md).
 - [Design system](product/design-system.md), [navigation model](product/information-architecture.md), [quality checks](quality/README.md).
+- [MOD 1: วิเคราะห์เส้นทาง PEA/UFM](modules/permission-out.md), [MOD 2: Site Facility & Design](modules/site-facility.md), [source parity](modules/permission-out/source-parity.md), [native-module ADR](adr/0008-permission-out-native-module.md), [verification and pending activation gates](quality/permission-out/README.md).
 
 ## Deployment and maintenance
 

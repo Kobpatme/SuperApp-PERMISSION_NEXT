@@ -1,0 +1,11 @@
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { PermissionOutWorkspace } from "../../src/modules/permission-out/workspace";
+import {SiteFacilityWorkspace} from "../../src/modules/site-facility/workspace";
+import "../../src/styles/tokens.css";
+import "../../src/styles/ui.css";
+const params=new URLSearchParams(location.search);
+document.documentElement.dataset.theme=params.get("theme")||"light";
+const permissions=params.get("readonly")==="1"?["site_facility.module.view","site_facility.site.read"]:["*"];
+const view=params.get("view")||"sites";
+createRoot(document.getElementById("root")!).render(view.startsWith("site")?<SiteFacilityWorkspace view={view==="site-datasets"?"datasets":view==="site-reports"?"reports":"sites"} permissions={permissions} canViewRoutes={params.get("routes")==="1"}/>:<PermissionOutWorkspace view={view} permissions={permissions}/>);

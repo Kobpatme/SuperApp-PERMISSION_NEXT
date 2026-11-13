@@ -1,0 +1,19 @@
+# Permission Out — source UX baseline
+
+Frozen SHA: `55380a5d5bdd7e82caa3fbd87ac4b72f979d383e`. Static source inspection only; source browser interaction counts remain unverified.
+
+Entry: source central login then MOD1 route analysis or MOD2 Site Facility. Owner corrected the initial merged implementation: native Core sidebar now has two independently registered modules, `/permission-out` (MOD 1) and `/site-facility` (MOD 2), each with a map-first entry and its own relevant subpages. Preserve base/compare terminology and clear analysis versus source cable status. Both must use central CSS.
+
+MOD1 primary action: choose one or several base files/datasets and comparison files/datasets, set threshold/interval/self-deduplication, analyze, inspect New/Same/Remove and overlap, filter, export or save project. Base-only direct analysis is New, compare-only Remove. Success updates map/summary/list; errors keep input and explain validation; empty results explicitly state no routes. Details show source file, route identifiers, diameter/poles and coordinates. Export follows visible selected filters.
+
+MOD2 primary action: search/filter sites using regional/area/province/grade/type/owner; select a marker/site; view details or edit according to permission; add comments. OPEX/report controls restricted. Sites without coordinates remain available in tabular search. Source comment last-seen is localStorage; target must use durable per-user read state. Source details/editor are popup/modal; native detail must remain keyboard accessible with focus return.
+
+Admin import: select dataset kind → choose files → preview validation/diff → stage → publish; active data is unchanged during staging. Rollback selects a preserved version. Total Site workbook requires sheet `Total Site`, 70 headers, column A Site Code, unique nonblank keys; retain all original columns privately. OPEX must never leak through the raw-column projection.
+
+Target: shared tokens, Core shell and Thai labels, responsive map/list, visible loading/success/error states, forms retain input on failure, no private offline cache. Keyboard-only list/filter/detail/export, visible focus, Escape/focus return on dialogs, map-independent list access, 320px reflow, light/dark and no map-tile dependency for data operations. No redesign of existing modules. Native usage and click counts must be verified with browser tests.
+
+## Native implementation checkpoint
+
+The initial six-tab/form-first implementation was rejected by the owner despite passing synthetic checks. The correction uses separate map-first workspaces, sidebar controls, route/table selection opening map detail, site marker/table selection opening site detail, fit/expanded-map/Escape controls and street/satellite/no-background layers. Buttons/forms/tables/dialogs/panels are styled by canonical `ui.css` and Core tokens, not the retired module CSS. Multi-select replaces upstream quick presets; source CSV is separate from segment summary. Reanalysis remains immutable. Site editing retains fields on validation failure; missing coordinates stay in the list. Staging never changes active data. Source clustering/heat and area/category-specific route overlays remain adaptations/partial, not a full source-UX parity claim.
+
+Historical combined browser verification had 26 checks. Corrected two-module verification has 38 cases, eight view variants at 390/1440 px, light/dark, automated serious/critical axe checks, keyboard/focus, map/marker/detail/drawer/Escape, live Canvas theme changes, same-filter export links and edit-error retention. Synthetic API/router fixture is explicitly not authenticated UAT. A separate production Next smoke uses synthetic Core sessions and actual module API/DB. No source click-count comparison, 320px complete-workflow acceptance or human WCAG certification is claimed. See the [QA record](../../quality/permission-out/README.md).

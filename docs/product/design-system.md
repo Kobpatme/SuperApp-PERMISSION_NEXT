@@ -55,6 +55,10 @@ Verified breakpoints: 375 / 768 / 1024 / 1440px. Tables scroll horizontally with
 
 ## Retired / do not use
 
+### Shared map-first workspaces
+
+Owner-approved MOD 1 route intelligence and MOD 2 Site Facility compose the same canonical `ui.css` owner. `ui-map-*` classes define responsive map/sidebar/detail geometry and Leaflet integration; existing `ui-button`, `ui-field`, `ui-form-controls`, `ui-panel`, `ui-tabs`, `ui-table` and `ui-dialog` retain their original owners. No module theme/reset or duplicate primitive is introduced. The shared map resolves semantic token colors for Canvas rendering, supports background failure, map-independent table access, expanded view/Escape and clear separate zoom/view labels. Source layout/workflow is retained while skins follow Core. This does not establish full source parity or WCAG certification.
+
 Retired: `coral-stay-theme.css`, unused `bouncebox-theme.css`, old sidebar.css location. Do not append another override theme. Avoid glassmorphism, gradient/glow without meaning, stacked cards, and animations that slow down work.
 
 Verify desktop/mobile, contrast and keyboard flows after presentation changes.
