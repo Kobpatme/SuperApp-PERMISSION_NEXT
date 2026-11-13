@@ -17,7 +17,7 @@ describe("module registry", () => {
     const orders = modules.map((module) => module.order);
     expect(orders).toEqual([...orders].sort((a, b) => a - b));
     expect(modules.map((module) => module.id)).toEqual([
-      "work", "buildings", "guarantees", "car-booking", "duct-rental", "po-tracking",
+      "work", "buildings", "guarantees", "car-booking", "duct-rental", "po-tracking", "permission-out", "site-facility",
     ]);
   });
 

@@ -9,9 +9,21 @@ import { listDepositWorkItems, type DepositRecord } from "@/lib/deposit-v2-serve
 import { readWorkQueue } from "@/lib/work-queue-server";
 import { listPermissionBuildings } from "@/lib/permission-building-server";
 import type { BuildingQuery } from "@/lib/building-query";
+import { listProjects as listRouteProjects,listSites } from "@/modules/permission-out/service";
 
 export async function loadNativeDashboardSource(moduleId: string, access: AccessContext): Promise<{ source: DashboardSource; items: DashboardItem[] }> {
   if (!access.allowed) return { source: { moduleId, status: "not_configured", itemCount: 0, message: "บัญชีนี้ไม่มีสิทธิ์เข้าถึง" }, items: [] };
+  if(moduleId==="site-facility"){
+    try{const result=await listSites({userId:access.userId});const items:DashboardItem[]=result.rows.slice(0,10).map(row=>({id:`${row.datasetId}:${row.key}`,moduleId,kind:"document",priority:"normal",title:row.data.name||row.key,href:`/site-facility?q=${encodeURIComponent(row.key)}`,statusLabel:"ข้อมูลไซต์"}));return {source:{moduleId,status:"ready",itemCount:items.length,message:`${result.total} ไซต์ในขอบเขตสิทธิ์`},items};}
+    catch{return {source:{moduleId,status:"unavailable",itemCount:0,message:"โหลดข้อมูลไซต์ไม่สำเร็จ"},items:[]};}
+  }
+  if (moduleId === "permission-out") {
+    try {
+      const rows = await listRouteProjects({ userId: access.userId });
+      const items: DashboardItem[] = rows.slice(0,10).map(row => ({ id: row.id, moduleId, kind: "document", priority: "normal", title: row.title, href: `/permission-out?project=${row.id}`, statusLabel: "ผลวิเคราะห์ที่บันทึก", updatedAt: row.createdAt }));
+      return { source: { moduleId, status: "ready", itemCount: items.length, message: "โครงการวิเคราะห์ล่าสุด" }, items };
+    } catch { return { source: { moduleId, status: "unavailable", itemCount: 0, message: "โหลดข้อมูลวิเคราะห์เส้นทางไม่สำเร็จ" }, items: [] }; }
+  }
   if (moduleId === "work") {
     try { const items = await readWorkQueue(access); return { source: { moduleId, status: "ready", itemCount: items.length, message: "ข้อมูลพร้อมใช้งาน" }, items }; }
     catch { return { source: { moduleId, status: "unavailable", itemCount: 0, message: "โหลดข้อมูลงานไม่สำเร็จ" }, items: [] }; }

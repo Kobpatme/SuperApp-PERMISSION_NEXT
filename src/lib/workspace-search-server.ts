@@ -9,6 +9,7 @@ import { searchDepositWorkItems } from "./deposit-v2-server";
 import { searchCarBookings } from "./car-booking-service";
 import { listPoLines } from "@/modules/po-tracking/service";
 import { listRequests } from "@/modules/duct-rental/server/requests";
+import { listProjects as listRouteProjects, listSites as listRouteSites } from "@/modules/permission-out/service";
 type Result = { id: string; title: string; description: string; href: string; moduleId: string };
 export async function searchWorkspace(query: string) {
   const accessByModule = await getAllAccessContexts();
@@ -16,6 +17,11 @@ export async function searchWorkspace(query: string) {
   const results = await Promise.allSettled(accessRows.filter(row => row.access.allowed).map(async ({ module, access }) => {
     const result = (id: string, title: string, description: string, href: string): Result => ({ id: `${module.id}:${id}`, title, description, href, moduleId: module.id });
     switch (module.id) {
+      case "permission-out": {
+        const projects=await listRouteProjects({userId:access.userId},query);
+        return projects.slice(0,10).map(p=>result(p.id,p.title,"โครงการวิเคราะห์เส้นทาง",`/permission-out?project=${p.id}`));
+      }
+      case "site-facility":{const sites=await listRouteSites({userId:access.userId},{q:query});return sites.rows.slice(0,10).map(s=>result(`${s.datasetId}:${s.key}`,s.data.name||s.key,s.key,`/site-facility?q=${encodeURIComponent(s.key)}`));}
       case "work": return (await readWorkQueue(access, query)).map(item => result(item.id, item.title, [item.code, item.statusLabel].filter(Boolean).join(" · "), item.href));
       case "buildings": {
         const page = await listPermissionBuildings(parseBuildingQuery({ q: query.slice(0, 120), limit: "20" }), access);

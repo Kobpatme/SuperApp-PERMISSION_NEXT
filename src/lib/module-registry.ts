@@ -2,8 +2,12 @@ import { defineModuleRegistry, capabilityCatalog } from "@/lib/module-contract";
 import { buildingCapabilities, carBookingCapabilities, coreCapabilities, guaranteeCapabilities, poTrackingCapabilities, workCapabilities } from "@/lib/capabilities";
 import { ductRentalManifest } from "@/modules/duct-rental/manifest";
 import { moduleLifecycleCapability } from "@/lib/module-lifecycle-contract";
+import { permissionOutManifest } from "@/modules/permission-out/manifest";
+import { siteFacilityManifest } from "@/modules/site-facility/manifest";
 
 export const modules = defineModuleRegistry([
+  permissionOutManifest,
+  siteFacilityManifest,
   ductRentalManifest,
   {
     id: "car-booking", version: "1.0.0", owner: "Operations", icon: "car", group: "operations", order: 40,
