@@ -338,7 +338,8 @@
   border-radius:var(--radius-md); background:var(--color-surface);
   color:var(--color-text); box-shadow:var(--shadow-inset); font:inherit; font-weight:400;
 }
-input.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field, select.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { height:var(--size-control-touch); min-height:var(--size-control-touch); }
+/* Listboxes retain their native row count; only single-line controls are fixed-height. */
+input.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field, select.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field:not([multiple]):not([size]) { height:var(--size-control-touch); min-height:var(--size-control-touch); }
 input.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field, textarea.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { line-height:1.6; }
 select.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { line-height:normal; }
 textarea.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field.ui-building-field { resize:vertical; }
@@ -508,3 +509,53 @@ textarea.ui-building-field.ui-building-field.ui-building-field.ui-building-field
 
 .skeleton-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-4); }
 .skeleton-detail { display: grid; gap: var(--space-4); padding: var(--space-5); }
+
+/* Shared map-first operational workspace. Both route intelligence and site
+   facility compose this owner; modules must not reset buttons/forms/tables. */
+.ui-map-page { display:grid; gap:var(--space-3); min-width:0; }
+.ui-map-stack { display:grid; gap:var(--space-3); min-width:0; }
+.ui-map-workbench { display:grid; grid-template-columns:minmax(260px,320px) minmax(0,1fr); align-items:start; gap:var(--space-3); min-width:0; }
+.ui-map-sidebar { display:grid; gap:var(--space-3); min-width:0; max-height:calc(100dvh - 230px); overflow:auto; }
+.ui-map-sidebar h2 { margin:0; font-size:var(--text-h3); }
+.ui-map-sidebar fieldset { min-width:0; }
+.ui-map-sidebar input[type="file"] { width:100%; min-width:0; }
+.ui-map-sidebar .ui-form-actions > * { max-width:100%; }
+.ui-map-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr)); gap:var(--space-3); min-width:0; }
+.ui-map-sidebar .ui-map-fields { grid-template-columns:1fr; }
+.ui-map-canvas { display:grid; gap:var(--space-3); min-width:0; }
+.ui-map-surface { display:grid; gap:var(--space-2); min-width:0; padding:var(--space-3); border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); }
+.ui-map-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-2); min-width:0; }
+.ui-map-toolbar > strong { margin-right:auto; }
+.ui-map-toolbar .ui-field { min-width:0; }
+.ui-map-toolbar .ui-field-label { font-size:var(--text-caption); }
+.ui-map-layers { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-3); font-size:var(--text-caption); }
+.ui-map-layers > label { display:flex; align-items:center; gap:var(--space-1); min-height:var(--size-control-touch); }
+.ui-map-frame { position:relative; min-width:0; }
+.ui-map-view { width:100%; min-width:0; height:clamp(480px,calc(100dvh - 290px),900px); background:var(--color-surface-subtle); border:var(--border-width) solid var(--color-border); isolation:isolate; z-index:0; }
+.ui-map-detail { position:absolute; top:var(--space-3); right:var(--space-3); bottom:var(--space-3); width:min(340px,calc(100% - 24px)); overflow:auto; z-index:var(--z-dropdown); }
+.ui-map-detail h2 { margin-top:0; font-size:var(--text-h3); }
+.ui-map-detail dl { display:grid; gap:var(--space-2); overflow-wrap:anywhere; }
+.ui-map-detail dd { margin:0; }
+.ui-map-detail dt { color:var(--color-text-muted); font-size:var(--text-caption); }
+.ui-map-list { display:grid; gap:var(--space-3); margin:0; padding:0; list-style:none; }
+.ui-map-list > li { display:flex; flex-wrap:wrap; justify-content:space-between; gap:var(--space-3); padding-block:var(--space-2); border-bottom:var(--border-width) solid var(--color-border); overflow-wrap:anywhere; }
+.ui-map-table > table { min-width:640px; }
+.ui-map-expanded { position:fixed; inset:var(--space-2); z-index:var(--z-popover); overflow:auto; }
+.ui-map-expanded .ui-map-view { height:calc(100dvh - 210px); min-height:300px; }
+.ui-map-surface .leaflet-control-attribution { background:var(--color-surface); color:var(--color-text-muted); }
+.ui-map-surface .leaflet-control-attribution a { color:var(--color-brand); text-decoration:underline; }
+.ui-map-surface .leaflet-popup-content-wrapper,.ui-map-surface .leaflet-popup-tip { background:var(--color-surface); color:var(--color-text); }
+.ui-map-surface .leaflet-bar a { background:var(--color-surface); color:var(--color-text); }
+.ui-map-surface .leaflet-interactive:focus-visible { outline:var(--focus-ring-width) solid var(--color-focus-ring); }
+@media(max-width:1000px) {
+ .ui-map-workbench { grid-template-columns:1fr; }
+ .ui-map-workbench > .ui-map-canvas { grid-row:1; }
+ .ui-map-sidebar { max-height:none; }
+ .ui-map-sidebar .ui-map-fields { grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); }
+ .ui-map-view { height:60dvh; min-height:360px; }
+}
+@media(max-width:600px) {
+ .ui-map-toolbar .ui-field { width:100%; }
+ .ui-map-toolbar > .ui-button { flex:1; }
+ .ui-map-detail { inset:auto 0 0; width:100%; max-height:65%; }
+}

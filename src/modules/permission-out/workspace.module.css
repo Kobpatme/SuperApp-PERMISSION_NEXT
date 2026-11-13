@@ -1,0 +1,32 @@
+/* Retired combined-workspace skin. No active module imports this file.
+   Retained for traceability; canonical map/form/button/table styling is ui.css. */
+.workspace { min-width: 0; display: grid; gap: var(--space-4); color: var(--color-text); }
+.tabs, .actions { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-3); }
+.tabs { border-bottom: 1px solid var(--color-border); }
+.tabs a { padding: var(--space-3); text-decoration: none; color: var(--color-text-muted); }
+.tabs a[aria-current] { color: var(--color-brand); border-bottom: 3px solid var(--color-brand); font-weight: 700; }
+.panel { min-width: 0; display: grid; gap: var(--space-3); padding: var(--space-4); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: var(--space-3); }
+.field { display: grid; gap: var(--space-1); min-width: 0; font-weight: 600; }
+.field input, .field select, .field textarea { min-width: 0; width: 100%; padding: var(--space-2); border: 1px solid var(--field-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); font: inherit; }
+.workspace button { min-height: 36px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-border-strong); border-radius: var(--radius-sm); color: var(--color-text); background: var(--color-surface-subtle); font: inherit; cursor: pointer; }
+.workspace button:disabled { opacity: var(--opacity-disabled); cursor: default; }
+.workspace fieldset { min-width: 0; border: 1px solid var(--color-border); display: grid; gap: var(--space-3); }
+.workspace :is(input,select,textarea,button,a,summary,[tabindex]):focus-visible { outline: var(--focus-ring-width) solid var(--color-focus-ring); outline-offset: var(--focus-ring-offset); }
+.table { min-width: 0; max-width: 100%; overflow: auto; }
+.table table { width: 100%; min-width: 640px; border-collapse: collapse; text-align: left; }
+.table :is(th,td) { padding: var(--space-2); border-bottom: 1px solid var(--color-border); vertical-align: top; overflow-wrap: anywhere; }
+.table th { font-weight: 700; }
+.table caption { text-align: left; padding-block: var(--space-2); color: var(--color-text-muted); }
+.error { color: var(--color-danger); background: var(--color-danger-soft); padding: var(--space-3); border-radius: var(--radius-sm); }
+.list { padding: 0; list-style: none; }
+.list li { padding-block: var(--space-3); display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); border-bottom: 1px solid var(--color-border); overflow-wrap: anywhere; }
+.map { width: 100%; min-width: 0; height: 380px; border: 1px solid var(--color-border); z-index: 0; }
+.workspace .map :global(.leaflet-control-attribution) { background: var(--color-surface); color: var(--color-text); font-size: var(--text-caption); }
+.workspace .map :global(.leaflet-control-attribution a) { color: var(--color-brand); text-decoration: underline; }
+.map :global(.leaflet-popup-content-wrapper), .map :global(.leaflet-popup-tip) { background: var(--color-surface); color: var(--color-text); }
+.dialog { width: min(760px, calc(100% - 32px)); max-height: 85dvh; overflow: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); color: var(--color-text); background: var(--color-surface); }
+.dialog::backdrop { background: var(--color-overlay); }
+.dialog form { display: grid; gap: var(--space-3); }
+.linkButton { color: var(--color-brand); text-decoration: underline; }
+@media (max-width: 768px) { .workspace button, .field input, .field select, .tabs a { min-height: var(--size-control-touch); } .panel { padding: var(--space-3); } .map { height: 300px; } }
