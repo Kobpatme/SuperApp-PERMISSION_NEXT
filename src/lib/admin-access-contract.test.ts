@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { effectiveCapabilityGroups, ownRoleLockoutMessage, parseAssignmentScope, parseCatalogCapabilities } from "@/lib/admin-access-contract";
+import { effectiveCapabilityGroups, ownRoleLockoutMessage, parseAssignmentScope, parseCapabilityScopeOverrides, parseCatalogCapabilities } from "@/lib/admin-access-contract";
 
 describe("admin access contract", () => {
   it("accepts only capability codes declared by versioned manifests", () => {
@@ -28,5 +28,14 @@ describe("admin access contract", () => {
     expect(ownRoleLockoutMessage({ ...base, nextCapabilityCodes: [], otherActiveRoleGrantsRoleManage: true })).toBeNull();
     expect(ownRoleLockoutMessage({ ...base, isPlatformAdmin: true, nextCapabilityCodes: [] })).toBeNull();
     expect(ownRoleLockoutMessage({ ...base, actingOnOwnActiveAssignment: false, nextCapabilityCodes: [] })).toBeNull();
+  });
+
+  it("keeps every capability scope inside the scopes its manifest declares", () => {
+    const granted = ["building.record.read", "car_booking.module.use"];
+    expect(parseCapabilityScopeOverrides([{ code: "building.record.read", scope: "TEAM" }], granted)).toEqual([{ permissionCode: "building.record.read", scopeType: "TEAM" }]);
+    expect(parseCapabilityScopeOverrides([{ code: "car_booking.module.use", scope: "OWN" }], granted)).toEqual([{ permissionCode: "car_booking.module.use", scopeType: "OWN" }]);
+    expect(() => parseCapabilityScopeOverrides([{ code: "car_booking.module.use", scope: "ALL" }], granted)).toThrow("SCOPE_NOT_ALLOWED");
+    expect(() => parseCapabilityScopeOverrides([{ code: "building.record.read", scope: "NOPE" }], granted)).toThrow("INVALID_SCOPE");
+    expect(parseCapabilityScopeOverrides([{ code: "building.record.read", scope: "" }, { code: "building.record.read", scope: "DEFAULT" }, { code: "work.task.read", scope: "ALL" }], granted)).toEqual([]);
   });
 });

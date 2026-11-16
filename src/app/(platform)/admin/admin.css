@@ -108,6 +108,11 @@
 .admin-role-visibility li { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border:1px solid var(--color-border); border-radius:var(--radius-pill); background:var(--color-surface); font-size:var(--text-caption); font-weight:700; }
 .admin-role-visibility li.is-visible { border-color:color-mix(in srgb,var(--color-brand) 35%,var(--color-border)); background:var(--color-info-soft); color:var(--color-brand); }
 .admin-role-visibility li.is-hidden { color:var(--color-text-muted); opacity:.8; }
+.admin-capability-scopes { border:1px solid var(--color-border); border-radius:var(--radius-md); padding:10px 12px; }
+.admin-capability-scopes > summary { cursor:pointer; min-height:32px; font-size:var(--text-caption); font-weight:800; color:var(--color-brand); }
+.admin-scope-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:10px; }
+.admin-scope-list label { display:grid; gap:4px; font-size:var(--text-caption); color:var(--color-text-muted); }
+@media(max-width:760px) { .admin-scope-list { grid-template-columns:minmax(0,1fr); } }
 
 /* Admin composition only; shared controls and native top-layer lifecycle own visuals. */
 .admin-page .work-action-row { display:flex; flex-wrap:wrap; gap:var(--space-3); }

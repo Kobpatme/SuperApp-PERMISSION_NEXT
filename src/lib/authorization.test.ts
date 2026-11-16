@@ -19,6 +19,20 @@ describe("server authorization policy", () => {
     expect(canManageModule("sale")).toBe(false);
   });
 
+  it("applies a per-capability scope instead of one assignment-wide scope", () => {
+    const subject = {
+      userId: "u1",
+      teamIds: ["t1"],
+      grants: [
+        { permission: "work.task.read", scope: "ALL" as const },
+        { permission: "work.task.update", scope: "OWN" as const },
+      ],
+    };
+    expect(isAuthorized(subject, "work.task.read", { ownerId: "u2", teamId: "t2" })).toBe(true);
+    expect(isAuthorized(subject, "work.task.update", { ownerId: "u2", teamId: "t1" })).toBe(false);
+    expect(isAuthorized(subject, "work.task.update", { ownerId: "u1" })).toBe(true);
+  });
+
   it("denies missing grants and enforces own scope", () => {
     const subject = { userId: "u-1", teamIds: ["t-1"], grants: [{ permission: "work.task.read", scope: "OWN" as const }] };
     expect(isAuthorized(subject, "work.task.update", { ownerId: "u-1" })).toBe(false);

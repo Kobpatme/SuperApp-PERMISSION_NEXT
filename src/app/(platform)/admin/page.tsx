@@ -53,8 +53,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     (permissionsGranted.users || permissionsGranted.teams || permissionsGranted.positions) ? getDb().select({ id: teams.id, code: teams.code, name: teams.name }).from(teams).where(eq(teams.isActive, true)).orderBy(asc(teams.name)) : Promise.resolve([]),
     needsAccessReferences ? getDb().select({ roleId: rolePermissions.roleId, code: permissions.code, description: permissions.description })
       .from(rolePermissions).innerJoin(permissions, eq(permissions.code, rolePermissions.permissionCode)).orderBy(asc(permissions.code)) : Promise.resolve([]),
-    canReadUsers ? getDb().select({ userId: userRoleAssignments.userId, scopeType: dataScopeGrants.scopeType, selectedTeamId: dataScopeGrants.selectedTeamId })
-      .from(userRoleAssignments).innerJoin(dataScopeGrants, and(eq(dataScopeGrants.assignmentId, userRoleAssignments.id), isNull(dataScopeGrants.permissionCode)))
+    canReadUsers ? getDb().select({ userId: userRoleAssignments.userId, permissionCode: dataScopeGrants.permissionCode, scopeType: dataScopeGrants.scopeType, selectedTeamId: dataScopeGrants.selectedTeamId })
+      .from(userRoleAssignments).innerJoin(dataScopeGrants, eq(dataScopeGrants.assignmentId, userRoleAssignments.id))
       .where(and(lte(userRoleAssignments.validFrom, now), or(isNull(userRoleAssignments.validUntil), gt(userRoleAssignments.validUntil, now)))) : Promise.resolve([]),
     permissionsGranted.users ? getDb().select({ userId: authSessions.userId, count: count() }).from(authSessions).where(gt(authSessions.expiresAt, now)).groupBy(authSessions.userId) : Promise.resolve([]),
     permissionsGranted.audit ? getDb().select({ id: auditLogs.id, actorId: auditLogs.actorId, moduleId: auditLogs.moduleId, action: auditLogs.action,

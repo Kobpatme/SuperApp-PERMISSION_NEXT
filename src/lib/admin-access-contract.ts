@@ -47,3 +47,30 @@ export function ownRoleLockoutMessage(input: OwnRoleLockoutInput): string | null
   if (input.nextCapabilityCodes.includes("core.role.manage") || input.otherActiveRoleGrantsRoleManage) return null;
   return "ถอดสิทธิ์จัดการบทบาทของตนเองไม่ได้ เพราะจะไม่เหลือทางจัดการสิทธิ์อีก ต้องให้ผู้ดูแลระบบอีกคนยืนยัน";
 }
+
+export type CapabilityScopeOverride = { permissionCode: string; scopeType: DataScopeType };
+
+/**
+ * Per-capability data scopes. The engine accepts grants keyed by permission code,
+ * so an administrator can read across every team yet edit only their own rows.
+ * Every override must stay inside the scopes the capability declares, which the
+ * manifest already pins (for example guarantee.tl.work is own-rows only).
+ */
+export function parseCapabilityScopeOverrides(
+  entries: ReadonlyArray<{ code: string; scope: string }>,
+  grantedCodes: readonly string[],
+): CapabilityScopeOverride[] {
+  const granted = new Set(grantedCodes);
+  const seen = new Set<string>();
+  const overrides: CapabilityScopeOverride[] = [];
+  for (const entry of entries) {
+    if (seen.has(entry.code) || !granted.has(entry.code) || !entry.scope || entry.scope === "DEFAULT") continue;
+    const capability = adminCapabilityCatalog.find((item) => item.code === entry.code);
+    if (!capability) throw new Error("UNKNOWN_CAPABILITY");
+    if (!["OWN", "TEAM", "SELECTED_TEAMS", "ALL"].includes(entry.scope)) throw new Error("INVALID_SCOPE");
+    if (!capability.allowedScopes.includes(entry.scope as DataScopeType)) throw new Error("SCOPE_NOT_ALLOWED");
+    seen.add(entry.code);
+    overrides.push({ permissionCode: entry.code, scopeType: entry.scope as DataScopeType });
+  }
+  return overrides;
+}

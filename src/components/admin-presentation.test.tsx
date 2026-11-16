@@ -20,7 +20,7 @@ const base = {
   roles: [{ id: "r1", code: "platform_admin", name: "ผู้ดูแล", description: "ดูแลระบบ", isSystem: true }],
   teams: [{ id: "t1", code: "ops", name: "ปฏิบัติการ" }],
   rolePermissions: [{ roleId: "r1", code: "core.user.manage", description: "จัดการผู้ใช้" }],
-  userScopes: [{ userId: "u1", scopeType: "ALL", selectedTeamId: null }],
+  userScopes: [{ userId: "u1", permissionCode: null, scopeType: "ALL", selectedTeamId: null }],
   positionTeams: [] as { positionId: string; teamId: string }[],
   sessions: [{ userId: "u1", count: 1 }],
   auditRows: [],

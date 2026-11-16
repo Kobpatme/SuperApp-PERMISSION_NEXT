@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { dataScopeGrants, localCredentials, permissions, positionSelectedTeams, positions, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
 import { revokeUserSessions } from "@/lib/auth-session-service";
-import { adminCapabilityCatalog, ownRoleLockoutMessage, parseAssignmentScope, parseCatalogCapabilities } from "@/lib/admin-access-contract";
+import { adminCapabilityCatalog, ownRoleLockoutMessage, parseAssignmentScope, parseCapabilityScopeOverrides, parseCatalogCapabilities } from "@/lib/admin-access-contract";
 import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { runMaterialChange } from "@/lib/material-change";
@@ -330,6 +330,22 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
     const validTeams = await getDb().select({ id: teams.id }).from(teams).where(and(inArray(teams.id, requestedScope.selectedTeamIds), eq(teams.isActive, true)));
     if (validTeams.length !== requestedScope.selectedTeamIds.length) return { ok: false, message: "มีทีมในขอบเขตที่ไม่พร้อมใช้งาน" };
   }
+  const roleCapabilityCodes = (await getDb().select({ code: rolePermissions.permissionCode }).from(rolePermissions).where(eq(rolePermissions.roleId, position.roleId))).map((row) => row.code);
+  const scopeEntries = [...form.entries()].filter(([key]) => key.startsWith("capScope.")).map(([key, value]) => ({ code: key.slice("capScope.".length), scope: String(value) }));
+  let scopeOverrides: ReturnType<typeof parseCapabilityScopeOverrides>;
+  try { scopeOverrides = parseCapabilityScopeOverrides(scopeEntries, roleCapabilityCodes); }
+  catch (error) {
+    return { ok: false, message: error instanceof Error && error.message === "SCOPE_NOT_ALLOWED" ? "มีสิทธิ์ที่เลือกขอบเขตซึ่งสิทธิ์นั้นไม่อนุญาต" : "ขอบเขตเฉพาะสิทธิ์ไม่ถูกต้อง" };
+  }
+  const overrideByCode = new Map(scopeOverrides.map((override) => [override.permissionCode, override.scopeType]));
+  if (scopeOverrides.length) {
+    const unsupported = roleCapabilityCodes.find((code) => !overrideByCode.has(code) &&
+      !adminCapabilityCatalog.find((item) => item.code === code)?.allowedScopes.includes(requestedScope.scopeType));
+    if (unsupported) {
+      const label = adminCapabilityCatalog.find((item) => item.code === unsupported)?.labelTh ?? unsupported;
+      return { ok: false, message: `สิทธิ์ "${label}" ไม่รองรับขอบเขต ${requestedScope.scopeType} กรุณากำหนดขอบเขตเฉพาะสิทธิ์นี้` };
+    }
+  }
 
   const [before] = await getDb().select({ email: profiles.email, displayName: profiles.displayName, employeeCode: profiles.employeeCode,
     status: profiles.status, positionId: profiles.positionId, teamId: userTeams.teamId, roleCode: roles.code,
@@ -352,20 +368,23 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
       if (!other) return { ok: false, message: "เปลี่ยนสิทธิ์ของตนเองจะทำให้ไม่เหลือทางจัดการสิทธิ์ ต้องให้ผู้ดูแลระบบอีกคนยืนยัน" };
     }
   }
-  const beforeGrants = await getDb().select({ scopeType: dataScopeGrants.scopeType, selectedTeamId: dataScopeGrants.selectedTeamId })
+  const beforeGrants = await getDb().select({ permissionCode: dataScopeGrants.permissionCode, scopeType: dataScopeGrants.scopeType, selectedTeamId: dataScopeGrants.selectedTeamId })
     .from(userRoleAssignments).innerJoin(dataScopeGrants, eq(dataScopeGrants.assignmentId, userRoleAssignments.id))
-    .where(and(eq(userRoleAssignments.userId, userId), isNull(userRoleAssignments.validUntil), isNull(dataScopeGrants.permissionCode)));
+    .where(and(eq(userRoleAssignments.userId, userId), isNull(userRoleAssignments.validUntil)));
 
   const removesAdminAccess = before.roleCode === "platform_admin" && (position.roleCode !== "platform_admin" || status !== "active");
   const normalizedTeamId = teamId || null;
-  const currentScope = beforeGrants[0]?.scopeType;
+  const currentScope = (beforeGrants.find((grant) => grant.permissionCode === null) ?? beforeGrants[0])?.scopeType;
   const currentSelected = beforeGrants.map((grant) => grant.selectedTeamId).filter(Boolean).sort().join(",");
   const requestedSelected = [...requestedScope.selectedTeamIds].sort().join(",");
+  const currentOverrides = beforeGrants.filter((grant) => grant.permissionCode).map((grant) => `${grant.permissionCode}:${grant.scopeType}`).sort().join(",");
+  const requestedOverrides = scopeOverrides.map((override) => `${override.permissionCode}:${override.scopeType}`).sort().join(",");
   const accessChanged = before.positionId !== positionId || before.teamId !== normalizedTeamId || before.assignmentRoleId !== position.roleId ||
-    currentScope !== requestedScope.scopeType || currentSelected !== requestedSelected;
+    currentScope !== requestedScope.scopeType || currentSelected !== requestedSelected || currentOverrides !== requestedOverrides;
   const statusChanged = before.status !== status;
   const after = { email, displayName, employeeCode: employeeCode || null, status, positionId, teamId: normalizedTeamId,
-    roleId: position.roleId, scopeType: requestedScope.scopeType, selectedTeamIds: requestedScope.selectedTeamIds };
+    roleId: position.roleId, scopeType: requestedScope.scopeType, selectedTeamIds: requestedScope.selectedTeamIds,
+    capabilityScopeOverrides: scopeOverrides };
   try {
     await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "user.access.update", entityType: "profile",
       entityId: userId, requestId: crypto.randomUUID(), before, after, metadata: { sessionsRevoked: accessChanged || statusChanged } } }, async (tx) => {
@@ -384,7 +403,18 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
         if (normalizedTeamId) await tx.insert(userTeams).values({ userId, teamId: normalizedTeamId, isPrimary: true });
         const [assignment] = await tx.insert(userRoleAssignments).values({ userId, roleId: position.roleId, teamId: normalizedTeamId, createdBy: access.userId })
           .returning({ id: userRoleAssignments.id });
-        if (requestedScope.scopeType === "SELECTED_TEAMS") {
+        if (scopeOverrides.length) {
+          const values: { assignmentId: string; permissionCode: string; scopeType: string; selectedTeamId?: string }[] = [];
+          for (const code of roleCapabilityCodes) {
+            const scopeType = overrideByCode.get(code) ?? requestedScope.scopeType;
+            if (scopeType === "SELECTED_TEAMS") {
+              for (const selectedTeamId of requestedScope.selectedTeamIds) values.push({ assignmentId: assignment.id, permissionCode: code, scopeType, selectedTeamId });
+            } else {
+              values.push({ assignmentId: assignment.id, permissionCode: code, scopeType });
+            }
+          }
+          if (values.length) await tx.insert(dataScopeGrants).values(values);
+        } else if (requestedScope.scopeType === "SELECTED_TEAMS") {
           await tx.insert(dataScopeGrants).values(requestedScope.selectedTeamIds.map((selectedTeamId) => ({ assignmentId: assignment.id, scopeType: requestedScope.scopeType, selectedTeamId })));
         } else {
           await tx.insert(dataScopeGrants).values({ assignmentId: assignment.id, scopeType: requestedScope.scopeType });
