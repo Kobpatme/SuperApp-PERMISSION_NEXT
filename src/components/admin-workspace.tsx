@@ -79,10 +79,21 @@ function EditUserDialog({ user, positions, teams, rolePermissions, userScopes, s
   </>;
 }
 
+/** Module visibility follows the same rule as the server: a role sees a module when it holds one of the module's entry permissions. */
+function roleModuleVisibility(granted: ReadonlySet<string>) {
+  return modules.map((module) => ({
+    id: module.id,
+    name: module.name,
+    visible: module.entryPermissions.some((code) => granted.has(code)),
+  }));
+}
+
 function RoleEditor({ role, permissions, capabilities }: { role: AdminRole; permissions: AdminPermission[]; capabilities: AdminCapability[] }) {
   const [state, action, pending] = useActionState(updateRolePermissionsAction, initial);
   const [deleteState, deleteRole, deletePending] = useActionState(deleteRoleAction, initial);
   const granted = new Set(permissions.filter((permission) => permission.roleId === role.id).map((permission) => permission.code));
+  const visibility = roleModuleVisibility(granted);
+  const visibleCount = visibility.filter((item) => item.visible).length;
   const moduleIds = [...new Set(capabilities.map((item) => item.moduleId))];
   const entryByModule = new Map<string, string[]>();
   for (const moduleId of moduleIds) {
@@ -90,6 +101,10 @@ function RoleEditor({ role, permissions, capabilities }: { role: AdminRole; perm
     if (manifest) entryByModule.set(moduleId, manifest.entryPermissions);
   }
   return <details className="admin-role-editor"><summary><span><strong>{role.name}</strong><small>{role.code} · {granted.size} สิทธิ์</small></span><em>{role.isSystem ? "บทบาทมาตรฐาน · ดูได้อย่างเดียว" : "แก้ไข / ลบ"}</em></summary><div className="admin-role-editor-body"><AdminActionForm action={action}><input type="hidden" name="roleId" value={role.id}/><div className="admin-role-meta"><label>รหัสบทบาท<input className="ui-building-field" name="code" defaultValue={role.code} disabled={role.isSystem} required/></label><label>ชื่อบทบาท<input className="ui-building-field" name="name" defaultValue={role.name} disabled={role.isSystem} required/></label><label className="admin-role-description">คำอธิบาย<input className="ui-building-field" name="description" defaultValue={role.description || ""} disabled={role.isSystem}/></label></div>
+    <div className="admin-role-visibility" role="group" aria-label={`โมดูลที่บทบาท ${role.name} มองเห็นได้`}>
+      <p className="admin-role-visibility-count">มองเห็น <b>{visibleCount}</b> จาก {visibility.length} โมดูล {role.isSystem ? "· บทบาทมาตรฐาน" : "· บันทึกแล้วมีผลทันที"}</p>
+      <ul>{visibility.map((item) => <li key={item.id} className={item.visible ? "is-visible" : "is-hidden"}><span aria-hidden="true">{item.visible ? "✓" : "—"}</span>{item.name}<span className="sr-only">{item.visible ? " มองเห็น" : " ไม่มองเห็น"}</span></li>)}</ul>
+    </div>
     <div className="admin-capability-matrix">{moduleIds.map((moduleId) => <fieldset key={moduleId}><legend>{capabilities.find((item) => item.moduleId === moduleId)?.moduleName}</legend>{capabilities.filter((item) => item.moduleId === moduleId).map((capability) => <label key={capability.code}><input type="checkbox" name="permissionCode" value={capability.code} defaultChecked={granted.has(capability.code)} disabled={role.isSystem}/><span><strong>{capability.labelTh}</strong>{entryByModule.get(moduleId)?.includes(capability.code) && <small className="admin-cap-entry">ทางเข้าสู่โมดูล</small>}{capability.risk !== "normal" && <small>{capability.risk}</small>}<details><summary>รายละเอียดเพิ่มเติม</summary><code>{capability.code}</code></details></span></label>)}</fieldset>)}</div>{!role.isSystem && <Button type="submit" variant="primary" disabled={pending}>{pending ? "กำลังบันทึก…" : "บันทึกบทบาทและสิทธิ์"}</Button>}<Result state={state}/></AdminActionForm>{!role.isSystem && <AdminActionForm action={deleteRole} className="admin-role-delete-form" confirmation={{ title: "ลบบทบาทที่สร้าง", consequence: `${role.name} · การลบจะลบสิทธิ์ที่ผูกกับบทบาทด้วย`, label: "ลบบทบาท" }}><input type="hidden" name="roleId" value={role.id}/><Button type="submit" variant="danger" disabled={deletePending}>{deletePending ? "กำลังลบ…" : "ลบบทบาทที่สร้าง"}</Button><Result state={deleteState}/></AdminActionForm>}</div></details>;
 }
 

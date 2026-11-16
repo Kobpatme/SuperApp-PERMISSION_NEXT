@@ -101,6 +101,13 @@
 .admin-module-card-actions > p { margin:0; }
 .admin-module-list { display:grid;gap:12px;min-width:0; }
 .admin-cap-entry { color:var(--color-brand); font-size:var(--text-caption); font-weight:800; white-space:nowrap; }
+.admin-role-visibility { display:grid; gap:8px; padding:12px; border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface-subtle); min-width:0; }
+.admin-role-visibility-count { margin:0; color:var(--color-text-muted); font-size:var(--text-caption); }
+.admin-role-visibility-count b { color:var(--color-text); font-size:var(--text-body-strong); }
+.admin-role-visibility ul { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
+.admin-role-visibility li { display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border:1px solid var(--color-border); border-radius:var(--radius-pill); background:var(--color-surface); font-size:var(--text-caption); font-weight:700; }
+.admin-role-visibility li.is-visible { border-color:color-mix(in srgb,var(--color-brand) 35%,var(--color-border)); background:var(--color-info-soft); color:var(--color-brand); }
+.admin-role-visibility li.is-hidden { color:var(--color-text-muted); opacity:.8; }
 
 /* Admin composition only; shared controls and native top-layer lifecycle own visuals. */
 .admin-page .work-action-row { display:flex; flex-wrap:wrap; gap:var(--space-3); }

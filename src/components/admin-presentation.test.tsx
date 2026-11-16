@@ -70,6 +70,17 @@ describe("admin composed presentation", () => {
     expect(html).not.toContain('class="admin-panel"');
   });
 
+  it("shows each role the modules it can actually enter, including the zero case", () => {
+    const html = renderToStaticMarkup(<AdminWorkspace section="roles" {...base} />);
+    expect(html).toContain("admin-role-visibility");
+    expect(html).toMatch(/มองเห็น <b>\d+<\/b> จาก \d+ โมดูล/);
+    expect(html).not.toContain("is-visible");
+
+    const withEntry = renderToStaticMarkup(<AdminWorkspace section="roles" {...base} rolePermissions={[{ roleId: "r1", code: "building.record.read", description: null }]} />);
+    expect(withEntry).toContain("is-visible");
+    expect(withEntry).toContain("ข้อมูลอาคาร");
+  });
+
   it("composes every work-admin section with its real presentational branch", () => {
     const sections = ["kpi", "personal-kpi", "calendar", "recalculate", "systems", "announcement", "restore"];
     for (const section of sections) {
