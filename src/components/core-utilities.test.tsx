@@ -15,6 +15,7 @@ vi.mock("next/link", () => ({ default: ({ href, children, ...props }: { href: st
 vi.mock("@/app/login/actions", () => ({ logoutAction: vi.fn() }));
 vi.mock("@/app/(platform)/notification-actions", () => ({ markNotificationsRead: vi.fn() }));
 vi.mock("@/lib/env", () => ({ getServerEnv: () => ({ SUPPORT_CONTACT_TEXT: "" }) }));
+vi.mock("@/app/(platform)/admin/access-request-actions", () => ({ requestModuleAccessAction: vi.fn() }));
 
 describe("core utility composition", () => {
   it("uses the shared utility state and loading primitives", () => {

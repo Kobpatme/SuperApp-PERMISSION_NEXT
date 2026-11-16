@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: copy.pages.admin };
 import { and, asc, count, desc, eq, gt, gte, ilike, isNull, lte, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
-import { auditLogs, authSessions, dataScopeGrants, permissions, positions, positionSelectedTeams, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
+import { auditLogs, accessRequests, authSessions, dataScopeGrants, permissions, positions, positionSelectedTeams, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
 import { AdminWorkspace } from "@/components/admin-workspace";
 import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
@@ -19,6 +19,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { AdminModuleSettings } from "@/components/admin-module-settings";
+import { AdminAccessRequests } from "@/components/admin-access-requests";
 import { readModuleSettings } from "@/lib/module-lifecycle";
 import { modules } from "@/lib/module-registry";
 import { effectiveModuleEnabled } from "@/lib/module-lifecycle-contract";
@@ -43,7 +44,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const canReadUsers = permissionsGranted.users || permissionsGranted.profiles;
   const needsAccessReferences = permissionsGranted.users || permissionsGranted.positions || permissionsGranted.roles;
   const now = new Date();
-  const [userRows, positionRows, roleRows, teamRows, rolePermissionRows, userScopeRows, sessionRows, auditRows, positionTeamRows] = await Promise.all([
+  const [userRows, positionRows, roleRows, teamRows, rolePermissionRows, userScopeRows, sessionRows, auditRows, positionTeamRows, accessRequestRows] = await Promise.all([
     canReadUsers ? getDb().select({ id: profiles.id, email: profiles.email, displayName: profiles.displayName, employeeCode: profiles.employeeCode,
       status: profiles.status, positionId: profiles.positionId, positionName: positions.name, teamId: userTeams.teamId }).from(profiles)
       .leftJoin(positions, eq(positions.id, profiles.positionId)).leftJoin(userTeams, and(eq(userTeams.userId, profiles.id), eq(userTeams.isPrimary, true))).orderBy(asc(profiles.displayName)) : Promise.resolve([]),
@@ -60,15 +61,29 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     permissionsGranted.audit ? getDb().select({ id: auditLogs.id, actorId: auditLogs.actorId, moduleId: auditLogs.moduleId, action: auditLogs.action,
       entityType: auditLogs.entityType, entityId: auditLogs.entityId, before: auditLogs.before, after: auditLogs.after, createdAt: auditLogs.createdAt }).from(auditLogs).where(auditFilter).orderBy(desc(auditLogs.createdAt)).limit(100) : Promise.resolve([]),
     needsAccessReferences ? getDb().select({ positionId: positionSelectedTeams.positionId, teamId: positionSelectedTeams.teamId }).from(positionSelectedTeams) : Promise.resolve([]),
+    permissionsGranted.roles ? getDb().select({ id: accessRequests.id, status: accessRequests.status, moduleId: accessRequests.moduleId, reason: accessRequests.reason,
+      decidedAt: accessRequests.decidedAt, decisionNote: accessRequests.decisionNote, createdAt: accessRequests.createdAt,
+      requesterName: profiles.displayName, requesterEmail: profiles.email })
+      .from(accessRequests).innerJoin(profiles, eq(profiles.id, accessRequests.requesterId)).orderBy(desc(accessRequests.createdAt)).limit(50) : Promise.resolve([]),
   ]);
   const diagnostics = permissionsGranted.audit ? (await getWorkspaceData()).snapshot.sources : [];
   const moduleState = permissionsGranted.modules ? await readModuleSettings() : { available: false, rows: [] };
+  const moduleName = (id: string) => modules.find((module) => module.id === id)?.name ?? id;
+  const pendingAccessRequests = accessRequestRows.filter((row) => row.status === "pending").map((row) => ({
+    id: row.id, requesterName: row.requesterName || row.requesterEmail || "ผู้ใช้", requesterEmail: row.requesterEmail || "",
+    moduleName: moduleName(row.moduleId), reason: row.reason, createdAt: row.createdAt.toISOString(),
+  }));
+  const accessRequestHistory = accessRequestRows.filter((row) => row.status !== "pending").slice(0, 10).map((row) => ({
+    id: row.id, requesterName: row.requesterName || "ผู้ใช้", moduleName: moduleName(row.moduleId), status: row.status,
+    note: row.decisionNote, decidedAt: row.decidedAt?.toISOString() ?? null,
+  }));
   const sections = [
     { id:"overview", label:"ภาพรวม", group:"ภาพรวม", allowed:true, description:"เลือกส่วนที่ต้องการจัดการ หรือตรวจสถานะข้อมูล", count:null },
     { id:"users", label:"ผู้ใช้", group:"บัญชีและองค์กร", allowed:canReadUsers, description:"จัดการบัญชีและทบทวนสิทธิ์ของผู้ใช้", count:userRows.length },
     { id:"positions", label:"ตำแหน่ง", group:"บัญชีและองค์กร", allowed:permissionsGranted.positions, description:"กำหนดตำแหน่ง บทบาท และขอบเขตข้อมูลเริ่มต้น", count:positionRows.length },
     { id:"teams", label:"ทีม", group:"บัญชีและองค์กร", allowed:permissionsGranted.teams, description:"จัดทีมสำหรับมอบหมายงานและกำหนดขอบเขตข้อมูล", count:teamRows.length },
     { id:"roles", label:"บทบาทและสิทธิ์", group:"สิทธิ์และการเข้าถึง", allowed:permissionsGranted.roles, description:"กำหนดสิทธิ์การใช้งานให้เหมาะกับแต่ละบทบาท", count:roleRows.length },
+    { id:"access-requests", label:"คำขอสิทธิ์", group:"สิทธิ์และการเข้าถึง", allowed:permissionsGranted.roles, description:"พิจารณาคำขอใช้โมดูลจากผู้ใช้ และมอบสิทธิ์เมื่ออนุมัติ", count:pendingAccessRequests.length },
     { id:"kpi", label:"KPI / SLA", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.kpi, description:"จัดการ Main KPI, Sub KPI และจำนวนวัน SLA", count:workAdmin.catalog.length },
         { id:"personal-kpi", label:"KPI รายบุคคล", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.kpi, description:"กำหนด KPI และน้ำหนักของผู้รับผิดชอบแต่ละคน", count:null },
         { id:"calendar", label:"วันหยุด", group:"ตั้งค่าพื้นที่ทำงาน", allowed:workAdmin.granted.calendar, description:"จัดการวันหยุดที่ใช้คำนวณกำหนดส่งงาน", count:workAdmin.calendar.length },
@@ -155,6 +170,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                 })} />
               )}
             </>
+          )}
+          {current.id === "access-requests" && permissionsGranted.roles && (
+            <AdminAccessRequests requests={pendingAccessRequests} history={accessRequestHistory}
+              roles={roleRows.map((role) => ({ id: role.id, name: role.name }))} teams={teamRows.map((team) => ({ id: team.id, name: team.name }))} />
           )}
           <AdminWorkspace section={current.id} users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
             userScopes={userScopeRows} sessions={sessionRows} auditRows={auditRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))}

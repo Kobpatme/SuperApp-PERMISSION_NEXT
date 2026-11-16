@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { copy } from "@/lib/copy";
 import { getServerEnv } from "@/lib/env";
+import { RequestAccessForm } from "@/components/request-access-form";
 
 export function AccessDenied({ moduleName }: { moduleName: string }) {
   return <section className="access-denied core-utility-state ui-panel" role="alert">
@@ -10,6 +11,7 @@ export function AccessDenied({ moduleName }: { moduleName: string }) {
       <h1>{moduleName}</h1>
       <p>{copy.feedback.denied}</p>
       <p className="support-contact"><strong>{copy.auth.contact}</strong>{getServerEnv().SUPPORT_CONTACT_TEXT && <> · {getServerEnv().SUPPORT_CONTACT_TEXT}</>}</p>
+      <RequestAccessForm />
       <Link className="primary" href="/">{copy.feedback.home}</Link>
     </div>
   </section>;

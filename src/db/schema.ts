@@ -119,6 +119,17 @@ export const dataScopeGrants = pgTable("data_scope_grants", {
   selectedTeamId: uuid("selected_team_id").references(() => teams.id, { onDelete: "cascade" }), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [index("data_scope_grants_assignment_idx").on(t.assignmentId), check("data_scope_grants_type_check", sql`${t.scopeType} in ('OWN', 'TEAM', 'SELECTED_TEAMS', 'ALL')`), check("data_scope_grants_selected_team_check", sql`(${t.scopeType} = 'SELECTED_TEAMS') = (${t.selectedTeamId} is not null)`)]);
 
+/** A user's self-service ask for module access; the decision and grant are recorded together. */
+export const accessRequests = pgTable("access_requests", {
+  id: uuid("id").defaultRandom().primaryKey(), requesterId: uuid("requester_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+  moduleId: text("module_id").notNull(), reason: text("reason").notNull(), status: text("status").notNull().default("pending"),
+  decidedBy: uuid("decided_by").references(() => profiles.id, { onDelete: "set null" }), decidedAt: timestamp("decided_at", { withTimezone: true }),
+  decisionNote: text("decision_note"), grantedRoleId: uuid("granted_role_id").references(() => roles.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [index("access_requests_queue_idx").on(t.status, t.createdAt),
+  uniqueIndex("access_requests_one_pending_idx").on(t.requesterId, t.moduleId).where(sql`${t.status} = 'pending'`),
+  check("access_requests_status_check", sql`${t.status} in ('pending', 'approved', 'rejected')`)]);
+
 // Temporary read compatibility for the original shell. New grants use normalized RBAC above.
 export const userRoles = pgTable("user_roles", {
   id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull(), moduleId: text("module_id").notNull(),
