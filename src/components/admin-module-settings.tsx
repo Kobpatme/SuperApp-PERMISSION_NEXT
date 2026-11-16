@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { AdminActionForm } from "@/components/admin-action-form";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
@@ -14,6 +15,7 @@ type Item = {
   ready: boolean;
   lifecycle: string;
   entryPermissions: string[];
+  visibleRoleCount?: number;
 };
 
 function lifecycleLabel(lifecycle: string) {
@@ -42,6 +44,7 @@ function ModuleCard({ item }: { item: Item }) {
           <span className={`admin-status-badge ${item.enabled ? "admin-status-neutral" : ""}`}>
             {item.enabled ? "เปิดใช้งาน" : "ปิดใช้งาน"}
           </span>
+          {item.visibleRoleCount !== undefined && <Link className="admin-module-card-roles" href="/admin?section=roles">บทบาทที่เห็น {item.visibleRoleCount}</Link>}
         </div>
       </div>
       <input type="hidden" name="moduleId" value={item.id} />

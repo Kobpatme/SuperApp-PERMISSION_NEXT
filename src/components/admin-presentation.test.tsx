@@ -91,6 +91,20 @@ describe("admin composed presentation", () => {
     expect(html).toContain("ดูสิ่งที่เปลี่ยน");
   });
 
+  it("links a position to the users it currently covers and filters them", () => {
+    const html = renderToStaticMarkup(<AdminWorkspace section="positions" {...base} />);
+    expect(html).toContain("admin-position-review");
+    expect(html).toContain("positionId=p1");
+    const filtered = renderToStaticMarkup(<AdminWorkspace section="users" {...base} filterPositionId="p1" />);
+    expect(filtered).toContain("admin-filter-chip");
+  });
+
+  it("shows how many roles see a module and links to role management", () => {
+    const html = renderToStaticMarkup(<AdminModuleSettings available items={[{ id: "work", name: "งานและ KPI", description: "งาน", enabled: true, version: 1, ready: true, lifecycle: "active", entryPermissions: ["work.task.read"], visibleRoleCount: 2 }]} />);
+    expect(html).toContain("บทบาทที่เห็น 2");
+    expect(html).toContain('href="/admin?section=roles"');
+  });
+
   it("shows each role the modules it can actually enter, including the zero case", () => {
     const html = renderToStaticMarkup(<AdminWorkspace section="roles" {...base} />);
     expect(html).toContain("admin-role-visibility");

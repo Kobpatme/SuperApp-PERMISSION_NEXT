@@ -100,6 +100,9 @@
 .admin-module-card-actions > button { width:100%; }
 .admin-module-card-actions > p { margin:0; }
 .admin-module-list { display:grid;gap:12px;min-width:0; }
+.admin-module-card-roles { display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:4px 9px;border:1px solid color-mix(in srgb,var(--color-brand) 30%,var(--color-border));border-radius:var(--radius-pill);background:var(--color-info-soft);color:var(--color-brand);font-size:var(--text-caption);font-weight:700;text-decoration:none; }
+.admin-filter-chip { display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 20px 12px;padding:8px 12px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface-subtle);font-size:var(--text-caption); }
+.admin-position-review { font-size:var(--text-caption);color:var(--color-brand);align-self:center; }
 .admin-cap-entry { color:var(--color-brand); font-size:var(--text-caption); font-weight:800; white-space:nowrap; }
 .admin-role-visibility { display:grid; gap:8px; padding:12px; border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface-subtle); min-width:0; }
 .admin-role-visibility-count { margin:0; color:var(--color-text-muted); font-size:var(--text-caption); }

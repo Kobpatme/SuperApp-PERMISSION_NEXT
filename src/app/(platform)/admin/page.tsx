@@ -69,6 +69,11 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const diagnostics = permissionsGranted.audit ? (await getWorkspaceData()).snapshot.sources : [];
   const moduleState = permissionsGranted.modules ? await readModuleSettings() : { available: false, rows: [] };
   const moduleName = (id: string) => modules.find((module) => module.id === id)?.name ?? id;
+  const moduleVisibleRoleCount = (module: (typeof modules)[number]) => {
+    if (!permissionsGranted.roles) return undefined;
+    const entry = new Set(module.entryPermissions);
+    return new Set(rolePermissionRows.filter((row) => entry.has(row.code)).map((row) => row.roleId)).size;
+  };
   const pendingAccessRequests = accessRequestRows.filter((row) => row.status === "pending").map((row) => ({
     id: row.id, requesterName: row.requesterName || row.requesterEmail || "ผู้ใช้", requesterEmail: row.requesterEmail || "",
     moduleName: moduleName(row.moduleId), reason: row.reason, createdAt: row.createdAt.toISOString(),
@@ -166,7 +171,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               {current.id === "modules" && (
                 <AdminModuleSettings available={moduleState.available} items={modules.map(module => {
                   const row = moduleState.rows.find(item => item.moduleId === module.id);
-                  return { id: module.id, name: module.name, description: module.description, ready: module.lifecycle === "active", enabled: effectiveModuleEnabled(module, row?.enabled), version: row?.version ?? 0, lifecycle: module.lifecycle, entryPermissions: module.entryPermissions };
+                  return { id: module.id, name: module.name, description: module.description, ready: module.lifecycle === "active", enabled: effectiveModuleEnabled(module, row?.enabled), version: row?.version ?? 0, lifecycle: module.lifecycle, entryPermissions: module.entryPermissions, visibleRoleCount: moduleVisibleRoleCount(module) };
                 })} />
               )}
             </>
@@ -178,6 +183,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           <AdminWorkspace section={current.id} users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
             userScopes={userScopeRows} sessions={sessionRows} auditRows={auditRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))}
             capabilities={adminCapabilityCatalog} permissionsGranted={permissionsGranted} positionTeams={positionTeamRows}
+            filterPositionId={typeof params.positionId === "string" && /^[0-9a-f-]{36}$/i.test(params.positionId) ? params.positionId : undefined}
           />
           <WorkAdminPanels section={current.id} data={workAdmin} />
         </div>
