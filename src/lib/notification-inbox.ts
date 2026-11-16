@@ -3,13 +3,16 @@ import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
 import { notifications } from "@/db/schema";
 import { getIdentityAccessContext } from "@/lib/access";
-import { isAuthorized } from "@/lib/authorization";
 import { safeNotificationHref } from "@/lib/notification-policy";
 
 export async function getNotificationInbox() {
   const access = await getIdentityAccessContext();
   const empty = { items: [], unread: 0, state: "denied" as "ready" | "denied" | "unavailable", canUpdate: false };
-  if (!isAuthorized(access.subject, "notification.inbox.read", { ownerId: access.userId })) return empty;
+  if (!access.userId) return empty;
+  // A notification is addressed to one person (recipient_id = the signed-in user), so
+  // reading it is ownership, not a grantable capability. Gating it on
+  // "notification.inbox.read" hid the inbox from module-only roles such as
+  // "เช่าท่อ · ทีมเขียนแบบ" and from anyone the admin approved by access request.
   try {
     const scope = eq(notifications.recipientId, access.userId);
     const [rows, tally] = await Promise.all([
@@ -20,7 +23,7 @@ export async function getNotificationInbox() {
     ]);
     return { items: rows.map(row => ({ ...row, href: safeNotificationHref(row.href), readAt: row.readAt?.toISOString() ?? null, createdAt: row.createdAt.toISOString() })),
       unread: tally[0]?.value ?? 0, state: "ready" as const,
-      canUpdate: isAuthorized(access.subject, "notification.inbox.update", { ownerId: access.userId }) };
+      canUpdate: true };
   } catch {
     return { ...empty, state: "unavailable" as const };
   }

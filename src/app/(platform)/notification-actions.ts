@@ -5,11 +5,10 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { notifications } from "@/db/schema";
 import { getIdentityAccessContext } from "@/lib/access";
-import { isAuthorized } from "@/lib/authorization";
 
 export async function markNotificationsRead(_state: { message: string }, form: FormData) {
   const access = await getIdentityAccessContext();
-  if (access.passwordChangeRequired || !isAuthorized(access.subject, "notification.inbox.update", { ownerId: access.userId })) return { message: "ไม่มีสิทธิ์เปลี่ยนสถานะการแจ้งเตือน" };
+  if (access.passwordChangeRequired || !access.userId) return { message: "ไม่มีสิทธิ์เปลี่ยนสถานะการแจ้งเตือน" };
   const id = form.get("id");
   if (id !== "all" && !z.string().uuid().safeParse(id).success) return { message: "รายการไม่ถูกต้อง" };
   try {
