@@ -58,7 +58,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       .where(and(lte(userRoleAssignments.validFrom, now), or(isNull(userRoleAssignments.validUntil), gt(userRoleAssignments.validUntil, now)))) : Promise.resolve([]),
     permissionsGranted.users ? getDb().select({ userId: authSessions.userId, count: count() }).from(authSessions).where(gt(authSessions.expiresAt, now)).groupBy(authSessions.userId) : Promise.resolve([]),
     permissionsGranted.audit ? getDb().select({ id: auditLogs.id, actorId: auditLogs.actorId, moduleId: auditLogs.moduleId, action: auditLogs.action,
-      entityType: auditLogs.entityType, entityId: auditLogs.entityId, createdAt: auditLogs.createdAt }).from(auditLogs).where(auditFilter).orderBy(desc(auditLogs.createdAt)).limit(100) : Promise.resolve([]),
+      entityType: auditLogs.entityType, entityId: auditLogs.entityId, before: auditLogs.before, after: auditLogs.after, createdAt: auditLogs.createdAt }).from(auditLogs).where(auditFilter).orderBy(desc(auditLogs.createdAt)).limit(100) : Promise.resolve([]),
     needsAccessReferences ? getDb().select({ positionId: positionSelectedTeams.positionId, teamId: positionSelectedTeams.teamId }).from(positionSelectedTeams) : Promise.resolve([]),
   ]);
   const diagnostics = permissionsGranted.audit ? (await getWorkspaceData()).snapshot.sources : [];

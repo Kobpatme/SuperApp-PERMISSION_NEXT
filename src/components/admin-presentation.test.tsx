@@ -80,6 +80,17 @@ describe("admin composed presentation", () => {
     expect(saved).toMatch(/name="selectedTeamId" checked="" value="t1"/);
   });
 
+  it("renders audit history as Thai sentences with an expandable change list", () => {
+    const html = renderToStaticMarkup(<AdminWorkspace section="audit" {...base} auditRows={[{
+      id: "a1", actorId: "u1", moduleId: "core", action: "role.permissions.update", entityType: "role", entityId: "r1",
+      before: { name: "ผู้จัดการ", capabilityCodes: ["work.task.read"] }, after: { name: "ผู้จัดการ", capabilityCodes: ["work.task.read", "work.task.update"] },
+      createdAt: "2026-11-16T05:00:00.000Z",
+    }]} />);
+    expect(html).toContain("แก้สิทธิ์บทบาท");
+    expect(html).toContain("เพิ่ม 1");
+    expect(html).toContain("ดูสิ่งที่เปลี่ยน");
+  });
+
   it("shows each role the modules it can actually enter, including the zero case", () => {
     const html = renderToStaticMarkup(<AdminWorkspace section="roles" {...base} />);
     expect(html).toContain("admin-role-visibility");
