@@ -28,3 +28,22 @@ export function effectiveCapabilityGroups(codes: readonly string[]) {
     return groups;
   }, {});
 }
+
+export type OwnRoleLockoutInput = {
+  isPlatformAdmin: boolean;
+  actingOnOwnActiveAssignment: boolean;
+  nextCapabilityCodes: readonly string[];
+  otherActiveRoleGrantsRoleManage: boolean;
+};
+
+/**
+ * An administrator must not be able to remove role management from the only place
+ * they hold it: without another administrator the screen that could restore the
+ * permission is exactly the one they can no longer reach.
+ * Platform administrators bypass capability checks, so nothing is blocked for them.
+ */
+export function ownRoleLockoutMessage(input: OwnRoleLockoutInput): string | null {
+  if (input.isPlatformAdmin || !input.actingOnOwnActiveAssignment) return null;
+  if (input.nextCapabilityCodes.includes("core.role.manage") || input.otherActiveRoleGrantsRoleManage) return null;
+  return "ถอดสิทธิ์จัดการบทบาทของตนเองไม่ได้ เพราะจะไม่เหลือทางจัดการสิทธิ์อีก ต้องให้ผู้ดูแลระบบอีกคนยืนยัน";
+}

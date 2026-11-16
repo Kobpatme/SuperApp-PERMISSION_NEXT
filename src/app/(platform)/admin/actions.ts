@@ -1,12 +1,12 @@
 "use server";
 
 import { hash } from "@node-rs/argon2";
-import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
 import { dataScopeGrants, localCredentials, permissions, positionSelectedTeams, positions, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
 import { revokeUserSessions } from "@/lib/auth-session-service";
-import { adminCapabilityCatalog, parseAssignmentScope, parseCatalogCapabilities } from "@/lib/admin-access-contract";
+import { adminCapabilityCatalog, ownRoleLockoutMessage, parseAssignmentScope, parseCatalogCapabilities } from "@/lib/admin-access-contract";
 import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { runMaterialChange } from "@/lib/material-change";
@@ -205,6 +205,23 @@ export async function updateRolePermissionsAction(_state: AdminActionState, form
   const [role] = await getDb().select().from(roles).where(eq(roles.id, roleId)).limit(1);
   if (!role) return { ok: false, message: "ไม่พบบทบาท" };
   if (role.isSystem) return { ok: false, message: "บทบาทระบบแก้ไขไม่ได้ กรุณาสร้างสำเนาเพื่อปรับสิทธิ์" };
+  const now = new Date();
+  const activeAssignment = and(lte(userRoleAssignments.validFrom, now), or(isNull(userRoleAssignments.validUntil), gt(userRoleAssignments.validUntil, now)));
+  const [ownAssignment] = await getDb().select({ id: userRoleAssignments.id }).from(userRoleAssignments)
+    .innerJoin(profiles, and(eq(profiles.id, userRoleAssignments.userId), eq(profiles.status, "active")))
+    .where(and(eq(userRoleAssignments.userId, access.userId), eq(userRoleAssignments.roleId, roleId), activeAssignment)).limit(1);
+  let otherRoleGrantsRoleManage = false;
+  if (ownAssignment && !access.isPlatformAdmin && !capabilityCodes.includes("core.role.manage")) {
+    const [other] = await getDb().select({ id: userRoleAssignments.id }).from(userRoleAssignments)
+      .innerJoin(profiles, and(eq(profiles.id, userRoleAssignments.userId), eq(profiles.status, "active")))
+      .innerJoin(rolePermissions, eq(rolePermissions.roleId, userRoleAssignments.roleId))
+      .where(and(eq(userRoleAssignments.userId, access.userId), ne(userRoleAssignments.roleId, roleId),
+        eq(rolePermissions.permissionCode, "core.role.manage"), activeAssignment)).limit(1);
+    otherRoleGrantsRoleManage = Boolean(other);
+  }
+  const lockout = ownRoleLockoutMessage({ isPlatformAdmin: Boolean(access.isPlatformAdmin), actingOnOwnActiveAssignment: Boolean(ownAssignment),
+    nextCapabilityCodes: capabilityCodes, otherActiveRoleGrantsRoleManage: otherRoleGrantsRoleManage });
+  if (lockout) return { ok: false, message: lockout };
   const existing = await getDb().select({ code: rolePermissions.permissionCode }).from(rolePermissions).where(eq(rolePermissions.roleId, roleId));
   const affected = await getDb().select({ userId: userRoleAssignments.userId }).from(userRoleAssignments).where(and(eq(userRoleAssignments.roleId, roleId), isNull(userRoleAssignments.validUntil)));
   try {
@@ -322,6 +339,19 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
     .leftJoin(userRoleAssignments, and(eq(userRoleAssignments.userId, profiles.id), isNull(userRoleAssignments.validUntil)))
     .where(eq(profiles.id, userId)).limit(1);
   if (!before) return { ok: false, message: "ไม่พบบัญชีผู้ใช้ที่ต้องการแก้ไข" };
+  if (userId === access.userId && !access.isPlatformAdmin && status === "active" && position.roleCode !== "platform_admin") {
+    const now = new Date();
+    const activeWindow = and(lte(userRoleAssignments.validFrom, now), or(isNull(userRoleAssignments.validUntil), gt(userRoleAssignments.validUntil, now)));
+    const newRoleCapabilities = await getDb().select({ code: rolePermissions.permissionCode }).from(rolePermissions).where(eq(rolePermissions.roleId, position.roleId));
+    if (!newRoleCapabilities.some((row) => row.code === "core.role.manage")) {
+      const [other] = await getDb().select({ id: userRoleAssignments.id }).from(userRoleAssignments)
+        .innerJoin(profiles, and(eq(profiles.id, userRoleAssignments.userId), eq(profiles.status, "active")))
+        .innerJoin(rolePermissions, eq(rolePermissions.roleId, userRoleAssignments.roleId))
+        .where(and(eq(userRoleAssignments.userId, access.userId), ne(userRoleAssignments.roleId, position.roleId),
+          eq(rolePermissions.permissionCode, "core.role.manage"), activeWindow)).limit(1);
+      if (!other) return { ok: false, message: "เปลี่ยนสิทธิ์ของตนเองจะทำให้ไม่เหลือทางจัดการสิทธิ์ ต้องให้ผู้ดูแลระบบอีกคนยืนยัน" };
+    }
+  }
   const beforeGrants = await getDb().select({ scopeType: dataScopeGrants.scopeType, selectedTeamId: dataScopeGrants.selectedTeamId })
     .from(userRoleAssignments).innerJoin(dataScopeGrants, eq(dataScopeGrants.assignmentId, userRoleAssignments.id))
     .where(and(eq(userRoleAssignments.userId, userId), isNull(userRoleAssignments.validUntil), isNull(dataScopeGrants.permissionCode)));
