@@ -89,6 +89,19 @@
 @media(max-width:420px) { .admin-page .page-heading-actions { width:100%; } .admin-page .page-heading-actions > * { flex:1 1 100%; } .admin-panel-title { align-items:flex-start; } .admin-status-badge { margin-inline-start:0; } }
 @media(prefers-reduced-motion:reduce) { .admin-page *, .admin-page *::before, .admin-page *::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; animation-iteration-count:1!important; } }
 
+/* Module cards — one clear card per module, status badge + toggle action. */
+.admin-module-card { display:grid; grid-template-columns:1fr auto; gap:14px; align-items:flex-start; border:var(--border-width) solid var(--color-border); border-radius:var(--radius-lg); background:var(--color-surface); padding:16px; min-width:0; }
+.admin-module-card-head { display:grid; grid-template-columns:1fr auto; gap:14px; align-items:flex-start; grid-column:1/-1; min-width:0; }
+.admin-module-card-info { min-width:0; }
+.admin-module-card-info h3 { margin:0 0 4px;font-size:var(--text-h3); }
+.admin-module-card-info p { margin:0 0 6px;color:var(--color-text-muted);font-size:var(--text-body);line-height:1.5; }
+.admin-module-card-lifecycle { display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:3px 8px;border:1px solid var(--color-border);border-radius:var(--radius-pill);background:var(--color-surface-subtle);color:var(--color-text-muted);font-size:var(--text-caption);font-weight:700;white-space:nowrap; }
+.admin-module-card-actions { display:flex;flex-direction:column;gap:8px;flex:0 0 auto;min-width:160px; }
+.admin-module-card-actions > button { width:100%; }
+.admin-module-card-actions > p { margin:0; }
+.admin-module-list { display:grid;gap:12px;min-width:0; }
+.admin-cap-entry { color:var(--color-brand); font-size:var(--text-caption); font-weight:800; white-space:nowrap; }
+
 /* Admin composition only; shared controls and native top-layer lifecycle own visuals. */
 .admin-page .work-action-row { display:flex; flex-wrap:wrap; gap:var(--space-3); }
 .admin-page .admin-form .admin-action-fields > button { grid-column:1/-1; }

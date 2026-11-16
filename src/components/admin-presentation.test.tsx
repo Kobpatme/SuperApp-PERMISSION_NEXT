@@ -64,9 +64,9 @@ describe("admin composed presentation", () => {
   });
 
   it("groups module toggles in one shared panel instead of stacked cards", () => {
-    const html = renderToStaticMarkup(<AdminModuleSettings available items={[{ id: "core", name: "ระบบกลาง", enabled: true, version: 1, ready: true }]} />);
+    const html = renderToStaticMarkup(<AdminModuleSettings available items={[{ id: "core", name: "ระบบกลาง", description: "ศูนย์กลางระบบ", enabled: true, version: 1, ready: true, lifecycle: "active", entryPermissions: ["core.profile.read"] }]} />);
     expect(html).toContain('class="ui-panel admin-module-settings"');
-    expect(html).toContain("admin-module-row");
+    expect(html).toContain("admin-module-card");
     expect(html).not.toContain('class="admin-panel"');
   });
 

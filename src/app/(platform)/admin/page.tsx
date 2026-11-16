@@ -150,7 +150,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
               {current.id === "modules" && (
                 <AdminModuleSettings available={moduleState.available} items={modules.map(module => {
                   const row = moduleState.rows.find(item => item.moduleId === module.id);
-                  return { id: module.id, name: module.name, ready: module.lifecycle === "active", enabled: effectiveModuleEnabled(module, row?.enabled), version: row?.version ?? 0 };
+                  return { id: module.id, name: module.name, description: module.description, ready: module.lifecycle === "active", enabled: effectiveModuleEnabled(module, row?.enabled), version: row?.version ?? 0, lifecycle: module.lifecycle, entryPermissions: module.entryPermissions };
                 })} />
               )}
             </>
