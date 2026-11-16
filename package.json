@@ -37,6 +37,8 @@
     "import:po:dry": "node scripts/po-tracking-import.mjs --dry-run",
     "db:po:apply": "node scripts/apply-po-tracking-migration.mjs",
     "test:po:import": "node --test scripts/po-tracking-import-unit.test.mjs scripts/migration-ledger.test.mjs",
+    "test:position-scope:db": "node scripts/position-scope-test-db.mjs",
+    "test:position-scope": "vitest run src/lib/position-scope.integration.test.ts",
     "test:po:db": "node scripts/po-tracking-test-db.mjs",
     "test:po:excel": "node scripts/po-excel-test-db.mjs",
     "pretest": "node scripts/write-build-info.mjs --ensure",
