@@ -4,7 +4,7 @@ import { hash } from "@node-rs/argon2";
 import { and, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db";
-import { dataScopeGrants, localCredentials, permissions, positions, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
+import { dataScopeGrants, localCredentials, permissions, positionSelectedTeams, positions, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
 import { revokeUserSessions } from "@/lib/auth-session-service";
 import { adminCapabilityCatalog, parseAssignmentScope, parseCatalogCapabilities } from "@/lib/admin-access-contract";
 import { getIdentityAccessContext } from "@/lib/access";
@@ -45,16 +45,22 @@ export async function createUserAction(_state: AdminActionState, form: FormData)
   if (!position) return { ok: false, message: "ไม่พบตำแหน่งที่เลือก" };
   if (position.scopeType === "TEAM" && !/^[0-9a-f-]{36}$/i.test(teamId)) return { ok: false, message: "ตำแหน่งนี้ต้องกำหนดทีม" };
   if (teamId && !(await getDb().select({ id: teams.id }).from(teams).where(and(eq(teams.id, teamId), eq(teams.isActive, true))).limit(1)).length) return { ok: false, message: "ไม่พบทีมที่เลือก" };
+  const positionTeams = position.scopeType === "SELECTED_TEAMS"
+    ? await getDb().select({ teamId: positionSelectedTeams.teamId }).from(positionSelectedTeams).where(eq(positionSelectedTeams.positionId, position.id))
+    : [];
+  if (position.scopeType === "SELECTED_TEAMS" && positionTeams.length === 0) return { ok: false, message: "ตำแหน่งนี้ยังไม่ได้เลือกทีมสำหรับขอบเขตหลายทีม" };
+  const positionTeamIds = positionTeams.map((row) => row.teamId);
   try {
     const passwordHash = await hash(password, passwordOptions);
     const id = crypto.randomUUID();
     await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "user.create", entityType: "profile", entityId: id,
-      requestId: crypto.randomUUID(), after: { email, displayName, employeeCode, positionId, teamId: teamId || null, status: "active" } } }, async (tx) => {
+      requestId: crypto.randomUUID(), after: { email, displayName, employeeCode, positionId, teamId: teamId || null, scopeType: position.scopeType, selectedTeamIds: positionTeamIds, status: "active" } } }, async (tx) => {
       await tx.insert(profiles).values({ id, email, displayName, employeeCode: employeeCode || null, positionId, status: "active" });
       await tx.insert(localCredentials).values({ userId: id, passwordHash, mustChangePassword: true });
       if (teamId) await tx.insert(userTeams).values({ userId: id, teamId, isPrimary: true });
       const [assignment] = await tx.insert(userRoleAssignments).values({ userId: id, roleId: position.roleId, teamId: teamId || null, createdBy: access.userId }).returning({ id: userRoleAssignments.id });
-      await tx.insert(dataScopeGrants).values({ assignmentId: assignment.id, scopeType: position.scopeType });
+      if (position.scopeType === "SELECTED_TEAMS") await tx.insert(dataScopeGrants).values(positionTeamIds.map((selectedTeamId) => ({ assignmentId: assignment.id, scopeType: "SELECTED_TEAMS", selectedTeamId })));
+      else await tx.insert(dataScopeGrants).values({ assignmentId: assignment.id, scopeType: position.scopeType });
     });
     revalidatePath("/admin");
     return { ok: true, message: "เพิ่มผู้ใช้แล้ว ผู้ใช้ควรเปลี่ยนรหัสผ่านหลังเข้าสู่ระบบครั้งแรก" };
@@ -70,13 +76,20 @@ export async function createPositionAction(_state: AdminActionState, form: FormD
   const code = String(form.get("code") || "").trim().toLocaleLowerCase("en-US").replace(/[^a-z0-9_-]/g, "_");
   const name = String(form.get("name") || "").trim();
   const roleId = String(form.get("roleId") || "");
-  const scopeType = String(form.get("scopeType") || "OWN");
-  if (!code || name.length < 2 || !/^[0-9a-f-]{36}$/i.test(roleId) || !["OWN", "TEAM", "ALL"].includes(scopeType)) return { ok: false, message: "ข้อมูลตำแหน่งไม่ครบ" };
+  let scope: ReturnType<typeof parseAssignmentScope>;
+  try { scope = parseAssignmentScope(form.get("scopeType"), form.getAll("selectedTeamId")); }
+  catch { return { ok: false, message: "ขอบเขตข้อมูลไม่ถูกต้อง หรือยังไม่ได้เลือกทีมสำหรับขอบเขตหลายทีม" }; }
+  if (!code || name.length < 2 || !/^[0-9a-f-]{36}$/i.test(roleId)) return { ok: false, message: "ข้อมูลตำแหน่งไม่ครบ" };
+  if (scope.selectedTeamIds.length) {
+    const validTeams = await getDb().select({ id: teams.id }).from(teams).where(and(inArray(teams.id, scope.selectedTeamIds), eq(teams.isActive, true)));
+    if (validTeams.length !== scope.selectedTeamIds.length) return { ok: false, message: "มีทีมในขอบเขตที่ไม่พร้อมใช้งาน" };
+  }
   try {
     const id = crypto.randomUUID();
     await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "position.create", entityType: "position", entityId: id,
-      requestId: crypto.randomUUID(), after: { code, name, roleId, scopeType } } }, async (tx) => {
-      await tx.insert(positions).values({ id, code, name, roleId, scopeType });
+      requestId: crypto.randomUUID(), after: { code, name, roleId, scopeType: scope.scopeType, selectedTeamIds: scope.selectedTeamIds } } }, async (tx) => {
+      await tx.insert(positions).values({ id, code, name, roleId, scopeType: scope.scopeType });
+      if (scope.selectedTeamIds.length) await tx.insert(positionSelectedTeams).values(scope.selectedTeamIds.map((teamId) => ({ positionId: id, teamId })));
     });
     revalidatePath("/admin");
     return { ok: true, message: "เพิ่มตำแหน่งแล้ว" };
@@ -89,15 +102,25 @@ export async function updatePositionAction(_state: AdminActionState, form: FormD
   const positionId = String(form.get("positionId") || "");
   const name = String(form.get("name") || "").trim();
   const roleId = String(form.get("roleId") || "");
-  const scopeType = String(form.get("scopeType") || "OWN");
-  if (!/^[0-9a-f-]{36}$/i.test(positionId) || name.length < 2 || !/^[0-9a-f-]{36}$/i.test(roleId) || !["OWN", "TEAM", "ALL"].includes(scopeType)) return { ok: false, message: "ข้อมูลตำแหน่งไม่ครบ" };
+  let scope: ReturnType<typeof parseAssignmentScope>;
+  try { scope = parseAssignmentScope(form.get("scopeType"), form.getAll("selectedTeamId")); }
+  catch { return { ok: false, message: "ขอบเขตข้อมูลไม่ถูกต้อง หรือยังไม่ได้เลือกทีมสำหรับขอบเขตหลายทีม" }; }
+  if (!/^[0-9a-f-]{36}$/i.test(positionId) || name.length < 2 || !/^[0-9a-f-]{36}$/i.test(roleId)) return { ok: false, message: "ข้อมูลตำแหน่งไม่ครบ" };
   const [before] = await getDb().select().from(positions).where(eq(positions.id, positionId)).limit(1);
   if (!before) return { ok: false, message: "ไม่พบตำแหน่ง" };
   const [role] = await getDb().select({ id: roles.id }).from(roles).where(eq(roles.id, roleId)).limit(1);
   if (!role) return { ok: false, message: "ไม่พบชุดสิทธิ์" };
-  const after = { ...before, name, roleId, scopeType };
-  await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "position.update", entityType: "position", entityId: positionId, requestId: crypto.randomUUID(), before, after } }, async (tx) => {
-    await tx.update(positions).set({ name, roleId, scopeType, updatedAt: new Date() }).where(eq(positions.id, positionId));
+  if (scope.selectedTeamIds.length) {
+    const validTeams = await getDb().select({ id: teams.id }).from(teams).where(and(inArray(teams.id, scope.selectedTeamIds), eq(teams.isActive, true)));
+    if (validTeams.length !== scope.selectedTeamIds.length) return { ok: false, message: "มีทีมในขอบเขตที่ไม่พร้อมใช้งาน" };
+  }
+  const beforeTeams = await getDb().select({ teamId: positionSelectedTeams.teamId }).from(positionSelectedTeams).where(eq(positionSelectedTeams.positionId, positionId));
+  const after = { ...before, name, roleId, scopeType: scope.scopeType, selectedTeamIds: scope.selectedTeamIds };
+  await runMaterialChange({ audit: { actorId: access.userId, moduleId: "core", action: "position.update", entityType: "position", entityId: positionId,
+    requestId: crypto.randomUUID(), before: { ...before, selectedTeamIds: beforeTeams.map((row) => row.teamId) }, after } }, async (tx) => {
+    await tx.update(positions).set({ name, roleId, scopeType: scope.scopeType, updatedAt: new Date() }).where(eq(positions.id, positionId));
+    await tx.delete(positionSelectedTeams).where(eq(positionSelectedTeams.positionId, positionId));
+    if (scope.selectedTeamIds.length) await tx.insert(positionSelectedTeams).values(scope.selectedTeamIds.map((teamId) => ({ positionId, teamId })));
   });
   revalidatePath("/admin");
   return { ok: true, message: `บันทึกตำแหน่ง ${name} แล้ว การมอบหมายเดิมยังคงเดิมจนกว่าจะทบทวนผู้ใช้` };
@@ -272,9 +295,16 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
   const [position] = await getDb().select({ id: positions.id, roleId: positions.roleId, scopeType: positions.scopeType, roleCode: roles.code })
     .from(positions).innerJoin(roles, eq(roles.id, positions.roleId)).where(and(eq(positions.id, positionId), eq(positions.isActive, true))).limit(1);
   if (!position) return { ok: false, message: "ไม่พบตำแหน่งที่เลือก" };
+  const submittedScope = form.get("scopeType");
+  const positionScopeTeams = position.scopeType === "SELECTED_TEAMS"
+    ? await getDb().select({ teamId: positionSelectedTeams.teamId }).from(positionSelectedTeams).where(eq(positionSelectedTeams.positionId, position.id))
+    : [];
   let requestedScope: ReturnType<typeof parseAssignmentScope>;
-  try { requestedScope = parseAssignmentScope(form.get("scopeType") || position.scopeType, form.getAll("selectedTeamId")); }
-  catch { return { ok: false, message: "ขอบเขต SELECTED_TEAMS ต้องเลือกอย่างน้อยหนึ่งทีม" }; }
+  try {
+    requestedScope = submittedScope
+      ? parseAssignmentScope(submittedScope, form.getAll("selectedTeamId"))
+      : parseAssignmentScope(position.scopeType, positionScopeTeams.map((row) => row.teamId));
+  } catch { return { ok: false, message: "ขอบเขต SELECTED_TEAMS ต้องเลือกอย่างน้อยหนึ่งทีม" }; }
   if (requestedScope.scopeType === "TEAM" && !/^[0-9a-f-]{36}$/i.test(teamId)) return { ok: false, message: "ขอบเขต TEAM ต้องกำหนดทีมหลัก" };
   if (teamId && !(await getDb().select({ id: teams.id }).from(teams).where(and(eq(teams.id, teamId), eq(teams.isActive, true))).limit(1)).length) {
     return { ok: false, message: "ไม่พบทีมที่เลือก" };

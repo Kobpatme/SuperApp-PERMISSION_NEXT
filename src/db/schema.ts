@@ -69,7 +69,7 @@ export const authRateLimits = pgTable("auth_rate_limits", {
 export const positions = pgTable("positions", {
   id: uuid("id").defaultRandom().primaryKey(), code: text("code").notNull(), name: text("name").notNull(),
   roleId: uuid("role_id").notNull(), scopeType: text("scope_type").notNull().default("OWN"), isActive: boolean("is_active").notNull().default(true), ...timestamps,
-}, (t) => [uniqueIndex("positions_code_idx").on(t.code), check("positions_scope_check", sql`${t.scopeType} in ('OWN','TEAM','ALL')`)]);
+}, (t) => [uniqueIndex("positions_code_idx").on(t.code), check("positions_scope_check", sql`${t.scopeType} in ('OWN','TEAM','SELECTED_TEAMS','ALL')`)]);
 
 export const teams = pgTable("teams", {
   id: uuid("id").defaultRandom().primaryKey(), code: text("code").notNull(), name: text("name").notNull(),
@@ -81,6 +81,13 @@ export const userTeams = pgTable("user_teams", {
   teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
   isPrimary: boolean("is_primary").notNull().default(false), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [primaryKey({ columns: [t.userId, t.teamId] })]);
+
+/** Explicit team list for positions whose scope is SELECTED_TEAMS; other scopes keep this table empty. */
+export const positionSelectedTeams = pgTable("position_selected_teams", {
+  positionId: uuid("position_id").notNull().references(() => positions.id, { onDelete: "cascade" }),
+  teamId: uuid("team_id").notNull().references(() => teams.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (t) => [primaryKey({ columns: [t.positionId, t.teamId] })]);
 
 export const roles = pgTable("roles", {
   id: uuid("id").defaultRandom().primaryKey(), code: text("code").notNull(), name: text("name").notNull(),

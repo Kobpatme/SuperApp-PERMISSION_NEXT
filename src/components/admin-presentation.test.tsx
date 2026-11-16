@@ -21,6 +21,7 @@ const base = {
   teams: [{ id: "t1", code: "ops", name: "ปฏิบัติการ" }],
   rolePermissions: [{ roleId: "r1", code: "core.user.manage", description: "จัดการผู้ใช้" }],
   userScopes: [{ userId: "u1", scopeType: "ALL", selectedTeamId: null }],
+  positionTeams: [] as { positionId: string; teamId: string }[],
   sessions: [{ userId: "u1", count: 1 }],
   auditRows: [],
   capabilities: [{ moduleId: "core", moduleName: "ระบบกลาง", code: "core.user.manage", labelTh: "จัดการผู้ใช้", descriptionTh: "จัดการบัญชีผู้ใช้", allowedScopes: ["OWN", "TEAM", "SELECTED_TEAMS", "ALL"] as ("OWN" | "TEAM" | "SELECTED_TEAMS" | "ALL")[], risk: "administrative" as const }],
@@ -68,6 +69,15 @@ describe("admin composed presentation", () => {
     expect(html).toContain('class="ui-panel admin-module-settings"');
     expect(html).toContain("admin-module-card");
     expect(html).not.toContain('class="admin-panel"');
+  });
+
+  it("scopes a position to an explicit team list and preselects saved teams", () => {
+    const html = renderToStaticMarkup(<AdminWorkspace section="positions" {...base} />);
+    expect(html).toContain('value="SELECTED_TEAMS"');
+    expect(html).toContain("admin-team-picker");
+
+    const saved = renderToStaticMarkup(<AdminWorkspace section="positions" {...base} positionTeams={[{ positionId: "p1", teamId: "t1" }]} />);
+    expect(saved).toMatch(/name="selectedTeamId" checked="" value="t1"/);
   });
 
   it("shows each role the modules it can actually enter, including the zero case", () => {

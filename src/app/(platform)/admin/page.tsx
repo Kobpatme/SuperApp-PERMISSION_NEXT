@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: copy.pages.admin };
 import { and, asc, count, desc, eq, gt, gte, ilike, isNull, lte, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
-import { auditLogs, authSessions, dataScopeGrants, permissions, positions, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
+import { auditLogs, authSessions, dataScopeGrants, permissions, positions, positionSelectedTeams, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
 import { AdminWorkspace } from "@/components/admin-workspace";
 import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
@@ -43,7 +43,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const canReadUsers = permissionsGranted.users || permissionsGranted.profiles;
   const needsAccessReferences = permissionsGranted.users || permissionsGranted.positions || permissionsGranted.roles;
   const now = new Date();
-  const [userRows, positionRows, roleRows, teamRows, rolePermissionRows, userScopeRows, sessionRows, auditRows] = await Promise.all([
+  const [userRows, positionRows, roleRows, teamRows, rolePermissionRows, userScopeRows, sessionRows, auditRows, positionTeamRows] = await Promise.all([
     canReadUsers ? getDb().select({ id: profiles.id, email: profiles.email, displayName: profiles.displayName, employeeCode: profiles.employeeCode,
       status: profiles.status, positionId: profiles.positionId, positionName: positions.name, teamId: userTeams.teamId }).from(profiles)
       .leftJoin(positions, eq(positions.id, profiles.positionId)).leftJoin(userTeams, and(eq(userTeams.userId, profiles.id), eq(userTeams.isPrimary, true))).orderBy(asc(profiles.displayName)) : Promise.resolve([]),
@@ -59,6 +59,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     permissionsGranted.users ? getDb().select({ userId: authSessions.userId, count: count() }).from(authSessions).where(gt(authSessions.expiresAt, now)).groupBy(authSessions.userId) : Promise.resolve([]),
     permissionsGranted.audit ? getDb().select({ id: auditLogs.id, actorId: auditLogs.actorId, moduleId: auditLogs.moduleId, action: auditLogs.action,
       entityType: auditLogs.entityType, entityId: auditLogs.entityId, createdAt: auditLogs.createdAt }).from(auditLogs).where(auditFilter).orderBy(desc(auditLogs.createdAt)).limit(100) : Promise.resolve([]),
+    needsAccessReferences ? getDb().select({ positionId: positionSelectedTeams.positionId, teamId: positionSelectedTeams.teamId }).from(positionSelectedTeams) : Promise.resolve([]),
   ]);
   const diagnostics = permissionsGranted.audit ? (await getWorkspaceData()).snapshot.sources : [];
   const moduleState = permissionsGranted.modules ? await readModuleSettings() : { available: false, rows: [] };
@@ -157,7 +158,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           )}
           <AdminWorkspace section={current.id} users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
             userScopes={userScopeRows} sessions={sessionRows} auditRows={auditRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))}
-            capabilities={adminCapabilityCatalog} permissionsGranted={permissionsGranted}
+            capabilities={adminCapabilityCatalog} permissionsGranted={permissionsGranted} positionTeams={positionTeamRows}
           />
           <WorkAdminPanels section={current.id} data={workAdmin} />
         </div>
