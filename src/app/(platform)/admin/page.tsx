@@ -74,6 +74,16 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     const entry = new Set(module.entryPermissions);
     return new Set(rolePermissionRows.filter((row) => entry.has(row.code)).map((row) => row.roleId)).size;
   };
+  const roleCapabilityOptions = roleRows.map((role) => ({
+    id: role.id,
+    name: role.name,
+    capabilities: rolePermissionRows
+      .filter((row) => row.roleId === role.id)
+      .flatMap((row) => {
+        const capability = adminCapabilityCatalog.find((item) => item.code === row.code);
+        return capability ? [{ code: capability.code, labelTh: capability.labelTh, allowedScopes: [...capability.allowedScopes] }] : [];
+      }),
+  }));
   const pendingAccessRequests = accessRequestRows.filter((row) => row.status === "pending").map((row) => ({
     id: row.id, requesterName: row.requesterName || row.requesterEmail || "ผู้ใช้", requesterEmail: row.requesterEmail || "",
     moduleName: moduleName(row.moduleId), reason: row.reason, createdAt: row.createdAt.toISOString(),
@@ -178,7 +188,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
           )}
           {current.id === "access-requests" && permissionsGranted.roles && (
             <AdminAccessRequests requests={pendingAccessRequests} history={accessRequestHistory}
-              roles={roleRows.map((role) => ({ id: role.id, name: role.name }))} teams={teamRows.map((team) => ({ id: team.id, name: team.name }))} />
+              roles={roleCapabilityOptions} teams={teamRows.map((team) => ({ id: team.id, name: team.name }))} />
           )}
           <AdminWorkspace section={current.id} users={userRows} positions={positionRows} roles={roleRows} teams={teamRows} rolePermissions={rolePermissionRows}
             userScopes={userScopeRows} sessions={sessionRows} auditRows={auditRows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() }))}

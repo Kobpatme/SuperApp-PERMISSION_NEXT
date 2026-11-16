@@ -109,9 +109,11 @@ export const userRoleAssignments = pgTable("user_role_assignments", {
   id: uuid("id").defaultRandom().primaryKey(), userId: uuid("user_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
   roleId: uuid("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
   teamId: uuid("team_id").references(() => teams.id, { onDelete: "cascade" }),
+  source: text("source").notNull().default("position"),
   validFrom: timestamp("valid_from", { withTimezone: true }).defaultNow().notNull(), validUntil: timestamp("valid_until", { withTimezone: true }),
   createdBy: uuid("created_by").references(() => profiles.id, { onDelete: "set null" }), createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-}, (t) => [index("user_role_assignments_user_idx").on(t.userId)]);
+}, (t) => [index("user_role_assignments_user_idx").on(t.userId),
+  check("user_role_assignments_source_check", sql`${t.source} in ('position', 'access_request', 'manual')`)]);
 
 export const dataScopeGrants = pgTable("data_scope_grants", {
   id: uuid("id").defaultRandom().primaryKey(), assignmentId: uuid("assignment_id").notNull().references(() => userRoleAssignments.id, { onDelete: "cascade" }),

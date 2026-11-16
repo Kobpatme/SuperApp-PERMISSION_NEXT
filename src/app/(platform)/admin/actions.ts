@@ -7,6 +7,8 @@ import { getDb } from "@/db";
 import { dataScopeGrants, localCredentials, permissions, positionSelectedTeams, positions, profiles, rolePermissions, roles, teams, userRoleAssignments, userTeams } from "@/db/schema";
 import { revokeUserSessions } from "@/lib/auth-session-service";
 import { adminCapabilityCatalog, ownRoleLockoutMessage, parseAssignmentScope, parseCapabilityScopeOverrides, parseCatalogCapabilities } from "@/lib/admin-access-contract";
+import { buildGrantValues, unsupportedFallbackScope } from "@/lib/assignment-grant-plan";
+import { dataScopeLabel } from "@/lib/access-request-domain";
 import { getIdentityAccessContext } from "@/lib/access";
 import { isAuthorized } from "@/lib/authorization";
 import { runMaterialChange } from "@/lib/material-change";
@@ -58,7 +60,7 @@ export async function createUserAction(_state: AdminActionState, form: FormData)
       await tx.insert(profiles).values({ id, email, displayName, employeeCode: employeeCode || null, positionId, status: "active" });
       await tx.insert(localCredentials).values({ userId: id, passwordHash, mustChangePassword: true });
       if (teamId) await tx.insert(userTeams).values({ userId: id, teamId, isPrimary: true });
-      const [assignment] = await tx.insert(userRoleAssignments).values({ userId: id, roleId: position.roleId, teamId: teamId || null, createdBy: access.userId }).returning({ id: userRoleAssignments.id });
+      const [assignment] = await tx.insert(userRoleAssignments).values({ userId: id, roleId: position.roleId, teamId: teamId || null, source: "position", createdBy: access.userId }).returning({ id: userRoleAssignments.id });
       if (position.scopeType === "SELECTED_TEAMS") await tx.insert(dataScopeGrants).values(positionTeamIds.map((selectedTeamId) => ({ assignmentId: assignment.id, scopeType: "SELECTED_TEAMS", selectedTeamId })));
       else await tx.insert(dataScopeGrants).values({ assignmentId: assignment.id, scopeType: position.scopeType });
     });
@@ -337,14 +339,9 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
   catch (error) {
     return { ok: false, message: error instanceof Error && error.message === "SCOPE_NOT_ALLOWED" ? "มีสิทธิ์ที่เลือกขอบเขตซึ่งสิทธิ์นั้นไม่อนุญาต" : "ขอบเขตเฉพาะสิทธิ์ไม่ถูกต้อง" };
   }
-  const overrideByCode = new Map(scopeOverrides.map((override) => [override.permissionCode, override.scopeType]));
-  if (scopeOverrides.length) {
-    const unsupported = roleCapabilityCodes.find((code) => !overrideByCode.has(code) &&
-      !adminCapabilityCatalog.find((item) => item.code === code)?.allowedScopes.includes(requestedScope.scopeType));
-    if (unsupported) {
-      const label = adminCapabilityCatalog.find((item) => item.code === unsupported)?.labelTh ?? unsupported;
-      return { ok: false, message: `สิทธิ์ "${label}" ไม่รองรับขอบเขต ${requestedScope.scopeType} กรุณากำหนดขอบเขตเฉพาะสิทธิ์นี้` };
-    }
+  const unsupported = unsupportedFallbackScope(roleCapabilityCodes, requestedScope.scopeType, scopeOverrides);
+  if (unsupported) {
+    return { ok: false, message: `สิทธิ์ "${unsupported.label}" ไม่รองรับขอบเขต ${dataScopeLabel(requestedScope.scopeType)} กรุณากำหนดขอบเขตเฉพาะสิทธิ์นี้` };
   }
 
   const [before] = await getDb().select({ email: profiles.email, displayName: profiles.displayName, employeeCode: profiles.employeeCode,
@@ -352,7 +349,7 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
     assignmentRoleId: userRoleAssignments.roleId })
     .from(profiles).leftJoin(positions, eq(positions.id, profiles.positionId)).leftJoin(roles, eq(roles.id, positions.roleId))
     .leftJoin(userTeams, and(eq(userTeams.userId, profiles.id), eq(userTeams.isPrimary, true)))
-    .leftJoin(userRoleAssignments, and(eq(userRoleAssignments.userId, profiles.id), isNull(userRoleAssignments.validUntil)))
+    .leftJoin(userRoleAssignments, and(eq(userRoleAssignments.userId, profiles.id), isNull(userRoleAssignments.validUntil), eq(userRoleAssignments.source, "position")))
     .where(eq(profiles.id, userId)).limit(1);
   if (!before) return { ok: false, message: "ไม่พบบัญชีผู้ใช้ที่ต้องการแก้ไข" };
   if (userId === access.userId && !access.isPlatformAdmin && status === "active" && position.roleCode !== "platform_admin") {
@@ -370,7 +367,7 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
   }
   const beforeGrants = await getDb().select({ permissionCode: dataScopeGrants.permissionCode, scopeType: dataScopeGrants.scopeType, selectedTeamId: dataScopeGrants.selectedTeamId })
     .from(userRoleAssignments).innerJoin(dataScopeGrants, eq(dataScopeGrants.assignmentId, userRoleAssignments.id))
-    .where(and(eq(userRoleAssignments.userId, userId), isNull(userRoleAssignments.validUntil)));
+    .where(and(eq(userRoleAssignments.userId, userId), isNull(userRoleAssignments.validUntil), eq(userRoleAssignments.source, "position")));
 
   const removesAdminAccess = before.roleCode === "platform_admin" && (position.roleCode !== "platform_admin" || status !== "active");
   const normalizedTeamId = teamId || null;
@@ -398,27 +395,15 @@ export async function updateUserAccessAction(_state: AdminActionState, form: For
       }
       await tx.update(profiles).set({ email, displayName, employeeCode: employeeCode || null, status, positionId, updatedAt: now }).where(eq(profiles.id, userId));
       if (accessChanged) {
-        await tx.update(userRoleAssignments).set({ validUntil: now }).where(and(eq(userRoleAssignments.userId, userId), isNull(userRoleAssignments.validUntil)));
+        // Only the position assignment is rewritten here. Roles approved through a
+        // self-service request stay valid until they expire or are revoked directly.
+        await tx.update(userRoleAssignments).set({ validUntil: now }).where(and(eq(userRoleAssignments.userId, userId), isNull(userRoleAssignments.validUntil), eq(userRoleAssignments.source, "position")));
         await tx.delete(userTeams).where(eq(userTeams.userId, userId));
         if (normalizedTeamId) await tx.insert(userTeams).values({ userId, teamId: normalizedTeamId, isPrimary: true });
-        const [assignment] = await tx.insert(userRoleAssignments).values({ userId, roleId: position.roleId, teamId: normalizedTeamId, createdBy: access.userId })
+        const [assignment] = await tx.insert(userRoleAssignments).values({ userId, roleId: position.roleId, teamId: normalizedTeamId, source: "position", createdBy: access.userId })
           .returning({ id: userRoleAssignments.id });
-        if (scopeOverrides.length) {
-          const values: { assignmentId: string; permissionCode: string; scopeType: string; selectedTeamId?: string }[] = [];
-          for (const code of roleCapabilityCodes) {
-            const scopeType = overrideByCode.get(code) ?? requestedScope.scopeType;
-            if (scopeType === "SELECTED_TEAMS") {
-              for (const selectedTeamId of requestedScope.selectedTeamIds) values.push({ assignmentId: assignment.id, permissionCode: code, scopeType, selectedTeamId });
-            } else {
-              values.push({ assignmentId: assignment.id, permissionCode: code, scopeType });
-            }
-          }
-          if (values.length) await tx.insert(dataScopeGrants).values(values);
-        } else if (requestedScope.scopeType === "SELECTED_TEAMS") {
-          await tx.insert(dataScopeGrants).values(requestedScope.selectedTeamIds.map((selectedTeamId) => ({ assignmentId: assignment.id, scopeType: requestedScope.scopeType, selectedTeamId })));
-        } else {
-          await tx.insert(dataScopeGrants).values({ assignmentId: assignment.id, scopeType: requestedScope.scopeType });
-        }
+        const grantValues = buildGrantValues({ capabilityCodes: roleCapabilityCodes, defaultScope: requestedScope, overrides: scopeOverrides });
+        if (grantValues.length) await tx.insert(dataScopeGrants).values(grantValues.map((value) => ({ ...value, assignmentId: assignment.id })));
       }
       if ((accessChanged || statusChanged) && userId !== access.userId) await revokeUserSessions(tx, userId, "admin_revoked");
     });

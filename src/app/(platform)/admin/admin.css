@@ -118,8 +118,12 @@
 @media(max-width:760px) { .admin-scope-list { grid-template-columns:minmax(0,1fr); } }
 .admin-audit-diff { display:grid; gap:4px; margin:8px 0 0; padding-left:18px; font-size:var(--text-caption); color:var(--color-text-muted); }
 .admin-audit-diff strong { color:var(--color-text); }
-.admin-request-form { display:grid; gap:6px; min-width:240px; }
+.admin-request-form { display:grid; gap:6px; min-width:260px; }
 .admin-request-form label { display:grid; gap:3px; font-size:var(--text-caption); color:var(--color-text-muted); }
+.admin-request-form .admin-team-picker { margin:2px 0; }
+.admin-request-form .admin-capability-scopes { margin-top:6px; }
+.admin-capability-scope-list { display:grid; gap:6px; margin-top:10px; }
+.admin-capability-scope-list label { display:grid; gap:3px; }
 .admin-request-history { margin-top:16px; }
 .admin-request-history > summary { cursor:pointer; min-height:32px; font-size:var(--text-caption); font-weight:800; color:var(--color-brand); }
 .admin-request-history ul { display:grid; gap:6px; margin:8px 0 0; padding-left:18px; font-size:var(--text-caption); }
