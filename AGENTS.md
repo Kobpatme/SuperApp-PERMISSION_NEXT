@@ -34,3 +34,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Verification (for agents)
+
+Run commands from the repository root:
+
+- Install dependencies in a clean checkout: `npm ci`
+- Lint: `npm run lint`
+- Type-check: `npm run typecheck`
+- Run the DB/network/browser-free test subset: `npm test -- --exclude "**/*.integration.test.ts"`
+- Run the complete agent ship gate: `npm run verify`
+
+`npm run verify` runs only lint, type-checking, the unit-safe Vitest subset, and the CSS quality check. Do not add or run DB-backed scripts (including `*:db`, `test:position-scope`, or other integration suites) or browser tests (`test:e2e`, `*:browser`, or Playwright) in this ship gate; they require isolated infrastructure, may write database state, or launch a browser. Run those only in their explicitly provisioned gates.
+
+Definition of Done for an agent handoff: report the artifact path(s), every command actually run, and the last 20 lines of the real command output.

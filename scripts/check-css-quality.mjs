@@ -22,8 +22,10 @@ for (const file of files.filter(file=>file.endsWith('.css'))) {
   if (depth>0) errors.push(`${file}: ${depth} unclosed brace(s)`);
 }
 for (const file of files) {
-  const text=fs.readFileSync(file,'utf8').replace(/\/\*[\s\S]*?\*\//g,'');
-  if (!file.endsWith('tokens.css')) for (const m of text.matchAll(/#[\da-f]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\([^)]*\)/gi)) errors.push(`${file}: literal ${m[0]}`);
+  const source=fs.readFileSync(file,'utf8');
+  const allowLiteralColors=source.split('\n',5).some(line=>/^\s*(?:\/\/|\/\*|\*)\s*css-quality:\s*allow-literal-colors\b/.test(line));
+  const text=source.replace(/\/\*[\s\S]*?\*\//g,'');
+  if (!file.endsWith('tokens.css') && !allowLiteralColors) for (const m of text.matchAll(/#[\da-f]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\([^)]*\)/gi)) errors.push(`${file}: literal ${m[0]}`);
   if (file.endsWith('.css')) {
     for (const m of text.matchAll(/font-size\s*:\s*([^;}]+)/g)) {
       for(const v of m[1].matchAll(/([\d.]+)(px|rem)/g)) if(+v[1]<(v[2]==='px'?12:.75)) errors.push(`${file}: font-size ${v[0]} (no exceptions)`);

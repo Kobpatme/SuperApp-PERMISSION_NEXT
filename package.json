@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "worker:kpi": "node --experimental-strip-types scripts/kpi-worker.mjs",
+    "test:kpi-worker": "node --experimental-strip-types --test scripts/kpi-worker.test.mjs",
+    "test:kpi-worker:db": "node --experimental-strip-types --test scripts/kpi-worker-db.test.mjs",
     "test:permission-out:db": "node scripts/permission-out-test-db.mjs",
     "test:permission-out:browser": "playwright test --config playwright.permission-out.config.ts",
     "test:deployment": "node --test scripts/deployment/config.test.mjs",
@@ -42,7 +45,8 @@
     "test:po:db": "node scripts/po-tracking-test-db.mjs",
     "test:po:excel": "node scripts/po-excel-test-db.mjs",
     "pretest": "node scripts/write-build-info.mjs --ensure",
-    "test": "vitest run"
+    "test": "vitest run",
+    "verify": "npm run lint && npm run typecheck && npm test -- --exclude \"**/*.integration.test.ts\" && npm run check:css"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",
